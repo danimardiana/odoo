@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="action_contacts_list" model="ir.actions.act_window">
+        <field name="name">Contacts</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="base.view_res_partner_filter"/>
+        <field name="context">{'default_is_owner': True}</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Create a contact in your address book
+          </p><p>
+            Odoo helps you to easily track all activities related to a customer.
+          </p>
+        </field>
+    </record>
+
+    <record id="view_customer_inherit_search" model="ir.ui.view">
+            <field name="name">view_customer_inherit_search</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='type_company']" position="replace">
+                    <filter string="Customer Companies" name="type_company" domain="[('is_company', '=', True)]"/>
+
+                </xpath>
+
+                <xpath expr="//filter[@name='type_company']" position="after">
+                     <filter string="Owner" name="type_owner" domain="[('company_type', '=', 'owner')]"/>
+                     <filter string="Management" name="type_management" domain="[('company_type', '=', 'management')]"/>
+                </xpath>
+
+                <xpath expr="//group//filter[@name='group_company']" position="after">
+                    <filter name="group_company_type" string="Company Type" context="{'group_by': 'company_type'}"/>
+                </xpath>
+            </field>
+    </record>
+
+    <record id="view_customer_inherit_tree" model="ir.ui.view">
+            <field name="name">view_customer_inherit_tree</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='company_id']" position="attributes">
+                        <attribute name='invisible'>1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='email']" position="after">
+                        <field name="child_id_name"/>
+                        <!-- <field name="child_ids" widget="many2many_tags"/> -->
+                </xpath>
+            </field>
+    </record>
+
+		<record id="view_customer_inherit_form" model="ir.ui.view">
+            <field name="name">view_customer_inherit_form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+               
+
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button" string="Projects" name="project"  type="object" icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'company')]}">
+                    </button>
+
+                    <button class="oe_stat_button" string="Properties" name="properties_owner"  type="object" icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'owner')]}">
+                    </button>
+                    <button class="oe_stat_button" string="Properties" name="properties_management"  type="object" icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'management')]}">
+                    </button>
+                </xpath>
+
+                <xpath expr="//field[@name='type']" position="before">
+                   <field name="company_type_rel"/>
+                 </xpath>
+
+
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="is_owner" invisible="1"/>
+                    <field name="is_management" invisible="1"/>
+                 </xpath>
+                <xpath expr="//field[@name='type']" position="before">
+                    <field name="mangement_company_type" attrs="{'invisible':[('is_management','=',False)]}" />
+                </xpath>
+                <xpath expr="//field[@name='type']" position="before">
+                    <field name="ownership_company_type_id" domain="[('is_owner', '=', True)]" attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
+                </xpath>
+                <xpath expr="//field[@name='function']" position="before">
+                    <field name="management_company_type_id" widget='many2many_tags' domain="[('is_management', '=', True)]" attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
+                </xpath>
+                <xpath expr="//page[@name='sales_purchases']//group[@name='sale']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}</attribute>
+                </xpath>
+                <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="attributes">
+                    <attribute name='string'>Account Manager</attribute>
+                    <attribute name="attrs">{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}</attribute>
+                </xpath>
+                 <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
+                    <field name="secondary_user_id" attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
+                    <field name="national_user_id" attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
+                </xpath>
+
+                <xpath expr="//notebook//page[1]//kanban//templates" position="replace">
+                   
+                    <templates>
+                                        <t t-name="kanban-box">
+                                            <t t-set="color" t-value="kanban_color(record.color.raw_value)"/>
+                                            <div t-att-class="color + (record.title.raw_value == 1 ? ' oe_kanban_color_alert' : '') + ' oe_kanban_global_click'">
+                                                <div class="o_kanban_image">
+                                                    <img alt="" t-if="record.image_128.raw_value" t-att-src="kanban_image('res.partner', 'image_128', record.id.raw_value)"/>
+                                                    <t t-if="!record.image_128.raw_value">
+                                                        <img alt="Delivery" t-if="record.type.raw_value === 'delivery'" t-att-src='_s + "/base/static/img/avatar_grey.png"'/>
+                                                        <img alt="Invoice" t-if="record.type.raw_value === 'invoice'" t-att-src='_s + "/base/static/img/avatar_grey.png"'/>
+                                                        <t t-if="record.type.raw_value !== 'invoice' &amp;&amp; record.type.raw_value !== 'delivery'">
+                                                            <img alt="Logo" t-if="record.is_company.raw_value === true" t-att-src='_s + "/base/static/img/avatar_grey.png"'/>
+                                                            <img alt="Avatar" t-if="record.is_company.raw_value === false" t-att-src='_s + "/base/static/img/avatar_grey.png"'/>
+                                                        </t>
+                                                    </t>
+                                                </div>
+                                                <div class="oe_kanban_details">
+                                                    <field name="name"/>
+                                                    <div t-if="record.function.raw_value"><field name="function"/></div>
+                                                    <div t-if="record.email.raw_value"><field name="email" widget="email"/></div>
+                                                    <div t-if="record.type.raw_value != 'contact'">
+                                                        <div>
+                                                            <field name="zip"/>
+                                                            <field name="city"/>
+                                                        </div>
+                                                        <field t-if="record.state_id.raw_value" name="state_id"/>
+                                                        <field name="country_id"/>
+                                                    </div>
+                                                    <div t-if="record.phone.raw_value">Phone: <field name="phone" widget="phone"/></div>
+                                                    <div t-if="record.mobile.raw_value">Mobile: <field name="mobile" widget="phone"/></div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+               
+                </xpath>
+
+                <xpath expr="//notebook//page[1]//field[@name='child_ids']" position="attributes">
+                    <attribute name="context">{'default_parent_id': active_id,'default_company_type': company_type, 'default_street': street, 'default_street2': street2, 'default_city': city, 'default_state_id': state_id, 'default_zip': zip, 'default_country_id': country_id, 'default_lang': lang, 'default_user_id': user_id, 'default_type': 'other','default_is_comapny':is_company}</attribute>
+                    
+                </xpath>
+                 
+
+                <xpath expr="//notebook//page[1]//field[@name='child_ids']/form//field[@name='name']" position="before">
+
+                    <field name="company_type" invisible="1"/>
+                    <field name="company_type" invisible="1"/>
+                    <field name="contact_type" attrs="{'invisible': ['|',('company_type','!=','company'),('type', '!=', 'contact')]}"/>
+                    <field name="contact_company_type_id" attrs="{'invisible': ['|',('company_type','!=','company'),('type', '!=', 'invoice')]}" domain="[('company_type','in',['owner','management'])]"/>
+        
+                </xpath>
+
+                  <xpath expr="//notebook//page[1]//field[@name='child_ids']/form//field[@name='name']" position="attributes">
+                    <attribute name="attrs">{'invisible':[('type','=','invoice'),('company_type','=','company')]}</attribute>
+                  </xpath> 
+            
+			</field>
+		</record>
+
+    </data>
+</odoo>
