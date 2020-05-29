@@ -2,13 +2,63 @@
 <odoo>
     <data>
 
-        <record id="action_contacts_list" model="ir.actions.act_window">
+        <record id="view_partner_tree_management" model="ir.ui.view">
+            <field name="name">res.partner.tree</field>
+            <field name="model">res.partner</field>
+            <field eval="8" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="Contacts">
+                    <field name="display_name" string="Name"/>
+                    <field name="function" invisible="1"/>
+                    <field name="phone" optional="show"/>
+                    <field name="email" optional="show"/>
+                    <field name="childname_management"/>
+                
+                </tree>
+            </field>
+        </record>
+
+
+        <record id="view_partner_tree_owner" model="ir.ui.view">
+            <field name="name">res.partner.tree</field>
+            <field name="model">res.partner</field>
+            <field eval="8" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="Contacts">
+                    <field name="display_name" string="Name"/>
+                    <field name="function" invisible="1"/>
+                    <field name="phone" optional="show"/>
+                    <field name="email" optional="show"/>
+                    <field name="ownership_company_type_id" string="OwnerShip Name"/>
+                                    
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_contacts_list_owner" model="ir.actions.act_window">
         <field name="name">Contacts</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
-        <field name="search_view_id" ref="base.view_res_partner_filter"/>
+        <field name="view_id" ref="view_partner_tree_owner"/>
         <field name="context">{'default_is_owner': True}</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Create a contact in your address book
+          </p><p>
+            Odoo helps you to easily track all activities related to a customer.
+          </p>
+        </field>
+    </record>
+
+
+     <record id="action_contacts_list_managemet" model="ir.actions.act_window">
+        <field name="name">Contacts</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_partner_tree_management"/>
+        <field name="context">{'default_is_management': True}</field>
         <field name="help" type="html">
           <p class="o_view_nocontent_smiling_face">
             Create a contact in your address book
@@ -48,7 +98,10 @@
                         <attribute name='invisible'>1</attribute>
                 </xpath>
                 <xpath expr="//field[@name='email']" position="after">
-                        <field name="child_id_name"/>
+                    <field name="company_type" invisible="1"/>
+                    <!-- <field name="ownership_company_type_id" string="OwnerShip Name"/> -->
+                    <!-- <field name="childname_management"/> -->
+                        <!-- <field name="child_id_name"/> -->
                         <!-- <field name="child_ids" widget="many2many_tags"/> -->
                 </xpath>
             </field>

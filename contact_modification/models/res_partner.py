@@ -23,16 +23,15 @@ class Partner(models.Model):
     contact_type = fields.Selection(string='Contact type', selection=[('normal','Normal'),('proofing','Proofing Contact'),('reporting','Reporting Contact')],default='normal')
     contact_company_type_id = fields.Many2one('res.partner',string='Contact Name')
     company_type_rel = fields.Selection(related='company_type',string='Company Type',)
-    child_id_name = fields.Char("Child Name",compute="child_name_get")
+    childname_management = fields.Char("Management Name",compute="child_id_name_management")
     
 
-    @api.depends('child_ids','type')
-    def child_name_get(self):
+    def child_id_name_management(self):
         for rec in self:
-            if rec.child_ids:
-                rec.child_id_name = ','.join([child.name or child.contact_company_type_id.name or '' for child in rec.child_ids])
+            if rec.management_company_type_id:
+                rec.childname_management = ','.join([child.name for child in rec.management_company_type_id])
             else:
-                rec.child_id_name = ' '
+                rec.childname_management = ' '
 
     @api.depends('is_company','is_owner','is_management')
     def _compute_company_type(self):
@@ -50,7 +49,8 @@ class Partner(models.Model):
     def properties_owner(self):
         self.ensure_one()
         domain = ['|',('ownership_company_type_id', '=',self.id),('ownership_company_type_id','in',self.child_ids.ids)]
-        action = self.env.ref('contact_modification.action_contacts_list').read()[0]
+        print (">>>>",self.search(domain))
+        action = self.env.ref('contact_modification.action_contacts_list_owner').read()[0]
         context = literal_eval(action['context'])
         context.update(self.env.context)
         return dict(action, domain=domain, context=context)
@@ -58,8 +58,8 @@ class Partner(models.Model):
 
     def properties_management(self):
         self.ensure_one()
-        domain = ['|',('management_company_type_id', 'in',[self.id]),('ownership_company_type_id','in',self.child_ids.ids)]
-        action = self.env.ref('contact_modification.action_contacts_list').read()[0]
+        domain = ['|',('management_company_type_id', 'in',[self.id]),('management_company_type_id','in',self.child_ids.ids)]
+        action = self.env.ref('contact_modification.action_contacts_list_managemet').read()[0]
         context = literal_eval(action['context'])
         context.update(self.env.context)
         return dict(action, domain=domain, context=context)
