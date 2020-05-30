@@ -28,7 +28,7 @@
                     <field name="function" invisible="1"/>
                     <field name="phone" optional="show"/>
                     <field name="email" optional="show"/>
-                    <field name="childname_management" string="Rigeon"/>
+                    <field name="childname_management" string="Region"/>
                 
                 </tree>
             </field>
@@ -45,7 +45,7 @@
                     <field name="function" invisible="1"/>
                     <field name="phone" optional="show"/>
                     <field name="email" optional="show"/>
-                    <field name="ownership_company_type_id" string="Rigeon"/>
+                    <field name="ownership_company_type_id" string="Region"/>
                                     
                 </tree>
             </field>
