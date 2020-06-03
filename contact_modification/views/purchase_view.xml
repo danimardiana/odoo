@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	<record id="view_purchase_inherit_form" model="ir.ui.view">
+            <field name="name">view_purchase_inherit_form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+            	 <xpath expr="//field[@name='partner_id']" position="replace">
+            	 	<field name="partner_id" widget="res_partner_many2one" context="{'default_company_type': 'vendor','res_partner_search_mode': 'supplier','show_vat': True}"
+                                placeholder="Name, TIN, Email, or Reference"
+                            />
+            	 </xpath>
+            </field>
+        </record>
+
+        <record id="account.res_partner_action_supplier" model="ir.actions.act_window">
+            <field name="name">Vendors</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            
+            <field name="context">{'search_default_supplier': 1,'res_partner_search_mode': 'supplier', 'default_company_type': 'vendor', 'default_supplier_rank': 1}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a new supplier in your address book
+              </p><p>
+                Odoo helps you easily track all activities related to a supplier.
+              </p>
+            </field>
+        </record>
+    </data>
+</odoo>

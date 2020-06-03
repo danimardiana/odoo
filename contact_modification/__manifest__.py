@@ -9,11 +9,13 @@
     'description': """
         """,
     "depends": [
-        'base','contacts'
+        'base','contacts','account','purchase'
     ],
     "data": [
-        
+        'security/ir.model.access.csv',
+        "data/contact.xml",
         "views/res_partner_view.xml",
+        "views/purchase_view.xml",
     ],
    
     'installable': True,
