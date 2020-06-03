@@ -5,17 +5,15 @@
     'category': 'Contact Modification',
     'summary': 'Contact Modification',
     "author": "",
-    'version': '13.0.0.0.1',
+    'version': '13.0.0',
     'description': """
         """,
     "depends": [
-        'base','contacts','account','purchase'
+        'base','contacts'
     ],
     "data": [
-        'security/ir.model.access.csv',
-        "data/contact.xml",
+        
         "views/res_partner_view.xml",
-        "views/purchase_view.xml",
     ],
    
     'installable': True,
