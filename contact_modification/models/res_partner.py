@@ -45,6 +45,8 @@ class Partner(models.Model):
             self.email = self.contact_company_type_id.email or ' '
             self.phone = self.contact_company_type_id.phone or False
             self.mobile = self.contact_company_type_id.mobile or False
+            self.name = ' '
+
 
     @api.onchange('contact_type_ids')
     def onchange_contact_display_name(self):
@@ -55,10 +57,10 @@ class Partner(models.Model):
             else:
                 rec.contact_display_kanban = ' '
 
-    @api.onchange('contact_company_type_id')
-    def onchange_contact_company_type_id(self):
-        if self.contact_company_type_id:
-            self.name = ' '
+    # @api.onchange('contact_company_type_id')
+    # def onchange_contact_company_type_id(self):
+    #     if self.contact_company_type_id:
+    #         self.name = ' '
     
 
     # def child_id_name_management(self):
