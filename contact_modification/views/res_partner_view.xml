@@ -27,7 +27,7 @@
                     <field name="function" invisible="1"/>
                     <field name="phone" optional="show"/>
                     <field name="email" optional="show"/>
-                    <field name="childname_management" string="Region"/>
+                    <field name="management_company_type_id" string="Region"/>
                 
                 </tree>
             </field>
@@ -168,7 +168,7 @@
                     <field name="ownership_company_type_id" domain="[('is_owner', '=', True)]" attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
                 </xpath>
                 <xpath expr="//field[@name='function']" position="before">
-                    <field name="management_company_type_id" widget='many2many_tags' domain="[('is_management', '=', True)]" attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
+                    <field name="management_company_type_id"  domain="[('is_management', '=', True)]" attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
                 </xpath>
                 <xpath expr="//page[@name='sales_purchases']//group[@name='sale']" position="attributes">
                     <attribute name="attrs">{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}</attribute>
@@ -235,12 +235,12 @@
                     <field name="company_type" invisible="1"/>
                     <field name="contact_display_kanban" invisible="1"/>
                     <field name="contact_type_ids" attrs="{'invisible': ['|',('company_type','!=','company'),('type', '!=', 'contact')]}" widget="many2many_tags"/>
-                    <field name="contact_company_type_id" attrs="{'invisible': ['|',('company_type','!=','company'),('type', '!=', 'invoice')]}" domain="[('company_type','in',['owner','management'])]"/>
+                    <field name="contact_company_type_id" attrs="{'invisible': ['|',('company_type','!=','company'),('type', 'not in', ['contact','invoice'])]}" domain="[('company_type','in',['owner','management','person'])]"/>
         
                 </xpath>
 
                   <xpath expr="//notebook//page[1]//field[@name='child_ids']/form//field[@name='name']" position="attributes">
-                    <attribute name="attrs">{'invisible':[('type','=','invoice'),('company_type','=','company')]}</attribute>
+                    <attribute name="attrs">{'invisible':[('type','in',['contact','invoice']),('company_type','=','company')]}</attribute>
                   </xpath> 
             
 			</field>

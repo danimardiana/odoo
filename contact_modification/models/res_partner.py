@@ -20,7 +20,7 @@ class Partner(models.Model):
         selection_add=[('company', 'Customer Company'),('owner', 'Owner'),('management', 'Management'),('vendor', 'Vendor')],
         compute='_compute_company_type', inverse='_write_company_type',store=True)
     ownership_company_type_id = fields.Many2one('res.partner',string='Owner Ship Company')
-    management_company_type_id = fields.Many2many('res.partner','mgmt_rel','respart_id','mgmt_id',string='Mgmt. Company')
+    management_company_type_id = fields.Many2one('res.partner',string='Mgmt. Company')
     is_owner = fields.Boolean(string='Is a Owner', default=False,help="Check if the contact is a Owner")
     is_management = fields.Boolean(string='Is a Management', default=False,help="Check if the contact is a Management")
     is_vendor = fields.Boolean(string='Is a Vendore', default=False,help="Check if the contact is a Vendor")
@@ -30,7 +30,7 @@ class Partner(models.Model):
     contact_type_ids = fields.Many2many('contact.type','contact_type_rel','con_id','type_id',string="Contact Type")
     contact_company_type_id = fields.Many2one('res.partner',string='Contact Name')
     company_type_rel = fields.Selection(related='company_type',string='Company Type',)
-    childname_management = fields.Char("Management Name",compute="child_id_name_management")
+    # childname_management = fields.Char("Management Name",compute="child_id_name_management")
     contact_display_kanban = fields.Char("Contact Display Name")
 
     @api.onchange('contact_company_type_id')
@@ -43,25 +43,30 @@ class Partner(models.Model):
             self.city = self.contact_company_type_id.city or ' '
             self.country_id = self.contact_company_type_id.country_id.id or False
             self.email = self.contact_company_type_id.email or ' '
-            self.phone = self.contact_company_type_id.phone or ' '
-            self.mobile = self.contact_company_type_id.mobile or ' '
+            self.phone = self.contact_company_type_id.phone or False
+            self.mobile = self.contact_company_type_id.mobile or False
 
     @api.onchange('contact_type_ids')
-    def contact_display_name(self):
+    def onchange_contact_display_name(self):
         for rec in self:
             if rec.contact_type_ids:
                 rec.contact_display_kanban = ' ,'.join([contact.nik for contact in rec.contact_type_ids])
 
             else:
                 rec.contact_display_kanban = ' '
+
+    @api.onchange('contact_company_type_id')
+    def onchange_contact_company_type_id(self):
+        if self.contact_company_type_id:
+            self.name = ' '
     
 
-    def child_id_name_management(self):
-        for rec in self:
-            if rec.management_company_type_id:
-                rec.childname_management = ','.join([child.name for child in rec.management_company_type_id])
-            else:
-                rec.childname_management = ' '
+    # def child_id_name_management(self):
+    #     for rec in self:
+    #         if rec.management_company_type_id:
+    #             rec.childname_management = ','.join([child.name for child in rec.management_company_type_id])
+    #         else:
+    #             rec.childname_management = ' '
 
     @api.depends('is_company','is_owner','is_management')
     def _compute_company_type(self):
