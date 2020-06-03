@@ -5,7 +5,7 @@
     'category': 'Contact Modification',
     'summary': 'Contact Modification',
     "author": "",
-    'version': '13.0.0',
+    'version': '13.0.0.0.1',
     'description': """
         """,
     "depends": [
