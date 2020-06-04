@@ -45,7 +45,7 @@ class Partner(models.Model):
             self.email = self.contact_company_type_id.email or ' '
             self.phone = self.contact_company_type_id.phone or False
             self.mobile = self.contact_company_type_id.mobile or False
-            self.name = ' '
+            self.name = self.contact_company_type_id.display_name
 
 
     @api.onchange('contact_type_ids')

@@ -201,7 +201,7 @@
                                                 </div>
                                                 <div class="oe_kanban_details">
                                                     <field name="name"/>
-                                                    <div t-if="record.contact_company_type_id.raw_value"><field name="contact_company_type_id"/></div>
+                                                    <!-- <div t-if="record.contact_company_type_id.raw_value"><field name="contact_company_type_id"/></div> -->
                                                     <div t-if="record.type.raw_value"><strong><field name="type"/></strong></div>
                                                     <div t-if="record.contact_display_kanban.raw_value"><strong><field name="contact_display_kanban"/></strong></div>
                                                     <div t-if="record.function.raw_value"><field name="function"/></div>
