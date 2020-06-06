@@ -84,7 +84,9 @@
         <field name="inherit_id" ref="base.view_res_partner_filter"/>
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='type_company']" position="replace">
-                <filter string="Customer Companies" name="type_company" domain="[('is_company', '=', True)]"/>
+                <filter string="Customer Companies"
+                        name="type_company"
+                        domain="[('company_type', '=', 'company')]"/>
             </xpath>
             <xpath expr="//filter[@name='type_company']" position="after">
                 <filter string="Owner" name="type_owner" domain="[('company_type', '=',  'owner')]"/>
