@@ -2,14 +2,18 @@
 
 {
     "name": "Contact Modification",
-    'category': 'Contact Modification',
-    'summary': 'Contact Modification',
-    "author": "",
-    'version': '13.0.0',
-    'description': """
-        """,
+    'category': 'Contacts',
+    'summary': 'To manage Contacts with classification',
+    "author": "CLx Media",
+    "website": "",
+    'version': '13.0.0.0.1',
+    'sequence': 1,
+    'license': 'AGPL-3',
+    'description': """""",
     "depends": [
-        'base','contacts','account','purchase'
+        'contacts',
+        'account',
+        'purchase'
     ],
     "data": [
         'security/ir.model.access.csv',
@@ -17,7 +21,6 @@
         "views/res_partner_view.xml",
         "views/purchase_view.xml",
     ],
-   
     'installable': True,
     'application': False,
     'auto_install': False,
