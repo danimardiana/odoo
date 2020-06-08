@@ -316,6 +316,7 @@
                             <!-- fields in form x2many view to diminish requests -->
                             <field name="comment"/>
                             <field name="display_name"/>
+                            <field name="contact_type_ids"/>
                             <templates>
                                 <t t-name="kanban-box">
                                     <t t-set="color" t-value="kanban_color(record.color.raw_value)"/>
@@ -369,6 +370,9 @@
                                             <div t-if="record.mobile.raw_value">Mobile:
                                                 <field name="mobile" widget="phone"/>
                                             </div>
+                                            <div t-if="record.contact_type_ids.raw_value">
+                                                <field name="contact_type_ids" widget="many2many_tags"/>
+                                            </div>
                                         </div>
                                     </div>
                                 </t>
@@ -385,8 +389,8 @@
                                 <group col="12">
                                     <group colspan="5">
                                         <field name="contact_type_ids" widget="many2many_tags"/>
-                                        <field name="child_id"/>
-                                        <field name="name" string="Contact Name"
+                                        <field name="child_id" string="Contact Name"/>
+                                        <field name="name" string="Contact Name" invisible="1"
                                                attrs="{'required' : [('type', '=', 'contact')]}"/>
                                         <field name="title" placeholder="e.g. Mr."
                                                attrs="{'invisible': [('type','!=', 'contact')]}"/>

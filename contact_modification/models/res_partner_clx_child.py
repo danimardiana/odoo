@@ -8,8 +8,8 @@ class ContactType(models.Model):
     _name = "res.partner.clx.child"
     _description = "Partner Children"
 
-    parent_id = fields.Many2one('res.partner')
-    child_id = fields.Many2one('res.partner')
+    parent_id = fields.Many2one('res.partner', string="Parent Contact")
+    child_id = fields.Many2one('res.partner', string="Child Contact")
     contact_type_ids = fields.Many2many(
         'contact.type', 'contact_type_partner_rel',
         'con_id', 'type_id', string='Contact Type')
