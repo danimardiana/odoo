@@ -174,14 +174,16 @@
                 </attribute>
             </xpath>
 
-            <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="attributes">
-                <attribute name='string'>Account Manager</attribute>
-                <attribute name="attrs">
-                    {'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}
-                </attribute>
-            </xpath>
+<!--            <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="attributes">-->
+<!--                <attribute name='string'>Account Manager</attribute>-->
+<!--                <attribute name="attrs">-->
+<!--                    {'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}-->
+<!--                </attribute>-->
+<!--            </xpath>-->
 
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
+                <field name="account_user_id"
+                       attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
                 <field name="secondary_user_id"
                        attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
                 <field name="national_user_id"
