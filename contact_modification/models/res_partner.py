@@ -64,6 +64,10 @@ class Partner(models.Model):
     contact_child_ids = fields.One2many(
         'res.partner.clx.child', 'parent_id',
         string="Other Contacts")
+    vertical = fields.Char(string="Vertical")
+    branding_name = fields.Char(string="Branding Name")
+    timezone_char = fields.Char(string="Timezone2")
+    yardi_code = fields.Char(string="Yardi Code")
 
     @api.onchange('contact_company_type_id')
     def onchange_contact_company_type_id(self):
