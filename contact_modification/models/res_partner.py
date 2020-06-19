@@ -60,8 +60,6 @@ class Partner(models.Model):
                                               string='Contact Name')
     company_type_rel = fields.Selection(related='company_type',
                                         string='Company Type', )
-    # childname_management = fields.Char(
-    # "Management Name",compute="child_id_name_management")
     contact_display_kanban = fields.Char("Contact Display Name")
     contact_child_ids = fields.One2many(
         'res.partner.clx.child', 'parent_id',
@@ -90,18 +88,6 @@ class Partner(models.Model):
                 ])
             else:
                 rec.contact_display_kanban = ''
-
-    # @api.onchange('contact_company_type_id')
-    # def onchange_contact_company_type_id(self):
-    #     if self.contact_company_type_id:
-    #         self.name = ''
-
-    # def child_id_name_management(self):
-    #     for rec in self:
-    #         if rec.management_company_type_id:
-    #             rec.childname_management = ','.join([child.name for child in rec.management_company_type_id])
-    #         else:
-    #             rec.childname_management = ''
 
     @api.depends('is_company', 'is_owner', 'is_management')
     def _compute_company_type(self):
