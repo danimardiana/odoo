@@ -347,6 +347,12 @@
                     </field>
                 </page>
             </notebook>
+            <field name="vat" position="after">
+                <field name="vertical"/>
+                <field name="branding_name"/>
+                <field name="timezone_char"/>
+                <field name="yardi_code"/>
+            </field>
         </field>
     </record>
 </odoo>
