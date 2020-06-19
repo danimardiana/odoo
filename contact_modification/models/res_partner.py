@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Odoo, CLx Media
+# See LICENSE file for full copyright & licensing details.
+
 from ast import literal_eval
 
 from odoo import api, fields, models
@@ -70,7 +71,7 @@ class Partner(models.Model):
     yardi_code = fields.Char(string="Yardi Code")
 
     @api.onchange('contact_company_type_id')
-    def onchange_contact_company_type_id(self):
+    def onchange_contact_company_type(self):
         if self.contact_company_type_id:
             self.street = self.contact_company_type_id.street or ''
             self.street2 = self.contact_company_type_id.street2 or ''
@@ -139,59 +140,20 @@ class Partner(models.Model):
 
     def _write_company_type(self):
         for partner in self:
-            if partner.company_type == 'company':
-                partner.is_company = True
-                partner.is_management = False
-                partner.is_owner = False
-
-            if partner.company_type == 'person':
-                partner.is_company = False
-                partner.is_management = False
-                partner.is_owner = False
-
-            if partner.company_type == 'vendor':
-                partner.is_owner = False
-                partner.is_management = False
-                partner.is_vendor = True
-
-            if partner.company_type == 'owner':
-                partner.is_owner = True
-                partner.is_management = False
-                partner.is_vendor = False
-
-            if partner.company_type == 'management':
-                partner.is_management = True
-                partner.is_owner = False
-                partner.is_vendor = False
+            partner.set_contact_type_flag()
 
     @api.onchange('company_type')
     def onchange_company_type(self):
-        if self.company_type == 'company':
-            self.is_company = True
-            self.is_management = False
-            self.is_owner = False
-            self.is_vendor = False
+        self.set_contact_type_flag()
 
-        if self.company_type == 'person':
-            self.is_company = False
-            self.is_management = False
-            self.is_owner = False
-            self.is_vendor = False
-
-        if self.company_type == 'owner':
-            self.is_owner = True
-            self.is_management = False
-            self.is_vendor = False
-            # self.is_company = True
-
-        if self.company_type == 'vendor':
-            self.is_owner = False
-            self.is_management = False
-            self.is_vendor = True
-            self.supplier_rank = 1
-
-        if self.company_type == 'management':
-            self.is_management = True
-            self.is_owner = False
-            self.is_vendor = False
-            # self.is_company = True
+    def set_contact_type_flag(self):
+        """
+        To check current contact type
+        to display parent for contact at form and in relation.
+        :return: None
+        """
+        cmp_type = self.company_type
+        self.is_company = True if cmp_type == 'company' else False
+        self.is_vendor = True if cmp_type == 'vendor' else False
+        self.is_owner = True if cmp_type == 'owner' else False
+        self.is_management = True if cmp_type == 'management' else False
