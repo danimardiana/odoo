@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Odoo, CLx Media
+# See LICENSE file for full copyright & licensing details.
+
 from ast import literal_eval
 
 from odoo import api, fields, models
@@ -60,15 +61,23 @@ class Partner(models.Model):
                                               string='Contact Name')
     company_type_rel = fields.Selection(related='company_type',
                                         string='Company Type', )
-    # childname_management = fields.Char(
-    # "Management Name",compute="child_id_name_management")
     contact_display_kanban = fields.Char("Contact Display Name")
     contact_child_ids = fields.One2many(
         'res.partner.clx.child', 'parent_id',
         string="Other Contacts")
+    vertical = fields.Char(string="Vertical")
+    branding_name = fields.Char(string="Branding Name")
+    timezone_char = fields.Char(string="Timezone2")
+    yardi_code = fields.Char(string="Yardi Code")
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        if 'custom_filter_groupby' in self._context and 'parent_id' in groupby:
+            domain = [('company_type', '=', 'person')]
+        return super(Partner, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
 
     @api.onchange('contact_company_type_id')
-    def onchange_contact_company_type_id(self):
+    def onchange_contact_company_type(self):
         if self.contact_company_type_id:
             self.street = self.contact_company_type_id.street or ''
             self.street2 = self.contact_company_type_id.street2 or ''
@@ -90,18 +99,6 @@ class Partner(models.Model):
                 ])
             else:
                 rec.contact_display_kanban = ''
-
-    # @api.onchange('contact_company_type_id')
-    # def onchange_contact_company_type_id(self):
-    #     if self.contact_company_type_id:
-    #         self.name = ''
-
-    # def child_id_name_management(self):
-    #     for rec in self:
-    #         if rec.management_company_type_id:
-    #             rec.childname_management = ','.join([child.name for child in rec.management_company_type_id])
-    #         else:
-    #             rec.childname_management = ''
 
     @api.depends('is_company', 'is_owner', 'is_management')
     def _compute_company_type(self):
@@ -147,61 +144,34 @@ class Partner(models.Model):
         context.update(self.env.context)
         return dict(action, domain=domain, context=context)
 
+    def assignation_management(self):
+        self.ensure_one()
+        clx_child_ids = self.env['res.partner.clx.child'].search([('child_id','=',self.id)])
+        # parent_id = [clx_child_id.parent_id.id for clx_child_id in clx_child_ids]
+        domain = [('id', 'in', clx_child_ids.ids)]
+        action = self.env.ref(
+            'contact_modification.action_partner_assignation_contacts'
+        ).read()[0]
+        context = literal_eval(action['context'])
+        context.update(self.env.context)
+        return dict(action, domain=domain, context=context)
+
     def _write_company_type(self):
         for partner in self:
-            if partner.company_type == 'company':
-                partner.is_company = True
-                partner.is_management = False
-                partner.is_owner = False
-
-            if partner.company_type == 'person':
-                partner.is_company = False
-                partner.is_management = False
-                partner.is_owner = False
-
-            if partner.company_type == 'vendor':
-                partner.is_owner = False
-                partner.is_management = False
-                partner.is_vendor = True
-
-            if partner.company_type == 'owner':
-                partner.is_owner = True
-                partner.is_management = False
-                partner.is_vendor = False
-
-            if partner.company_type == 'management':
-                partner.is_management = True
-                partner.is_owner = False
-                partner.is_vendor = False
+            partner.set_contact_type_flag()
 
     @api.onchange('company_type')
     def onchange_company_type(self):
-        if self.company_type == 'company':
-            self.is_company = True
-            self.is_management = False
-            self.is_owner = False
-            self.is_vendor = False
+        self.set_contact_type_flag()
 
-        if self.company_type == 'person':
-            self.is_company = False
-            self.is_management = False
-            self.is_owner = False
-            self.is_vendor = False
-
-        if self.company_type == 'owner':
-            self.is_owner = True
-            self.is_management = False
-            self.is_vendor = False
-            # self.is_company = True
-
-        if self.company_type == 'vendor':
-            self.is_owner = False
-            self.is_management = False
-            self.is_vendor = True
-            self.supplier_rank = 1
-
-        if self.company_type == 'management':
-            self.is_management = True
-            self.is_owner = False
-            self.is_vendor = False
-            # self.is_company = True
+    def set_contact_type_flag(self):
+        """
+        To check current contact type
+        to display parent for contact at form and in relation.
+        :return: None
+        """
+        cmp_type = self.company_type
+        self.is_company = True if cmp_type == 'company' else False
+        self.is_vendor = True if cmp_type == 'vendor' else False
+        self.is_owner = True if cmp_type == 'owner' else False
+        self.is_management = True if cmp_type == 'management' else False

@@ -19,7 +19,7 @@
         <field name="model">res.partner</field>
         <field eval="8" name="priority"/>
         <field name="arch" type="xml">
-            <tree string="Contacts">
+            <tree>
                 <field name="display_name" string="Name"/>
                 <field name="function" invisible="1"/>
                 <field name="phone" optional="show"/>
@@ -34,7 +34,7 @@
         <field name="model">res.partner</field>
         <field eval="8" name="priority"/>
         <field name="arch" type="xml">
-            <tree string="Contacts">
+            <tree>
                 <field name="display_name" string="Name"/>
                 <field name="function" invisible="1"/>
                 <field name="phone" optional="show"/>
@@ -91,7 +91,6 @@
             <xpath expr="//filter[@name='type_company']" position="after">
                 <filter string="Owner" name="type_owner" domain="[('company_type', '=',  'owner')]"/>
                 <filter string="Management" name="type_management" domain="[('company_type', '=', 'management')]"/>
-                <!-- <filter string="Vendor" name="type_vendor" domain="[('company_type', '=', 'vendor')]"/> -->
             </xpath>
             <xpath expr="//group//filter[@name='group_company']" position="after">
                 <filter name="group_company_type" string="Company Type" context="{'group_by': 'company_type'}"/>
@@ -109,12 +108,12 @@
             </xpath>
             <xpath expr="//field[@name='email']" position="after">
                 <field name="company_type" invisible="1"/>
-                <!-- <field name="ownership_company_type_id" string="OwnerShip Name"/> -->
-                <!-- <field name="childname_management"/> -->
-                <!-- <field name="child_id_name"/> -->
-                <!-- <field name="child_ids" widget="many2many_tags"/> -->
             </xpath>
         </field>
+    </record>
+
+    <record id="contacts.action_contacts" model="ir.actions.act_window">
+        <field name="context">{'default_is_company': True, 'custom_filter_groupby': True}</field>
     </record>
 
     <record id="view_customer_inherit_form" model="ir.ui.view">
@@ -131,6 +130,9 @@
                 </button>
                 <button class="oe_stat_button" string="Properties" name="properties_management" type="object"
                         icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'management')]}">
+                </button>
+                <button class="oe_stat_button" string="Assignation" name="assignation_management" type="object"
+                        icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'person')]}">
                 </button>
             </xpath>
 
@@ -150,8 +152,19 @@
                 <field name="parent_id"
                        widget="res_partner_many2one"
                        placeholder="Company"
-                       domain="[('is_company', '=', True)]" context="{'default_is_company': True, 'show_vat': True}"
-                       attrs="{'invisible': ['|','|','|',('is_company','=', True),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
+                       domain="['|', '|', '|',
+                            ('is_company', '=', True),
+                            ('is_management', '=', True),
+                            ('is_owner', '=', True),
+                            ('is_vendor', '=', True)
+                       ]"
+                       context="{'default_is_company': True, 'show_vat': True}"
+                       attrs="{'invisible': ['|', '|', '|',
+                            ('is_company', '=', True),
+                            ('is_management', '=', True),
+                            ('is_owner', '=', True),
+                            ('is_vendor', '=', True)
+                       ]}"/>
             </xpath>
 
             <xpath expr="//field[@name='type']" position="before">
@@ -174,13 +187,6 @@
                 </attribute>
             </xpath>
 
-<!--            <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="attributes">-->
-<!--                <attribute name='string'>Account Manager</attribute>-->
-<!--                <attribute name="attrs">-->
-<!--                    {'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}-->
-<!--                </attribute>-->
-<!--            </xpath>-->
-
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
                 <field name="account_user_id"
                        attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
@@ -189,66 +195,6 @@
                 <field name="national_user_id"
                        attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
             </xpath>
-
-            <!--                        <xpath expr="//notebook//page[1]//kanban//templates" position="replace">-->
-            <!--                            <templates>-->
-            <!--                                <t t-name="kanban-box">-->
-            <!--                                    <t t-set="color" t-value="kanban_color(record.color.raw_value)"/>-->
-            <!--                                    <div t-att-class="color + (record.title.raw_value == 1 ? ' oe_kanban_color_alert' : '') + ' oe_kanban_global_click'">-->
-            <!--                                        <div class="o_kanban_image">-->
-            <!--                                            <img alt="" t-if="record.image_128.raw_value"-->
-            <!--                                                 t-att-src="kanban_image('res.partner', 'image_128', record.id.raw_value)"/>-->
-            <!--                                            <t t-if="!record.image_128.raw_value">-->
-            <!--                                                <img alt="Delivery" t-if="record.type.raw_value === 'delivery'"-->
-            <!--                                                     t-att-src='_s + "/base/static/img/truck.png"'/>-->
-            <!--                                                <img alt="Invoice" t-if="record.type.raw_value === 'invoice'"-->
-            <!--                                                     t-att-src='_s + "/base/static/img/money.png"'/>-->
-            <!--                                                <t t-if="record.type.raw_value !== 'invoice' &amp;&amp; record.type.raw_value !== 'delivery'">-->
-            <!--                                                    <img alt="Logo" t-if="record.is_company.raw_value === true"-->
-            <!--                                                         t-att-src='_s + "/base/static/img/avatar_grey.png"'/>-->
-            <!--                                                    <img alt="Avatar" t-if="record.is_company.raw_value === false"-->
-            <!--                                                         t-att-src='_s + "/base/static/img/avatar_grey.png"'/>-->
-            <!--                                                </t>-->
-            <!--                                            </t>-->
-            <!--                                        </div>-->
-            <!--                                        <div class="oe_kanban_details">-->
-            <!--                                            <field name="name"/>-->
-            <!--                                            &lt;!&ndash; <div t-if="record.contact_company_type_id.raw_value"><field name="contact_company_type_id"/></div> &ndash;&gt;-->
-            <!--                                            <div t-if="record.type.raw_value">-->
-            <!--                                                <strong>-->
-            <!--                                                    <field name="type"/>-->
-            <!--                                                </strong>-->
-            <!--                                            </div>-->
-            <!--                                            <div t-if="record.contact_display_kanban.raw_value">-->
-            <!--                                                <strong>-->
-            <!--                                                    <field name="contact_display_kanban"/>-->
-            <!--                                                </strong>-->
-            <!--                                            </div>-->
-            <!--                                            <div t-if="record.function.raw_value">-->
-            <!--                                                <field name="function"/>-->
-            <!--                                            </div>-->
-            <!--                                            <div t-if="record.email.raw_value">-->
-            <!--                                                <field name="email" widget="email"/>-->
-            <!--                                            </div>-->
-            <!--                                            <div t-if="record.type.raw_value != 'contact'">-->
-            <!--                                                <div>-->
-            <!--                                                    <field name="zip"/>-->
-            <!--                                                    <field name="city"/>-->
-            <!--                                                </div>-->
-            <!--                                                <field t-if="record.state_id.raw_value" name="state_id"/>-->
-            <!--                                                <field name="country_id"/>-->
-            <!--                                            </div>-->
-            <!--                                            <div t-if="record.phone.raw_value">Phone:-->
-            <!--                                                <field name="phone" widget="phone"/>-->
-            <!--                                            </div>-->
-            <!--                                            <div t-if="record.mobile.raw_value">Mobile:-->
-            <!--                                                <field name="mobile" widget="phone"/>-->
-            <!--                                            </div>-->
-            <!--                                        </div>-->
-            <!--                                    </div>-->
-            <!--                                </t>-->
-            <!--                            </templates>-->
-            <!--                        </xpath>-->
 
             <xpath expr="//notebook//page[1]//field[@name='child_ids']" position="attributes">
                 <attribute name="context">{
@@ -275,22 +221,7 @@
                 <field name="contact_type_ids"
                        attrs="{'invisible': ['|',('company_type','!=','company'),('type', '!=', 'contact')]}"
                        widget="many2many_tags"/>
-                <!--                <field name="contact_company_type_id"-->
-                <!--                       attrs="{'invisible': ['|',('company_type','!=','company'),('type', 'not in', ['contact','invoice'])]}"-->
-                <!--                       domain="[('company_type','in',['owner','management','person'])]"/>-->
             </xpath>
-
-            <!--            <xpath expr="//notebook//page[1]//field[@name='child_ids']/form//field[@name='name']"-->
-            <!--                   position="attributes">-->
-            <!--                <attribute name="attrs">-->
-            <!--                    -->
-            <!--                </attribute>-->
-            <!--            </xpath>-->
-
-            <!--            <field name="child_ids" position="attributes">-->
-            <!--                <attribute name="invisible">1</attribute>-->
-            <!--                <attribute name="readonly">1</attribute>-->
-            <!--            </field>-->
 
             <notebook position="inside">
                 <page string="link Contacts">
@@ -434,6 +365,12 @@
                     </field>
                 </page>
             </notebook>
+            <field name="vat" position="after">
+                <field name="vertical"/>
+                <field name="branding_name"/>
+                <field name="timezone_char"/>
+                <field name="yardi_code"/>
+            </field>
         </field>
     </record>
 </odoo>
