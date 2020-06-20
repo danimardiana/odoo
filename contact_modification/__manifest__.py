@@ -19,7 +19,8 @@
         "data/contact.xml",
         "views/res_partner_view.xml",
         "views/purchase_view.xml",
-        "views/res_partner_clx_child.xml"
+        "views/res_partner_clx_child.xml",
+        "views/menu.xml"
     ],
     'installable': True,
     'application': True,

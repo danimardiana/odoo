@@ -70,6 +70,12 @@ class Partner(models.Model):
     timezone_char = fields.Char(string="Timezone2")
     yardi_code = fields.Char(string="Yardi Code")
 
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        if 'custom_filter_groupby' in self._context and 'parent_id' in groupby:
+            domain = [('company_type', '=', 'person')]
+        return super(Partner, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+
     @api.onchange('contact_company_type_id')
     def onchange_contact_company_type(self):
         if self.contact_company_type_id:
@@ -133,6 +139,18 @@ class Partner(models.Model):
         ]
         action = self.env.ref(
             'contact_modification.action_contacts_list_managemet'
+        ).read()[0]
+        context = literal_eval(action['context'])
+        context.update(self.env.context)
+        return dict(action, domain=domain, context=context)
+
+    def assignation_management(self):
+        self.ensure_one()
+        clx_child_ids = self.env['res.partner.clx.child'].search([('child_id','=',self.id)])
+        # parent_id = [clx_child_id.parent_id.id for clx_child_id in clx_child_ids]
+        domain = [('id', 'in', clx_child_ids.ids)]
+        action = self.env.ref(
+            'contact_modification.action_partner_assignation_contacts'
         ).read()[0]
         context = literal_eval(action['context'])
         context.update(self.env.context)

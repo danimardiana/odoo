@@ -9,7 +9,7 @@ class ContactType(models.Model):
     _description = "Partner Children"
 
     parent_id = fields.Many2one('res.partner', string="Parent Contact")
-    child_id = fields.Many2one('res.partner', string="Child Contact")
+    child_id = fields.Many2one('res.partner', string="Child Contact", domain="[('company_type', '=', 'person')]")
     contact_type_ids = fields.Many2many(
         'contact.type', 'contact_type_partner_rel',
         'con_id', 'type_id', string='Contact Type')

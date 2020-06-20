@@ -112,6 +112,10 @@
         </field>
     </record>
 
+    <record id="contacts.action_contacts" model="ir.actions.act_window">
+        <field name="context">{'default_is_company': True, 'custom_filter_groupby': True}</field>
+    </record>
+
     <record id="view_customer_inherit_form" model="ir.ui.view">
         <field name="name">view_customer_inherit_form</field>
         <field name="model">res.partner</field>
@@ -126,6 +130,9 @@
                 </button>
                 <button class="oe_stat_button" string="Properties" name="properties_management" type="object"
                         icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'management')]}">
+                </button>
+                <button class="oe_stat_button" string="Assignation" name="assignation_management" type="object"
+                        icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'person')]}">
                 </button>
             </xpath>
 
