@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="product_pricelist_item_form_view_inherit">
+            <field name="name">product.pricelist.item.form</field>
+            <field name="model">product.pricelist.item</field>
+            <field name="inherit_id" ref="product.product_pricelist_item_form_view" />
+            <field name="arch" type="xml">
+                <field name="min_quantity" position="after">
+                    <field name="is_management_fee"/>
+                    <field name="min_price" attrs="{'invisible':[('is_management_fee', '=', False)]}"/>
+                </field>
+                <group name="pricelist_rule_computation" position="before">
+                    <group string="Management Price Computation" name="management_pricelist_rule_computation" groups="product.group_sale_pricelist" attrs="{'invisible':[('is_management_fee', '=', False)]}">
+                          <group name="pricelist_rule_method">
+                              <field name="compute_management_price" string="Compute Price" widget="radio"/>
+                          </group>
+                          <group name="pricelist_rule_base">
+                              <field name="fixed_price" attrs="{'invisible':[('compute_management_price', '!=', 'fixed')]}"/>
+                              <label for="percent_price" attrs="{'invisible':[('compute_management_price', '!=', 'percentage')]}"/>
+                              <div attrs="{'invisible':[('compute_management_price', '!=', 'percentage')]}">
+                                  <field name="percent_price"
+                                    class="oe_inline"
+                                    attrs="{'invisible':[('compute_management_price', '!=', 'percentage')]}"/>
+                                  %%
+                              </div>
+                          </group>
+                      </group>
+                </group>    
+            </field>
+        </record>
+    </data>
+</odoo>
