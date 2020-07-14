@@ -19,7 +19,7 @@ class ProductPricelistItem(models.Model):
     @api.onchange('is_custom')
     def onchange_is_custom(self):
         if self.is_custom:
-            self.is_fixed = False
+            self.is_fixed = True
             self.is_percentage = False
 
     @api.onchange('is_fixed')
