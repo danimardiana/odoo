@@ -13,15 +13,18 @@
                 <group name="pricelist_rule_computation" position="before">
                     <group string="Management Price Computation" name="management_pricelist_rule_computation" groups="product.group_sale_pricelist" attrs="{'invisible':[('is_management_fee', '=', False)]}">
                           <group name="pricelist_rule_method">
-                              <field name="compute_management_price" string="Compute Price" widget="radio"/>
+                              <field name="is_fixed"/>
+                              <field name="is_percentage"/>
+                              <field name="is_custom"/>
                           </group>
                           <group name="pricelist_rule_base">
-                              <field name="fixed_price" attrs="{'invisible':[('compute_management_price', '!=', 'fixed')]}"/>
-                              <label for="percent_price" attrs="{'invisible':[('compute_management_price', '!=', 'percentage')]}"/>
-                              <div attrs="{'invisible':[('compute_management_price', '!=', 'percentage')]}">
-                                  <field name="percent_price"
+                              <field name="fixed_mgmt_price" attrs="{'invisible':['|', ('is_fixed', '!=', True), ('is_custom', '=', True)]}"/>
+                              <field name="min_retail_amount" attrs="{'invisible': [('is_custom', '!=', True)]}"/>
+                              <label for="percent_mgmt_price" attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}"/>
+                              <div attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}">
+                                  <field name="percent_mgmt_price"
                                     class="oe_inline"
-                                    attrs="{'invisible':[('compute_management_price', '!=', 'percentage')]}"/>
+                                    attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}"/>
                                   %%
                               </div>
                           </group>
