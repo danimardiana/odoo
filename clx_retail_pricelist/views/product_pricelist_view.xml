@@ -10,10 +10,11 @@
                     <field name="min_price"/>
                 </field>
                 <field name="applied_on" position="after">
-                    <field name="is_management_fee"/>
+                    <field name="is_management_fee" invisible="0"/>
                 </field>
                 <group name="pricelist_rule_computation" position="before">
-                    <group string="Management Price Computation" name="management_pricelist_rule_computation" groups="product.group_sale_pricelist" attrs="{'invisible':[('is_management_fee', '=', False)]}">
+                    <group string="Management Price Computation" name="management_pricelist_rule_computation" groups="product.group_sale_pricelist">
+                      <!-- attrs="{'invisible':[('is_management_fee', '=', False)]}" -->
                           <group name="pricelist_rule_method">
                               <field name="is_fixed"/>
                               <field name="is_percentage"/>
