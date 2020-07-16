@@ -49,3 +49,13 @@ class ProductPricelistItem(models.Model):
     def onchange_is_percentage(self):
         if self.is_percentage:
             self.is_custom = False
+
+    @api.onchange('is_wholesale_percentage')
+    def onchange_is_wholesale_percentage(self):
+        if self.is_wholesale_percentage:
+            self.is_wholesale_formula = False
+
+    @api.onchange('is_wholesale_formula')
+    def onchange_is_wholesale_formula(self):
+        if self.is_wholesale_formula:
+            self.is_wholesale_percentage = False
