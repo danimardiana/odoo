@@ -12,6 +12,7 @@
     'description': """""",
     "depends": [
         'sale_management',
+        'contact_modification',
     ],
     "data": [
         "security/ir.model.access.csv",

@@ -181,11 +181,11 @@
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
             </xpath>
 
-            <xpath expr="//page[@name='sales_purchases']//group[@name='sale']" position="attributes">
+            <!-- <xpath expr="//page[@name='sales_purchases']//group[@name='sale']" position="attributes">
                 <attribute name="attrs">
                     {'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}
                 </attribute>
-            </xpath>
+            </xpath> -->
 
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
                 <field name="account_user_id"
