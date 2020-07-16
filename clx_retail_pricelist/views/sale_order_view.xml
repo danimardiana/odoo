@@ -8,7 +8,10 @@
             <field name="arch" type="xml">
                 <button name="action_cancel" position="after">
                     <button name="update_price" type="object" string="Update"/>
-                </button>    
+                </button>
+                <field name="payment_term_id" position="after">
+                    <field name="make_visible_management_wholesale"/>
+                </field>
                 <notebook position="inside">
                     <page string="Product Price" name="product_price">
                         <field name="product_price_calculation_ids">
@@ -21,6 +24,10 @@
                         </field>
                     </page>
                 </notebook>
+                <xpath expr="//field[@name='order_line']/tree" position="inside">
+                    <field name="management_price" invisible="1"/>
+                    <field name="wholesale_price" invisible="1"/>
+                </xpath>    
             </field>
         </record>
     </data>

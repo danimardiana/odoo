@@ -23,6 +23,9 @@ class SaleOrder(models.Model):
         'order_id',
         readonly=True,
         string="Product Price")
+    make_visible_management_wholesale = fields.Boolean(
+        string="Make management fees and wholesale fees visible",
+        default=True)
 
     def update_price(self):
         price_ids = []
@@ -31,8 +34,8 @@ class SaleOrder(models.Model):
                 price_ids.append((0, 0, {
                     'product_id': order_line.product_id.id,
                     'retail_fees': order_line.price_unit,
-                    'management_fees': 0.0,
-                    'wholesale': 0.0,
+                    'management_fees': order_line.management_price,
+                    'wholesale': order_line.wholesale_price,
                 }))
                 sale.product_price_calculation_ids.unlink()
                 sale.product_price_calculation_ids = price_ids
@@ -49,6 +52,9 @@ class SaleOrder(models.Model):
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
+
+    management_price = fields.Float(string='Management Price')
+    wholesale_price = fields.Float(string='Wholesale Price')
 
     @api.onchange('price_unit')
     def price_unit_change(self):
@@ -88,6 +94,28 @@ class SaleOrderLine(models.Model):
                 prod_ids,
                 categ_ids)
             for rule in items:
+                if rule.is_fixed and rule.is_percentage:
+                    management_price = self.price_unit * \
+                        ((rule.percent_mgmt_price or 0.0) / 100.0)
+                    if management_price > rule.fixed_mgmt_price:
+                        self.management_price = management_price
+                    else:
+                        self.management_price = rule.fixed_mgmt_price
+                if rule.is_fixed and rule.is_custom:
+                    if self.price_unit > rule.min_retail_amount:
+                        management_price = self.price_unit * \
+                            ((rule.percent_mgmt_price or 0.0) / 100.0)
+                        self.management_price = management_price
+                if rule.is_wholesale_percentage:
+                    if self.price_unit > rule.min_retail_amount:
+                        wholesale_price = self.price_unit * \
+                            ((rule.percent_wholesale_price or 0.0) / 100.0)
+                        self.wholesale_price = wholesale_price
+                if rule.is_wholesale_formula:
+                    if self.price_unit > rule.min_retail_amount:
+                        wholesale_price = self.price_unit - self.management_price
+                        self.wholesale_price = wholesale_price
+
                 if rule.min_quantity and self.product_uom_qty < rule.min_quantity:
                     continue
                 if is_product_template:
@@ -110,6 +138,7 @@ class SaleOrderLine(models.Model):
                         cat = cat.parent_id
                     if not cat:
                         continue
+
                 if rule.min_price > self.price_unit:
                     raise UserError(_('Price amount less than Minimum Price.'))
 
