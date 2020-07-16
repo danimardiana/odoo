@@ -6,6 +6,9 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form" />
             <field name="arch" type="xml">
+                <button name="action_cancel" position="after">
+                    <button name="update_price" type="object" string="Update"/>
+                </button>    
                 <notebook position="inside">
                     <page string="Product Price" name="product_price">
                         <field name="product_price_calculation_ids">
@@ -17,7 +20,7 @@
                             </tree>
                         </field>
                     </page>
-                </notebook> 
+                </notebook>
             </field>
         </record>
     </data>
