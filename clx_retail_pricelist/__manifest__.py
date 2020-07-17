@@ -19,6 +19,7 @@
         "views/product_category_view.xml",
         "views/product_pricelist_view.xml",
         "views/sale_order_view.xml",
+        "report/sale_report_templates.xml"
     ],
     'installable': True,
     'application': False,

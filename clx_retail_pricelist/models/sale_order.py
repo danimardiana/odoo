@@ -10,7 +10,7 @@ class ProductPriceCalculation(models.Model):
 
     product_id = fields.Many2one('product.product', string="Product")
     management_fees = fields.Float("Management Fees")
-    retail_fees = fields.Float("Retail fees")
+    retail_fees = fields.Float("Retail Fees")
     wholesale = fields.Float("Wholesale")
     order_id = fields.Many2one('sale.order')
 
