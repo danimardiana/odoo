@@ -23,8 +23,8 @@ class SaleOrder(models.Model):
         'order_id',
         readonly=True,
         string="Product Price")
-    make_visible_management_wholesale = fields.Boolean(
-        string="Make management fees and wholesale fees visible",
+    display_management_fee = fields.Boolean(
+        string="Display Management Fee",
         default=True)
 
     def update_price(self):

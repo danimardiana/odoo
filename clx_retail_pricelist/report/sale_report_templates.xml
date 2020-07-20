@@ -2,33 +2,35 @@
 <odoo>
 <template id="report_saleorder_document_inherit" inherit_id="sale.report_saleorder_document">
     <xpath expr="//p[@id='fiscal_position_remark']" position="after">
-        <h3 style="margin-top: 3em;border-top: 1px solid #dee2e6;">Detailed Pricing</h3>
-        <table class="table table-sm o_main_table">
-            <thead>
-                <tr>
-                    <th class="text-left">Product</th>
-                    <th class="text-right">Retail Fees</th>
-                    <t t-if="doc.make_visible_management_wholesale">
-                        <th class="text-right">Management Fees</th>
-                    </t>    
-                </tr>
-            </thead>
-            <tbody class="sale_tbody">
-                <t t-foreach="doc.product_price_calculation_ids" t-as="line">
+        <t t-if="doc.product_price_calculation_ids">
+            <h3 style="margin-top: 3em;border-top: 1px solid #dee2e6;">Detailed Pricing</h3>
+            <table class="table table-sm o_main_table">
+                <thead>
                     <tr>
-                        <td><span t-field="line.product_id.name"/></td>
-                        <td class="text-right">
-                            <span t-field="line.retail_fees"/>
-                        </td>
-                        <t t-if="doc.make_visible_management_wholesale">
-                            <td class="text-right">
-                                <span t-field="line.management_fees"/>
-                            </td>
+                        <th class="text-left">Product</th>
+                        <th class="text-right">Retail Fees</th>
+                        <t t-if="doc.display_management_fee">
+                            <th class="text-right">Management Fees</th>
                         </t>    
                     </tr>
-                </t>
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="sale_tbody">
+                    <t t-foreach="doc.product_price_calculation_ids" t-as="line">
+                        <tr>
+                            <td><span t-field="line.product_id.name"/></td>
+                            <td class="text-right">
+                                <span t-field="line.retail_fees"/>
+                            </td>
+                            <t t-if="doc.display_management_fee">
+                                <td class="text-right">
+                                    <span t-field="line.management_fees"/>
+                                </td>
+                            </t>    
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </t>    
     </xpath>
 </template>
 

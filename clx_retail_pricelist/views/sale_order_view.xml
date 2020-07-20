@@ -9,8 +9,8 @@
                 <button name="action_cancel" position="after">
                     <button name="update_price" type="object" string="Update"/>
                 </button>
-                <field name="payment_term_id" position="after">
-                    <field name="make_visible_management_wholesale"/>
+                <field name="sale_order_template_id" position="after">
+                    <field name="display_management_fee"/>
                 </field>
                 <notebook position="inside">
                     <page string="Product Price" name="product_price">
