@@ -6,11 +6,8 @@
             <field name="model">product.pricelist.item</field>
             <field name="inherit_id" ref="product.product_pricelist_item_form_view" />
             <field name="arch" type="xml">
-                <field name="applied_on" position="after">
-                    <field name="display_management_fee" invisible="1"/>
-                </field>
                 <field name="date_start" position="before">
-                    <field name="min_price" attrs="{'invisible':[('display_management_fee', '=', False)]}"/>
+                    <field name="min_price"/>
                 </field>
                 <field name="min_quantity" position="attributes">
                     <attribute name="invisible">1</attribute>
