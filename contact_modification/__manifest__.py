@@ -1,12 +1,13 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
+
 {
     "name": "Contact Modification",
     'category': 'Contacts',
     'summary': 'To manage Contacts with classification',
     "author": "CLx Media, Odoo Community Association (OCA)",
     "website": "https://conversionlogix.com/",
-    'version': '13.0.0.0.5',
+    'version': '13.1.1.0.6',
     'sequence': 1,
     'license': 'AGPL-3',
     "depends": [
