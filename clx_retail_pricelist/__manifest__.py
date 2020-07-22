@@ -2,11 +2,11 @@
 
 {
     "name": "CLX Developement",
-    'category': 'CLX Developement',
-    'summary': 'CLX Developement',
-    "author": "CLx Media, Odoo Community Association (OCA)",
+    'category': 'Sale',
+    'summary': 'To manage pricelist',
+    "author": "CLx Media",
     "website": "https://conversionlogix.com/",
-    'version': '13.0.0.0.1',
+    'version': '13.0.0.0.2',
     'sequence': 1,
     'license': 'AGPL-3',
     'description': """""",
@@ -22,6 +22,6 @@
         "report/sale_report_templates.xml"
     ],
     'installable': True,
-    'application': False,
+    'application': True,
     'auto_install': False,
 }

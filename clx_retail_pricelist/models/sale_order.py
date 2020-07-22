@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Odoo, CLx Media
+# See LICENSE file for full copyright & licensing details.
 
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools.misc import formatLang, get_lang
+from odoo.exceptions import UserError
+from odoo.tools.misc import get_lang
+
 
 class ProductPriceCalculation(models.Model):
     _name = "product.price.calculation"
@@ -81,8 +83,9 @@ class SaleOrderLine(models.Model):
             if is_product_template:
                 prod_tmpl_ids = [tmpl.id for tmpl in products]
                 # all variants of all products
-                prod_ids = [p.id for p in
-                            list(chain.from_iterable([t.product_variant_ids for t in products]))]
+                prod_ids = [p.id for p in list(chain.from_iterable([
+                    t.product_variant_ids for t in products
+                ]))]
             else:
                 prod_ids = [product.id for product in products]
                 prod_tmpl_ids = [product.product_tmpl_id.id for product in products]
@@ -95,37 +98,37 @@ class SaleOrderLine(models.Model):
                 categ_ids)
             for rule in items:
                 if rule.is_fixed and rule.is_percentage:
-                    management_price = self.price_unit * \
-                        ((rule.percent_mgmt_price or 0.0) / 100.0)
+                    management_price = self.price_unit * (
+                            (rule.percent_mgmt_price or 0.0) / 100.0)
                     if management_price > rule.fixed_mgmt_price:
                         self.management_price = management_price
                     else:
                         self.management_price = rule.fixed_mgmt_price
                 if rule.is_fixed and rule.is_custom:
                     if self.price_unit > rule.min_retail_amount:
-                        management_price = self.price_unit * \
-                            ((rule.percent_mgmt_price or 0.0) / 100.0)
-                        self.management_price = management_price
+                        self.management_price = self.price_unit * (
+                                (rule.percent_mgmt_price or 0.0) / 100.0)
                 if rule.is_wholesale_percentage:
                     if self.price_unit > rule.min_retail_amount:
-                        wholesale_price = self.price_unit * \
-                            ((rule.percent_wholesale_price or 0.0) / 100.0)
-                        self.wholesale_price = wholesale_price
+                        self.wholesale_price = self.price_unit * (
+                                (rule.percent_wholesale_price or 0.0) / 100.0)
                 if rule.is_wholesale_formula:
                     if self.price_unit > rule.min_retail_amount:
-                        wholesale_price = self.price_unit - self.management_price
-                        self.wholesale_price = wholesale_price
-
+                        self.wholesale_price = self.price_unit - self.management_price
                 if rule.min_quantity and self.product_uom_qty < rule.min_quantity:
                     continue
                 if is_product_template:
                     if rule.product_tmpl_id and product.id != rule.product_tmpl_id.id:
                         continue
-                    if rule.product_id and not (product.product_variant_count == 1 and product.product_variant_id.id == rule.product_id.id):
+                    if rule.product_id and not (
+                            product.product_variant_count == 1 and
+                            product.product_variant_id.id == rule.product_id.id
+                    ):
                         # product rule acceptable on template if has only one variant
                         continue
                 else:
-                    if rule.product_tmpl_id and product.product_tmpl_id.id != rule.product_tmpl_id.id:
+                    if rule.product_tmpl_id and \
+                            product.product_tmpl_id.id != rule.product_tmpl_id.id:
                         continue
                     if rule.product_id and product.id != rule.product_id.id:
                         continue
@@ -140,25 +143,35 @@ class SaleOrderLine(models.Model):
                         continue
 
                 if rule.min_price > self.price_unit:
-                    raise UserError(_('Price amount less than Minimum Price.'))
+                    raise UserError(_(
+                        'Price amount less than Minimum Price.'
+                    ))
 
                 if rule.base == 'pricelist' and rule.base_pricelist_id:
-                    price_tmp = rule.base_pricelist_id._compute_price_rule([(product, qty, partner)], date, uom_id)[product.id][0]  # TDE: 0 = price, 1 = rule
-                    price = rule.base_pricelist_id.currency_id._convert(price_tmp, self.currency_id, self.env.company, date, round=False)
+                    # TDE: 0 = price, 1 = rule
+                    price_tmp = rule.base_pricelist_id._compute_price_rule(
+                        [(product, qty, partner)], date, uom_id)[product.id][0]
+                    price = rule.base_pricelist_id.currency_id._convert(
+                        price_tmp, self.currency_id,
+                        self.env.company, date, round=False)
                 else:
-                    # if base option is public price take sale price else cost price of product
-                    # price_compute returns the price in the context UoM, i.e. qty_uom_id
+                    # if base option is public price take sale price
+                    # else cost price of product price_compute returns
+                    # the price in the context UoM, i.e. qty_uom_id
                     price = product.price_compute(rule.base)[product.id]
 
                 qty_uom_id = self._context.get('uom') or product.uom_id.id
                 price_uom = self.env['uom.uom'].browse([qty_uom_id])
-                convert_to_price_uom = (lambda price: product.uom_id._compute_price(price, price_uom))
+                convert_to_price_uom = (
+                    lambda price: product.uom_id._compute_price(
+                        price, price_uom)
+                )
 
                 if price is not False:
                     if rule.compute_price == 'fixed':
                         price = convert_to_price_uom(rule.fixed_price)
                     elif rule.compute_price == 'percentage':
-                        price = (price - (price * (rule.percent_price / 100))) or 0.0
+                        price = (price - price * rule.percent_price / 100) or 0.0
                     else:
                         # complete formula
                         price_limit = price

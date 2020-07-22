@@ -1,69 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record model="ir.ui.view" id="product_pricelist_item_form_view_inherit">
-            <field name="name">product.pricelist.item.form</field>
-            <field name="model">product.pricelist.item</field>
-            <field name="inherit_id" ref="product.product_pricelist_item_form_view" />
-            <field name="arch" type="xml">
-                <field name="date_start" position="before">
-                    <field name="min_price"/>
-                </field>
-                <field name="min_quantity" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </field>
-                <group name="pricelist_rule_computation" position="before">
-                    <group string="Management Price Computation" name="management_pricelist_rule_computation" groups="product.group_sale_pricelist">
-                        <group name="pricelist_management_rule_method">
-                            <field name="is_fixed"/>
-                            <field name="is_percentage"/>
-                            <field name="is_custom"/>
-                        </group>
-                        <group name="pricelist_management_rule_base">
-                            <field name="fixed_mgmt_price" attrs="{'invisible':[('is_fixed', '!=', True)]}"/>
-                            <field name="min_retail_amount" attrs="{'invisible': [('is_custom', '!=', True)]}"/>
-                            <label for="percent_mgmt_price" attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}"/>
-                            <div attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}">
-                                <field name="percent_mgmt_price"
-                                  class="oe_inline"
-                                  attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}"/>
-                                %%
-                            </div>
-                        </group>
-                    </group>
-                    <p class="oe_grey">
-                        Fixed Price: To set Flat Management Fees Applicable ( Ex. - $400 Fixed)<br/>
-                        Percentage: To set Management Fess as % of Retail Price ( Ex. - 20% of Retail)<br/>
-                        Custom: To set the condition based Management Fees (Ex. - 15% of Retail if Minimum Retails Price is $4000 or above
-                    </p>
-                </group>
-                <group name="pricelist_rule_computation" position="after">
-                    <group string="Wholesale Price Computation" name="wholesale_price_computation" groups="product.group_sale_pricelist">
-                        <group name="pricelist_wholesale_rule_method">
-                            <field name="is_wholesale_percentage"/>
-                            <field name="is_wholesale_formula"/>
-                        </group>
-                        <group name="pricelist_wholesale_rule_base">
-                            <label for="percent_wholesale_price" attrs="{'invisible':[('is_wholesale_percentage', '!=', True)]}"/>
-                            <div attrs="{'invisible':[('is_wholesale_percentage', '!=', True)]}">
-                                <field name="percent_wholesale_price"
-                                  class="oe_inline"
-                                  attrs="{'invisible':[('is_wholesale_percentage', '!=', True)]}"/>
-                                %%
-                            </div>
-                            <div attrs="{'invisible':[('is_wholesale_formula', '!=', True)]}">
-                                <p>(retail- Management fees)</p>
-                            </div>
-                        </group>
-                    </group>
-                </group>
-                <group name="pricelist_rule_computation" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </group>
-                <xpath expr="//div[hasclass('oe_grey')]" position="attributes">
-                    <attribute name="invisible">1</attribute>      
-                </xpath>
+    <record model="ir.ui.view" id="product_pricelist_item_form_view_inherit">
+        <field name="name">product.pricelist.item.form</field>
+        <field name="model">product.pricelist.item</field>
+        <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
+        <field name="arch" type="xml">
+            <field name="date_start" position="before">
+                <field name="min_price"/>
             </field>
-        </record>
-    </data>
+            <field name="min_quantity" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <group name="pricelist_rule_computation" position="before">
+                <group string="Management Price Computation"
+                       name="management_pricelist_rule_computation"
+                       groups="product.group_sale_pricelist">
+                    <group name="pricelist_management_rule_method">
+                        <field name="is_fixed"/>
+                        <field name="is_percentage"/>
+                        <field name="is_custom"/>
+                    </group>
+                    <group name="pricelist_management_rule_base">
+                        <field name="fixed_mgmt_price"
+                               attrs="{'invisible':[('is_fixed', '!=', True)]}"/>
+                        <field name="min_retail_amount"
+                               attrs="{'invisible': [('is_custom', '!=', True)]}"/>
+                        <label for="percent_mgmt_price"
+                               attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}"/>
+                        <div attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}">
+                            <field name="percent_mgmt_price"
+                                   class="oe_inline"
+                                   attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}"/>
+                            %%
+                        </div>
+                    </group>
+                </group>
+                <p class="oe_grey">
+                    Fixed Price: To set Flat Management Fees Applicable ( Ex. - $400 Fixed)
+                    <br/>
+                    Percentage: To set Management Fess as % of Retail Price ( Ex. - 20% of Retail)
+                    <br/>
+                    Custom: To set the condition based Management Fees (Ex. - 15% of Retail if Minimum Retails Price
+                    is $4000 or above
+                </p>
+            </group>
+            <group name="pricelist_rule_computation" position="after">
+                <group string="Wholesale Price Computation"
+                       name="wholesale_price_computation"
+                       groups="product.group_sale_pricelist">
+                    <group name="pricelist_wholesale_rule_method">
+                        <field name="is_wholesale_percentage"/>
+                        <field name="is_wholesale_formula"/>
+                    </group>
+                    <group name="pricelist_wholesale_rule_base">
+                        <label for="percent_wholesale_price"
+                               attrs="{'invisible':[('is_wholesale_percentage', '!=', True)]}"/>
+                        <div attrs="{'invisible':[('is_wholesale_percentage', '!=', True)]}">
+                            <field name="percent_wholesale_price"
+                                   class="oe_inline"
+                                   attrs="{'invisible':[('is_wholesale_percentage', '!=', True)]}"/>
+                            %%
+                        </div>
+                        <div attrs="{'invisible':[('is_wholesale_formula', '!=', True)]}">
+                            <p>(retail- Management fees)</p>
+                        </div>
+                    </group>
+                </group>
+            </group>
+            <group name="pricelist_rule_computation" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </group>
+            <xpath expr="//div[hasclass('oe_grey')]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
 </odoo>
