@@ -8,6 +8,7 @@ from odoo import api, fields, models
 
 class ContactType(models.Model):
     _name = "contact.type"
+    _description = "Contact Type"
 
     name = fields.Char('Name')
     nik = fields.Char('Nik')
@@ -20,15 +21,13 @@ class Partner(models.Model):
         return [(6, 0, self.parent_id.ids)]
 
     company_type = fields.Selection(
-        string='Company Type',
+        string='Company Type', compute='_compute_company_type', store=True,
         selection_add=[
             ('company', 'Customer Company'),
             ('owner', 'Owner'),
             ('management', 'Management'),
             ('vendor', 'Vendor')
-        ],
-        compute='_compute_company_type',
-        inverse='_write_company_type', store=True)
+        ], inverse='_write_company_type')
     ownership_company_type_id = fields.Many2one(
         'res.partner', string='Owner Ship Company')
     management_company_type_id = fields.Many2one(
