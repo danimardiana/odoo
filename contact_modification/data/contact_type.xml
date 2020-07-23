@@ -14,4 +14,9 @@
         <field name="name">Reporting Contact</field>
         <field name="nik">Reporting</field>
     </record>
+
+    <record forcecreate="True" id="contact4" model="contact.type">
+        <field name="name">Billing Contact</field>
+        <field name="nik">Billing</field>
+    </record>
 </odoo>
