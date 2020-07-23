@@ -16,30 +16,26 @@
                        name="management_pricelist_rule_computation"
                        groups="product.group_sale_pricelist">
                     <group name="pricelist_management_rule_method">
-                        <field name="is_fixed"/>
+                        <field name="is_fixed" force_save="1"
+                               attrs="{'readonly':[('is_custom', '=', True)]}"/>
                         <field name="is_percentage"/>
                         <field name="is_custom"/>
                     </group>
                     <group name="pricelist_management_rule_base">
                         <field name="fixed_mgmt_price"
-                               attrs="{'invisible':[('is_fixed', '!=', True)]}"/>
+                               attrs="{'invisible':[('is_fixed', '=', False),('is_custom', '=', False)]}"/>
                         <field name="min_retail_amount"
-                               attrs="{'invisible': [('is_custom', '!=', True)]}"/>
-                        <label for="percent_mgmt_price"
-                               attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}"/>
-                        <div attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}">
+                               attrs="{'invisible': [('is_custom', '=', False)]}"/>
+                        <label for="percent_mgmt_price" attrs="{'invisible':[('is_custom', '=', False), ('is_percentage', '=', False)]}"/>
+                        <div attrs="{'invisible':[('is_custom', '=', False), ('is_percentage', '=', False)]}">
                             <field name="percent_mgmt_price"
-                                   class="oe_inline"
-                                   attrs="{'invisible':[('is_custom', '!=', True), ('is_percentage', '!=', True)]}"/>
-                            %%
+                                   class="oe_inline"/>%
                         </div>
                     </group>
                 </group>
                 <p class="oe_grey">
-                    Fixed Price: To set Flat Management Fees Applicable ( Ex. - $400 Fixed)
-                    <br/>
-                    Percentage: To set Management Fess as % of Retail Price ( Ex. - 20% of Retail)
-                    <br/>
+                    Fixed Price: To set Flat Management Fees Applicable ( Ex. - $400 Fixed)<br/>
+                    Percentage: To set Management Fess as % of Retail Price ( Ex. - 20% of Retail)<br/>
                     Custom: To set the condition based Management Fees (Ex. - 15% of Retail if Minimum Retails Price
                     is $4000 or above
                 </p>

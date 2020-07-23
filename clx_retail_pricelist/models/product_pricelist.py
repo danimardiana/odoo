@@ -21,26 +21,28 @@ class ProductPricelistItem(models.Model):
 
     @api.onchange('is_custom')
     def onchange_is_custom(self):
+        """
+        Custom to set minimum retail amount
+        With fix amount
+        :return: None
+        """
         if self.is_custom:
             self.is_fixed = True
-            self.is_percentage = False
-
-    @api.onchange('is_fixed')
-    def onchange_is_fixed(self):
-        if self.is_fixed:
-            self.is_custom = False
-
-    @api.onchange('is_percentage')
-    def onchange_is_percentage(self):
-        if self.is_percentage:
-            self.is_custom = False
 
     @api.onchange('is_wholesale_percentage')
     def onchange_is_wholesale_percentage(self):
+        """
+        To calculate wholesale with percentage
+        :return: None
+        """
         if self.is_wholesale_percentage:
             self.is_wholesale_formula = False
 
     @api.onchange('is_wholesale_formula')
     def onchange_is_wholesale_formula(self):
+        """
+        To calculate wholesale with formula
+        :return: None
+        """
         if self.is_wholesale_formula:
             self.is_wholesale_percentage = False

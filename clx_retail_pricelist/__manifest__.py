@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# Part of Odoo, CLx Media
+# See LICENSE file for full copyright & licensing details.
 
 {
     "name": "CLX Developement",
@@ -6,7 +8,7 @@
     'summary': 'To manage pricelist',
     "author": "CLx Media",
     "website": "https://conversionlogix.com/",
-    'version': '13.0.0.0.2',
+    'version': '13.1.0.0.3',
     'sequence': 1,
     'license': 'AGPL-3',
     'description': """""",

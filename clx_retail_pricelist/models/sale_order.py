@@ -4,17 +4,19 @@
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools import float_round
 from odoo.tools.misc import get_lang
 
 
 class ProductPriceCalculation(models.Model):
     _name = "product.price.calculation"
+    _description = "Product Price Calculation"
 
     product_id = fields.Many2one('product.product', string="Product")
-    management_fees = fields.Float("Management Fees")
-    retail_fees = fields.Float("Retail Fees")
-    wholesale = fields.Float("Wholesale")
-    order_id = fields.Many2one('sale.order')
+    management_fees = fields.Float(string="Management Fees")
+    retail_fees = fields.Float(string="Retail Fees")
+    wholesale = fields.Float(string="Wholesale")
+    order_id = fields.Many2one('sale.order', string="Order")
 
 
 class SaleOrder(models.Model):
@@ -25,9 +27,8 @@ class SaleOrder(models.Model):
         'order_id',
         readonly=True,
         string="Product Price")
-    display_management_fee = fields.Boolean(
-        string="Display Management Fee",
-        default=True)
+    display_management_fee = fields.Boolean(string="Display Management Fee",
+                                            default=True)
 
     def update_price(self):
         price_ids = []
@@ -45,11 +46,18 @@ class SaleOrder(models.Model):
     @api.onchange('partner_id')
     def onchange_partner_id(self):
         super(SaleOrder, self).onchange_partner_id()
-        if self.partner_id.management_company_type_id.property_product_pricelist:
-            pricelist_id = self.partner_id.management_company_type_id.property_product_pricelist.id
-        else:
-            pricelist_id = self.partner_id.property_product_pricelist.id
-        self.pricelist_id = pricelist_id or False
+        pricelist_id = self.partner_id.property_product_pricelist
+        public_plist = self.env.ref('product.list0')
+        if pricelist_id == public_plist and self.partner_id.contact_child_ids:
+            contact = self.partner_id.contact_child_ids.filtered(
+                lambda ch: 'Billing Contact' in ch.mapped(
+                    'contact_type_ids'
+                ).mapped('name') and ch.child_id.parent_id and
+                ch.child_id.parent_id.property_product_pricelist
+            )
+            if contact:
+                self.pricelist_id = contact.child_id.parent_id.\
+                    property_product_pricelist.id
 
 
 class SaleOrderLine(models.Model):
@@ -177,7 +185,7 @@ class SaleOrderLine(models.Model):
                         price_limit = price
                         price = (price - (price * (rule.price_discount / 100))) or 0.0
                         if rule.price_round:
-                            price = tools.float_round(price, precision_rounding=rule.price_round)
+                            price = float_round(price, precision_rounding=rule.price_round)
 
                         if rule.price_surcharge:
                             price_surcharge = convert_to_price_uom(rule.price_surcharge)

@@ -21,6 +21,10 @@ class ProductCategory(models.Model):
 
     @api.onchange('pricing_type')
     def onchange_pricing_type(self):
+        """
+
+        :return: None
+        """
         if self.pricing_type:
             if self.pricing_type == 'percentage_management_fee':
                 self.retail = True
