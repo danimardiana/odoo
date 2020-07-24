@@ -19,8 +19,9 @@ class ProductPricelistItem(models.Model):
     """
     _inherit = 'product.pricelist.item'
 
-    is_cat_mgt_fees = fields.Boolean(related='categ_id.management_fee')
-    is_cat_wholesale = fields.Boolean(related='categ_id.wholesale')
+    is_cat_mgt_fees = fields.Boolean(string='Categ Management')
+    is_cat_wholesale = fields.Boolean(string='Categ Wholesale')
+    min_price = fields.Float(string='Min. Price')
 
     is_fixed = fields.Boolean(string='Fixed Price')
     is_percentage = fields.Boolean(string='Percentage')
@@ -32,8 +33,38 @@ class ProductPricelistItem(models.Model):
 
     is_wholesale_percentage = fields.Boolean(string='Percentage')
     is_wholesale_formula = fields.Boolean(string='Formula')
-    min_price = fields.Float(string='Min. Price')
     percent_wholesale_price = fields.Float(string='Percentage')
+
+    @api.onchange('is_cat_mgt_fees')
+    def onchange_is_cat_mgt_fees(self):
+        if not self.is_cat_mgt_fees:
+            self.is_custom = self.is_percentage = self.is_fixed = False
+            self.fixed_mgmt_price = \
+                self.min_retail_amount = self.percent_mgmt_price = 0.0
+
+    @api.onchange('is_cat_wholesale')
+    def onchange_is_cat_wholesale(self):
+        if not self.is_cat_wholesale:
+            self.is_wholesale_percentage = self.is_wholesale_formula = False
+            self.percent_wholesale_price = 0.0
+
+    @api.onchange('applied_on', 'categ_id', 'product_tmpl_id', 'product_id')
+    def onchange_applied_on(self):
+        self.is_cat_mgt_fees = self.is_cat_wholesale = False
+        if self.applied_on == '3_global':
+            self.is_cat_mgt_fees = self.is_cat_wholesale = True
+        elif self.applied_on == '2_product_category' and self.categ_id:
+            self.is_cat_mgt_fees = self.categ_id.management_fee
+            self.is_cat_wholesale = self.categ_id.wholesale
+        elif self.applied_on == '1_product' and \
+                self.product_tmpl_id and self.product_tmpl_id.categ_id:
+            categ = self.product_tmpl_id.categ_id
+            self.is_cat_mgt_fees = categ.management_fee
+            self.is_cat_wholesale = categ.wholesale
+        elif self.applied_on == '0_product_variant' and \
+                self.product_id and self.product_id.categ_id:
+            self.is_cat_mgt_fees = self.product_id.categ_id.management_fee
+            self.is_cat_wholesale = self.product_id.categ_id.wholesale
 
     @api.onchange('is_custom')
     def onchange_is_custom(self):
