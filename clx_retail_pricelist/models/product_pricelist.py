@@ -6,18 +6,34 @@ from odoo import api, fields, models
 
 
 class ProductPricelistItem(models.Model):
-    _inherit = "product.pricelist.item"
+    """
+    Product Pricelist Item inherited to set
+    - Management Price Computation
+    - Wholesale Price Computation
+    Fixed Price: To set Flat Management Fees Applicable
+        ( Ex. - $1000 Fixed)
+    Percentage: To set Management Fess as % of Retail Price
+        ( Ex. - 20% of Retail)
+    Custom: To set the condition based Management Fees
+        (Ex. - 15% of Retail if Minimum Retails Price is $4000 or above
+    """
+    _inherit = 'product.pricelist.item'
 
-    min_price = fields.Float("Min. Price")
-    is_fixed = fields.Boolean('Fixed Price')
-    is_percentage = fields.Boolean('Percentage')
-    is_custom = fields.Boolean('Custom')
-    is_wholesale_percentage = fields.Boolean('Percentage')
-    is_wholesale_formula = fields.Boolean('Formula')
-    fixed_mgmt_price = fields.Float('Fixed Price', digits='Product Price')
-    percent_mgmt_price = fields.Float('Percentage Price')
-    percent_wholesale_price = fields.Float('Percentage Price')
-    min_retail_amount = fields.Float('Minimum Retail Amount')
+    is_cat_mgt_fees = fields.Boolean(related='categ_id.management_fee')
+    is_cat_wholesale = fields.Boolean(related='categ_id.wholesale')
+
+    is_fixed = fields.Boolean(string='Fixed Price')
+    is_percentage = fields.Boolean(string='Percentage')
+    is_custom = fields.Boolean(string='Custom')
+    fixed_mgmt_price = fields.Float(string='Fixed Price',
+                                    digits='Product Price')
+    min_retail_amount = fields.Float(string='Minimum Retail Amount')
+    percent_mgmt_price = fields.Float(string='Percentage')
+
+    is_wholesale_percentage = fields.Boolean(string='Percentage')
+    is_wholesale_formula = fields.Boolean(string='Formula')
+    min_price = fields.Float(string='Min. Price')
+    percent_wholesale_price = fields.Float(string='Percentage')
 
     @api.onchange('is_custom')
     def onchange_is_custom(self):

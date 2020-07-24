@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import ValidationError
 from odoo.tools import float_round
 from odoo.tools.misc import get_lang
 
@@ -30,17 +30,50 @@ class SaleOrder(models.Model):
     display_management_fee = fields.Boolean(string="Display Management Fee",
                                             default=True)
 
+    @api.model
+    def create(self, vals):
+        res = super(SaleOrder, self).create(vals)
+        price_ids = self.env['product.price.calculation']
+        for sale in res:
+            for order_line in sale.order_line:
+                sale.product_price_calculation_ids.unlink()
+                price_ids.create({
+                    'order_id': sale.id,
+                    'product_id': order_line.product_id.id,
+                    'retail_fees': order_line.price_unit,
+                    'management_fees': order_line.management_price,
+                    'wholesale': order_line.wholesale_price,
+                })
+                sale.product_price_calculation_ids = price_ids
+
+        return res
+
+    def write(self, vals):
+        res = super(SaleOrder, self).write(vals)
+        price_ids = self.env['product.price.calculation']
+        for sale in self:
+            for order_line in sale.order_line:
+                sale.product_price_calculation_ids.unlink()
+                price_ids.create({
+                    'order_id': sale.id,
+                    'product_id': order_line.product_id.id,
+                    'retail_fees': order_line.price_unit,
+                    'management_fees': order_line.management_price,
+                    'wholesale': order_line.wholesale_price,
+                })
+        return res
+
     def update_price(self):
         price_ids = []
         for sale in self:
             for order_line in sale.order_line:
+                sale.product_price_calculation_ids.unlink()
                 price_ids.append((0, 0, {
                     'product_id': order_line.product_id.id,
                     'retail_fees': order_line.price_unit,
                     'management_fees': order_line.management_price,
                     'wholesale': order_line.wholesale_price,
                 }))
-                sale.product_price_calculation_ids.unlink()
                 sale.product_price_calculation_ids = price_ids
 
     @api.onchange('partner_id')
@@ -53,10 +86,10 @@ class SaleOrder(models.Model):
                 lambda ch: 'Billing Contact' in ch.mapped(
                     'contact_type_ids'
                 ).mapped('name') and ch.child_id.parent_id and
-                ch.child_id.parent_id.property_product_pricelist
+                           ch.child_id.parent_id.property_product_pricelist
             )
             if contact:
-                self.pricelist_id = contact.child_id.parent_id.\
+                self.pricelist_id = contact.child_id.parent_id. \
                     property_product_pricelist.id
 
 
@@ -86,7 +119,6 @@ class SaleOrderLine(models.Model):
                     categ_ids[categ.id] = True
                     categ = categ.parent_id
             categ_ids = list(categ_ids)
-
             is_product_template = products[0]._name == "product.template"
             if is_product_template:
                 prod_tmpl_ids = [tmpl.id for tmpl in products]
@@ -105,26 +137,22 @@ class SaleOrderLine(models.Model):
                 prod_ids,
                 categ_ids)
             for rule in items:
-                if rule.is_fixed and rule.is_percentage:
-                    management_price = self.price_unit * (
+                # Calculate management price
+                percentage_management_price = custom_management_price = 0.0
+                if rule.is_percentage:
+                    percentage_management_price = self.price_unit * (
                             (rule.percent_mgmt_price or 0.0) / 100.0)
-                    if management_price > rule.fixed_mgmt_price:
-                        self.management_price = management_price
-                    else:
-                        self.management_price = rule.fixed_mgmt_price
-                if rule.is_fixed and rule.is_custom:
-                    if self.price_unit > rule.min_retail_amount:
-                        self.management_price = self.price_unit * (
+                if rule.is_custom and self.price_unit > rule.min_retail_amount:
+                    custom_management_price = self.price_unit * (
                                 (rule.percent_mgmt_price or 0.0) / 100.0)
+                self.management_price = max(percentage_management_price,
+                                            custom_management_price,
+                                            rule.fixed_mgmt_price)
                 if rule.is_wholesale_percentage:
-                    if self.price_unit > rule.min_retail_amount:
-                        self.wholesale_price = self.price_unit * (
+                    self.wholesale_price = self.price_unit * (
                                 (rule.percent_wholesale_price or 0.0) / 100.0)
                 if rule.is_wholesale_formula:
-                    if self.price_unit > rule.min_retail_amount:
-                        self.wholesale_price = self.price_unit - self.management_price
-                if rule.min_quantity and self.product_uom_qty < rule.min_quantity:
-                    continue
+                    self.wholesale_price = self.price_unit - self.management_price
                 if is_product_template:
                     if rule.product_tmpl_id and product.id != rule.product_tmpl_id.id:
                         continue
@@ -140,7 +168,6 @@ class SaleOrderLine(models.Model):
                         continue
                     if rule.product_id and product.id != rule.product_id.id:
                         continue
-
                 if rule.categ_id:
                     cat = product.categ_id
                     while cat:
@@ -149,12 +176,11 @@ class SaleOrderLine(models.Model):
                         cat = cat.parent_id
                     if not cat:
                         continue
-
                 if rule.min_price > self.price_unit:
-                    raise UserError(_(
-                        'Price amount less than Minimum Price.'
-                    ))
-
+                    raise ValidationError(_(
+                        'Price amount less than Minimum Price. '
+                        'It should be greater or equal to %s'
+                    ) % (str(rule.min_price)))
                 if rule.base == 'pricelist' and rule.base_pricelist_id:
                     # TDE: 0 = price, 1 = rule
                     price_tmp = rule.base_pricelist_id._compute_price_rule(
@@ -167,14 +193,12 @@ class SaleOrderLine(models.Model):
                     # else cost price of product price_compute returns
                     # the price in the context UoM, i.e. qty_uom_id
                     price = product.price_compute(rule.base)[product.id]
-
                 qty_uom_id = self._context.get('uom') or product.uom_id.id
                 price_uom = self.env['uom.uom'].browse([qty_uom_id])
                 convert_to_price_uom = (
                     lambda price: product.uom_id._compute_price(
                         price, price_uom)
                 )
-
                 if price is not False:
                     if rule.compute_price == 'fixed':
                         price = convert_to_price_uom(rule.fixed_price)
@@ -186,15 +210,12 @@ class SaleOrderLine(models.Model):
                         price = (price - (price * (rule.price_discount / 100))) or 0.0
                         if rule.price_round:
                             price = float_round(price, precision_rounding=rule.price_round)
-
                         if rule.price_surcharge:
                             price_surcharge = convert_to_price_uom(rule.price_surcharge)
                             price += price_surcharge
-
                         if rule.price_min_margin:
                             price_min_margin = convert_to_price_uom(rule.price_min_margin)
                             price = max(price, price_limit + price_min_margin)
-
                         if rule.price_max_margin:
                             price_max_margin = convert_to_price_uom(rule.price_max_margin)
                             price = min(price, price_limit + price_max_margin)

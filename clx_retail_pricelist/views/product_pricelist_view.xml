@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record model="ir.ui.view" id="product_pricelist_item_form_view_inherit">
-        <field name="name">product.pricelist.item.form</field>
+    <record model="ir.ui.view" id="product_pricelist_item_form_view_inherit_retail_pricelist">
+        <field name="name">product.pricelist.item.form.inherit.retail.pricelist</field>
         <field name="model">product.pricelist.item</field>
         <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
         <field name="arch" type="xml">
@@ -12,9 +12,12 @@
                 <attribute name="invisible">1</attribute>
             </field>
             <group name="pricelist_rule_computation" position="before">
+                <field name="is_cat_mgt_fees" invisible="1"/>
+                <field name="is_cat_wholesale" invisible="1"/>
                 <group string="Management Price Computation"
                        name="management_pricelist_rule_computation"
-                       groups="product.group_sale_pricelist">
+                       groups="product.group_sale_pricelist"
+                      >
                     <group name="pricelist_management_rule_method">
                         <field name="is_fixed" force_save="1"
                                attrs="{'readonly':[('is_custom', '=', True)]}"/>
@@ -23,19 +26,21 @@
                     </group>
                     <group name="pricelist_management_rule_base">
                         <field name="fixed_mgmt_price"
-                               attrs="{'invisible':[('is_fixed', '=', False),('is_custom', '=', False)]}"/>
+                               attrs="{'invisible': [('is_fixed', '=', False), ('is_custom', '=', False)]}"/>
                         <field name="min_retail_amount"
                                attrs="{'invisible': [('is_custom', '=', False)]}"/>
-                        <label for="percent_mgmt_price" attrs="{'invisible':[('is_custom', '=', False), ('is_percentage', '=', False)]}"/>
-                        <div attrs="{'invisible':[('is_custom', '=', False), ('is_percentage', '=', False)]}">
-                            <field name="percent_mgmt_price"
-                                   class="oe_inline"/>%
+                        <label for="percent_mgmt_price"
+                               attrs="{'invisible':[('is_custom', '=', False), ('is_percentage', '=', False)]}"/>
+                        <div attrs="{'invisible': [('is_custom', '=', False), ('is_percentage', '=', False)]}">
+                            <field name="percent_mgmt_price" class="oe_inline"/>%
                         </div>
                     </group>
                 </group>
-                <p class="oe_grey">
-                    Fixed Price: To set Flat Management Fees Applicable ( Ex. - $400 Fixed)<br/>
-                    Percentage: To set Management Fess as % of Retail Price ( Ex. - 20% of Retail)<br/>
+                <p class="oe_grey" attrs="{'invisible': [('is_cat_mgt_fees', '=', False)]}">
+                    Fixed Price: To set Flat Management Fees Applicable ( Ex. - $400 Fixed)
+                    <br/>
+                    Percentage: To set Management Fess as % of Retail Price ( Ex. - 20% of Retail)
+                    <br/>
                     Custom: To set the condition based Management Fees (Ex. - 15% of Retail if Minimum Retails Price
                     is $4000 or above
                 </p>
@@ -43,7 +48,8 @@
             <group name="pricelist_rule_computation" position="after">
                 <group string="Wholesale Price Computation"
                        name="wholesale_price_computation"
-                       groups="product.group_sale_pricelist">
+                       groups="product.group_sale_pricelist"
+                      >
                     <group name="pricelist_wholesale_rule_method">
                         <field name="is_wholesale_percentage"/>
                         <field name="is_wholesale_formula"/>

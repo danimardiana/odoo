@@ -24,3 +24,8 @@
 #### Version 13.1.0.0.3
 #### Customer Pricelist
 - [IMP] CLX Retail Pricelist: set pricelist if customer has 'Billing Contact' linked contact and have parent in linked contact else Public pricelist
+
+## 07/24/2020
+#### Version 13.1.0.0.4
+#### Price Calculation for Custom
+- [IMP] CLX Retail Pricelist: Updated lines on SO for custom values and Update call on save
