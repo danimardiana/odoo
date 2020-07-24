@@ -16,8 +16,7 @@
                 <field name="is_cat_wholesale" invisible="1"/>
                 <group string="Management Price Computation"
                        name="management_pricelist_rule_computation"
-                       groups="product.group_sale_pricelist"
-                      >
+                       groups="product.group_sale_pricelist">
                     <group name="pricelist_management_rule_method">
                         <field name="is_fixed" force_save="1"
                                attrs="{'readonly':[('is_custom', '=', True)]}"/>
@@ -36,7 +35,7 @@
                         </div>
                     </group>
                 </group>
-                <p class="oe_grey" attrs="{'invisible': [('is_cat_mgt_fees', '=', False)]}">
+                <p class="oe_grey">
                     Fixed Price: To set Flat Management Fees Applicable ( Ex. - $400 Fixed)
                     <br/>
                     Percentage: To set Management Fess as % of Retail Price ( Ex. - 20% of Retail)
@@ -48,8 +47,7 @@
             <group name="pricelist_rule_computation" position="after">
                 <group string="Wholesale Price Computation"
                        name="wholesale_price_computation"
-                       groups="product.group_sale_pricelist"
-                      >
+                       groups="product.group_sale_pricelist">
                     <group name="pricelist_wholesale_rule_method">
                         <field name="is_wholesale_percentage"/>
                         <field name="is_wholesale_formula"/>

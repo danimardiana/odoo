@@ -29,3 +29,8 @@
 #### Version 13.1.0.0.4
 #### Price Calculation for Custom
 - [IMP] CLX Retail Pricelist: Updated lines on SO for custom values and Update call on save
+
+## 07/24/2020
+#### Version 13.1.0.0.5
+#### Reset Pricelist Item Attributes
+- [IMP] CLX Retail Pricelist: Reset Pricelist Item Attributes and method of SO

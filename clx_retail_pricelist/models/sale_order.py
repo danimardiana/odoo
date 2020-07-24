@@ -144,13 +144,13 @@ class SaleOrderLine(models.Model):
                             (rule.percent_mgmt_price or 0.0) / 100.0)
                 if rule.is_custom and self.price_unit > rule.min_retail_amount:
                     custom_management_price = self.price_unit * (
-                                (rule.percent_mgmt_price or 0.0) / 100.0)
+                            (rule.percent_mgmt_price or 0.0) / 100.0)
                 self.management_price = max(percentage_management_price,
                                             custom_management_price,
                                             rule.fixed_mgmt_price)
                 if rule.is_wholesale_percentage:
                     self.wholesale_price = self.price_unit * (
-                                (rule.percent_wholesale_price or 0.0) / 100.0)
+                            (rule.percent_wholesale_price or 0.0) / 100.0)
                 if rule.is_wholesale_formula:
                     self.wholesale_price = self.price_unit - self.management_price
                 if is_product_template:
