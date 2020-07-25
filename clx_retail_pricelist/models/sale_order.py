@@ -76,7 +76,7 @@ class SaleOrderLine(models.Model):
                 'retail_fees': order_line.price_unit,
                 'management_fees': order_line.management_price,
                 'wholesale': order_line.wholesale_price,
-                'sale_line_id': order_line.id
+                'sale_line_id': order_line.id,
             }
             existing_line = order_line.order_id.product_price_calculation_ids.filtered(
                 lambda x: x.sale_line_id == order_line)
@@ -86,13 +86,6 @@ class SaleOrderLine(models.Model):
             # Create new line
             else:
                 order_line.order_id.product_price_calculation_ids = [(0, 0, vals)]
-
-    @api.model
-    def create(self, vals):
-        res = super(SaleOrderLine, self).create(vals)
-        # update prices on order line creation
-        res.update_price()
-        return res
 
     def write(self, vals):
         res = super(SaleOrderLine, self).write(vals)
