@@ -54,3 +54,8 @@
 #### dev-clx-phase-2 -> Staging-Clx-test
 #### Resolve Conflicts
 - [FIX] Conflict Resolved
+
+## 07/25/2020
+#### Version 13.1.0.0.9
+#### dev-clx-phase-2 -> Staging-Clx-test
+- [FIX] Conflict Resolved
