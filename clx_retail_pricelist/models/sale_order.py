@@ -17,6 +17,7 @@ class ProductPriceCalculation(models.Model):
     retail_fees = fields.Float(string="Retail Fees")
     wholesale = fields.Float(string="Wholesale")
     order_id = fields.Many2one('sale.order', string="Order")
+    sale_line_id = fields.Many2one("sale.order.line", "Order Line")
 
 
 class SaleOrder(models.Model):
@@ -29,52 +30,6 @@ class SaleOrder(models.Model):
         string="Product Price")
     display_management_fee = fields.Boolean(string="Display Management Fee",
                                             default=True)
-
-    @api.model
-    def create(self, vals):
-        res = super(SaleOrder, self).create(vals)
-        price_ids = self.env['product.price.calculation']
-        for sale in res:
-            for order_line in sale.order_line:
-                sale.product_price_calculation_ids.unlink()
-                price_ids.create({
-                    'order_id': sale.id,
-                    'product_id': order_line.product_id.id,
-                    'retail_fees': order_line.price_unit,
-                    'management_fees': order_line.management_price,
-                    'wholesale': order_line.wholesale_price,
-                })
-                sale.product_price_calculation_ids = price_ids
-
-        return res
-
-    def write(self, vals):
-        res = super(SaleOrder, self).write(vals)
-        price_ids = self.env['product.price.calculation']
-        for sale in self:
-            for order_line in sale.order_line:
-                sale.product_price_calculation_ids.unlink()
-                price_ids.create({
-                    'order_id': sale.id,
-                    'product_id': order_line.product_id.id,
-                    'retail_fees': order_line.price_unit,
-                    'management_fees': order_line.management_price,
-                    'wholesale': order_line.wholesale_price,
-                })
-        return res
-
-    def update_price(self):
-        price_ids = []
-        for sale in self:
-            for order_line in sale.order_line:
-                sale.product_price_calculation_ids.unlink()
-                price_ids.append((0, 0, {
-                    'product_id': order_line.product_id.id,
-                    'retail_fees': order_line.price_unit,
-                    'management_fees': order_line.management_price,
-                    'wholesale': order_line.wholesale_price,
-                }))
-                sale.product_price_calculation_ids = price_ids
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
@@ -92,12 +47,54 @@ class SaleOrder(models.Model):
                 self.pricelist_id = contact.child_id.parent_id. \
                     property_product_pricelist.id
 
+    def update_price(self):
+        """ Add Update Price Method to Calculate
+        Management Fees and Wholesale fees based on
+        Order line Retail Price."""
+        for order in self:
+            for order_line in order.order_line:
+                order_line.update_price()
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
     management_price = fields.Float(string='Management Price')
     wholesale_price = fields.Float(string='Wholesale Price')
+
+    def update_price(self):
+        """ Add Update Price Method to Calculate
+        Management Fees and Wholesale fees based on
+        Order line Retail Price."""
+        for order_line in self:
+            vals = {
+                'product_id': order_line.product_id.id,
+                'retail_fees': order_line.price_unit,
+                'management_fees': order_line.management_price,
+                'wholesale': order_line.wholesale_price,
+                'sale_line_id': order_line.id,
+                'order_id': order_line.order_id.id
+            }
+            existing_line = order_line.order_id.product_price_calculation_ids.filtered(
+                lambda x: x.sale_line_id == order_line)
+            # Update values on existing line
+            if existing_line:
+                existing_line.write(vals)
+            # Create new line
+            else:
+                order_line.order_id.product_price_calculation_ids = [(0, 0, vals)]
+
+    @api.model
+    def create(self, vals):
+        res = super(SaleOrderLine, self).create(vals)
+        # update prices on order line creation
+        res.update_price()
+        return res
+
+    def write(self, vals):
+        res = super(SaleOrderLine, self).write(vals)
+        # update prices on order line updation
+        self.update_price()
+        return res
 
     @api.onchange('price_unit')
     def price_unit_change(self):
