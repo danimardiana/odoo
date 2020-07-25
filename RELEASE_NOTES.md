@@ -37,5 +37,10 @@
 
 ## 07/25/2020
 #### Version 13.1.0.0.6
-#### Pricelist Item Attributes on Mangement and Wholesale Price Computation
-- [IMP] CLX Retail Pricelist: Define function, veriables to manage Pricelist Item Attributes on Mangement and Wholesale Price Computation
+#### Pricelist Item Attributes on Management and Wholesale Price Computation
+- [IMP] CLX Retail Pricelist: Define function, variables to manage Pricelist Item Attributes on Management and Wholesale Price Computation
+
+## 07/25/2020
+#### Version 13.1.0.0.7
+#### Resolve Conflicts
+- [IMP] CLX Retail Pricelist: Resolve conflicts

@@ -16,23 +16,27 @@ class ProductPriceCalculation(models.Model):
     management_fees = fields.Float(string="Management Fees")
     retail_fees = fields.Float(string="Retail Fees")
     wholesale = fields.Float(string="Wholesale")
-    order_id = fields.Many2one('sale.order', string="Order")
-    sale_line_id = fields.Many2one("sale.order.line", "Order Line")
+    order_id = fields.Many2one(related='line_id.order_id')
+    sale_line_id = fields.Many2one('sale.order.line', string="Order Line")
 
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
     product_price_calculation_ids = fields.One2many(
-        'product.price.calculation',
-        'order_id',
-        readonly=True,
-        string="Product Price")
+        'product.price.calculation', 'order_id', ondelete='cascade',
+        readonly=True, string="Product Price")
     display_management_fee = fields.Boolean(string="Display Management Fee",
                                             default=True)
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
+        """
+        Pricelist will set with current selected customer
+        If customer do not with its own pricelist then it will grab form
+        its linked contact (Billing Contact) parent price list.
+        :return: None
+        """
         super(SaleOrder, self).onchange_partner_id()
         pricelist_id = self.partner_id.property_product_pricelist
         public_plist = self.env.ref('product.list0')
@@ -41,7 +45,7 @@ class SaleOrder(models.Model):
                 lambda ch: 'Billing Contact' in ch.mapped(
                     'contact_type_ids'
                 ).mapped('name') and ch.child_id.parent_id and
-                           ch.child_id.parent_id.property_product_pricelist
+                ch.child_id.parent_id.property_product_pricelist
             )
             if contact:
                 self.pricelist_id = contact.child_id.parent_id. \
@@ -54,6 +58,7 @@ class SaleOrder(models.Model):
         for order in self:
             for order_line in order.order_line:
                 order_line.update_price()
+
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
@@ -71,8 +76,7 @@ class SaleOrderLine(models.Model):
                 'retail_fees': order_line.price_unit,
                 'management_fees': order_line.management_price,
                 'wholesale': order_line.wholesale_price,
-                'sale_line_id': order_line.id,
-                'order_id': order_line.order_id.id
+                'sale_line_id': order_line.id
             }
             existing_line = order_line.order_id.product_price_calculation_ids.filtered(
                 lambda x: x.sale_line_id == order_line)

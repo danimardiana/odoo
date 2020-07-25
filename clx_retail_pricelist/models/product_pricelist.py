@@ -37,6 +37,10 @@ class ProductPricelistItem(models.Model):
 
     @api.onchange('is_cat_mgt_fees')
     def onchange_is_cat_mgt_fees(self):
+        """
+        If is_cat_mgt_fees is not set then reset Management related fields
+        :return: None
+        """
         if not self.is_cat_mgt_fees:
             self.is_custom = self.is_percentage = self.is_fixed = False
             self.fixed_mgmt_price = \
@@ -44,12 +48,21 @@ class ProductPricelistItem(models.Model):
 
     @api.onchange('is_cat_wholesale')
     def onchange_is_cat_wholesale(self):
+        """
+        If is_cat_wholesale is not set then reset Wholesale related fields
+        :return: None
+        """
         if not self.is_cat_wholesale:
             self.is_wholesale_percentage = self.is_wholesale_formula = False
             self.percent_wholesale_price = 0.0
 
     @api.onchange('applied_on', 'categ_id', 'product_tmpl_id', 'product_id')
     def onchange_applied_on(self):
+        """
+        To set booleans for is_cat_mgt_fees and is_cat_wholesale based on
+        Applied On, Category, Product/Variant Category
+        :return: None
+        """
         self.is_cat_mgt_fees = self.is_cat_wholesale = False
         if self.applied_on == '3_global':
             self.is_cat_mgt_fees = self.is_cat_wholesale = True
