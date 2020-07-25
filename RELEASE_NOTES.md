@@ -49,3 +49,8 @@
 #### Version 13.1.0.0.8
 #### Resolve Conflicts
 - [IMP] CLX Retail Pricelist: Fixed Line id issue for SO lines
+
+## 07/25/2020
+#### dev-clx-phase-2 -> Staging-Clx-test
+#### Resolve Conflicts
+- [FIX] Conflict Resolved
