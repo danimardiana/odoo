@@ -8,6 +8,7 @@ from odoo import api, fields, models
 
 class ContactType(models.Model):
     _name = "contact.type"
+    _description = "Contact Type"
 
     name = fields.Char('Name')
     nik = fields.Char('Nik')
@@ -20,15 +21,13 @@ class Partner(models.Model):
         return [(6, 0, self.parent_id.ids)]
 
     company_type = fields.Selection(
-        string='Company Type',
+        string='Company Type', compute='_compute_company_type', store=True,
         selection_add=[
             ('company', 'Customer Company'),
             ('owner', 'Owner'),
             ('management', 'Management'),
             ('vendor', 'Vendor')
-        ],
-        compute='_compute_company_type',
-        inverse='_write_company_type', store=True)
+        ], inverse='_write_company_type')
     ownership_company_type_id = fields.Many2one(
         'res.partner', string='Owner Ship Company')
     management_company_type_id = fields.Many2one(
@@ -71,10 +70,14 @@ class Partner(models.Model):
     yardi_code = fields.Char(string="Yardi Code")
 
     @api.model
-    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
-        if 'custom_filter_groupby' in self._context and 'parent_id' in groupby:
+    def read_group(self, domain, fields, groupby,
+                   offset=0, limit=None, orderby=False, lazy=True):
+        if 'custom_filter_groupby' in self._context and \
+                'parent_id' in groupby:
             domain = [('company_type', '=', 'person')]
-        return super(Partner, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+        return super(Partner, self).read_group(
+            domain, fields, groupby, offset=offset,
+            limit=limit, orderby=orderby, lazy=lazy)
 
     @api.onchange('contact_company_type_id')
     def onchange_contact_company_type(self):
@@ -146,8 +149,11 @@ class Partner(models.Model):
 
     def assignation_management(self):
         self.ensure_one()
-        clx_child_ids = self.env['res.partner.clx.child'].search([('child_id','=',self.id)])
-        # parent_id = [clx_child_id.parent_id.id for clx_child_id in clx_child_ids]
+        clx_child_ids = self.env['res.partner.clx.child'].search([
+            ('child_id', '=', self.id)
+        ])
+        # parent_id = [
+        # clx_child_id.parent_id.id for clx_child_id in clx_child_ids]
         domain = [('id', 'in', clx_child_ids.ids)]
         action = self.env.ref(
             'contact_modification.action_partner_assignation_contacts'

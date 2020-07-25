@@ -57,10 +57,10 @@
               parent="contacts.menu_contacts"/>
 
     <menuitem id="contacts.res_partner_menu_config"
-        name="Configuration"
-        parent="contacts.menu_contacts"
-        groups="base.group_system"
-        sequence="3"/>
+              name="Configuration"
+              parent="contacts.menu_contacts"
+              groups="base.group_system"
+              sequence="3"/>
 
     <!-- Assignation Action -->
     <record id="view_partner_tree_assignation_contacts" model="ir.ui.view">
@@ -82,7 +82,4 @@
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="view_partner_tree_assignation_contacts"/>
     </record>
-
-   
 </odoo>
-          
