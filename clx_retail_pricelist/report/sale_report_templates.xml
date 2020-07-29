@@ -1,37 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<template id="report_saleorder_document_inherit" inherit_id="sale.report_saleorder_document">
-    <xpath expr="//p[@id='fiscal_position_remark']" position="after">
-        <t t-if="doc.product_price_calculation_ids">
-            <h3 style="margin-top: 3em;border-top: 1px solid #dee2e6;">Detailed Pricing</h3>
-            <table class="table table-sm o_main_table">
-                <thead>
-                    <tr>
-                        <th class="text-left">Product</th>
-                        <th class="text-right">Retail Fees</th>
-                        <t t-if="doc.display_management_fee">
-                            <th class="text-right">Management Fees</th>
-                        </t>    
-                    </tr>
-                </thead>
-                <tbody class="sale_tbody">
-                    <t t-foreach="doc.product_price_calculation_ids" t-as="line">
-                        <tr>
-                            <td><span t-field="line.product_id.name"/></td>
-                            <td class="text-right">
-                                <span t-field="line.retail_fees"/>
-                            </td>
-                            <t t-if="doc.display_management_fee">
-                                <td class="text-right">
-                                    <span t-field="line.management_fees"/>
-                                </td>
-                            </t>    
-                        </tr>
-                    </t>
-                </tbody>
-            </table>
-        </t>    
-    </xpath>
-</template>
-
+    <template id="report_saleorder_document_inherit" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//th[@name='th_quantity']" position="replace"/>
+        <xpath expr="//td[@name='td_quantity']" position="replace"/>
+        <xpath expr="//th[@name='th_subtotal']" position="replace"/>
+        <xpath expr="//td[@name='td_subtotal']" position="replace"/>
+        <xpath expr="//td[@name='td_priceunit']" position="replace">
+            <t t-set="priceunit" t-value="line.price_total- line.management_price"/>
+                <td name="td_priceunit" class="text-right">
+                    <span t-esc="priceunit"/>
+                </td>
+        </xpath>
+        <xpath expr="//t[@t-foreach='doc.order_line']" position="before">
+            <t t-set="management_fees" t-value="0"/>
+        </xpath>
+       <xpath expr="//t[@t-foreach='doc.order_line']/tr" position="before">
+            <t t-set="management_fees" t-value="management_fees + line.management_price"/>
+       </xpath>
+       <xpath expr="//t[@t-foreach='doc.order_line']" position="after">
+            <t t-set="priceunit" t-value="0"/>
+            <tr>
+                <td>Management Fees</td>
+                <td colspan="2" class="text-righ"><span t-esc="management_fees"/></td>
+            </tr>
+        </xpath>
+    </template>
 </odoo>
