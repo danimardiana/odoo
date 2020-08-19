@@ -10,4 +10,4 @@ class AccountMoveLine(models.Model):
 
     category_id = fields.Many2one('product.category', string="Category")
     subscription_ids = fields.Many2many(
-        'account.move.line', string="Subscription(s)")
+        'sale.subscription', string="Subscription(s)")
