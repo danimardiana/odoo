@@ -1,0 +1,260 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo, CLx Media
+# See LICENSE file for full copyright & licensing details.
+
+from datetime import date
+
+from odoo import fields, models, api
+
+
+class Partner(models.Model):
+    _inherit = 'res.partner'
+
+    clx_invoice_policy_id = fields.Many2one(
+        'clx.invoice.policy', string="Invoice Policy")
+    is_subscribed = fields.Boolean(
+        string='Subscribed?', tracking=True, default=True)
+    policy_hst_ids = fields.One2many(
+        'policy.history', 'partner_id', string="Policy")
+
+    def generate_invoice(self):
+        """
+        Invoice will be generated for Arrears Policy Type.
+        :return: None
+        """
+        if not self.is_subscribed:
+            return self
+
+        lines = self.env['sale.subscription.line'].search([
+            ('so_line_id.order_id.partner_id', 'child_of', self.id),
+            ('so_line_id.order_id.state', '=', 'sale'),
+        ])
+        if not lines:
+            return self
+
+        areas_lines = lines.filtered(
+            lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'arrears'))
+        advance_lines = lines.filtered(
+            lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
+        if areas_lines:
+            self.generate_arrears_invoice(areas_lines)
+        if advance_lines:
+            self.generate_advance_invoice(advance_lines)
+
+    def generate_advance_invoice(self, lines):
+        """
+        To calculate invoice lines for Advances Policy.
+        """
+
+        today = date.today()
+        so_lines = lines.filtered(
+            lambda sol: (sol.invoice_start_date and
+                         sol.invoice_end_date and
+                         sol.invoice_start_date <= today and
+                         sol.invoice_end_date >= today
+                         ) or (
+                                sol.end_date < today and not sol.last_invoiced and
+                                sol.line_type != 'base'
+                        )
+        )
+        if not so_lines:
+            return self
+
+        base_lines = {}
+        upsell_lines = {}
+        downsell_lines = {}
+        prepared_lines = [line.with_context({
+            'advance': True
+        })._prepare_invoice_line() for line in so_lines]
+
+        for line in prepared_lines:
+            line_type = line['line_type']
+            del line['line_type']
+            line['product_id'] = False
+            if line_type == 'base':
+                if line['category_id'] not in base_lines:
+                    base_lines.update({line['category_id']: line})
+                else:
+                    # if line_type != 'base':
+                    #     base_lines[line['category_id']]['name'] += "\n%s" % line['name']
+                    base_lines[line['category_id']]['quantity'] = 1
+                    base_lines[line['category_id']]['discount'] += line['discount']
+                    base_lines[line['category_id']]['price_unit'] += line['price_unit']
+                    base_lines[line['category_id']]['tax_ids'][0][2].extend(line['tax_ids'][0][2])
+                    base_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
+                    base_lines[line['category_id']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
+                    base_lines[line['category_id']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
+            elif line_type == 'upsell':
+                if line['category_id'] not in upsell_lines:
+                    upsell_lines.update({line['category_id']: line})
+                else:
+                    # if line_type != 'base':
+                    #     base_lines[line['category_id']]['name'] += "\n%s" % line['name']
+                    upsell_lines[line['category_id']]['quantity'] = 1
+                    upsell_lines[line['category_id']]['discount'] += line['discount']
+                    upsell_lines[line['category_id']]['price_unit'] += line['price_unit']
+                    upsell_lines[line['category_id']]['tax_ids'][0][2].extend(line['tax_ids'][0][2])
+                    upsell_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
+                    upsell_lines[line['category_id']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
+                    upsell_lines[line['category_id']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
+            elif line_type == 'downsell':
+                if line['category_id'] not in downsell_lines:
+                    downsell_lines.update({line['category_id']: line})
+                else:
+                    # if line_type != 'base':
+                    #     base_lines[line['category_id']]['name'] += "\n%s" % line['name']
+                    downsell_lines[line['category_id']]['quantity'] = 1
+                    downsell_lines[line['category_id']]['discount'] += line['discount']
+                    downsell_lines[line['category_id']]['price_unit'] += line['price_unit']
+                    downsell_lines[line['category_id']]['tax_ids'][0][2].extend(line['tax_ids'][0][2])
+                    downsell_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
+                    downsell_lines[line['category_id']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
+                    downsell_lines[line['category_id']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
+
+        order = so_lines[0].so_line_id.order_id
+        self.env['account.move'].create({
+            'ref': order.client_order_ref,
+            'type': 'out_invoice',
+            'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
+            'invoice_user_id': order.user_id.id,
+            'narration': order.note,
+            'partner_id': order.partner_invoice_id.id,
+            'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
+            'partner_shipping_id': order.partner_shipping_id.id,
+            'currency_id': order.pricelist_id.currency_id.id,
+            'invoice_payment_ref': order.reference,
+            'invoice_payment_term_id': order.payment_term_id.id,
+            'invoice_partner_bank_id': order.company_id.partner_id.bank_ids[:1].id,
+            'team_id': order.team_id.id,
+            'campaign_id': order.campaign_id.id,
+            'medium_id': order.medium_id.id,
+            'source_id': order.source_id.id,
+            'invoice_line_ids':
+                [
+                    (0, 0, x) for x in base_lines.values()
+                ] + [
+                    (0, 0, x) for x in upsell_lines.values()
+                ] + [
+                    (0, 0, x) for x in downsell_lines.values()
+                ],
+        })
+
+    def generate_arrears_invoice(self, lines):
+        today = date.today()
+        so_lines = lines.filtered(
+            lambda sol: (not sol.end_date or (
+                    sol.end_date and sol.end_date >= today
+            )) and sol.start_date <= today and (
+                                not sol.last_invoiced or
+                                sol.last_invoiced.month != today.month)
+        )
+        if not so_lines:
+            return self
+        invoice_lines = {}
+
+        prepared_lines = [line.with_context({
+            'arrears': True
+        })._prepare_invoice_line() for line in so_lines]
+
+        for line in prepared_lines:
+            line_type = line['line_type']
+            del line['line_type']
+            line['product_id'] = False
+            if line['category_id'] not in invoice_lines:
+                invoice_lines.update({line['category_id']: line})
+            else:
+                if line_type != 'base':
+                    invoice_lines[line['category_id']]['name'] = "\n".join({
+                        invoice_lines[line['category_id']]['name'],
+                        line['name']
+                    })
+                invoice_lines[line['category_id']]['quantity'] = 1
+                invoice_lines[line['category_id']]['discount'] += line['discount']
+                invoice_lines[line['category_id']]['price_unit'] += line['price_unit']
+                invoice_lines[line['category_id']]['tax_ids'][0][2].extend(line['tax_ids'][0][2])
+                invoice_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
+                invoice_lines[line['category_id']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
+                invoice_lines[line['category_id']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
+        so_lines.write({
+            'last_invoiced': today
+        })
+        order = so_lines[0].so_line_id.order_id
+        self.env['account.move'].create({
+            'ref': order.client_order_ref,
+            'type': 'out_invoice',
+            'invoice_origin': '/'.join(
+                so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
+            'invoice_user_id': order.user_id.id,
+            'narration': order.note,
+            'partner_id': order.partner_invoice_id.id,
+            'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
+            'partner_shipping_id': order.partner_shipping_id.id,
+            'currency_id': order.pricelist_id.currency_id.id,
+            'invoice_payment_ref': order.reference,
+            'invoice_payment_term_id': order.payment_term_id.id,
+            'invoice_partner_bank_id': order.company_id.partner_id.bank_ids[:1].id,
+            'team_id': order.team_id.id,
+            'campaign_id': order.campaign_id.id,
+            'medium_id': order.medium_id.id,
+            'source_id': order.source_id.id,
+            'invoice_line_ids': [(0, 0, x) for x in invoice_lines.values()],
+        })
+
+    def log_policy_history(self):
+        """
+        New history record will be created whenever user changes
+        either Policy type or Subscribe/Unsubscribe
+        :return: None
+        """
+        history = []
+        for res in self:
+            history.append({
+                'partner_id': res.id,
+                'is_subscribed': res.is_subscribed,
+                'policy_type': res.clx_invoice_policy_id.policy_type,
+                'num_of_month': res.clx_invoice_policy_id.num_of_month
+            })
+        self.env['policy.history'].create(history)
+
+    def subscription(self):
+        """
+        To subscribe and Unsubscribe.
+        is_subscribed (Subscribed?) field is used to manage this operation
+        :return: None
+        """
+        for res in self:
+            res.is_subscribed = res.env.context.get('subscribe', False)
+        self.log_policy_history()
+
+    @api.model
+    def create(self, vals):
+        res = super(Partner, self).create(vals)
+        if vals.get('clx_invoice_policy_id'):
+            res.log_policy_history()
+        return res
+
+    def write(self, vals):
+        res = super(Partner, self).write(vals)
+        if vals.get('clx_invoice_policy_id'):
+            self.log_policy_history()
+        return res
+
+    @api.model
+    def _generate_subscription_invoices(self):
+        """
+        Scheduler Method: To generate invoice at the end of the month
+        for those customers who subscribed and has Arrears policy
+        :return: Boolean
+        """
+        customers = self.search([
+            ('is_subscribed', '=', True),
+            ('clx_invoice_policy_id', '!=', False)
+        ])
+        if not customers:
+            return True
+        try:
+            for customer in customers:
+                customer.generate_invoice()
+            return True
+        except Exception as e:
+            return False

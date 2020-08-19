@@ -2,10 +2,11 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
-from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from odoo.tools import float_round
 from odoo.tools.misc import get_lang
+
+from odoo import api, fields, models, _
 
 
 class ProductPriceCalculation(models.Model):
@@ -45,7 +46,7 @@ class SaleOrder(models.Model):
                 lambda ch: 'Billing Contact' in ch.mapped(
                     'contact_type_ids'
                 ).mapped('name') and ch.child_id.parent_id and
-                ch.child_id.parent_id.property_product_pricelist
+                           ch.child_id.parent_id.property_product_pricelist
             )
             if contact:
                 self.pricelist_id = contact.child_id.parent_id. \
@@ -67,9 +68,10 @@ class SaleOrderLine(models.Model):
     wholesale_price = fields.Float(string='Wholesale Price')
 
     def update_price(self):
-        """ Add Update Price Method to Calculate
-        Management Fees and Wholesale fees based on
-        Order line Retail Price."""
+        """
+        To Calculate Management Fees and Wholesale fees
+        based on Order line Retail Price.
+        """
         for order_line in self:
             vals = {
                 'product_id': order_line.product_id.id,
@@ -85,7 +87,8 @@ class SaleOrderLine(models.Model):
                 existing_line.write(vals)
             # Create new line
             else:
-                order_line.order_id.product_price_calculation_ids = [(0, 0, vals)]
+                order_line.order_id.product_price_calculation_ids = [
+                    (0, 0, vals)]
 
     def write(self, vals):
         res = super(SaleOrderLine, self).write(vals)
@@ -170,7 +173,7 @@ class SaleOrderLine(models.Model):
                         cat = cat.parent_id
                     if not cat:
                         continue
-                if rule.min_price > self.price_unit:
+                if 0 < self.price_unit < rule.min_price:
                     raise ValidationError(_(
                         'Price amount less than Minimum Price. '
                         'It should be greater or equal to %s'

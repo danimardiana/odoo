@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 
 {
-    'name': 'CLX Developement',
+    'name': 'CLX Retail Pricelist',
     'category': 'Sale',
     'summary': 'To manage pricelist',
     'author': 'CLx Media',

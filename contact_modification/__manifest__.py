@@ -1,27 +1,29 @@
+# -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
 {
-    "name": "Contact Modification",
+    'name': 'Contact Modification',
     'category': 'Contacts',
     'summary': 'To manage Contacts with classification',
-    "author": "CLx Media, Odoo Community Association (OCA)",
-    "website": "https://conversionlogix.com/",
+    'author': 'CLx Media',
+    'website': 'https://conversionlogix.com/',
     'version': '13.1.1.0.8',
     'sequence': 1,
     'license': 'AGPL-3',
-    "depends": [
+    'depends': [
         'contacts',
         'account',
-        'purchase'
+        'purchase',
+        'project',
     ],
-    "data": [
+    'data': [
         'security/ir.model.access.csv',
-        "data/contact_type.xml",
-        "views/res_partner_view.xml",
-        "views/purchase_view.xml",
-        "views/res_partner_clx_child.xml",
-        "views/menu.xml"
+        'data/contact_type.xml',
+        'views/res_partner_view.xml',
+        'views/purchase_view.xml',
+        'views/res_partner_clx_child.xml',
+        'views/menu.xml',
     ],
     'installable': True,
     'application': True,

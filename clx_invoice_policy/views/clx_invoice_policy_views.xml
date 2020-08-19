@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!--form view for clx invoice policy-->
+    <record id="clx_invoice_policy_form_view" model="ir.ui.view">
+        <field name="name">clx.invoice.policy.form.view</field>
+        <field name="model">clx.invoice.policy</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"
+                                   readonly="True"
+                                   force_save="True"
+                                   placeholder="Name"/>
+                        </h1>
+                    </div>
+                    <group col="4">
+                        <field name="policy_type" required="True"/>
+                        <field name="num_of_month"
+                               attrs="{'invisible': [('policy_type', '=', 'arrears')]}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!--tree view for clx invoice policy-->
+    <record id="clx_invoice_policy_tree_view" model="ir.ui.view">
+        <field name="name">clx.invoice.policy.tree.view</field>
+        <field name="model">clx.invoice.policy</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="num_of_month"/>
+                <field name="policy_type"/>
+            </tree>
+        </field>
+    </record>
+
+    <!--Action for clx invoice policy-->
+    <record id="action_clx_invoice_policy" model="ir.actions.act_window">
+        <field name="name">Invoice Policy</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">clx.invoice.policy</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!--Menu for clx invoice policy-->
+    <menuitem id="menu_clx_invoice_policy"
+              name="Incoive Policy"
+              parent="sale.sale_menu_root"
+              action="clx_invoice_policy.action_clx_invoice_policy"
+              sequence="3"/>
+</odoo>
