@@ -20,6 +20,7 @@
         'data/ir_sequence.xml',
         'data/ir_cron.xml',
         'views/sale_budget_views.xml',
+        'views/res_config_settings_views.xml'
     ],
     'installable': True,
     'application': True,

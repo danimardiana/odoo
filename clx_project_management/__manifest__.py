@@ -2,18 +2,18 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 {
-    'name': 'Budget Analysis Report',
+    'name': 'CLX Project Management',
     'version': '13.3.0.1',
-    'summary': 'Budget Analysis Report',
+    'summary': 'CLX Project Management',
     'sequence': 1,
-    'description': """ Budget Analysis Report """,
+    'description': """ CLX Project Management """,
     'category': '',
     'website': '',
-    'depends': ['clx_budget_management'],
+    'depends': ['project',
+                'sale_management',
+                'sale_timesheet'],
     'data': [
-        "security/ir.model.access.csv",
-        "report/sale_budget_report.xml",
-
+        'views/project_views.xml'
     ],
     'demo': [
     ],
