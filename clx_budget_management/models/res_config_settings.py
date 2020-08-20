@@ -17,7 +17,7 @@ class ResConfigSettings(models.TransientModel):
         ('10', 'October'),
         ('11', 'November'),
         ('12', 'December'),
-    ], string="Month for Sale Budget Creation")
+    ], string="Month for Budget Creation")
 
     @api.model
     def set_values(self):

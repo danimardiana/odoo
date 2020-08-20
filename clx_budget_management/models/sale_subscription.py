@@ -98,7 +98,7 @@ class SaleSubscription(models.Model):
         month_selection = int(params.get_param('budget_month')) or False
         if not month_selection and not line.end_date:
             raise ValidationError(_(
-                "Please check Configuration for Month When End date is not sale."
+                "Please check Configuration of the Month When End date is not set."
             ))
         if line:
             available_budget_line = budget_line.filtered(
