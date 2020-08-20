@@ -61,25 +61,16 @@ class SaleOrder(models.Model):
         project_task = self.env['project.task']
         project = project_obj.search([('partner_id', '=', self.partner_id.id)], limit=1)
         stage_id = self.env['project.task.type'].search([('name', '=', 'To Do')], limit=1)
-        if project:
-            parent_task = self.create_main_task(project_task, project, stage_id)
-            for line in self.order_line.filtered(
-                    lambda l: l.product_id.type == 'service' and l.product_id.recurring_invoice):
-                self.create_sub_task(project_task, line, parent_task, stage_id)
-
         if not project:
-            created_project = project_obj.create(
+            project = project_obj.create(
                 {
                     'name': self.partner_id.name,
                     'partner_id': self.partner_id.id,
                     'sale_order_id': self.id,
                 }
             )
-            if created_project:
-                parent_task = self.create_main_task(project_task, created_project, stage_id)
-                if parent_task:
-                    for line in self.order_line.filtered(
-                            lambda
-                                    l: l.product_id.type == 'service' and l.product_id.recurring_invoice):
-                        self.create_sub_task(project_task, line, parent_task, stage_id)
+        parent_task = self.create_main_task(project_task, project, stage_id)
+        for line in self.order_line.filtered(
+                lambda l: l.product_id.type == 'service' and l.product_id.recurring_invoice):
+            self.create_sub_task(project_task, line, parent_task, stage_id)
         return res
