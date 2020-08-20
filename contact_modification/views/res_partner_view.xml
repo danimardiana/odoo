@@ -122,9 +122,6 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="inside">
-                <button class="oe_stat_button" string="Projects" name="project" type="object" icon="fa-tasks"
-                        attrs="{'invisible': [('company_type', '!=', 'company')]}">
-                </button>
                 <button class="oe_stat_button" string="Properties" name="properties_owner" type="object"
                         icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'owner')]}">
                 </button>
@@ -370,6 +367,18 @@
                 <field name="branding_name"/>
                 <field name="timezone_char"/>
                 <field name="yardi_code"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="contact_modification_inherit_view_task_partner_info_form" model="ir.ui.view">
+        <field name="name">res.partner.task.buttons</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="project.view_task_partner_info_form"/>
+        <field name="arch" type="xml">
+            <field name="task_count"
+                   position="attributes">
+                <attribute name="string">Projects</attribute>
             </field>
         </field>
     </record>

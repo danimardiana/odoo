@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
@@ -19,6 +20,19 @@ class Partner(models.Model):
 
     def _dafault_parent(self):
         return [(6, 0, self.parent_id.ids)]
+
+    def _compute_task_count(self):
+        fetch_data = self.env['project.task'].read_group([
+            ('partner_id', 'in', self.ids),
+            ('parent_id', '=', False)
+        ], ['partner_id'], ['partner_id'])
+        result = dict(
+            (
+                data['partner_id'][0], data['partner_id_count']
+            ) for data in fetch_data)
+        for partner in self:
+            partner.task_count = result.get(partner.id, 0) + sum(
+                c.task_count for c in partner.child_ids)
 
     company_type = fields.Selection(
         string='Company Type', compute='_compute_company_type', store=True,

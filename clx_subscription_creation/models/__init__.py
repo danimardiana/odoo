@@ -2,6 +2,5 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
-from . import purchase
-from . import res_partner
-from . import res_partner_clx_child
+from . import sale_order
+from . import sale_subscription
