@@ -2,6 +2,7 @@
 import datetime
 
 from dateutil.relativedelta import relativedelta
+from odoo.exceptions import ValidationError
 
 from odoo import fields, models, api, _
 
@@ -21,22 +22,22 @@ class SaleSubscription(models.Model):
                 <br/> Upsell Date : %s <br/>
              Upsell Amount : %s
                 .</p>""") % (
-                                                           budget_line_id.sol_id.id,
-                                                           budget_line_id.sol_id.display_name,
-                                                           budget_line_id.sol_id.order_id.id,
-                                                           budget_line_id.sol_id.order_id.name,
-                                                           budget_line_id.subscription_id.id,
-                                                           budget_line_id.subscription_id.code,
-                                                           fields.Date.today(),
-                                                           user.id,
-                                                           user.name,
-                                                           budget_line_id.start_date if
-                                                           budget_line_id.status ==
-                                                           'upsell' else 'NO Upsell',
-                                                           budget_line_id.price if
-                                                           budget_line_id.status ==
-                                                           'upsell' else 0.0
-                                                       ))
+                           budget_line_id.sol_id.id,
+                           budget_line_id.sol_id.display_name,
+                           budget_line_id.sol_id.order_id.id,
+                           budget_line_id.sol_id.order_id.name,
+                           budget_line_id.subscription_id.id,
+                           budget_line_id.subscription_id.code,
+                           fields.Date.today(),
+                           user.id,
+                           user.name,
+                           budget_line_id.start_date if
+                           budget_line_id.status ==
+                           'upsell' else 'NO Upsell',
+                           budget_line_id.price if
+                           budget_line_id.status ==
+                           'upsell' else 0.0
+                       ))
 
     def prepared_vals(self, line, sale_budget_created, start_date=False):
         """
@@ -50,6 +51,7 @@ class SaleSubscription(models.Model):
         today = fields.date.today()
         end_date = datetime.date(start_date.year, start_date.month, 1) + relativedelta(months=1,
                                                                                        days=-1)
+
         subscription_line_id = line.subscription_id.recurring_invoice_line_ids. \
             filtered(lambda x: x.product_id.id == line.product_id.id
                                and x.price_unit == line.price_unit
@@ -93,7 +95,11 @@ class SaleSubscription(models.Model):
              ]
         )
         params = self.env['ir.config_parameter'].sudo()
-        month_selection = int(params.get_param('budget_month'))
+        month_selection = int(params.get_param('budget_month')) or False
+        if not month_selection and not line.end_date:
+            raise ValidationError(_(
+                "Please check Configuration for Month When End date is not sale."
+            ))
         if line:
             available_budget_line = budget_line.filtered(
                 lambda x: x.sol_id.id == line.id)
@@ -102,25 +108,25 @@ class SaleSubscription(models.Model):
                 line_start_date = vals.get('start_date')
                 budget_line_id = self.env['sale.budget.line'].create(vals)
                 self.create_chatter_log(budget_line_id, user)
-                if not line.end_date and line.order_id.subscription_management == 'create':
-                    month_start_date = datetime.date(datetime.datetime.today().year,
-                                                     month_selection, 1)
-                    r = relativedelta(month_start_date, line_start_date)
-                    if line.order_id.subscription_management == 'create':
+                if line.order_id.subscription_management == 'create':
+                    if not line.end_date:
+                        month_start_date = datetime.date(datetime.datetime.today().year,
+                                                         month_selection, 1)
+                        r = relativedelta(month_start_date, line_start_date)
                         for i in range(0, r.months):
                             temp = line_start_date + relativedelta(months=1)
                             vals = self.prepared_vals(line, sale_budget, temp)
                             budget_line_id = self.env['sale.budget.line'].create(vals)
                             line_start_date = budget_line_id.start_date
                             self.create_chatter_log(budget_line_id, user)
-                elif line.start_date and line.end_date:
-                    difference_start_end_date = relativedelta(line.end_date, line.start_date)
-                    for i in range(0, difference_start_end_date.months):
-                        temp = line_start_date + relativedelta(months=1)
-                        vals = self.prepared_vals(line, sale_budget, temp)
-                        budget_line_id = self.env['sale.budget.line'].create(vals)
-                        line_start_date = budget_line_id.start_date
-                        self.create_chatter_log(budget_line_id, user)
+                    elif line.start_date and line.end_date:
+                        difference_start_end_date = relativedelta(line.end_date, line.start_date)
+                        for i in range(0, difference_start_end_date.months):
+                            temp = line_start_date + relativedelta(months=1)
+                            vals = self.prepared_vals(line, sale_budget, temp)
+                            budget_line_id = self.env['sale.budget.line'].create(vals)
+                            line_start_date = budget_line_id.start_date
+                            self.create_chatter_log(budget_line_id, user)
 
     @api.model
     def _create_sale_budget(self, sale_order=False):
