@@ -11,7 +11,6 @@
     'data': [
         "security/ir.model.access.csv",
         "report/sale_budget_report.xml",
-        "views/res_config_settings_views.xml"
 
     ],
     'demo': [
