@@ -51,6 +51,7 @@ class SaleSubscriptionWizard(models.TransientModel):
                     'product_uom_qty': 1,
                     'start_date': self.date_from,
                     'end_date': self.end_date,
+                    'discount': 0.0,
                     'line_type': 'downsell' if price < 0 else 'upsell'
                 })
                 sol_id.price_unit_change()
