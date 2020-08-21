@@ -21,6 +21,6 @@ class SaleOrder(models.Model):
     @api.model
     def create(self, vals):
         so = super(SaleOrder, self).create(vals)
-        if so.partner_id:
+        if so.partner_id and not vals.get('clx_invoice_policy_id'):
             so.clx_invoice_policy_id = so.partner_id.clx_invoice_policy_id.id
         return so

@@ -59,3 +59,8 @@
 #### Version 13.1.0.0.9
 #### dev-clx-phase-2 -> Staging-Clx-test
 - [FIX] Conflict Resolved
+
+## 07/25/2020
+#### Version 13.1.0.0.4
+- [FIX] clx_invoice_policy : changes field label and remove check box from the wizard
+,clx_budget_analysis_report : change menu and pivot report name
