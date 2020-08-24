@@ -9,7 +9,8 @@
     'sequence': 1,
     'description': """CLX Invoice Policy""",
     'category': '',
-    'website': '',
+    'author': 'CLx Media',
+    'website': 'https://conversionlogix.com/',
     'depends': [
         'sale',
         'sale_subscription',
