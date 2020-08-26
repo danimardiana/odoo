@@ -1,92 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="clx_report_invoice_document" inherit_id="account.report_invoice_document">
-        <xpath expr="//t/div/p[1]"
+        <!--<xpath expr="//t/div[@hasclass='page']/table[@name='invoice_line_table']/div[@hasclass='clearfix']"
                position="attributes">
-            <attribute name="style">display:none</attribute>
-        </xpath>
-        <xpath expr="//t/div/p[2]"
-               position="attributes">
-            <attribute name="style">display:none</attribute>
-        </xpath>
-        <xpath expr="//t/div/p[3]"
-               position="attributes">
-            <attribute name="style">display:none</attribute>
-        </xpath>
-        <xpath expr="//t/div/p[4]"
-               position="replace">
-            <br/>
-            <div style="margin-top:190px;">
-                <p align="center">Make all checks payable to Conversion Logix, LLC</p>
-                <p align="center">ACH payment instructions:</p>
-                <p align="center">
-                    <span t-field="o.company_id.partner_id.bank_ids[0].bank_id.name"/>
-                </p>
-                <p align="center">Account Name :
-                    <span t-field="o.partner_id.vat"/>
-                </p>
-                <p align="center">Routing Number :
-                    <span t-field="o.company_id.routing_number"/>
-                </p>
-                <p align="center">Account Number
-                    :
-                    <span t-field="o.company_id.partner_id.bank_ids[0].acc_number"/>
-                </p>
-            </div>
-        </xpath>
-        <xpath expr="//div[hasclass('clearfix')]" position="attributes">
-            <attribute name="style">display:none</attribute>
-        </xpath>
+            <attribute name="invisible">1</attribute>
+        </xpath>-->
         <xpath expr="//t[@t-call='web.external_layout']" position="attributes">
             <attribute name="t-call">clx_invoice_reports.clx_external_layout</attribute>
         </xpath>
         <xpath expr="//t[@t-set='address']" position="replace"/>
         <xpath expr="//div[hasclass('page')]/h2" position="replace">
             <div class="row">
-                <div class="col-12">
-                    <div class="col-6" name="invoice">
-                        <h2>
-                            <span style="margin:left;">INVOICE</span>
-                        </h2>
-                    </div>
-                    <div class="col-6" name="invoice">
-                        <p/>
-                    </div>
-                    <div class="col-12">
-                        <div class="col-6" name="bill_to" style="float:left;">
-                            <strong>BILL TO</strong>
-                            <address t-field="o.partner_id"
-                                     t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
-                            <div t-if="o.partner_id.vat" class="mt16">
-                                <t t-if="o.company_id.country_id.vat_label"
-                                   t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
-                                <t t-else="">Tax ID</t>:
-                                <span t-field="o.partner_id.vat"/>
-                            </div>
-                        </div>
-                        <div class="col-6" name="invoice_to" style="float:right;">
-                            <strong>INVOICE :</strong>
-                            <t t-esc="o.name"/>
-                            <br/>
-                            <t t-if="o.invoice_date">
-                                <strong>Date :</strong>
-                                <t t-esc="o.invoice_date"/>
-                                <br/>
-                            </t>
-                            <t t-if="o.invoice_date_due">
-                                <strong>Due Date :</strong>
-                                <t t-esc="o.invoice_date_due"/>
-                                <br/>
-                            </t>
-                            <t t-if="o.invoice_payment_term_id">
-                                <strong>Terms :</strong>
-                                <t t-esc="o.invoice_payment_term_id.name"/>
-                            </t>
-                        </div>
-                    </div>
+                <div class="col-6" name="invoice" >
+                    <h2>
+                        <span style="margin:left;">INVOICE</span>
+                    </h2>
                 </div>
             </div>
-            <div name="clx_hr" style="border-top: 1px solid black;margin-top: 4%;"/>
+            <div class="col-12">
+                <div class="col-6" name="bill_to" style="float:left;">
+                    <strong>BILL TO</strong>
+                    <address t-field="o.partner_id"
+                             t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                    <div t-if="o.partner_id.vat" class="mt16">
+                        <t t-if="o.company_id.country_id.vat_label"
+                           t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
+                        <t t-else="">Tax ID</t>:
+                        <span t-field="o.partner_id.vat"/>
+                    </div>
+                </div>
+                <div class="col-6" name="invoice_to" style="float:right;">
+                    <strong>INVOICE :</strong>
+                    <t t-esc="o.name"/>
+                    <br/>
+                    <t t-if="o.invoice_date">
+                        <strong>Date :</strong>
+                        <t t-esc="o.invoice_date"/>
+                        <br/>
+                    </t>
+                    <t t-if="o.invoice_date_due">
+                        <strong>Due Date :</strong>
+                        <t t-esc="o.invoice_date_due"/>
+                        <br/>
+                    </t>
+                    <t t-if="o.invoice_payment_term_id">
+                        <strong>Terms :</strong>
+                        <t t-esc="o.invoice_payment_term_id.name"/>
+                    </t>
+                </div>
+            </div>
+            <div name="clx_hr" style="border-top: 1px solid black;margin-top: 15%;"/>
             <br/>
             <div class="row">
                 <div class="col-6" name="account">
@@ -97,18 +60,15 @@
                 <div class="col-6" name="for">
                     <strong>FOR</strong>
                     <br/>
-                    <t t-if="o.invoice_date">
-                        <t t-esc="o.invoice_date.strftime('%B-%Y')"/>
-                    </t>
+                    <t t-esc="o.invoice_date.strftime('%B-%Y')"/>
                 </div>
             </div>
         </xpath>
-
         <xpath expr="//div[@id='informations']" position="replace"/>
         <xpath expr="//table[@name='invoice_line_table']" position="replace">
             <br/>
-            <table class="table table-sm o_main_table" name="invoice_line_table">
-                <thead style=" background-color:  #E0E0E0;">
+            <table class="table table-sm o_main_table">
+                <thead>
                     <tr>
                         <t t-set="colspan" t-value="6"/>
                         <th name="th_description" class="text-left">
@@ -143,20 +103,6 @@
                             </td>
                         </tr>
                     </t>
-                </tbody>
-            </table>
-            <hr style="border: 1px dashed black;"/>
-            <table>
-                <tbody>
-                    <tr>
-                        <td style="width: 600px;">Payment in full is required to start or
-                            continue service.
-                        </td>
-                        <td style="width: 300px;">BALANCE DUE</td>
-                        <td style="width: 80px;">
-                            <strong t-field="o.amount_untaxed"/>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </xpath>
