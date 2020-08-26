@@ -20,18 +20,25 @@
                 <p align="center">Make all checks payable to Conversion Logix, LLC</p>
                 <p align="center">ACH payment instructions:</p>
                 <p align="center">
-                    <span t-field="o.company_id.partner_id.bank_ids[0].bank_id.name"/>
+                    <t t-if="o.company_id.partner_id.bank_ids">
+                        <span t-field="o.company_id.partner_id.bank_ids[0].bank_id.name"/>
+                    </t>
                 </p>
-                <p align="center">Account Name :
-                    <span t-field="o.partner_id.vat"/>
-                </p>
-                <p align="center">Routing Number :
-                    <span t-field="o.company_id.routing_number"/>
-                </p>
-                <p align="center">Account Number
-                    :
-                    <span t-field="o.company_id.partner_id.bank_ids[0].acc_number"/>
-                </p>
+                <t t-if="o.partner_id.vat">
+                    <p align="center">Account Name :
+                        <span t-field="o.partner_id.vat"/>
+                    </p>
+                </t>
+                <t t-if="o.company_id.routing_number">
+                    <p align="center">Routing Number :
+                        <span t-field="o.company_id.routing_number"/>
+                    </p>
+                </t>
+                <t t-if="o.company_id.partner_id.bank_ids">
+                    <p align="center">Account Number :
+                        <span t-field="o.company_id.partner_id.bank_ids[0].acc_number"/>
+                    </p>
+                </t>
             </div>
         </xpath>
         <xpath expr="//div[hasclass('clearfix')]" position="attributes">

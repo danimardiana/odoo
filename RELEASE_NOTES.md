@@ -64,3 +64,8 @@
 #### Version 13.1.0.0.4
 - [FIX] clx_invoice_policy : changes field label and remove check box from the wizard
 ,clx_budget_analysis_report : change menu and pivot report name
+
+## 08/26/2020
+#### Version 13.3.0.0.2
+- [FIX] clx_invoice_reports : Fix the some validation when company don't have bank account number
+ and other data
