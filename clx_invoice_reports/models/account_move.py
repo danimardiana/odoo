@@ -6,6 +6,8 @@ from odoo import models
 
 from dateutil import parser
 from dateutil import relativedelta
+from datetime import datetime, timedelta
+from collections import OrderedDict
 
 
 class Invoice(models.Model):
@@ -18,23 +20,20 @@ class Invoice(models.Model):
 
     def print_date(self, inv_line):
         month = ' '
-        start_date = False
         for line in inv_line:
             if line.name:
                 name = line.name.split(':')
                 name = name[-1].split('-')
                 start_date = parser.parse(name[0])
                 end_date = parser.parse(name[-1])
-                month_diff = relativedelta.relativedelta(end_date, start_date)
-                for i in range(0, month_diff.months + 1):
-                    temp_start_date = start_date + relativedelta.relativedelta(months=1)
-                    if start_date.year != temp_start_date.year:
-                        month = start_date.strftime('%B') + ' ' + start_date.strftime('%Y')
+                months = OrderedDict(((start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                     range((end_date - start_date).days))
+                month = ''
+                temp = list(months)
+                for i in temp:
+                    if 'December' not in i:
+                        month += i.split('-')[0] + ','
                     else:
-                        month += ' ' + start_date.strftime('%B') + ','
-                    start_date = temp_start_date
-                    last_date = start_date
-                start_date = False
-        month += '-' + str(last_date.year)
-        unique_string = ' '.join(self.unique_list(month.split()))
-        return unique_string
+                        month += ' ' + i + ','
+                month += '-' + temp[-1].split('-')[-1]
+        return month
