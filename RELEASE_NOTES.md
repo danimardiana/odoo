@@ -73,3 +73,8 @@
 ## 08/29/2020
 #### Version 13.3.0.0.3
 - [FIX] clx_invoice_reports : Fix the issue when printing date on the pdf report.
+
+## 08/29/2020
+#### Version 13.3.0.0.4
+- [FIX] clx_invoice_reports : Fix the issue when printing date on the pdf report it was printing
+ blank instead of data fix that issue.
