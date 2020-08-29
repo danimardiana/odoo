@@ -86,3 +86,9 @@
 ## 08/29/2020
 #### Version 13.3.0.0.6
 - [FIX] clx_invoice_reports : Remove last comma when month label is print on label
+
+## 08/29/2020
+#### Version 13.3.0.0.7
+- [FIX] clx_invoice_reports : added condition for if name field on invoice line does not have date
+ value and format the
+ code

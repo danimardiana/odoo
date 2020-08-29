@@ -20,8 +20,9 @@ class Invoice(models.Model):
 
     def print_date(self, inv_line):
         month = ' '
+        temp = []
         for line in inv_line:
-            if line.name:
+            if line.name and 'Invoicing period' in line.name:
                 name = line.name.split(':')
                 name = name[-1].split('-')
                 start_date = parser.parse(name[0])
@@ -36,5 +37,6 @@ class Invoice(models.Model):
                     else:
                         month += ' ' + i + ','
                 month += '-' + temp[-1].split('-')[-1]
-        month = month.replace(',-'+temp[-1].split('-')[-1],'-'+temp[-1].split('-')[-1])
+        if temp:
+            month = month.replace(',-' + temp[-1].split('-')[-1], '-' + temp[-1].split('-')[-1])
         return month
