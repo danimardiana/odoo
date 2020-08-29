@@ -36,4 +36,5 @@ class Invoice(models.Model):
                     else:
                         month += ' ' + i + ','
                 month += '-' + temp[-1].split('-')[-1]
+        month = month.replace(',-'+temp[-1].split('-')[-1],'-'+temp[-1].split('-')[-1])
         return month
