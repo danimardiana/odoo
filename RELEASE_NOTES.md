@@ -69,3 +69,7 @@
 #### Version 13.3.0.0.2
 - [FIX] clx_invoice_reports : Fix the some validation when company don't have bank account number
  and other data
+ 
+## 08/29/2020
+#### Version 13.3.0.0.3
+- [FIX] clx_invoice_reports : Fix the issue when printing date on the pdf report.
