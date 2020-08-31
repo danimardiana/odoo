@@ -94,4 +94,4 @@
  
  ## 08/29/2020
 #### Version 13.3.0.0.1
-- [ADD] clx_project_management : Added module - clx_project_management. 
+- [ADD] clx_task_management : Added module - clx_task_management. 
