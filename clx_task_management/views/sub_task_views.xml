@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--Form View-->
+    <record id="form_view_sub_task" model="ir.ui.view">
+        <field name="name">sub.task.form.view</field>
+        <field name="model">sub.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="open_parent_task" type="object" string="Parent Task"
+                                class="oe_stat_button">
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sub_task_name"/>
+                            <field name="dependency_id"/>
+                            <field name="parent_id"/>
+                            <field name="team_id"/>
+                        </group>
+                        <group>
+                            <field name="team_members_ids" widget="many2many_tags"/>
+                            <field name="display_to_customer"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!--Tree View -->
+    <record id="tree_view_sub_task" model="ir.ui.view">
+        <field name="name">sub.task.tree.view</field>
+        <field name="model">sub.task</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="team_id"/>
+                <field name="team_members_ids" widget="many2many_tags"/>
+                <field name="display_to_customer"/>
+            </tree>
+        </field>
+    </record>
+
+    <!--View Action-->
+    <record id="action_sub_task" model="ir.actions.act_window">
+        <field name="name">Sub Task</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sub.task</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create new Task.
+            </p>
+        </field>
+    </record>
+
+
+    <!--Sub Menu-->
+    <menuitem id="menu_sub_task"
+              name="Sub Task"
+              parent="clx_task_management.parent_menu_main_task"
+              action="clx_task_management.action_sub_task"
+              sequence="1"/>
+</odoo>

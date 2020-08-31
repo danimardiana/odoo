@@ -90,5 +90,8 @@
 ## 08/29/2020
 #### Version 13.3.0.0.7
 - [FIX] clx_invoice_reports : added condition for if name field on invoice line does not have date
- value and format the
- code
+ value and format the code
+ 
+ ## 08/29/2020
+#### Version 13.3.0.0.1
+- [ADD] clx_project_management : Added module - clx_project_management. 
