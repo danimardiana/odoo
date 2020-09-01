@@ -23,6 +23,34 @@ class RequestForm(models.Model):
             vals['name'] = self.env['ir.sequence'].next_by_code('request.form')
         return super(RequestForm, self).create(vals)
 
+    def open_project(self):
+        print("ooooooooooooo")
+        project_view = self.env.ref('project.edit_project')
+        project = self.env['project.project'].search([('req_form_id', '=', self.id)], limit=1)
+        if project and project_view:
+            return {
+                'name': _('Project'),
+                'res_id': project.id,
+                'res_model': 'project.project',
+                'type': 'ir.actions.act_window',
+                'view_id': project_view.id,
+                'views': [(project_view.id, 'form')],
+                'view_mode': 'form',
+            }
+        return False
+
+    def prepared_sub_task_vals(self, sub_task, main_task):
+        stage_id = self.env['project.task.type'].search([('name', 'ilike', 'New')], limit=1)
+        if stage_id:
+            vals = {
+                'name': sub_task.sub_task_name,
+                'project_id': main_task.project_id.id,
+                'stage_id': stage_id.id,
+                'sub_repositary_task_ids': sub_task.dependency_ids.ids,
+                'parent_id': main_task.id
+            }
+            return vals
+
     def prepared_task_vals(self, line, project_id):
         """
         prepared dictionary for the create task
@@ -30,9 +58,14 @@ class RequestForm(models.Model):
         :Param : project_id : browsable object of the project
         return : dictionary of the task
         """
+        stage_id = self.env['project.task.type'].search([('name', 'ilike', 'New')], limit=1)
         vals = {
-            'name': line.description,
-            'project_id': project_id.id
+            'name': line.task_id.name,
+            'project_id': project_id.id,
+            'description': line.description,
+            'stage_id': stage_id.id,
+            'repositary_task_id': line.task_id.id,
+            'req_type': line.task_id.req_type
         }
         return vals
 
@@ -45,7 +78,7 @@ class RequestForm(models.Model):
         """
         vals = {
             'partner_id': partner_id.id,
-            'name': description
+            'name': description,
         }
         return vals
 
@@ -54,14 +87,25 @@ class RequestForm(models.Model):
         project_id = False
         project_obj = self.env['project.project']
         project_task_obj = self.env['project.task']
+        sub_task_obj = self.env['sub.task']
         if self.description and self.partner_id:
             vals = self.prepared_project_vals(self.description, self.partner_id)
             if vals:
                 project_id = project_obj.create(vals)
-            for line in self.request_line:
                 if project_id:
-                    task_vals = self.prepared_task_vals(line, project_id)
-                    project_task_obj.create(task_vals)
+                    project_id.req_form_id = self.id
+                    for line in self.request_line:
+                        if line.task_id:
+                            vals = self.prepared_task_vals(line, project_id)
+                            main_task = project_task_obj.create(vals)
+                            if main_task:
+                                without_dependency_sub_tasks = sub_task_obj. \
+                                    search([('parent_id', '=', line.task_id.id),
+                                            ('dependency_ids', '=', False)])
+                                for sub_task in without_dependency_sub_tasks:
+                                    vals = self.prepared_sub_task_vals(sub_task, main_task)
+                                    project_task_obj.create(vals)
+
         self.state = 'submitted'
 
 

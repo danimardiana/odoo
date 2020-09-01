@@ -5,3 +5,4 @@ from . import main_task
 from . import sub_task
 from . import team
 from . import request_form
+from . import project

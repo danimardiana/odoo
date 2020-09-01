@@ -95,3 +95,8 @@
  ## 08/29/2020
 #### Version 13.3.0.0.1
 - [ADD] clx_task_management : Added module - clx_task_management. 
+
+ ## 09/01/2020
+#### Version 13.3.0.0.2
+- [ADD] clx_task_management : Development for the create task and subtask when request form is
+ submitted.

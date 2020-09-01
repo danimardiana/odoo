@@ -7,6 +7,7 @@ from odoo import fields, api, models, _
 class SubTask(models.Model):
     _name = 'sub.task'
     _description = 'sub Task'
+    _order = 'sequence'
 
     name = fields.Char(string='name')
     sub_task_name = fields.Char(string='Sub Task Name')
@@ -14,7 +15,9 @@ class SubTask(models.Model):
     parent_id = fields.Many2one('main.task', string='Parent Task')
     team_members_ids = fields.Many2many('res.users', string='Team Members')
     display_to_customer = fields.Char(string='Display To Customer')
-    dependency_id = fields.Many2one('sub.task',string='Dependency')
+    dependency_ids = fields.Many2many('sub.task', 'clx_sub_task_sub_task_rel', 'sub_task_id',
+                                      'sub_id')
+    sequence = fields.Integer()
 
     @api.model
     def create(self, vals):
