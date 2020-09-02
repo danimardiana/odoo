@@ -1,12 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <!-- Inherit Form View to Modify it -->
+    <record id="edit_project_inherit_clx_project_management" model="ir.ui.view">
+        <field name="name">project.project.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//header" position="inside">
+                <!-- Add your fields or attributes here -->
+                <field name="clx_state" widget="statusbar"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Inherit Form View to Modify it -->
     <record id="view_task_form2_inherit_clx_task_management" model="ir.ui.view">
         <field name="name">project.task.form</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
-
             <field name="user_id" position="after">
                 <field name="repositary_task_id"
                        attrs="{'invisible' : ['|', ('parent_id', '!=', False), ('id', '=', False)]}"/>
@@ -14,7 +28,36 @@
                        attrs="{'invisible' : ['|', ('parent_id', '=', False), ('id', '=', False)]}"/>
                 <field name="req_type" widget="radio"/>
             </field>
-
         </field>
+    </record>
+    <record id="project.project_task_action_from_partner" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="domain">[('parent_id','=',False)]</field>
+    </record>
+    <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">kanban,tree,form,calendar,pivot,graph,activity</field>
+        <field name="context">{
+            'pivot_row_groupby': ['user_id'],
+            'search_default_project_id': [active_id],
+            'default_project_id': active_id,
+            }
+        </field>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click <i>Create</i> to start a new task.
+            </p>
+            <p>
+                To get things done, use activities and status on tasks.
+                <br/>
+                Chat in real time or by email to collaborate efficiently.
+            </p>
+        </field>
+        <field name="domain">[('parent_id','=',False)]</field>
     </record>
 </odoo>

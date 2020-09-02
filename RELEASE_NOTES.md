@@ -100,3 +100,8 @@
 #### Version 13.3.0.0.2
 - [ADD] clx_task_management : Development for the create task and subtask when request form is
  submitted.
+ 
+ ## 09/02/2020
+#### Version 13.3.0.0.3
+- [MOD] clx_task_management : Development for the create dependancy task when task move on complete stage.
+- added demo file for task stages
