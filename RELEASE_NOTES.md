@@ -92,16 +92,24 @@
 - [FIX] clx_invoice_reports : added condition for if name field on invoice line does not have date
  value and format the code
  
- ## 08/29/2020
+## 08/29/2020
 #### Version 13.3.0.0.1
 - [ADD] clx_task_management : Added module - clx_task_management. 
 
- ## 09/01/2020
+## 09/01/2020
 #### Version 13.3.0.0.2
 - [ADD] clx_task_management : Development for the create task and subtask when request form is
  submitted.
  
- ## 09/02/2020
+## 09/02/2020
 #### Version 13.3.0.0.3
 - [MOD] clx_task_management : Development for the create dependancy task when task move on complete stage.
 - added demo file for task stages
+
+## 09/02/2020
+#### Version 13.3.0.0.4
+- [MOD] clx_task_management : raise warning when user delete any task.
+- Default Group by team wise all the task.
+- set team and team members when creating task from the master table of task.
+- change view when click on smart button on request form.
+- set demo stage when create new proeject from the request form.

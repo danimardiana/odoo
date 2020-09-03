@@ -25,23 +25,43 @@ class RequestForm(models.Model):
             vals['name'] = self.env['ir.sequence'].next_by_code('request.form')
         return super(RequestForm, self).create(vals)
 
-    def open_project(self):
-        project_view = self.env.ref('project.edit_project')
+    def assign_stage_project(self, project_id):
+        """
+        assign demo data stage to new created project
+        :param project_id:
+        :return:
+        """
+        stages = self.env['project.task.type'].search([('demo_data', '=', True)])
+        for stage in stages:
+            project_list = stage.project_ids.ids
+            project_list.append(project_id.id)
+            stage.update({'project_ids': [(6, 0, project_list)]})
+
+    def open_project_main_task_kanban_view(self):
+        """
+        open project's main task kanban view
+        :return: action of kanban view
+
+        """
+        kanban_view = [(self.env.ref('project.view_task_kanban').id, 'kanban')]
+        project_action = self.env.ref('project.action_view_task')
         project = self.env['project.project'].search(
             [('req_form_id', '=', self.id)], limit=1)
-        if project and project_view:
-            return {
-                'name': _('Project'),
-                'res_id': project.id,
-                'res_model': 'project.project',
-                'type': 'ir.actions.act_window',
-                'view_id': project_view.id,
-                'views': [(project_view.id, 'form')],
-                'view_mode': 'form',
-            }
+        if kanban_view and project_action and project:
+            action = project_action.read()[0]
+            action["context"] = {'search_default_project_id': project.id}
+            action["domain"] = [('parent_id', '=', False)]
+            action["views"] = kanban_view
+            return action
         return False
 
     def prepared_sub_task_vals(self, sub_task, main_task):
+        """
+        Prepared vals for sub task
+        :param sub_task: browsable object of the sub.task
+        :param main_task: brwosable object of the main.task
+        :return: dictionary for the sub task
+        """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         if stage_id:
             vals = {
@@ -50,7 +70,9 @@ class RequestForm(models.Model):
                 'stage_id': stage_id.id,
                 'sub_repositary_task_ids': sub_task.dependency_ids.ids,
                 'parent_id': main_task.id,
-                'sub_task_id': sub_task.id
+                'sub_task_id': sub_task.id,
+                'team_id': sub_task.team_id.id,
+                'team_members_ids': sub_task.team_members_ids.ids
             }
             return vals
 
@@ -68,7 +90,9 @@ class RequestForm(models.Model):
             'description': line.description,
             'stage_id': stage_id.id,
             'repositary_task_id': line.task_id.id,
-            'req_type': line.task_id.req_type
+            'req_type': line.task_id.req_type,
+            'team_id': line.task_id.team_id.id,
+            'team_members_ids': line.task_id.team_members_ids.ids
         }
         return vals
 
@@ -87,6 +111,10 @@ class RequestForm(models.Model):
         return vals
 
     def action_submit_form(self):
+        """
+        when request form is submitted create project and task and subtask.
+        :return:
+        """
         self.ensure_one()
         project_id = False
         project_obj = self.env['project.project']
@@ -99,6 +127,7 @@ class RequestForm(models.Model):
                 project_id = project_obj.create(vals)
                 if project_id:
                     project_id.req_form_id = self.id
+                    self.assign_stage_project(project_id)
                     for line in self.request_line:
                         if line.task_id:
                             vals = self.prepared_task_vals(line, project_id)

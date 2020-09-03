@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <!-- Inherit Form View to Modify it -->
+    <!-- Inherit Form View to add state for the project it -->
     <record id="edit_project_inherit_clx_project_management" model="ir.ui.view">
         <field name="name">project.project.form</field>
         <field name="model">project.project</field>
@@ -8,14 +8,12 @@
         <field name="arch" type="xml">
 
             <xpath expr="//header" position="inside">
-                <!-- Add your fields or attributes here -->
                 <field name="clx_state" widget="statusbar"/>
             </xpath>
-
         </field>
     </record>
 
-    <!-- Inherit Form View to Modify it -->
+    <!-- Inherit Form View to added custom fields it -->
     <record id="view_task_form2_inherit_clx_task_management" model="ir.ui.view">
         <field name="name">project.task.form</field>
         <field name="model">project.task</field>
@@ -27,9 +25,12 @@
                 <field name="sub_repositary_task_ids" widget="many2many_tags"
                        attrs="{'invisible' : ['|', ('parent_id', '=', False), ('id', '=', False)]}"/>
                 <field name="req_type" widget="radio"/>
+                <field name="team_id"/>
+                <field name="team_members_ids" widget="many2many_tags"/>
             </field>
         </field>
     </record>
+
     <record id="project.project_task_action_from_partner" model="ir.actions.act_window">
         <field name="name">Tasks</field>
         <field name="res_model">project.task</field>
@@ -37,6 +38,23 @@
         <field name="search_view_id" ref="project.view_task_search_form"/>
         <field name="domain">[('parent_id','=',False)]</field>
     </record>
+
+    <!--inherit search view for add group by team -->
+    <record id="view_task_search_form_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.task.search.form</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="team_id"/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter string="Team" name="team" domain="[]" context="{'group_by':'team_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--override action because of  show only parent task on when action is call -->
     <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
         <field name="name">Tasks</field>
         <field name="res_model">project.task</field>
@@ -56,6 +74,25 @@
                 To get things done, use activities and status on tasks.
                 <br/>
                 Chat in real time or by email to collaborate efficiently.
+            </p>
+        </field>
+        <field name="domain">[('parent_id','=',False)]</field>
+    </record>
+
+    <record id="project.action_view_task" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">kanban,tree,form,calendar,pivot,graph,activity</field>
+        <field name="context">{'search_default_my_tasks': 1,'search_default_team' : 1}</field>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new task
+            </p>
+            <p>
+                Odoo's project management allows you to manage the pipeline of your tasks efficiently.
+                <br/>
+                You can track progress, discuss on tasks, attach documents, etc.
             </p>
         </field>
         <field name="domain">[('parent_id','=',False)]</field>
