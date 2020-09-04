@@ -2,6 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, api, models, _
+from odoo.exceptions import UserError
 
 
 class RequestForm(models.Model):
@@ -112,7 +113,7 @@ class RequestForm(models.Model):
 
     def action_submit_form(self):
         """
-        when request form is submitted create project and task and subtask.
+        when request form is submitted create project and task and subtask from the Master table.
         :return:
         """
         self.ensure_one()
@@ -120,6 +121,8 @@ class RequestForm(models.Model):
         project_obj = self.env['project.project']
         project_task_obj = self.env['project.task']
         sub_task_obj = self.env['sub.task']
+        if not self.request_line:
+            raise UserError('There is no Request Line, Please add some line')
         if self.description and self.partner_id:
             vals = self.prepared_project_vals(self.description,
                                               self.partner_id)
@@ -133,15 +136,14 @@ class RequestForm(models.Model):
                             vals = self.prepared_task_vals(line, project_id)
                             main_task = project_task_obj.create(vals)
                             if main_task:
-                                without_dependency_sub_tasks = sub_task_obj. \
+                                dependency_sub_tasks = sub_task_obj. \
                                     search(
                                     [('parent_id', '=', line.task_id.id),
                                      ('dependency_ids', '=', False)])
-                                for sub_task in without_dependency_sub_tasks:
+                                for sub_task in dependency_sub_tasks:
                                     vals = self.prepared_sub_task_vals(
                                         sub_task, main_task)
                                     project_task_obj.create(vals)
-
         self.state = 'submitted'
 
 

@@ -48,5 +48,12 @@
             <field name="fold" eval="False"/>
             <field name="demo_data" eval="True"/>
         </record>
+
+        <record id="clx_project_stage_9" model="project.task.type">
+            <field name="sequence">9</field>
+            <field name="name">Cancel</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
     </data>
 </odoo>

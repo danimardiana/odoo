@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="task_cancel_warning_wizard_form_view" model="ir.ui.view">
+        <field name="name">task.cancel.warning.wizard.form.view</field>
+        <field name="model">task.cancel.warning.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <p>Are you Sure want to Cancel this Task ?</p>
+                    </group>
+                    <footer>
+                        <button string="Yes" name="open_another_warning" type="object" class="btn-primary"/>
+                        <button string="No" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cancel_task" model="ir.actions.act_window">
+        <field name="name">action.cancel.task</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">task.cancel.warning.wizard</field>
+        <field name="view_mode">form</field>
+    </record>
+</odoo>

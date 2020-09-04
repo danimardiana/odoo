@@ -22,7 +22,7 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="team_name"/>
-                <field name="team_members_ids"/>
+                <field name="team_members_ids" widget="many2many_tags"/>
             </tree>
         </field>
     </record>

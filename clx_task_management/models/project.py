@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
-from odoo import fields, models, _
+from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 
 
@@ -16,6 +16,7 @@ class ProjectProject(models.Model):
 
     req_form_id = fields.Many2one('request.form', string='Request Form')
     clx_state = fields.Selection([('in_progress', 'In Progress'), ('done', 'Done')], string="State")
+    clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
 
 
 class ProjectTask(models.Model):
@@ -29,6 +30,22 @@ class ProjectTask(models.Model):
     sub_task_id = fields.Many2one('sub.task', string="Sub Task from Master Table")
     team_id = fields.Many2one('clx.team', string='Team')
     team_members_ids = fields.Many2many('res.users', string="Team Members")
+    clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
+    clx_sale_order_line_id = fields.Many2one('sale.order.line', string="Sale order Item")
+
+    def action_view_clx_so(self):
+        """
+        open sale order from project task form view via smart button
+        :return:
+        """
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "sale.order",
+            "views": [[False, "form"]],
+            "res_id": self.clx_sale_order_id.id,
+            "context": {"create": False, "show_sale": True},
+        }
 
     def unlink(self):
         for task in self:
@@ -49,14 +66,14 @@ class ProjectTask(models.Model):
             return vals
 
     def write(self, vals):
-        res = super(ProjectTask, self).write(vals)
         sub_task_obj = self.env['sub.task']
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        # cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             if self.sub_task_id:
                 dependency_tasks = sub_task_obj.search([('dependency_ids', 'in', self.sub_task_id.ids)])
                 for task in dependency_tasks:
                     vals = self.create_sub_task(task, self.project_id)
                     self.create(vals)
-        return res
+        return super(ProjectTask, self).write(vals)

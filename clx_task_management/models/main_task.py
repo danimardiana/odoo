@@ -11,7 +11,7 @@ class MainTask(models.Model):
     name = fields.Char(string='name')
     team_id = fields.Many2one('clx.team', string='Team')
     team_members_ids = fields.Many2many('res.users', string='Team Members')
-    display_to_customer = fields.Char(string='Display To Customer')
+    display_to_customer = fields.Boolean(string='Display To Customer')
     sub_task_count = fields.Integer(string="", compute='_compute_sub_task_count')
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')], string='Request Type')
 

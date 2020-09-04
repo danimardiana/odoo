@@ -106,10 +106,17 @@
 - [MOD] clx_task_management : Development for the create dependancy task when task move on complete stage.
 - added demo file for task stages
 
-## 09/02/2020
+## 09/03/2020
 #### Version 13.3.0.0.4
 - [MOD] clx_task_management : raise warning when user delete any task.
 - Default Group by team wise all the task.
 - set team and team members when creating task from the master table of task.
 - change view when click on smart button on request form.
 - set demo stage when create new proeject from the request form.
+
+## 09/04/2020
+#### Version 13.3.0.0.5
+- [MOD] clx_task_management : added project and task relation on sale order line and added domain on those fields.
+- User can see only those projects record which projects is not connected with any sale order and same partner as saleorder.
+- added fields on project_task.
+- link project and task with sale order and sale order line. 
