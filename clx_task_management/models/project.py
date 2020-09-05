@@ -18,6 +18,14 @@ class ProjectProject(models.Model):
     clx_state = fields.Selection([('in_progress', 'In Progress'), ('done', 'Done')], string="State")
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
 
+    def action_done_project(self):
+        tasks = self.env['project.task'].search([('project_id', '=', self.id)])
+        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        if all(task.stage_id.id == complete_stage.id for task in tasks):
+            self.clx_state = 'done'
+        else:
+            raise UserError(_("Please Complete All the Task First!!"))
+
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'

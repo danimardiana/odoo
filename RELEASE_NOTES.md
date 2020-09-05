@@ -123,5 +123,8 @@
 
 ## 09/05/2020
 #### Version 13.3.0.0.6
-- [FIX] clx_task_management : FIX the issue of mail followers. 
+- [FIX] clx_task_management : FIX the issue of mail followers.
 
+## 09/05/2020
+#### Version 13.3.0.0.7
+- [FIX] clx_task_management : Added button for project done.

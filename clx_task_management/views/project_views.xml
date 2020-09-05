@@ -9,6 +9,8 @@
 
             <xpath expr="//header" position="inside">
                 <field name="clx_state" widget="statusbar"/>
+                <button type="object" name="action_done_project" class="oe_stat_button"
+                        string="Done" attrs="{'invisible': [('clx_state', '=', 'done')]}"/>
             </xpath>
             <field name="partner_id" position="after">
                 <field name="clx_sale_order_id"/>
