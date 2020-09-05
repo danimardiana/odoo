@@ -119,4 +119,9 @@
 - [MOD] clx_task_management : added project and task relation on sale order line and added domain on those fields.
 - User can see only those projects record which projects is not connected with any sale order and same partner as saleorder.
 - added fields on project_task.
-- link project and task with sale order and sale order line. 
+- link project and task with sale order and sale order line.
+
+## 09/05/2020
+#### Version 13.3.0.0.6
+- [FIX] clx_task_management : FIX the issue of mail followers. 
+

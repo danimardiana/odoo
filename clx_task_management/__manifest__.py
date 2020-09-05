@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Task Management',
-    'version': '13.3.0.0.5',
+    'version': '13.3.0.0.6',
     'summary': 'CLX Task Management',
     'sequence': 1,
     'description': """ CLX Task Management """,
@@ -11,7 +11,8 @@
     'author': 'CLx Media',
     'website': 'https://conversionlogix.com/',
     'depends': ['sale',
-                'project'
+                'project',
+                'sale_management'
                 ],
     'data': [
         'security/ir.model.access.csv',

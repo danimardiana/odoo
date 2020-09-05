@@ -66,14 +66,16 @@ class ProjectTask(models.Model):
             return vals
 
     def write(self, vals):
+        res = super(ProjectTask, self).write(vals)
         sub_task_obj = self.env['sub.task']
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         # cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             if self.sub_task_id:
-                dependency_tasks = sub_task_obj.search([('dependency_ids', 'in', self.sub_task_id.ids)])
+                dependency_tasks = sub_task_obj.search(
+                    [('dependency_ids', 'in', self.sub_task_id.ids), ('parent_id', '=', self.parent_id.id)])
                 for task in dependency_tasks:
                     vals = self.create_sub_task(task, self.project_id)
                     self.create(vals)
-        return super(ProjectTask, self).write(vals)
+        return res
