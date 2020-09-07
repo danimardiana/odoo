@@ -19,12 +19,57 @@ class RequestForm(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
                              default='draft')
+    is_create_client_launch = fields.Boolean('Create Client Launch ?')
 
     @api.model
     def create(self, vals):
         if vals.get('name', _('New')) == _('New'):
             vals['name'] = self.env['ir.sequence'].next_by_code('request.form')
         return super(RequestForm, self).create(vals)
+
+    def unlink(self):
+        for req_form in self:
+            if req_form.state == 'submitted':
+                raise UserError(_('You can Not Delete Submitted Request Form'))
+        return super(RequestForm, self).unlink()
+
+    def create_client_launch_task(self, project_id):
+        """
+        Create Client launch task is the is_create_client_launch is checked.
+        :return:
+        """
+        project_task_obj = self.env['project.task']
+        stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        if project_id:
+            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
+            if client_launch_task:
+                vals = {
+                    'name': client_launch_task.name,
+                    'project_id': project_id.id,
+                    'stage_id': stage_id.id,
+                    'repositary_task_id': client_launch_task.id,
+                    'req_type': client_launch_task.req_type,
+                    'team_id': client_launch_task.team_id.id,
+                    'team_members_ids': client_launch_task.team_members_ids.ids
+                }
+                print(vals)
+                main_task = project_task_obj.create(vals)
+                sub_tasks = self.env['sub.task'].search([('parent_id', '=', client_launch_task.id),
+                                                         ('dependency_ids', '=', False)])
+                if sub_tasks:
+                    for sub_task in sub_tasks:
+                        sub_task_vals = {
+
+                            'name': sub_task.sub_task_name,
+                            'project_id': project_id.id,
+                            'stage_id': stage_id.id,
+                            'sub_repositary_task_ids': sub_task.dependency_ids.ids,
+                            'team_id': sub_task.team_id.id,
+                            'team_members_ids': sub_task.team_members_ids.ids,
+                            'parent_id': main_task.id,
+                            'sub_task_id': sub_task.id
+                        }
+                        project_task_obj.create(sub_task_vals)
 
     def assign_stage_project(self, project_id):
         """
@@ -44,15 +89,13 @@ class RequestForm(models.Model):
         :return: action of kanban view
 
         """
-        kanban_view = [(self.env.ref('project.view_task_kanban').id, 'kanban')]
         project_action = self.env.ref('project.action_view_task')
         project = self.env['project.project'].search(
             [('req_form_id', '=', self.id)], limit=1)
-        if kanban_view and project_action and project:
+        if project_action and project:
             action = project_action.read()[0]
             action["context"] = {'search_default_project_id': project.id}
             action["domain"] = [('parent_id', '=', False)]
-            action["views"] = kanban_view
             return action
         return False
 
@@ -131,6 +174,8 @@ class RequestForm(models.Model):
                 if project_id:
                     project_id.req_form_id = self.id
                     self.assign_stage_project(project_id)
+                    if self.is_create_client_launch:
+                        self.create_client_launch_task(project_id)
                     for line in self.request_line:
                         if line.task_id:
                             vals = self.prepared_task_vals(line, project_id)
@@ -154,8 +199,17 @@ class RequestFormLine(models.Model):
 
     request_form_id = fields.Many2one('request.form', string='Request Form',
                                       ondelete='cascade')
+    is_create_client_launch = fields.Boolean(compute="_compute_is_create_client_launch")
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
     description = fields.Text(string='Description',
                               help='It will set as Task Description')
+
+    @api.depends('req_type')
+    def _compute_is_create_client_launch(self):
+        for line in self:
+            if line.request_form_id.is_create_client_launch:
+                line.is_create_client_launch = True
+            else:
+                line.is_create_client_launch = False

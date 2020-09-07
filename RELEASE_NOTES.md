@@ -128,3 +128,13 @@
 ## 09/05/2020
 #### Version 13.3.0.0.7
 - [FIX] clx_task_management : Added button for project done.
+
+## 09/05/2020
+#### Version 13.3.0.0.8
+- [FIX] clx_task_management : Add parent task on Subtask tree view on task management.
+- [ADD] Created Separate menu for request form (Draft req Form, Submitted Req form).
+- [ADD] Added checkbox to create Client launch task on request form, if checkbox is true create task of client launch under project created from the submitted request form.
+- [FIX] Fix the issue of Task Kanban view is not clickable.
+- [FIX] Created a kanban view for all subtasks which are displayed as "Group by Team".
+- [FIX] Fix the issue of dependency for subtask.
+- [ADD] Added Demo data files for Client Launch Task and Teams.

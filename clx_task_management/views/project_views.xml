@@ -34,7 +34,7 @@
                        attrs="{'invisible' : ['|', ('parent_id', '!=', False), ('id', '=', False)]}"/>
                 <field name="sub_repositary_task_ids" widget="many2many_tags"
                        attrs="{'invisible' : ['|', ('parent_id', '=', False), ('id', '=', False)]}"/>
-                <field name="req_type" widget="radio"/>
+                <field name="req_type" widget="radio" attrs="{'invisible' : [('parent_id', '!=', False)]}"/>
                 <field name="team_id"/>
                 <field name="team_members_ids" widget="many2many_tags"/>
             </field>
@@ -46,7 +46,7 @@
         <field name="res_model">project.task</field>
         <field name="view_mode">kanban,tree,form</field>
         <field name="search_view_id" ref="project.view_task_search_form"/>
-        <field name="domain">[('parent_id','=',False)]</field>
+        <field name="domain">[('parent_id','!=',False)]</field>
     </record>
 
     <!--inherit search view for add group by team -->
@@ -86,7 +86,7 @@
                 Chat in real time or by email to collaborate efficiently.
             </p>
         </field>
-        <field name="domain">[('parent_id','=',False)]</field>
+        <field name="domain">[('parent_id','!=',False)]</field>
     </record>
 
     <record id="project.action_view_task" model="ir.actions.act_window">
@@ -105,6 +105,6 @@
                 You can track progress, discuss on tasks, attach documents, etc.
             </p>
         </field>
-        <field name="domain">[('parent_id','=',False)]</field>
+        <field name="domain">[('parent_id','!=',False)]</field>
     </record>
 </odoo>

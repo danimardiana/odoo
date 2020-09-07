@@ -44,6 +44,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="sub_task_name"/>
+                <field name="parent_id"/>
                 <field name="dependency_ids" widget="many2many_tags"/>
                 <field name="team_id"/>
                 <field name="team_members_ids" widget="many2many_tags"/>

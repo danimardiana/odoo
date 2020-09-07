@@ -82,7 +82,7 @@ class ProjectTask(models.Model):
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             if self.sub_task_id:
                 dependency_tasks = sub_task_obj.search(
-                    [('dependency_ids', 'in', self.sub_task_id.ids), ('parent_id', '=', self.parent_id.id)])
+                    [('dependency_ids', 'in', self.sub_task_id.ids)])
                 for task in dependency_tasks:
                     vals = self.create_sub_task(task, self.project_id)
                     self.create(vals)

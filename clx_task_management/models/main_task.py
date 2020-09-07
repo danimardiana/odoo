@@ -14,6 +14,7 @@ class MainTask(models.Model):
     display_to_customer = fields.Boolean(string='Display To Customer')
     sub_task_count = fields.Integer(string="", compute='_compute_sub_task_count')
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')], string='Request Type')
+    is_create_client_launch = fields.Boolean()
 
     def _compute_sub_task_count(self):
         sub_task_obj = self.env['sub.task']

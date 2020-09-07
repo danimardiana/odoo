@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="clx_sales_team" model="clx.team">
+            <field name="team_name">Sales</field>
+        </record>
+        <record id="clx_cs_team" model="clx.team">
+            <field name="team_name">CS</field>
+        </record>
+        <record id="clx_accounting_team" model="clx.team">
+            <field name="team_name">Accounting</field>
+        </record>
+    </data>
+</odoo>
