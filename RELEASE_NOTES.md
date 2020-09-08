@@ -138,3 +138,8 @@
 - [FIX] Created a kanban view for all subtasks which are displayed as "Group by Team".
 - [FIX] Fix the issue of dependency for subtask.
 - [ADD] Added Demo data files for Client Launch Task and Teams.
+
+## 09/08/2020
+#### Version 13.3.0.0.9
+- [ADD] clx_task_management : added demo data files for master table.
+

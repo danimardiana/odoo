@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <data>
-        <!--parent Task for Client Launch-->
-        <record id="clx_client_launch_task" model="main.task">
-            <field name="name">Client Launch</field>
-            <field name="req_type">new</field>
-            <field name="is_create_client_launch">True</field>
-        </record>
-    </data>
     <!--Sub Task For Client Launch-->
     <data>
         <record id="clx_client_launch_sub_task_1" model="sub.task">

@@ -10,8 +10,8 @@
                 <field name="order_id" invisible="1"/>
                 <field name="order_partner_id" invisible="1"/>
                 <field name="project_id"
-                       domain="[('clx_sale_order_id','=',False),('partner_id','=',order_partner_id)]"/>
-                <field name="task_id" domain="[('project_id', '=', project_id)]"/>
+                       domain="[('partner_id','=',order_partner_id)]"/>
+                <field name="task_id" domain="[('project_id', '=', project_id),('clx_sale_order_id','=',False)]"/>
             </xpath>
         </field>
     </record>

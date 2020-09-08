@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--subtask for Facebook and instagram Launch -->
+    <record id="facebook_and_instagram_sub_task_1" model="sub.task">
+        <field name="sub_task_name">Provide any Facebook and Instagram media preferences that might supplement client
+            questionnaires.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_sales_team"></field>
+    </record>
+    <record id="facebook_and_instagram_sub_task_2" model="sub.task">
+        <field name="sub_task_name">Audit client questionnaire responses and any campaign preferences.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_sales_team"></field>
+    </record>
+    <record id="facebook_and_instagram_sub_task_3" model="sub.task">
+        <field name="sub_task_name">Set up Facebook and Instagram campaign.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="team_id" ref="clx_task_management.clx_ops_team"></field>
+    </record>
+    <record id="facebook_and_instagram_sub_task_4" model="sub.task">
+        <field name="sub_task_name">Resize images and add regulatory logos for Facebook 1080x1080 format.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cat_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.facebook_and_instagram_sub_task_2'))]"/>
+    </record>
+    <record id="facebook_and_instagram_sub_task_5" model="sub.task">
+        <field name="sub_task_name">Create Facebook and Instagram ad(s) and store Social proofing permalink.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.facebook_and_instagram_sub_task_4'))]"/>
+    </record>
+    <record id="facebook_and_instagram_sub_task_6" model="sub.task">
+        <field name="sub_task_name">Gain client's approval on Facebook and Instagram media.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.facebook_and_instagram_sub_task_5'))]"/>
+    </record>
+    <record id="facebook_and_instagram_sub_task_7" model="sub.task">
+        <field name="sub_task_name">If eligible to launch early, revise launch day to current day. (SYSTEM)
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="team_id" ref="clx_task_management.clx_system_team"></field>
+    </record>
+    <record id="facebook_and_instagram_sub_task_8" model="sub.task">
+        <field name="sub_task_name">Launch Facebook and Instagram media approved by client.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="team_id" ref="clx_task_management.clx_ops_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.facebook_and_instagram_sub_task_6'))]"/>
+    </record>
+    <record id="facebook_and_instagram_sub_task_9" model="sub.task">
+        <field name="sub_task_name">Review Facebook and Instagram campaign launch.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="team_id" ref="clx_task_management.clx_ops_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.facebook_and_instagram_sub_task_8'))]"/>
+    </record>
+    <record id="facebook_and_instagram_sub_task_10" model="sub.task">
+        <field name="sub_task_name">Verify Facebook and Instagram data is linked within reporting.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_facebook_and_instagram_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.facebook_and_instagram_sub_task_6'))]"/>
+    </record>
+</odoo>

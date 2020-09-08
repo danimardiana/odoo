@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--subtask for Google My Business  -->
+    <record id="google_my_business_sub_task_1" model="sub.task">
+        <field name="sub_task_name">Link the client's GMB account to dashboard.clxinternal.com
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_google_my_business_accelerator_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="google_my_business_sub_task_2" model="sub.task">
+        <field name="sub_task_name">Create 12 evergreen posts with integrated keywords. Create offer posts for the first
+            month of service.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_google_my_business_accelerator_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="google_my_business_sub_task_3" model="sub.task">
+        <field name="sub_task_name">Create offer posts for the first month of service and set evergreen posts to
+            Proofing mode.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_google_my_business_accelerator_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="google_my_business_sub_task_4" model="sub.task">
+        <field name="sub_task_name">Gain client's approval on GMB Accelerator posts.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_google_my_business_accelerator_task"/>
+        <field name="dependency_ids"
+               eval="[(4, ref('clx_task_management.google_my_business_sub_task_3')),(4, ref('clx_task_management.google_my_business_sub_task_2'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="google_my_business_sub_task_5" model="sub.task">
+        <field name="sub_task_name">Set approved GMB Accelerator posts to Scheduled mode.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_google_my_business_accelerator_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.google_my_business_sub_task_4'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="google_my_business_sub_task_6" model="sub.task">
+        <field name="sub_task_name">Verify GMB data is linked within reporting.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_google_my_business_accelerator_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.google_my_business_sub_task_4'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+</odoo>

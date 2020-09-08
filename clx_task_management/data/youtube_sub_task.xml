@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--subtask for youtube Launch -->
+    <record id="youtube_sub_task_1" model="sub.task">
+        <field name="sub_task_name">Confirm if client will host YouTube media and provide any preferences that might
+            supplement client questionnaires.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_youtube_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_sales_team"></field>
+    </record>
+    <record id="youtube_sub_task_2" model="sub.task">
+        <field name="sub_task_name">Audit client questionnaire responses and any campaign preferences. Write ad copy if
+            YouTube media is needed.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_youtube_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="youtube_sub_task_3" model="sub.task">
+        <field name="sub_task_name">Set up YouTube campaign.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_youtube_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="youtube_sub_task_4" model="sub.task">
+        <field name="sub_task_name">Create a YouTube Video and Companion Banner. Store in Dropbox.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_youtube_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.youtube_sub_task_2'))]"/>
+    </record>
+    <record id="youtube_sub_task_5" model="sub.task">
+        <field name="sub_task_name">Gain client's approval on YouTube media.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_youtube_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.youtube_sub_task_4'))]"/>
+
+    </record>
+    <record id="youtube_sub_task_6" model="sub.task">
+        <field name="sub_task_name">Upload YouTube campaign media to Conversion Logix account or modify campaign to
+            utilize client-hosted video. Launch campaign.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_youtube_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.youtube_sub_task_5'))]"/>
+    </record>
+    <record id="youtube_sub_task_7" model="sub.task">
+        <field name="sub_task_name">Review YouTube campaign launch.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_youtube_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.youtube_sub_task_6'))]"/>
+    </record>
+    <record id="youtube_sub_task_8" model="sub.task">
+        <field name="sub_task_name">Verify YouTube data is linked within reporting.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_youtube_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.youtube_sub_task_5'))]"/>
+    </record>
+
+</odoo>

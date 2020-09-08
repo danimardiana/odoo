@@ -10,5 +10,20 @@
         <record id="clx_accounting_team" model="clx.team">
             <field name="team_name">Accounting</field>
         </record>
+        <record id="clx_tcc_team" model="clx.team">
+            <field name="team_name">TCC</field>
+        </record>
+        <record id="clx_ops_team" model="clx.team">
+            <field name="team_name">OPS</field>
+        </record>
+        <record id="clx_system_team" model="clx.team">
+            <field name="team_name">System</field>
+        </record>
+        <record id="clx_cat_team" model="clx.team">
+            <field name="team_name">CAT</field>
+        </record>
+        <record id="clx_live_chat_team" model="clx.team">
+            <field name="team_name">Live Chat</field>
+        </record>
     </data>
 </odoo>
