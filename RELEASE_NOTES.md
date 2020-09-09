@@ -146,4 +146,7 @@
 ## 09/09/2020
 #### Version 13.3.0.0.10
 - [FIX] clx_task_management : fix the issue when creating dependency task when have one task is dependent on other main task.
-- [FIX] added team and tema members while creating project.task
+- [FIX] added team and team members while creating project.task
+
+## 09/09/2020
+- [REMOVE]  Remove clx_project_management module. 
