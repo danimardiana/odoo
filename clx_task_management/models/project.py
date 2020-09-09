@@ -62,14 +62,18 @@ class ProjectTask(models.Model):
 
     def create_sub_task(self, task, project_id):
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        sub_task = self.project_id.task_ids.filtered(lambda x: x.sub_task_id.parent_id.id == task.parent_id.id)
+        print(sub_task.mapped('parent_id')[0].name)
         if stage_id:
             vals = {
                 'name': task.sub_task_name,
                 'project_id': project_id.id,
                 'stage_id': stage_id.id,
                 'sub_repositary_task_ids': task.dependency_ids.ids,
-                'parent_id': self.parent_id.id,
-                'sub_task_id': task.id
+                'parent_id': sub_task.mapped('parent_id')[0].id,
+                'sub_task_id': task.id,
+                'team_id': task.team_id.id if task.team_id else False,
+                'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False
             }
             return vals
 
@@ -81,9 +85,10 @@ class ProjectTask(models.Model):
         # cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             if self.sub_task_id:
+                parent_task_main_task = self.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
                 dependency_tasks = sub_task_obj.search(
                     [('dependency_ids', 'in', self.sub_task_id.ids),
-                     ('parent_id','=',self.sub_task_id.parent_id.id )])
+                     ('parent_id', 'in', parent_task_main_task.ids)])
                 for task in dependency_tasks:
                     vals = self.create_sub_task(task, self.project_id)
                     self.create(vals)
