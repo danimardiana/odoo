@@ -5,7 +5,6 @@
         <record id="clx_client_launch_task" model="main.task">
             <field name="name">Client Launch</field>
             <field name="req_type">new</field>
-            <field name="is_create_client_launch">True</field>
         </record>
         <!--TCC Launch-->
         <record id="clx_tcc_launch_task" model="main.task">

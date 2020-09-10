@@ -41,6 +41,29 @@ class ProjectTask(models.Model):
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
     clx_sale_order_line_id = fields.Many2one('sale.order.line', string="Sale order Item")
 
+    @api.depends('stage_id', 'kanban_state')
+    def _compute_kanban_state_label(self):
+        """
+        Override this method because of when subtask is completed than
+        automatically complete parent task and if parent task is completed
+        than project is automatically done.
+        :return:
+        """
+        for task in self:
+            if task.kanban_state == 'normal':
+                task.kanban_state_label = task.legend_normal
+            elif task.kanban_state == 'blocked':
+                task.kanban_state_label = task.legend_blocked
+            else:
+                task.kanban_state_label = task.legend_done
+            complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+            tasks = task.parent_id.child_ids
+            if all(task.stage_id.id == complete_stage.id for task in tasks):
+                task.parent_id.stage_id = complete_stage.id
+                if all(task.stage_id.id == complete_stage.id for task in
+                       task.project_id.task_ids.filtered(lambda x: not x.parent_id)):
+                    task.project_id.clx_state = 'done'
+
     def action_view_clx_so(self):
         """
         open sale order from project task form view via smart button
@@ -61,6 +84,12 @@ class ProjectTask(models.Model):
         return super(ProjectTask, self).unlink()
 
     def create_sub_task(self, task, project_id):
+        """
+        prepared vals for subtask
+        :param task: recordset of the sub.task
+        :param project_id: recordset of the project.project
+        :return: dictionary of the sub task for the project.task
+        """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         sub_task = self.project_id.task_ids.filtered(lambda x: x.sub_task_id.parent_id.id == task.parent_id.id)
         print(sub_task.mapped('parent_id')[0].name)
@@ -82,7 +111,7 @@ class ProjectTask(models.Model):
         sub_task_obj = self.env['sub.task']
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-        # cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
+        cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             if self.sub_task_id:
                 parent_task_main_task = self.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
@@ -92,4 +121,35 @@ class ProjectTask(models.Model):
                 for task in dependency_tasks:
                     vals = self.create_sub_task(task, self.project_id)
                     self.create(vals)
+        elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
+            params = self.env['ir.config_parameter'].sudo()
+            auto_create_sub_task = bool(params.get_param('auto_create_sub_task')) or False
+            if auto_create_sub_task:
+                main_task = self.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
+                sub_tasks = self.env['sub.task'].search(
+                    [('parent_id', 'in', main_task.ids), ('dependency_ids', 'in', self.sub_task_id.ids)])
+                for sub_task in sub_tasks:
+                    vals = self.create_sub_task(sub_task, self.project_id)
+                    self.create(vals)
+
         return res
+
+    def action_view_cancel_task(self):
+        main_task = self.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
+        sub_tasks = self.env['sub.task'].search(
+            [('parent_id', 'in', main_task.ids), ('dependency_ids', 'in', self.sub_task_id.ids)])
+        context = dict(self._context) or {}
+        context.update({
+            'project_id': self.project_id.id,
+            'default_sub_task_ids': sub_tasks.ids,
+            'current_task': self.id
+        })
+        view_id = self.env.ref('clx_task_management.task_cancel_warning_wizard_form_view').id
+        return {'type': 'ir.actions.act_window',
+                'name': _('Cancel Task'),
+                'res_model': 'task.cancel.warning.wizard',
+                'target': 'new',
+                'view_mode': 'form',
+                'views': [[view_id, 'form']],
+                'context': context
+                }

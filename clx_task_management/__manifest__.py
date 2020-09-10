@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Task Management',
-    'version': '13.3.0.0.10',
+    'version': '13.3.0.0.11',
     'summary': 'CLX Task Management',
     'sequence': 1,
     'description': """ CLX Task Management """,
@@ -38,6 +38,7 @@
         'data/Cooperative_landing_page_sub_task.xml',
         'data/email_sub_task.xml',
         'data/google_my_business_sub_task.xml',
+        'views/res_config_settings_views.xml',
         'views/main_task_views.xml',
         'views/team_views.xml',
         'views/sub_task_views.xml',

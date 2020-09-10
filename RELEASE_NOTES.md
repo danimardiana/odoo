@@ -150,3 +150,10 @@
 
 ## 09/09/2020
 - [REMOVE]  Remove clx_project_management module. 
+
+## 09/10/2020
+#### Version 13.3.0.0.11
+- [FIX] clx_task_management : added a button for Cancel task.
+- when User click on Yes from the wizard then create dependency task. and cancelled current task.
+- when User click on NO then Simple cancel current task.
+- added configuration for auto create sub task when user move task from the Kanban view. 

@@ -24,6 +24,10 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button type="object" name="action_view_cancel_task" class="oe_stat_button"
+                        string="Cancel"/>
+            </xpath>
             <xpath expr="//button[@name='action_open_parent_task']" position="after">
                 <field name="clx_sale_order_id" invisible="1"/>
                 <button type="object" name="action_view_clx_so" class="oe_stat_button" icon="fa-dollar"

@@ -19,7 +19,7 @@ class RequestForm(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
                              default='draft')
-    is_create_client_launch = fields.Boolean('Create Client Launch ?')
+    is_create_client_launch = fields.Boolean('Is Create Client Launch?')
 
     @api.model
     def create(self, vals):
@@ -199,17 +199,18 @@ class RequestFormLine(models.Model):
 
     request_form_id = fields.Many2one('request.form', string='Request Form',
                                       ondelete='cascade')
-    is_create_client_launch = fields.Boolean(compute="_compute_is_create_client_launch")
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
     description = fields.Text(string='Description',
                               help='It will set as Task Description')
 
-    @api.depends('req_type')
-    def _compute_is_create_client_launch(self):
-        for line in self:
-            if line.request_form_id.is_create_client_launch:
-                line.is_create_client_launch = True
-            else:
-                line.is_create_client_launch = False
+    @api.onchange('req_type')
+    def _onchange_main_task(self):
+        client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
+        if client_launch_task:
+            for line in self:
+                if line.request_form_id.is_create_client_launch:
+                    client_launch_task.active = False
+                else:
+                    client_launch_task.active = True
