@@ -4,13 +4,12 @@
 
 {
     'name': 'CLX Invoice Policy ',
-    'version': '13.1.0.0.4',
+    'version': '13.1.0.0.5',
     'summary': 'CLX Invoice Policy',
     'sequence': 1,
     'description': """CLX Invoice Policy""",
     'category': '',
-    'author': 'CLx Media',
-    'website': 'https://conversionlogix.com/',
+    'website': '',
     'depends': [
         'sale',
         'sale_subscription',

@@ -13,7 +13,7 @@
         </record>
         <!--Google Ads Launch-->
         <record id="clx_google_ads_launch_task" model="main.task">
-            <field name="name">Google Ads Launch</field>
+            <field name="name">Launch Google Ads</field>
             <field name="req_type">new</field>
         </record>
         <!--Bing Ads Launch-->

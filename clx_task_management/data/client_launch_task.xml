@@ -38,7 +38,7 @@
         <record id="clx_client_launch_sub_task_6" model="sub.task">
             <field name="sub_task_name">Verify admin access to the client's Facebook page has been provided.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
-            <!--<field name="dependency_ids" ref="clx_task_management.clx_client_launch_sub_task_1"/>-->
+            <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_5'))]"/>
         </record>
         <record id="clx_client_launch_sub_task_7" model="sub.task">
             <field name="sub_task_name">Generate invoice and issue to the client.</field>

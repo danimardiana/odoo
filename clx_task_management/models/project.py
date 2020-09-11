@@ -41,6 +41,27 @@ class ProjectTask(models.Model):
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
     clx_sale_order_line_id = fields.Many2one('sale.order.line', string="Sale order Item")
 
+    def prepared_sub_task_vals(self, sub_task, main_task):
+        """
+        Prepared vals for sub task
+        :param sub_task: browsable object of the sub.task
+        :param main_task: brwosable object of the main.task
+        :return: dictionary for the sub task
+        """
+        stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        if stage_id:
+            vals = {
+                'name': sub_task.sub_task_name,
+                'project_id': main_task.project_id.id,
+                'stage_id': stage_id.id,
+                'sub_repositary_task_ids': sub_task.dependency_ids.ids,
+                'parent_id': main_task.id,
+                'sub_task_id': sub_task.id,
+                'team_id': sub_task.team_id.id,
+                'team_members_ids': sub_task.team_members_ids.ids
+            }
+            return vals
+
     @api.depends('stage_id', 'kanban_state')
     def _compute_kanban_state_label(self):
         """
@@ -92,7 +113,6 @@ class ProjectTask(models.Model):
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         sub_task = self.project_id.task_ids.filtered(lambda x: x.sub_task_id.parent_id.id == task.parent_id.id)
-        print(sub_task.mapped('parent_id')[0].name)
         if stage_id:
             vals = {
                 'name': task.sub_task_name,
@@ -109,6 +129,16 @@ class ProjectTask(models.Model):
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
         sub_task_obj = self.env['sub.task']
+        if vals.get('req_type', False) and vals.get('repositary_task_id', False):
+            repositary_main_task = self.env['main.task'].browse(vals.get('repositary_task_id'))
+            if repositary_main_task:
+                repo_sub_tasks = sub_task_obj.search([('parent_id', '=', repositary_main_task.id),
+                                                      ('dependency_ids', '=', False)])
+                for sub_task in repo_sub_tasks:
+                    vals = self.prepared_sub_task_vals(
+                        sub_task, self)
+                    self.create(vals)
+
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
@@ -120,7 +150,8 @@ class ProjectTask(models.Model):
                      ('parent_id', 'in', parent_task_main_task.ids)])
                 for task in dependency_tasks:
                     vals = self.create_sub_task(task, self.project_id)
-                    self.create(vals)
+                    if not self.project_id.task_ids.filtered(lambda x: x.sub_task_id.id == task.id):
+                        self.create(vals)
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
             params = self.env['ir.config_parameter'].sudo()
             auto_create_sub_task = bool(params.get_param('auto_create_sub_task')) or False

@@ -13,10 +13,11 @@ from odoo import models, fields, api
 class SaleAdvancePaymentInv(models.TransientModel):
     _inherit = "sale.advance.payment.inv"
 
+    invoice_on = fields.Boolean(string="Invoice on")
     invoice_selection = fields.Selection([
         ('prod_categ', 'Product Category'),
         ('sol', 'Sale Order Line')
-    ], string="Display on", default='prod_categ')
+    ], string="Display on", default="prod_categ")
     is_advanced = fields.Boolean(string="Advanced?")
 
     @api.model
@@ -42,7 +43,7 @@ class SaleAdvancePaymentInv(models.TransientModel):
             if self.invoice_selection == 'sol':
                 sale_orders.with_context(invoice_section='sol')._create_invoices(
                     final=self.deduct_down_payments)
-            elif self.invoice_selection == 'prod_categ':
+            if self.invoice_selection == 'prod_categ':
                 act_move = self.env['account.move']
                 if not act_move.check_access_rights('create', False):
                     try:

@@ -156,4 +156,27 @@
 - [FIX] clx_task_management : added a button for Cancel task.
 - when User click on Yes from the wizard then create dependency task. and cancelled current task.
 - when User click on NO then Simple cancel current task.
-- added configuration for auto create sub task when user move task from the Kanban view. 
+- added configuration for auto create sub task when user move task from the Kanban view.
+
+## 09/10/2020
+#### Version 13.3.0.0.11
+- [FIX] clx_task_management : when user create task manually than system create sub task from the main task.
+
+## 09/10/2020
+#### Version 13.1.0.0.5
+#### Invoice Policy
+- Partner | get_advanced_sub_lines
+    - To get all the lines which start in Advance month period.
+    - :param lines: Subscriptions lines
+    - :return: recordset after merge with advance services
+
+- Subscription Lines | start_in_next
+    - To map with invoice and service start date of to manage Advance + N
+    - Amount will be calculated bases on Current month and if any service start with advance month it will consider in invoice
+    - For example:    Advance + 2  Current Month August then invoice will August + September + October\n
+        -      Start      - End        Amount = Total
+               08/01/2020 - 10/31/2020 1000   = 3000
+               09/01/2020 - 12/31/2021 500    = 1000
+               10/01/2020 - 02/28/2021 300    = 0300
+                                                4300
+    - :return: Total number of months
