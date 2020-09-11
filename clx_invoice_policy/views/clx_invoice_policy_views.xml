@@ -48,7 +48,7 @@
 
     <!--Menu for clx invoice policy-->
     <menuitem id="menu_clx_invoice_policy"
-              name="Incoive Policy"
+              name="Invoice Policy"
               parent="sale.sale_menu_root"
               action="clx_invoice_policy.action_clx_invoice_policy"
               sequence="3"/>

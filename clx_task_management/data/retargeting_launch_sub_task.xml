@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--Sub Task for Retargeting Launch-->
+    <record id="retargeting_launch_sub_task_1" model="sub.task">
+        <field name="sub_task_name">Provide any Retargeting media preferences that might supplement client
+            questionnaires.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_sales_team"></field>
+    </record>
+    <record id="retargeting_launch_sub_task_2" model="sub.task">
+        <field name="sub_task_name">Audit client questionnaire responses and any campaign preferences. Write ad copy and
+            provide image and logo assets for Retargeting media.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="retargeting_launch_sub_task_3" model="sub.task">
+        <field name="sub_task_name">Set up Retargeting campaign.</field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_ops_team"></field>
+    </record>
+    <record id="retargeting_launch_sub_task_4" model="sub.task">
+        <field name="sub_task_name">Add Retargeting Pixel to the client’s website via Signal.</field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_ops_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_2'))]"/>
+    </record>
+    <record id="retargeting_launch_sub_task_5" model="sub.task">
+        <field name="sub_task_name">Review the Retargeting campaign.</field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_ops_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.retargeting_launch_sub_task_3'))]"/>
+    </record>
+    <record id="retargeting_launch_sub_task_6" model="sub.task">
+        <field name="sub_task_name">Design and provide Retargeting media to requested specifications. Store in
+            Dropbox.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cat_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.retargeting_launch_sub_task_2'))]"/>
+    </record>
+    <record id="retargeting_launch_sub_task_7" model="sub.task">
+        <field name="sub_task_name">Gain client’s approval on Retargeting media.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.retargeting_launch_sub_task_6'))]"/>
+    </record>
+    <record id="retargeting_launch_sub_task_8" model="sub.task">
+        <field name="sub_task_name">If eligible to launch early, revise launch day to current day.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_system_team"></field>
+    </record>
+    <record id="retargeting_launch_sub_task_9" model="sub.task">
+        <field name="sub_task_name">Launch Retargeting media approved by client.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_ops_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.retargeting_launch_sub_task_7'))]"/>
+    </record>
+    <record id="retargeting_launch_sub_task_10" model="sub.task">
+        <field name="sub_task_name">Review Retargeting campaign launch.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_ops_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.retargeting_launch_sub_task_9'))]"/>
+    </record>
+    <record id="retargeting_launch_sub_task_11" model="sub.task">
+        <field name="sub_task_name">Verify Retargeting data is linked within reporting.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_retargeting_launch_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.retargeting_launch_sub_task_7'))]"/>
+    </record>
+</odoo>

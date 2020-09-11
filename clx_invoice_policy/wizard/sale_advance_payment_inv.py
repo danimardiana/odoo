@@ -17,7 +17,7 @@ class SaleAdvancePaymentInv(models.TransientModel):
     invoice_selection = fields.Selection([
         ('prod_categ', 'Product Category'),
         ('sol', 'Sale Order Line')
-    ], string="Invoice Selection Type", default="prod_categ")
+    ], string="Display on", default="prod_categ")
     is_advanced = fields.Boolean(string="Advanced?")
 
     @api.model
@@ -33,17 +33,17 @@ class SaleAdvancePaymentInv(models.TransientModel):
         return vals
 
     def create_invoices(self):
-        if not self.invoice_on:
+        if not self.invoice_selection:
             return super(SaleAdvancePaymentInv, self).create_invoices()
         sale_orders = self.env['sale.order'].browse(self._context.get('active_ids', []))
         for order in sale_orders.filtered(lambda x: not x.clx_invoice_policy_id):
             order.with_context(invoice_section='sol')._create_invoices(
                 final=self.deduct_down_payments)
-        if self.invoice_on and sale_orders.filtered(lambda x: x.clx_invoice_policy_id):
-            if self.invoice_on and self.invoice_selection == 'sol':
+        if self.invoice_selection and sale_orders.filtered(lambda x: x.clx_invoice_policy_id):
+            if self.invoice_selection == 'sol':
                 sale_orders.with_context(invoice_section='sol')._create_invoices(
                     final=self.deduct_down_payments)
-            if self.invoice_on and self.invoice_selection == 'prod_categ':
+            if self.invoice_selection == 'prod_categ':
                 act_move = self.env['account.move']
                 if not act_move.check_access_rights('create', False):
                     try:

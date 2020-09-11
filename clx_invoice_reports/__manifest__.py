@@ -2,18 +2,19 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 {
-    'name': 'Budget Analysis Report',
-    'version': '13.3.0.2',
-    'summary': 'Budget Analysis Report',
+    'name': 'CLX Reports',
+    'version': '13.3.0.0.7',
+    'summary': 'CLX Reports',
     'sequence': 1,
-    'description': """ Budget Analysis Report """,
+    'description': """ CLX Reports """,
     'category': '',
     'author': 'CLx Media',
     'website': 'https://conversionlogix.com/',
-    'depends': ['clx_budget_management'],
+    'depends': ['account'],
     'data': [
-        "security/ir.model.access.csv",
-        "report/sale_budget_report.xml",
+        'views/report_templates.xml',
+        'views/report_invoice_document.xml',
+        'views/res_company_views.xml'
 
     ],
     'demo': [

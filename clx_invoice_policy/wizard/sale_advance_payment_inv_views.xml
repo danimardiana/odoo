@@ -9,11 +9,9 @@
             <xpath expr="//form/group" position="after">
                 <group>
                     <field name="is_advanced" invisible="True"/>
-                    <field name="invoice_on"
-                           attrs="{'invisible': [('is_advanced', '=', False)]}"/>
                     <field name="invoice_selection"
                            widget="radio"
-                           attrs="{'invisible': [('invoice_on', '=', False)]}"/>
+                           />
                 </group>
             </xpath>
         </field>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.project</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="50"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='tasks_management']" position="after">
+                <h2>Auto Create Sub Task</h2>
+                <div class="row mt16 o_settings_container" id="auto_create_sub_task">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="is_create_auto_task"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="is_create_auto_task"/>
+                            <div class="text-muted">
+                                if this Check box is Enable then When User Cancel any task then System will create
+                                Automatic dependent Task. and set current task as Cancelled Stage.
+                                If this Check Box is Disable then System doest not create dependent task, Just Cancel
+                                Current Task.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

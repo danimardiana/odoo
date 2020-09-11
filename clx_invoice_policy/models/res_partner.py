@@ -4,6 +4,8 @@
 
 from datetime import date
 
+from dateutil.relativedelta import relativedelta
+
 from odoo import fields, models, api
 
 
@@ -41,6 +43,22 @@ class Partner(models.Model):
         if advance_lines:
             self.generate_advance_invoice(advance_lines)
 
+    def get_advanced_sub_lines(self, lines):
+        """
+        To get all the lines which start in Advance month period.
+        :param lines: Subscriptions lines
+        :return: recordset after merge with advance services
+        """
+        ad_lines = self.env['sale.subscription.line']
+        today = date.today()
+        for line in lines:
+            policy_month = line.so_line_id.order_id.clx_invoice_policy_id.num_of_month
+            end_date = today + relativedelta(
+                months=policy_month + 1, days=-1)
+            if line.invoice_start_date and line.invoice_start_date < end_date:
+                ad_lines += line
+        return ad_lines
+
     def generate_advance_invoice(self, lines):
         """
         To calculate invoice lines for Advances Policy.
@@ -53,10 +71,12 @@ class Partner(models.Model):
                          sol.invoice_start_date <= today and
                          sol.invoice_end_date >= today
                          ) or (
-                                sol.end_date < today and not sol.last_invoiced and
+                                sol.end_date and sol.end_date < today and not sol.last_invoiced and
                                 sol.line_type != 'base'
                         )
         )
+        so_lines |= self.get_advanced_sub_lines(
+            lines.filtered(lambda l: l not in so_lines))
         if not so_lines:
             return self
 

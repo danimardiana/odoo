@@ -63,6 +63,24 @@ class SaleSubscriptionLine(models.Model):
     invoice_start_date = fields.Date('Start Date')
     invoice_end_date = fields.Date('End Date')
 
+    def start_in_next(self):
+        """
+        To map with invoice and service start date of to manage Advance + N
+        Amount will be calculated bases on Current month and if any service start with advance month it will consider in invoice
+        For example:    Advance + 2  Current Month August then invoice will August + September + October\n
+                        Start      - End        Amount = Total \n
+                        08/01/2020 - 10/31/2020 1000   = 3000 \n
+                        09/01/2020 - 12/31/2021 500    = 1000 \n
+                        10/01/2020 - 02/28/2021 300    = 0300 \n
+                                                         4300 \n
+        :return: Total number of months.
+        """
+        ad_lines = self.env['sale.subscription.line']
+        today = date.today().replace(day=1)
+        # policy_month = self.so_line_id.order_id.clx_invoice_policy_id.num_of_month
+        end_date = today + relativedelta(months=1, days=-1)
+        return 0 if self.invoice_start_date > end_date else 1
+
     def get_date_month(self, end, start):
         """
         To get interval between dates in month to compute invoices
@@ -153,7 +171,7 @@ class SaleSubscriptionLine(models.Model):
                 date_end = date_end.replace(
                     day=monthrange(date_end.year, date_end.month)[1])
             product_qty = self.get_date_month(
-                self.invoice_end_date, self.invoice_start_date)
+                self.invoice_end_date, self.invoice_start_date) + self.start_in_next()
             period_msg = self._format_period_msg(
                 date_start, date_end, line,
                 date_start, self.invoice_end_date)
@@ -173,14 +191,13 @@ class SaleSubscriptionLine(models.Model):
             self.write(vals)
             res.update({
                 'name': period_msg,
-                'subscription_end_date': self.end_date if self.end_date > date_end else expire_date,
-                # 'price_unit': self.price_unit * (product_qty + 1)
+                'subscription_end_date': self.end_date if self.end_date and self.end_date > date_end else expire_date,
                 'price_unit': self.price_unit * (
                     2 if self.line_type == 'upsell' and
                          not self.last_invoiced and (
                                  not self.end_date or
                                  self.end_date.month > today.month
                          ) else 1
-                ) * (product_qty + 1),
+                ) * product_qty,
             })
         return res

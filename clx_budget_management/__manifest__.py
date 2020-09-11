@@ -9,7 +9,8 @@
     'sequence': 1,
     'description': """ Budgets Management """,
     'category': '',
-    'website': '',
+    'author': 'CLx Media',
+    'website': 'https://conversionlogix.com/',
     'depends': [
         'sale_management',
         'sale_subscription',

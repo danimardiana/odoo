@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--subtask for prelease Landing Page Driver Launch -->
+    <record id="prelease_landing_page_sub_task_1" model="sub.task">
+        <field name="sub_task_name">Confirm client asset or messaging preferences that might supplement questionnaire.
+            Confirm if client or CLX will be hosting the website.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_prelease_landing_page_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_sales_team"></field>
+    </record>
+    <record id="prelease_landing_page_sub_task_2" model="sub.task">
+        <field name="sub_task_name">Write ad copy and determine layout for the Prelease Landing Page.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_prelease_landing_page_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="prelease_landing_page_sub_task_3" model="sub.task">
+        <field name="sub_task_name">Create a Google Analytics account and provide the code to the CAT team if CLX is
+            hosting the website.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_prelease_landing_page_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_prelease_landing_page_task'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="prelease_landing_page_sub_task_4" model="sub.task">
+        <field name="sub_task_name">Design the Prelease Landing Page to requested specifications. Provide and store
+            preview link.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_prelease_landing_page_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.prelease_landing_page_sub_task_2'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cat_team"></field>
+    </record>
+
+    <record id="prelease_landing_page_sub_task_5" model="sub.task">
+        <field name="sub_task_name">Gain client's approval on Prelease Landing Page design.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_prelease_landing_page_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.prelease_landing_page_sub_task_4'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="prelease_landing_page_sub_task_6" model="sub.task">
+        <field name="sub_task_name">Confirm the client is pointing their purchased domain toward the CLX IP address if
+            they are hosting the website.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_prelease_landing_page_task"/>
+        <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+    </record>
+    <record id="prelease_landing_page_sub_task_7" model="sub.task">
+        <field name="sub_task_name">Launch approved Prelease Landing Page design.
+        </field>
+        <field name="parent_id" ref="clx_task_management.clx_prelease_landing_page_task"/>
+        <field name="dependency_ids" eval="[(4, ref('clx_task_management.prelease_landing_page_sub_task_5'))]"/>
+        <field name="team_id" ref="clx_task_management.clx_cat_team"></field>
+    </record>
+</odoo>

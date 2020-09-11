@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="clx_report_invoice_document" inherit_id="account.report_invoice_document">
+        <xpath expr="//t/div/p[1]"
+               position="attributes">
+            <attribute name="style">display:none</attribute>
+        </xpath>
+        <xpath expr="//t/div/p[2]"
+               position="attributes">
+            <attribute name="style">display:none</attribute>
+        </xpath>
+        <xpath expr="//t/div/p[3]"
+               position="attributes">
+            <attribute name="style">display:none</attribute>
+        </xpath>
+        <xpath expr="//t/div/p[4]"
+               position="replace">
+            <br/>
+            <div style="margin-top:190px;">
+                <p align="center">Make all checks payable to Conversion Logix, LLC</p>
+                <p align="center">ACH payment instructions:</p>
+                <p align="center">
+                    <t t-if="o.company_id.partner_id.bank_ids">
+                        <span t-field="o.company_id.partner_id.bank_ids[0].bank_id.name"/>
+                    </t>
+                </p>
+                <t t-if="o.partner_id.vat">
+                    <p align="center">Account Name :
+                        <span t-field="o.partner_id.vat"/>
+                    </p>
+                </t>
+                <t t-if="o.company_id.routing_number">
+                    <p align="center">Routing Number :
+                        <span t-field="o.company_id.routing_number"/>
+                    </p>
+                </t>
+                <t t-if="o.company_id.partner_id.bank_ids">
+                    <p align="center">Account Number :
+                        <span t-field="o.company_id.partner_id.bank_ids[0].acc_number"/>
+                    </p>
+                </t>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('clearfix')]" position="attributes">
+            <attribute name="style">display:none</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='web.external_layout']" position="attributes">
+            <attribute name="t-call">clx_invoice_reports.clx_external_layout</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='address']" position="replace"/>
+        <xpath expr="//div[hasclass('page')]/h2" position="replace">
+            <div class="row">
+                <div class="col-12">
+                    <div class="col-6" name="invoice">
+                        <h2>
+                            <span style="margin:left;">INVOICE</span>
+                        </h2>
+                    </div>
+                    <div class="col-6" name="invoice">
+                        <p/>
+                    </div>
+                    <div class="col-12">
+                        <div class="col-6" name="bill_to" style="float:left;">
+                            <strong>BILL TO</strong>
+                            <address t-field="o.partner_id"
+                                     t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                            <div t-if="o.partner_id.vat" class="mt16">
+                                <t t-if="o.company_id.country_id.vat_label"
+                                   t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
+                                <t t-else="">Tax ID</t>:
+                                <span t-field="o.partner_id.vat"/>
+                            </div>
+                        </div>
+                        <div class="col-6" name="invoice_to" style="float:right;">
+                            <strong>INVOICE :</strong>
+                            <t t-esc="o.name"/>
+                            <br/>
+                            <t t-if="o.invoice_date">
+                                <strong>Date :</strong>
+                                <t t-esc="o.invoice_date"/>
+                                <br/>
+                            </t>
+                            <t t-if="o.invoice_date_due">
+                                <strong>Due Date :</strong>
+                                <t t-esc="o.invoice_date_due"/>
+                                <br/>
+                            </t>
+                            <t t-if="o.invoice_payment_term_id">
+                                <strong>Terms :</strong>
+                                <t t-esc="o.invoice_payment_term_id.name"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div name="clx_hr" style="border-top: 1px solid black;margin-top: 4%;"/>
+            <br/>
+            <div class="row">
+                <div class="col-6" name="account">
+                    <strong>ACCOUNT</strong>
+                    <br/>
+                    <t t-esc="o.partner_id.name"/>
+                </div>
+                <div class="col-6" name="for">
+                    <strong>FOR</strong>
+                    <br/>
+                    <span t-esc="o.print_date(o.invoice_line_ids)"/>
+                </div>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[@id='informations']" position="replace"/>
+        <xpath expr="//table[@name='invoice_line_table']" position="replace">
+            <br/>
+            <table class="table table-sm o_main_table" name="invoice_line_table">
+                <thead style=" background-color:  #E0E0E0;">
+                    <tr>
+                        <t t-set="colspan" t-value="6"/>
+                        <th name="th_description" class="text-left">
+                            <span>Description</span>
+                        </th>
+                        <th name="th_description" class="text-left">
+                            <span style="float:right;">Amount</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="invoice_tbody">
+                    <t t-set="current_subtotal" t-value="0"/>
+                    <t t-set="lines"
+                       t-value="o.invoice_line_ids.sorted(key=lambda l: (-l.sequence, l.date, l.move_name, -l.id), reverse=True)"/>
+
+                    <t t-foreach="lines" t-as="line">
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
+                           groups="account.group_show_line_subtotals_tax_excluded"/>
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_total"
+                           groups="account.group_show_line_subtotals_tax_included"/>
+                        <tr>
+                            <td>
+                                <t t-if="line.product_id.name">
+                                    <span t-field="line.product_id.name"/>
+                                </t>
+                                <t t-if="line.category_id.name">
+                                    <span t-field="line.category_id.name"/>
+                                </t>
+                            </td>
+                            <td>
+                                <span t-field="line.price_subtotal" style="float:right;"/>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+            <hr style="border: 1px dashed black;"/>
+            <table>
+                <tbody>
+                    <tr>
+                        <td style="width: 600px;">Payment in full is required to start or
+                            continue service.
+                        </td>
+                        <td style="width: 300px;">BALANCE DUE</td>
+                        <td style="width: 80px;">
+                            <strong t-field="o.amount_untaxed"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xpath>
+    </template>
+</odoo>
