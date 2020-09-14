@@ -12,8 +12,8 @@
     'website': 'https://conversionlogix.com/',
     'depends': ['account'],
     'data': [
-        'views/report_templates.xml',
-        'views/report_invoice_document.xml',
+        # 'views/report_templates.xml',
+        # 'views/report_invoice_document.xml',
         'views/res_company_views.xml'
 
     ],
