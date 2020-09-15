@@ -92,7 +92,7 @@
                 Chat in real time or by email to collaborate efficiently.
             </p>
         </field>
-        <field name="domain">[('parent_id','!=',False)]</field>
+        <field name="domain">[('parent_id','=',False)]</field>
     </record>
 
     <record id="project.action_view_task" model="ir.actions.act_window">

@@ -21,6 +21,35 @@ class RequestForm(models.Model):
                              default='draft')
     is_create_client_launch = fields.Boolean('Is Create Client Launch?')
 
+    def open_active_saleorders(self):
+        """
+        this method is used for open Active sale order of the particular customer from the request form.
+        :return: action of sale order
+        """
+        action = self.env.ref('sale.action_orders').read()[0]
+        today = fields.Date.today()
+        subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
+        if subscriptions:
+            active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
+                lambda x: x.start_date <= today)
+            if active_subscription_lines:
+                sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
+                action["context"] = {"create": False}
+                if len(sale_orders) > 1:
+                    action['domain'] = [('id', 'in', sale_orders.ids)]
+                elif len(sale_orders) == 1:
+                    form_view = [(self.env.ref('sale.view_order_form').id, 'form')]
+                    if 'views' in action:
+                        action['views'] = form_view + [
+                            (state, view)
+                            for state, view in action['views'] if view != 'form']
+                    else:
+                        action['views'] = form_view
+                    action['res_id'] = sale_orders.ids[0]
+                else:
+                    action = {'type': 'ir.actions.act_window_close'}
+                return action
+
     @api.model
     def create(self, vals):
         if vals.get('name', _('New')) == _('New'):
@@ -207,6 +236,27 @@ class RequestFormLine(models.Model):
 
     @api.onchange('req_type')
     def _onchange_main_task(self):
+        if self.req_type and self.req_type == 'update':
+            today = fields.Date.today()
+            subscriptions = self.env['sale.subscription'].search(
+                [('partner_id', '=', self.request_form_id.partner_id.id)])
+            if not subscriptions:
+                raise UserError(_(
+                    """You can not to update request because this customer does not have any active sale order!! You Can Create New request for this Customer!!"""))
+            if subscriptions:
+                active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
+                    lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
+                    or (x.start_date and not x.end_date and x.start_date <= today)
+                )
+                if not active_subscription_lines:
+                    raise UserError(_(
+                        """You can not to update request because this customer does not have any active sale order!! You Can Create New request for this Customer!!"""))
+                if active_subscription_lines:
+                    sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
+                    if not sale_orders:
+                        raise UserError(_(
+                            """You can not to update request because this customer does not have any active sale order!!
+                             You Can Create New request for this Customer!!"""))
         client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
         if client_launch_task:
             for line in self:

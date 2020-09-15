@@ -5,6 +5,12 @@
 from odoo import api, fields, models
 
 
+class ProductPricelist(models.Model):
+    _inherit = 'product.pricelist'
+
+    display_management_fee = fields.Boolean(string='Display Management Fee')
+
+
 class ProductPricelistItem(models.Model):
     """
     Product Pricelist Item inherited to set

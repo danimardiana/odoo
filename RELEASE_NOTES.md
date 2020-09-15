@@ -180,3 +180,15 @@
                10/01/2020 - 02/28/2021 300    = 0300
                                                 4300
     - :return: Total number of months
+
+## 09/15/2020
+#### Version 13.1.0.0.10
+- [ADD] clx_retail_pricelist : added boolean field on pricelist.
+- if checked on pricelist(Display Management Fee) than set on sale order (Display Management Fee) as checked otherwise set unchecked.
+
+## 09/15/2020
+#### Version 13.3.0.0.13
+- [ADD] clx_task_management : added smart button on request form for open active sale order for particular partner.
+- if partner does not have any active sale order than raise warning when request type is update.
+- When user click on All Task than show only all the subtask.
+- from the Kanban view of the projects when user click on any project show only parent task.
