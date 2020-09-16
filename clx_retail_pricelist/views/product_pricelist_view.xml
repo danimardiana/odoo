@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <!-- Inherit Form View to Modify it -->
+    <record id="product_pricelist_view_inherit_clx_retail_pricelist" model="ir.ui.view">
+        <field name="name">product.pricelist.form</field>
+        <field name="model">product.pricelist</field>
+        <field name="inherit_id" ref="product.product_pricelist_view"/>
+        <field name="arch" type="xml">
+            <field name="currency_id" position="after">
+                <field name="display_management_fee"/>
+            </field>
+        </field>
+    </record>
+
     <record model="ir.ui.view" id="product_pricelist_item_form_view_inherit_retail_pricelist">
         <field name="name">product.pricelist.item.form.inherit.retail.pricelist</field>
         <field name="model">product.pricelist.item</field>

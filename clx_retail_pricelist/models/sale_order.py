@@ -30,6 +30,11 @@ class SaleOrder(models.Model):
     display_management_fee = fields.Boolean(string="Display Management Fee",
                                             default=True)
 
+    @api.onchange('pricelist_id')
+    def onchange_pricelist(self):
+        if self.pricelist_id:
+            self.display_management_fee = self.pricelist_id.display_management_fee
+
     @api.onchange('partner_id')
     def onchange_partner_id(self):
         """

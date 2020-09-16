@@ -14,7 +14,7 @@
             <field name="team_name">TCC</field>
         </record>
         <record id="clx_ops_team" model="clx.team">
-            <field name="team_name">OPS</field>
+            <field name="team_name">Ops</field>
         </record>
         <record id="clx_system_team" model="clx.team">
             <field name="team_name">System</field>
@@ -24,6 +24,12 @@
         </record>
         <record id="clx_live_chat_team" model="clx.team">
             <field name="team_name">Live Chat</field>
+        </record>
+        <record id="clx_live_chat_team" model="clx.team">
+            <field name="team_name">Chat</field>
+        </record>
+        <record id="clx_live_design_team" model="clx.team">
+            <field name="team_name">Design</field>
         </record>
     </data>
 </odoo>

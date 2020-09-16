@@ -12,7 +12,7 @@ class SubTask(models.Model):
     name = fields.Char(string='name')
     sub_task_name = fields.Char(string='Sub Task Name')
     team_id = fields.Many2one('clx.team', string='Team')
-    parent_id = fields.Many2one('main.task', string='Parent Task')
+    parent_id = fields.Many2one('main.task', string='Parent Task', ondelete='cascade')
     team_members_ids = fields.Many2many('res.users', string='Team Members')
     display_to_customer = fields.Boolean(string='Display To Customer')
     dependency_ids = fields.Many2many('sub.task', 'clx_sub_task_sub_task_rel', 'sub_task_id',
