@@ -12,7 +12,7 @@
 
     <!--Sequence for creating Request form-->
     <record id="sequence_request_form" model="ir.sequence">
-        <field name="name">sub task</field>
+        <field name="name">Request form</field>
         <field name="code">request.form</field>
         <field name="prefix">RF/</field>
         <field name="padding">5</field>
