@@ -70,7 +70,5 @@
             <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_9'))]"/>
             <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
         </record>
-
-
     </data>
 </odoo>

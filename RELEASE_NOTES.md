@@ -192,3 +192,7 @@
 - if partner does not have any active sale order than raise warning when request type is update.
 - When user click on All Task than show only all the subtask.
 - from the Kanban view of the projects when user click on any project show only parent task.
+
+## 09/16/2020
+#### Version 13.3.0.0.14
+- [REMOVE] Remove other data files only except client launch task.
