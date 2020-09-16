@@ -208,3 +208,7 @@
 ## 09/16/2020
 #### Version 13.3.0.0.17
 - [MOD] clx_task_management : added ondelete cascade in subtask if parent task is deleted than automatically all sub tasks is deleted.
+
+## 09/16/2020
+#### Version 13.3.0.0.18
+- [MOD] clx_task_management : when user delete any task based on configuration system will create dependent task otherwise not created dependent task. in both the case task will be deleted.

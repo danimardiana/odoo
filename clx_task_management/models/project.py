@@ -100,8 +100,22 @@ class ProjectTask(models.Model):
         }
 
     def unlink(self):
+        completed_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         for task in self:
-            raise UserError(_('You can Not Delete the Task {} please contact Administrator.').format(task.name))
+            task.project_id.message_post(body=_("""
+                Task Has been Deleted By %s
+                Task Name : %s
+            """) % (self.env.user.name, task.name))
+            if task.stage_id.id != completed_stage.id:
+                params = self.env['ir.config_parameter'].sudo()
+                auto_create_sub_task = bool(params.get_param('auto_create_sub_task')) or False
+                if auto_create_sub_task:
+                    main_task = task.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
+                    sub_tasks = self.env['sub.task'].search(
+                        [('parent_id', 'in', main_task.ids), ('dependency_ids', 'in', task.sub_task_id.ids)])
+                    for sub_task in sub_tasks:
+                        vals = self.create_sub_task(sub_task, task.project_id)
+                        self.create(vals)
         return super(ProjectTask, self).unlink()
 
     def create_sub_task(self, task, project_id):
