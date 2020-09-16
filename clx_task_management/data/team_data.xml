@@ -25,5 +25,11 @@
         <record id="clx_live_chat_team" model="clx.team">
             <field name="team_name">Live Chat</field>
         </record>
+        <record id="clx_live_chat_team" model="clx.team">
+            <field name="team_name">Chat</field>
+        </record>
+        <record id="clx_live_design_team" model="clx.team">
+            <field name="team_name">Design</field>
+        </record>
     </data>
 </odoo>

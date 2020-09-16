@@ -200,3 +200,7 @@
 ## 09/16/2020
 #### Version 13.3.0.0.15
 - [MOD] change OPS team name with the Ops.
+
+## 09/16/2020
+#### Version 13.3.0.0.16
+- [MOD] added 2 new team.
