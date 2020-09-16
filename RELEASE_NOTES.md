@@ -195,12 +195,16 @@
 
 ## 09/16/2020
 #### Version 13.3.0.0.14
-- [REMOVE] Remove other data files only except client launch task.
+- [REMOVE] clx_task_management : Remove other data files only except client launch task.
 
 ## 09/16/2020
 #### Version 13.3.0.0.15
-- [MOD] change OPS team name with the Ops.
+- [MOD] clx_task_management : change OPS team name with the Ops.
 
 ## 09/16/2020
 #### Version 13.3.0.0.16
-- [MOD] added 2 new team.
+- [MOD] clx_task_management : added 2 new team.
+
+## 09/16/2020
+#### Version 13.3.0.0.17
+- [MOD] clx_task_management : added ondelete cascade in subtask if parent task is deleted than automatically all sub tasks is deleted.
