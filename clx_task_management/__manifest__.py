@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Task Management',
-    'version': '13.3.0.0.18',
+    'version': '13.3.0.0.19',
     'summary': 'CLX Task Management',
     'sequence': 1,
     'description': """ CLX Task Management """,
@@ -12,7 +12,8 @@
     'website': 'https://conversionlogix.com/',
     'depends': ['sale',
                 'project',
-                'sale_management'
+                'sale_management',
+                'portal'
                 ],
     'data': [
         'security/ir.model.access.csv',
@@ -38,6 +39,8 @@
         # 'data/Cooperative_landing_page_sub_task.xml',
         # 'data/email_sub_task.xml',
         # 'data/google_my_business_sub_task.xml',
+        'views/request_form_template.xml',
+        'views/request_form_portal_views.xml',
         'views/res_config_settings_views.xml',
         'views/main_task_views.xml',
         'views/team_views.xml',

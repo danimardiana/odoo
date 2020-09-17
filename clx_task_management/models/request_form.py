@@ -31,7 +31,7 @@ class RequestForm(models.Model):
         subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
         if subscriptions:
             active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
-                lambda x: x.start_date <= today)
+                lambda x: x.start_date and x.start_date <= today)
             if active_subscription_lines:
                 sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
                 action["context"] = {"create": False}

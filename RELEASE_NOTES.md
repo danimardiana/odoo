@@ -212,3 +212,9 @@
 ## 09/16/2020
 #### Version 13.3.0.0.18
 - [MOD] clx_task_management : when user delete any task based on configuration system will create dependent task otherwise not created dependent task. in both the case task will be deleted.
+
+## 09/17/2020
+#### Version 13.3.0.0.19
+- [FIX] clx_task_management : fix the issue when open active sale order.
+- Issue was raised because of the subscription line does not have start date.
+- [ADD] added code for request form view from the portal side. 

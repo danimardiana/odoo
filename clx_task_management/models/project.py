@@ -102,9 +102,9 @@ class ProjectTask(models.Model):
     def unlink(self):
         completed_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         for task in self:
-            task.project_id.message_post(body=_("""
-                Task Has been Deleted By %s
-                Task Name : %s
+            task.project_id.message_post(type='comment', body=_("""
+                <p>Task Has been Deleted By %s</p><br/>
+                <p>Task Name : %s </p>
             """) % (self.env.user.name, task.name))
             if task.stage_id.id != completed_stage.id:
                 params = self.env['ir.config_parameter'].sudo()

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="request_form_template" name="Request Form">
+        <t t-call="portal.portal_layout">
+            <div id="myModal" class="modal" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Add Request Line</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group row form-field o_website_form_required">
+                                <div class="col-lg-3 col-md-4 text-right">
+                                    <label class="col-form-label" for="partner_name">Request Type</label>
+                                </div>
+                                <div class="col-lg-7 col-md-8">
+                                    <input type="text" class="form-control o_website_form_input" name="req_type"
+                                           required="1" value="Update"/>
+                                </div>
+                            </div>
+                            <div class="form-group row form-field o_website_form_required">
+                                <div class="col-lg-3 col-md-4 text-right">
+                                    <label class="col-form-label" for="partner_name">Task</label>
+                                </div>
+                                <div class="col-lg-7 col-md-8">
+                                    <input type="text" class="form-control o_website_form_input" name="task"
+                                           required="1"/>
+                                </div>
+                            </div>
+                            <div class="form-group row form-field o_website_form_required">
+                                <div class="col-lg-3 col-md-4 text-right">
+                                    <label class="col-form-label" for="partner_name">Description</label>
+                                </div>
+                                <div class="col-lg-7 col-md-8">
+                                    <textarea class="form-control o_website_form_input" name="Description"
+                                              required="1" rows="4" cols="50"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="row">
+                                <div class="col-sm-12 text-right">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal">
+                                        Ok
+                                    </button>
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="wrap" class="oe_structure oe_empt">
+                <div class="container">
+                    <div class="row">
+                        <section id="forms" class="col-12">
+                            <form method="post"
+                                  class="s_website_form container-fluid mt32">
+                                <div class="form-group row form-field o_website_form_required">
+                                    <div class="col-lg-3 col-md-4 text-right">
+                                        <label class="col-form-label" for="partner_name">Your Name</label>
+                                    </div>
+                                    <div class="col-lg-7 col-md-8">
+                                        <input type="text" class="form-control o_website_form_input" name="partner_name"
+                                               required="1" readonly="1" t-att-value="request.env.user.name"/>
+                                    </div>
+                                </div>
+                                <div class="form-group row form-field o_website_form_required">
+                                    <div class="col-lg-3 col-md-4 text-right">
+                                        <label class="col-form-label" for="partner_name">Description</label>
+                                    </div>
+                                    <div class="col-lg-7 col-md-8">
+                                        <input type="text" class="form-control o_website_form_input" name="description"
+                                               required="1"/>
+                                    </div>
+                                </div>
+                                <div class="form-group row form-field o_website_form_required">
+                                    <div class="col-lg-3 col-md-4 text-right"/>
+                                    <div class="col-lg-7 col-md-8">
+                                        <button type="submit" class="btn btn-primary" data-toggle="modal"
+                                                data-target="#myModal">Add Request Line
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group row form-field o_website_form_required">
+                                    <div class="col-lg-3 col-md-4 text-right"/>
+                                    <div class="col-lg-7 col-md-8">
+                                        <table class="table">
+                                            <tr>
+                                                <th>Request Type</th>
+                                                <th>Task</th>
+                                                <th>Description</th>
+                                            </tr>
+                                            <tr>
+                                                <td>Alfreds Futterkiste</td>
+                                                <td>Maria Anders</td>
+                                                <td>Germany</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </form>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>
