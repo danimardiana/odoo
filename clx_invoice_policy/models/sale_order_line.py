@@ -26,17 +26,13 @@ class SaleOrderLine(models.Model):
             policy = self.order_id.clx_invoice_policy_id.policy_type
             if policy == 'advance':
                 num_of_month = self.order_id.clx_invoice_policy_id.num_of_month + 1
-                date_start = self.start_date
-                date_end = date_start + relativedelta(
-                    months=num_of_month) if not self.end_date else \
-                    self.end_date
+                date_start = fields.Date.today().replace(day=1)
+                date_end = date_start + relativedelta(months=1, days=-1)
                 date_difference = (date_end - date_start)
                 period_msg = _("Invoicing period: %s - %s") % (
                     format_date(fields.Date.to_string(date_start), {}),
                     format_date(
-                        fields.Date.to_string(
-                            self.end_date if (date_difference.days in (
-                                30, 31)) and self.end_date else date_end)
+                        fields.Date.to_string(date_end)
                         , {}
                     )
                 )

@@ -217,4 +217,10 @@
 #### Version 13.3.0.0.19
 - [FIX] clx_task_management : fix the issue when open active sale order.
 - Issue was raised because of the subscription line does not have start date.
-- [ADD] added code for request form view from the portal side. 
+- [ADD] added code for request form view from the portal side.
+
+## 09/22/2020
+#### Version 13.1.0.0.6
+- [FIX] clx_invoice_policy : fix the issue of the label printing and optimize the code for invoice creation from the wizard.
+- [MOD] contact_modification : change 2 field type char to selection timezone,vertical.
+- Hide fiscal position and purchase payment terms from the customer form view.

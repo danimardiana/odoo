@@ -31,6 +31,10 @@ class Partner(models.Model):
             ('so_line_id.order_id.partner_id', 'child_of', self.id),
             ('so_line_id.order_id.state', '=', 'sale'),
         ])
+        if self._context.get('create_invoice_from_wzrd'):
+            lines = self.env['sale.subscription.line'].search([
+                ('so_line_id.order_id', '=', self._context.get('order')),
+            ])
         if not lines:
             return self
 

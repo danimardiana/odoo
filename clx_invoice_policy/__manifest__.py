@@ -4,7 +4,7 @@
 
 {
     'name': 'CLX Invoice Policy ',
-    'version': '13.1.0.0.5',
+    'version': '13.1.0.0.6',
     'summary': 'CLX Invoice Policy',
     'sequence': 1,
     'description': """CLX Invoice Policy""",
