@@ -224,3 +224,12 @@
 - [FIX] clx_invoice_policy : fix the issue of the label printing and optimize the code for invoice creation from the wizard.
 - [MOD] contact_modification : change 2 field type char to selection timezone,vertical.
 - Hide fiscal position and purchase payment terms from the customer form view.
+
+## 09/23/2020
+#### Version 13.1.1.0.2
+- [ADD] clx_subscription_creation : Added contract start date field on sale order if that field have date than set default start data on sale order line otherwise set current date.
+
+## 09/23/2020
+#### Version 13.1.0.0.7
+- [FIX] clx_invoice_policy : Fix the issue of the label generating when invoice is created.
+- [FIX] Optimization of the code when product category wise and fix the some issue when invoice is created sale order line.

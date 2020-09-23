@@ -2,9 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
-import itertools
 
-from dateutil import relativedelta
 from odoo.exceptions import AccessError
 
 from odoo import models, fields, api
@@ -37,11 +35,11 @@ class SaleAdvancePaymentInv(models.TransientModel):
             return super(SaleAdvancePaymentInv, self).create_invoices()
         sale_orders = self.env['sale.order'].browse(self._context.get('active_ids', []))
         for order in sale_orders.filtered(lambda x: not x.clx_invoice_policy_id):
-            order.with_context(invoice_section='sol')._create_invoices(
+            order._create_invoices(
                 final=self.deduct_down_payments)
         if self.invoice_selection and sale_orders.filtered(lambda x: x.clx_invoice_policy_id):
             if self.invoice_selection == 'sol':
-                sale_orders.with_context(invoice_section='sol')._create_invoices(
+                sale_orders.with_context(invoice_section='sol')._create_invoices_wizard(
                     final=self.deduct_down_payments)
             if self.invoice_selection == 'prod_categ':
                 act_move = self.env['account.move']
@@ -53,6 +51,5 @@ class SaleAdvancePaymentInv(models.TransientModel):
                         return act_move
                 for order in sale_orders.filtered(lambda x: x.clx_invoice_policy_id):
                     order.partner_id.with_context(create_invoice_from_wzrd=True, order=order.id).generate_invoice()
-
         if self._context.get('open_invoices', False):
             return sale_orders.action_view_invoice()
