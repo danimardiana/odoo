@@ -10,6 +10,8 @@ from odoo import fields, models, api, _
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    contract_start_date = fields.Date(string='Contract Start Date')
+
     def update_existing_subscriptions(self):
         """
         Call super method when upsell is created from the subscription
@@ -55,13 +57,21 @@ class SaleOrderLine(models.Model):
     """
     _inherit = "sale.order.line"
 
-    start_date = fields.Date('Start Date', default=fields.Date.today())
+    start_date = fields.Date('Start Date')
     end_date = fields.Date('End Date')
     line_type = fields.Selection([
         ('base', 'Base'),
         ('upsell', 'Upsell'),
         ('downsell', 'Downsell')
     ], string='Origin', default='base')
+
+    @api.onchange('product_id')
+    def onchange_start_date(self):
+        if self.product_id and self.order_id.contract_start_date:
+            self.start_date = self.order_id.contract_start_date
+        if self.product_id and not self.order_id.contract_start_date:
+            self.start_date = fields.Date.today()
+
 
     @api.onchange('start_date', 'end_date')
     def onchange_date_validation(self):

@@ -15,6 +15,18 @@ class SaleOrderLine(models.Model):
 
     is_invoiced = fields.Boolean(string='invoiced')
 
+    def calculate_qty(self, today, num_of_month):
+        qty = 0
+        end_date = today + relativedelta(
+            months=num_of_month, days=-1)
+        num_of_month = (end_date.year - self.start_date.year) * 12 + (end_date.month - self.start_date.month)
+        for i in range(0, num_of_month):
+            if self.start_date and self.start_date < end_date:
+                qty += 1
+            else:
+                qty = 1
+        return qty
+
     def _prepare_invoice_line(self):
         vals = super(SaleOrderLine, self)._prepare_invoice_line()
         if not vals:
@@ -22,30 +34,35 @@ class SaleOrderLine(models.Model):
         lang = self.order_id.partner_invoice_id.lang
         format_date = self.env['ir.qweb.field.date'].with_context(
             lang=lang).value_to_html
+        today = fields.Date.today()
         if self.order_id.clx_invoice_policy_id:
             policy = self.order_id.clx_invoice_policy_id.policy_type
             if policy == 'advance':
                 num_of_month = self.order_id.clx_invoice_policy_id.num_of_month + 1
-                date_start = self.start_date
-                date_end = date_start + relativedelta(
-                    months=num_of_month) if not self.end_date else \
-                    self.end_date
-                date_difference = (date_end - date_start)
+                date_start = fields.Date.today().replace(day=1)
+                date_end = date_start + relativedelta(months=num_of_month, days=-1)
+                qty = self.calculate_qty(today, num_of_month)
+                end_date = today + relativedelta(
+                    months=num_of_month, days=-1)
+                num_of_month = (end_date.year - self.start_date.year) * 12 + (end_date.month - self.start_date.month)
                 period_msg = _("Invoicing period: %s - %s") % (
                     format_date(fields.Date.to_string(date_start), {}),
                     format_date(
-                        fields.Date.to_string(
-                            self.end_date if (date_difference.days in (
-                                30, 31)) and self.end_date else date_end)
+                        fields.Date.to_string(date_end)
                         , {}
                     )
                 )
+                if num_of_month == 1:
+                    period_msg = _("Invoicing period: %s - %s") % (
+                        format_date(fields.Date.to_string(self.start_date), {}),
+                        format_date(
+                            fields.Date.to_string(date_end)
+                            , {}
+                        )
+                    )
                 vals.update({
                     'name': period_msg,
-                    'quantity':
-                        self.product_uom_qty if date_difference.days in (
-                            30, 31
-                        ) else self.product_uom_qty * num_of_month
+                    'quantity': qty
                 })
             elif policy.lower() == 'arrears':
                 today = date.today()

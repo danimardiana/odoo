@@ -2,7 +2,11 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
-from odoo import fields, models, api
+from odoo import fields, models, api, _
+from itertools import groupby
+from odoo.exceptions import AccessError, UserError
+from odoo.tools import float_is_zero, float_compare
+from dateutil.relativedelta import relativedelta
 
 
 class SaleOrder(models.Model):
@@ -24,3 +28,72 @@ class SaleOrder(models.Model):
         if so.partner_id and not vals.get('clx_invoice_policy_id'):
             so.clx_invoice_policy_id = so.partner_id.clx_invoice_policy_id.id
         return so
+
+    def _create_invoices_wizard(self, grouped=False, final=False):
+        """
+        Create the invoice associated to the SO.
+        :param grouped: if True, invoices are grouped by SO id. If False, invoices are grouped by
+                        (partner_invoice_id, currency)
+        :param final: if True, refunds will be generated if necessary
+        :returns: list of created invoices
+        """
+        if not self.env['account.move'].check_access_rights('create', False):
+            try:
+                self.check_access_rights('write')
+                self.check_access_rule('write')
+            except AccessError:
+                return self.env['account.move']
+
+        precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+
+        # 1) Create invoices.
+        invoice_vals_list = []
+        for order in self:
+            pending_section = None
+
+            # Invoice values.
+            invoice_vals = order._prepare_invoice()
+            order_line = order.order_line
+            # Invoice line values (keep only necessary sections).
+            if self._context.get('invoice_section'):
+                order_line = self.env['sale.order.line']
+                policy_month = order.clx_invoice_policy_id.num_of_month
+                end_date = fields.Date.today().replace(day=1) + relativedelta(
+                    months=policy_month + 1, days=-1)
+                for line in order.order_line:
+                    if line.start_date and line.start_date < end_date:
+                        order_line += line
+            for line in order_line:
+                if line.display_type == 'line_section':
+                    pending_section = line
+                    continue
+                if float_is_zero(line.qty_to_invoice, precision_digits=precision):
+                    continue
+                if line.qty_to_invoice > 0 or (line.qty_to_invoice < 0 and final):
+                    if pending_section:
+                        invoice_vals['invoice_line_ids'].append((0, 0, pending_section._prepare_invoice_line()))
+                        pending_section = None
+                    invoice_vals['invoice_line_ids'].append((0, 0, line._prepare_invoice_line()))
+
+            if not invoice_vals['invoice_line_ids']:
+                raise UserError(_(
+                    'There is no invoiceable line. If a product has a Delivered quantities invoicing policy, please make sure that a quantity has been delivered.'))
+
+            invoice_vals_list.append(invoice_vals)
+
+        if not invoice_vals_list:
+            raise UserError(_(
+                'There is no invoiceable line. If a product has a Delivered quantities invoicing policy, please make sure that a quantity has been delivered.'))
+
+        moves = self.env['account.move'].sudo().with_context(default_type='out_invoice').create(invoice_vals_list)
+        # 4) Some moves might actually be refunds: convert them if the total amount is negative
+        # We do this after the moves have been created since we need taxes, etc. to know if the total
+        # is actually negative or not
+        if final:
+            moves.sudo().filtered(lambda m: m.amount_total < 0).action_switch_invoice_into_refund_credit_note()
+        for move in moves:
+            move.message_post_with_view('mail.message_origin_link',
+                                        values={'self': move, 'origin': move.line_ids.mapped('sale_line_ids.order_id')},
+                                        subtype_id=self.env.ref('mail.mt_note').id
+                                        )
+        return moves
