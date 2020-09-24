@@ -133,11 +133,10 @@ class SaleSubscription(models.Model):
         sale_orders = sale_order
         if not sale_order:
             sale_orders = self.env['sale.order'].search([('state', '=', 'sale')])
-        subscription_obj = self.env['sale.subscription']
         for order in sale_orders:
             sale_budget = self.env['sale.budget'].search(
                 [('partner_id', '=', order.partner_id.id), ('state', '=', 'active')], limit=1)
-            if not order.origin and order.subscription_management == 'create':
+            if order.subscription_management == 'create':
                 if sale_budget:
                     for line in order.order_line.filtered(lambda x: x.product_id.recurring_invoice):
                         self.create_or_update_budget_line(line, sale_budget)
@@ -150,8 +149,8 @@ class SaleSubscription(models.Model):
                                 lambda x: x.product_id.recurring_invoice):
                             self.create_or_update_budget_line(line, sale_budget_created)
 
-            if order.origin and order.subscription_management != 'create':
-                subscription = subscription_obj.search([('code', '=', order.origin)])
+            else:
+                subscription = order.order_line.mapped('subscription_id')
                 if subscription and sale_budget:
                     for line in order.order_line.filtered(lambda x: x.product_id.recurring_invoice):
                         self.create_or_update_budget_line(line, sale_budget)

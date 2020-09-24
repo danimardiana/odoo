@@ -233,3 +233,17 @@
 #### Version 13.1.0.0.7
 - [FIX] clx_invoice_policy : Fix the issue of the label generating when invoice is created.
 - [FIX] Optimization of the code when product category wise and fix the some issue when invoice is created sale order line.
+
+## 09/24/2020
+#### Version 13.3.0.0.20
+- [FIX] clx_task_management : change field label and set date when subtask and parent task is created from the requestform.
+
+## 09/24/2020
+#### Version 13.3.0.0.8
+- [FIX] clx_invoice_reports : added missing dependency.
+
+## 09/24/2020
+#### Version 13.3.0.0.2
+- [FIX] clx_budget_management : Fix the issue of budget is not creating when sale order is created from CRM.
+
+

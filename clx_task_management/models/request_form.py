@@ -19,7 +19,7 @@ class RequestForm(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
                              default='draft')
-    is_create_client_launch = fields.Boolean('Is Create Client Launch?')
+    is_create_client_launch = fields.Boolean('Is this a brand new client launch?')
 
     def open_active_saleorders(self):
         """
@@ -81,7 +81,6 @@ class RequestForm(models.Model):
                     'team_id': client_launch_task.team_id.id,
                     'team_members_ids': client_launch_task.team_members_ids.ids
                 }
-                print(vals)
                 main_task = project_task_obj.create(vals)
                 sub_tasks = self.env['sub.task'].search([('parent_id', '=', client_launch_task.id),
                                                          ('dependency_ids', '=', False)])
@@ -145,7 +144,8 @@ class RequestForm(models.Model):
                 'parent_id': main_task.id,
                 'sub_task_id': sub_task.id,
                 'team_id': sub_task.team_id.id,
-                'team_members_ids': sub_task.team_members_ids.ids
+                'team_members_ids': sub_task.team_members_ids.ids,
+                'date_deadline': self.request_date if self.request_date else False
             }
             return vals
 
@@ -165,7 +165,8 @@ class RequestForm(models.Model):
             'repositary_task_id': line.task_id.id,
             'req_type': line.task_id.req_type,
             'team_id': line.task_id.team_id.id,
-            'team_members_ids': line.task_id.team_members_ids.ids
+            'team_members_ids': line.task_id.team_members_ids.ids,
+            'date_deadline': self.request_date if self.request_date else False
         }
         return vals
 
@@ -246,7 +247,7 @@ class RequestFormLine(models.Model):
             if subscriptions:
                 active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
                     lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
-                    or (x.start_date and not x.end_date and x.start_date <= today)
+                              or (x.start_date and not x.end_date and x.start_date <= today)
                 )
                 if not active_subscription_lines:
                     raise UserError(_(

@@ -78,6 +78,40 @@
             </tree>
         </field>
     </record>
+    <!--Form View sale Budgel Line-->
+    <record id="sale_budget_line_form_view" model="ir.ui.view">
+        <field name="name">sale.budget.line.form.view</field>
+        <field name="model">sale.budget.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="budget_id" readonly="1" options="{&quot;no_open&quot;: True}"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="sol_id"/>
+                            <field name="subscription_line_id"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="subscription_id"/>
+                            <field name="product_id"/>
+                            <field name="price"/>
+                            <field name="wholesale_price"/>
+                            <field name="state"/>
+                            <field name="status"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
     <!--Tree View sale budget line-->
     <record id="sale_budget_line_tree_view" model="ir.ui.view">
