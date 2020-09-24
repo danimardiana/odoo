@@ -246,4 +246,8 @@
 #### Version 13.3.0.0.2
 - [FIX] clx_budget_management : Fix the issue of budget is not creating when sale order is created from CRM.
 
+## 09/24/2020
+#### Version 13.3.0.0.9
+- [FIX] clx_invoice_reports : fix the issue label printing of the month on Invoice PDF report.
+
 

@@ -29,14 +29,14 @@ class Invoice(models.Model):
                 end_date = parser.parse(name[-1])
                 months = OrderedDict(((start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                      range((end_date - start_date).days))
-                month = ''
+
                 temp = list(months)
                 for i in temp:
                     if 'December' not in i:
                         month += i.split('-')[0] + ','
                     else:
                         month += ' ' + i + ','
-                month += '-' + temp[-1].split('-')[-1]
+                month += '-' + temp[-1].split('-')[-1] + ' '
         if temp:
             month = month.replace(',-' + temp[-1].split('-')[-1], '-' + temp[-1].split('-')[-1])
         return month
