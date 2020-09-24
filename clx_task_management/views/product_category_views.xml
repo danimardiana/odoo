@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to Modify it -->
+    <record id="product_category_form_view_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">product.category.form</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+
+            <field name="pricing_type" position="after">
+                <field name="is_qty_readonly"/>
+            </field>
+
+        </field>
+    </record>
+</odoo>
