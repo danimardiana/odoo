@@ -14,7 +14,7 @@
                 'clx_invoice_policy'
                 ],
     'data': [
-        'views/report_templates.xml',
+        # 'views/report_templates.xml',
         # 'views/report_invoice_document.xml',
         'views/res_company_views.xml'
 
