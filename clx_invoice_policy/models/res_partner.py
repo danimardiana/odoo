@@ -180,30 +180,31 @@ class Partner(models.Model):
             'arrears': True
         })._prepare_invoice_line() for line in so_lines]
 
-        for line in prepared_lines:
-            line_type = line['line_type']
-            del line['line_type']
-            line['product_id'] = False
-            if line['category_id'] not in invoice_lines:
-                invoice_lines.update({line['category_id']: line})
-            else:
-                if line_type != 'base':
-                    invoice_lines[line['category_id']]['name'] = "\n".join({
-                        invoice_lines[line['category_id']]['name'],
-                        line['name']
-                    })
-                invoice_lines[line['category_id']]['quantity'] = 1
-                invoice_lines[line['category_id']]['discount'] += line['discount']
-                invoice_lines[line['category_id']]['price_unit'] += line['price_unit']
-                invoice_lines[line['category_id']]['tax_ids'][0][2].extend(line['tax_ids'][0][2])
-                invoice_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
-                invoice_lines[line['category_id']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
-                invoice_lines[line['category_id']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
+        if not self._context.get('create_invoice_from_wzrd'):
+            for line in prepared_lines:
+                line_type = line['line_type']
+                del line['line_type']
+                line['product_id'] = False
+                if line['category_id'] not in invoice_lines:
+                    invoice_lines.update({line['category_id']: line})
+                else:
+                    if line_type != 'base':
+                        invoice_lines[line['category_id']]['name'] = "\n".join({
+                            invoice_lines[line['category_id']]['name'],
+                            line['name']
+                        })
+                    invoice_lines[line['category_id']]['quantity'] = 1
+                    invoice_lines[line['category_id']]['discount'] += line['discount']
+                    invoice_lines[line['category_id']]['price_unit'] += line['price_unit']
+                    invoice_lines[line['category_id']]['tax_ids'][0][2].extend(line['tax_ids'][0][2])
+                    invoice_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
+                    invoice_lines[line['category_id']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
+                    invoice_lines[line['category_id']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
         so_lines.write({
             'last_invoiced': today
         })
         order = so_lines[0].so_line_id.order_id
-        self.env['account.move'].create({
+        vals = {
             'ref': order.client_order_ref,
             'type': 'out_invoice',
             'invoice_origin': '/'.join(
@@ -221,8 +222,20 @@ class Partner(models.Model):
             'campaign_id': order.campaign_id.id,
             'medium_id': order.medium_id.id,
             'source_id': order.source_id.id,
-            'invoice_line_ids': [(0, 0, x) for x in invoice_lines.values()],
-        })
+        }
+        if not invoice_lines:
+            for x in prepared_lines:
+                del x['line_type']
+                x['quantity'] = 1
+            vals.update({
+                'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
+            })
+            self.env['account.move'].create(vals)
+        if invoice_lines:
+            vals.update({
+                'invoice_line_ids': [(0, 0, x) for x in invoice_lines.values()]
+            })
+            self.env['account.move'].create(vals)
 
     def log_policy_history(self):
         """

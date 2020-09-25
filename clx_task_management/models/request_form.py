@@ -8,6 +8,7 @@ from odoo.exceptions import UserError
 class RequestForm(models.Model):
     _name = 'request.form'
     _description = 'Request Form'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
@@ -18,7 +19,7 @@ class RequestForm(models.Model):
                                    string='Line Item Details')
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
-                             default='draft')
+                             default='draft', tracking=True)
     is_create_client_launch = fields.Boolean('Is this a brand new client launch?')
 
     def open_active_saleorders(self):

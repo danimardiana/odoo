@@ -17,14 +17,16 @@ class SaleBudgetReport(models.Model):
     product_id = fields.Many2one('product.product', readonly=True)
     subscription_id = fields.Many2one('sale.subscription', readonly=True)
     partner_id = fields.Many2one('res.partner', readonly=True)
-    wholesale_price = fields.Float(string='Price')
+    wholesale_price = fields.Float(string='Wholesale Price')
+    price = fields.Float(string='Price')
 
     def _query(self):
         return """SELECT sbl.id,sbl.start_date as date,
          sbl.product_id as product_id,
          sbl.subscription_id as subscription_id,
          sbl.partner_id as partner_id,
-         sbl.price as wholesale_price
+         sbl.wholesale_price as wholesale_price,
+         sbl.price as price
         from sale_budget_line AS sbl group by sbl.partner_id,sbl.id"""
 
     def init(self):

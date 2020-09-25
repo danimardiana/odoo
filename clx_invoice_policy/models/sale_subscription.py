@@ -153,7 +153,8 @@ class SaleSubscriptionLine(models.Model):
             'tax_ids': [(6, 0, line.tax_id.ids)],
             'analytic_account_id': line.order_id.analytic_account_id.id,
             'analytic_tag_ids': [(6, 0, line.analytic_tag_ids.ids)],
-            'line_type': self.line_type
+            'line_type': self.line_type,
+            'sale_line_ids' : line.ids
         }
 
         if line.display_type:
