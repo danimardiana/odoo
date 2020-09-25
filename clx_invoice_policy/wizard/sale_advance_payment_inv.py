@@ -39,8 +39,15 @@ class SaleAdvancePaymentInv(models.TransientModel):
                 final=self.deduct_down_payments)
         if self.invoice_selection and sale_orders.filtered(lambda x: x.clx_invoice_policy_id):
             if self.invoice_selection == 'sol':
-                sale_orders.with_context(invoice_section='sol')._create_invoices_wizard(
-                    final=self.deduct_down_payments)
+                advance_sale_orders = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'advance')
+                if advance_sale_orders:
+                    advance_sale_orders.with_context(invoice_section='sol')._create_invoices_wizard(
+                        final=self.deduct_down_payments)
+                arrears_sale_orders = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'arrears')
+                if arrears_sale_orders:
+                    for order in arrears_sale_orders:
+                        order.partner_id.with_context(create_invoice_from_wzrd=True, order=order.id).generate_invoice()
+
             if self.invoice_selection == 'prod_categ':
                 act_move = self.env['account.move']
                 if not act_move.check_access_rights('create', False):

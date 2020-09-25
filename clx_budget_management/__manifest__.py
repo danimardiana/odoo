@@ -4,7 +4,7 @@
 
 {
     'name': 'Budgets Management',
-    'version': '13.3.0.0.1',
+    'version': '13.3.0.0.2',
     'summary': 'Budgets Management',
     'sequence': 1,
     'description': """ Budgets Management """,
@@ -21,7 +21,8 @@
         'data/ir_sequence.xml',
         'data/ir_cron.xml',
         'views/sale_budget_views.xml',
-        'views/res_config_settings_views.xml'
+        'views/res_config_settings_views.xml',
+        'views/sale_order_views.xml'
     ],
     'installable': True,
     'application': True,

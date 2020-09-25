@@ -233,3 +233,41 @@
 #### Version 13.1.0.0.7
 - [FIX] clx_invoice_policy : Fix the issue of the label generating when invoice is created.
 - [FIX] Optimization of the code when product category wise and fix the some issue when invoice is created sale order line.
+
+## 09/24/2020
+#### Version 13.3.0.0.20
+- [FIX] clx_task_management : change field label and set date when subtask and parent task is created from the requestform.
+
+## 09/24/2020
+#### Version 13.3.0.0.8
+- [FIX] clx_invoice_reports : added missing dependency.
+
+## 09/24/2020
+#### Version 13.3.0.0.2
+- [FIX] clx_budget_management : Fix the issue of budget is not creating when sale order is created from CRM.
+
+## 09/24/2020
+#### Version 13.3.0.0.9
+- [FIX] clx_invoice_reports : fix the issue label printing of the month on Invoice PDF report.
+
+## 09/24/2020
+#### Version 13.3.0.0.10
+- [FIX] clx_invoice_reports : fix the issue label printing of the month when year is different in invoice line on Invoice PDF report.
+
+## 09/24/2020
+#### Version 13.3.0.0.21
+- [ADD] clx_task-management : make qty field readonly if category have is qty readonly checked than make qty field readonly on sale order line.
+
+## 09/25/2020
+#### Version 13.3.0.0.3
+- [ADD] clx_budget_analysis_report : added column for the wholesale price on pivot report.
+
+## 09/25/2020
+#### Version 13.1.0.0.8
+- [FIX] clx_invoice_policy : Invoice is not link with sale order fix that issue.
+- [ADD] create invoice based on arrears policy based on sale order line.
+
+## 09/25/2020
+#### Version 13.3.0.0.21
+- [ADD] clx_task_management : added chatter box on the request form view.
+- [FIX] change in domain for select parent task on the sale order line. 

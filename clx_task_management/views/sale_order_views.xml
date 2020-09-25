@@ -11,7 +11,13 @@
                 <field name="order_partner_id" invisible="1"/>
                 <field name="project_id"
                        domain="[('partner_id','=',order_partner_id)]"/>
-                <field name="task_id" domain="[('project_id', '=', project_id),('clx_sale_order_id','=',False)]"/>
+                <field name="task_id" domain="[('project_id', '=', project_id),
+                                              ('clx_sale_order_id', '=', False),
+                                              ('parent_id', '=', False)]"/>
+                <field name="is_qty_readonly" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="attributes">
+                <attribute name="attrs">{'readonly': [('is_qty_readonly', '=', True)]}</attribute>
             </xpath>
         </field>
     </record>

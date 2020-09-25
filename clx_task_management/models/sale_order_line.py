@@ -9,3 +9,4 @@ class SaleOrderLine(models.Model):
 
     project_id = fields.Many2one('project.project', string="Project")
     task_id = fields.Many2one('project.task', string='Task')
+    is_qty_readonly = fields.Boolean('product.category', related="product_id.categ_id.is_qty_readonly")
