@@ -65,13 +65,23 @@ class SaleOrderLine(models.Model):
         ('downsell', 'Downsell')
     ], string='Origin', default='base')
 
+    def write(self, values):
+        res = super(SaleOrderLine, self).write(values)
+        if values.get('end_date', False):
+            subscription_lines = self.env['sale.subscription.line'].search([('so_line_id', '=', self.id)])
+            if subscription_lines:
+                [sub_line.write({'end_date': values.get('end_date')}) for sub_line in subscription_lines]
+            budget_lines = self.env['sale.budget.line'].search([('sol_id', '=', self.id)])
+            if budget_lines:
+                [budget_line.write({'end_date': values.get('end_date')}) for budget_line in budget_lines]
+        return res
+
     @api.onchange('product_id')
     def onchange_start_date(self):
         if self.product_id and self.order_id.contract_start_date:
             self.start_date = self.order_id.contract_start_date
         if self.product_id and not self.order_id.contract_start_date:
             self.start_date = fields.Date.today()
-
 
     @api.onchange('start_date', 'end_date')
     def onchange_date_validation(self):

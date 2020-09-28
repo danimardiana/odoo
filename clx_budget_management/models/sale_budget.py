@@ -28,7 +28,6 @@ class SaleBudget(models.Model):
         return super(SaleBudget, self).create(vals)
 
     def set_to_close(self):
-        self.ensure_one()
         if self.sale_budget_ids.filtered(lambda x: x.state == 'active'):
             raise ValidationError(_(
                 "There is one Budget line in active State."
@@ -65,6 +64,12 @@ class SaleBudgetLine(models.Model):
     active = fields.Boolean(string="Active")
     wholesale_price = fields.Float(string='Wholesale Price')
     subscription_line_id = fields.Many2one('sale.subscription.line', string="Subscription Line")
+
+    def close_budget_line(self):
+        sub_closed_stage = self.env.ref('sale_subscription.sale_subscription_stage_closed')
+        for record in self:
+            record.state = 'closed'
+            record.subscription_id.stage_id = sub_closed_stage.id
 
     @api.model
     def _change_state_sale_budget_line(self):

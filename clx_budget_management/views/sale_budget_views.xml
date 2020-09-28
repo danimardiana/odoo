@@ -180,6 +180,17 @@
         <field name="view_mode">tree,form,pivot,graph</field>
     </record>
 
+    <record id="action_bulk_of_budget_line_close" model="ir.actions.server">
+            <field name="name">Close Selected Budget Lines</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_sale_budget_line"/>
+            <field name="binding_model_id" ref="model_sale_budget_line"/>
+            <field name="code">
+records.close_budget_line()
+            </field>
+        </record>
+
     <!-- This Menu for sale Budget -->
     <menuitem id="main_menu_sale_budget"
               name="Budgets Management"

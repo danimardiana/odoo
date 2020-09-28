@@ -110,10 +110,10 @@ class SaleSubscription(models.Model):
                 self.create_chatter_log(budget_line_id, user)
                 if line.order_id.subscription_management == 'create':
                     if not line.end_date:
-                        month_start_date = datetime.date(datetime.datetime.today().year,
-                                                         month_selection, 1)
-                        r = relativedelta(month_start_date, line_start_date)
-                        for i in range(0, r.months):
+                        # month_start_date = datetime.date(datetime.datetime.today().year,
+                        #                                  month_selection, 1)
+                        # r = relativedelta(month_start_date, line_start_date)
+                        for i in range(0, month_selection):
                             temp = line_start_date + relativedelta(months=1)
                             vals = self.prepared_vals(line, sale_budget, temp)
                             budget_line_id = self.env['sale.budget.line'].create(vals)

@@ -271,3 +271,17 @@
 #### Version 13.3.0.0.21
 - [ADD] clx_task_management : added chatter box on the request form view.
 - [FIX] change in domain for select parent task on the sale order line. 
+
+## 09/28/2020
+#### Version 13.3.0.0.3
+- [ADD] clx_budget_management : change configuration for the budget creation if end date is not set on sale order line.
+- [ADD] added new action for close multiple budget line at time if budget line closed than subscription will be closed automatically.
+
+## 09/28/2020
+#### Version 13.1.1.0.3
+- [FIX] clx_subscription_creation : fix the issue when sale order have end date than set end date on subscription line and budget line also.
+
+## 09/28/2020
+#### Version 13.3.0.0.22
+- [FIX] clx_task_management : if client launch sub task is dependent on another main task's of sub task than create those task also create task which does sub task does not have dependency.
+
