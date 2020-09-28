@@ -26,7 +26,7 @@ class SaleBudgetReport(models.Model):
          sbl.subscription_id as subscription_id,
          sbl.partner_id as partner_id,
          sbl.wholesale_price as wholesale_price,
-         sbl.price as price
+         sbl.price + sbl.upsell_down_sell_price as price
         from sale_budget_line AS sbl group by sbl.partner_id,sbl.id"""
 
     def init(self):

@@ -285,3 +285,12 @@
 #### Version 13.3.0.0.22
 - [FIX] clx_task_management : if client launch sub task is dependent on another main task's of sub task than create those task also create task which does sub task does not have dependency.
 
+## 09/28/2020
+#### Version 13.3.0.0.4
+- [FIX] clx_budget_analysis_report : fix the issue regarding budget pivot report for upsell and downsell.
+
+## 09/28/2020
+#### Version 13.3.0.0.23
+- [FIX] clx_task_management : fix some view related changes on request form.
+
+

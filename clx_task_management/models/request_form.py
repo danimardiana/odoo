@@ -12,8 +12,8 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Date('Date')
-    description = fields.Text('Description',
+    request_date = fields.Date('Date',default=fields.Date.today())
+    description = fields.Text('Project Title',
                               help="It will be set as project title")
     request_line = fields.One2many('request.form.line', 'request_form_id',
                                    string='Line Item Details')

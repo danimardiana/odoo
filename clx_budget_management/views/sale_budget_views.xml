@@ -104,6 +104,7 @@
                             <field name="product_id"/>
                             <field name="price"/>
                             <field name="wholesale_price"/>
+                            <field name="upsell_down_sell_price"/>
                             <field name="state"/>
                             <field name="status"/>
                         </group>
@@ -124,6 +125,7 @@
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="price"/>
+                <field name="upsell_down_sell_price"/>
                 <field name="status"/>
                 <field name="subscription_id"/>
                 <field name="state"/>
