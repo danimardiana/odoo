@@ -309,3 +309,11 @@
 #### Version 13.3.0.0.12
 - [FIX] clx_invoice_reports : solved Unknown string format error. 
 
+## 09/29/2020
+#### Version 13.3.0.0.13
+- [REMOVE] clx_invoice_reports : Remove extra code.
+
+## 09/29/2020
+#### Version 13.3.0.0.5
+- [FIX] clx_budget_management : Fix the issue when subscription have end date.
+- Filter only those date between subscription start date and end date and update only those data.

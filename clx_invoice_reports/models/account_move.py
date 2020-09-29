@@ -13,11 +13,6 @@ from collections import OrderedDict
 class Invoice(models.Model):
     _inherit = 'account.move'
 
-    def unique_list(self, l):
-        ulist = []
-        [ulist.append(x) for x in l if x not in ulist]
-        return ulist
-
     def print_date(self, inv_line):
         month = ' '
         temp = []

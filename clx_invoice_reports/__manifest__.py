@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Reports',
-    'version': '13.3.0.0.12',
+    'version': '13.3.0.0.13',
     'summary': 'CLX Reports',
     'sequence': 1,
     'description': """ CLX Reports """,
