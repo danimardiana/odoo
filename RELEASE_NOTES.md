@@ -293,4 +293,12 @@
 #### Version 13.3.0.0.23
 - [FIX] clx_task_management : fix some view related changes on request form.
 
+## 09/29/2020
+#### Version 13.3.0.0.5
+- [FIX] clx_budget_analysis_report : changed field on pivot report. changed some fields on budget line table according to that set field on pivot report.
+
+## 09/29/2020
+#### Version 13.3.0.0.4
+- [FIX] clx_budget_management : added some extra fields for calculation of the pivot report.
+
 

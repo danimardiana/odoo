@@ -53,9 +53,7 @@ class SaleSubscription(models.Model):
                                                                                        days=-1)
 
         subscription_line_id = line.subscription_id.recurring_invoice_line_ids. \
-            filtered(lambda x: x.product_id.id == line.product_id.id
-                               and x.price_unit == line.price_unit
-                               and x.start_date == line.start_date)
+            filtered(lambda x: x.so_line_id.id == line.id)
         if start_date and end_date and start_date <= today <= end_date:
             state = "active"
             active = True
@@ -69,15 +67,20 @@ class SaleSubscription(models.Model):
             'start_date': start_date,
             'end_date': end_date,
             'product_id': line.product_id.id,
-            'price': 0.0 if line.order_id.subscription_management in ('upsell', 'downsell') else line.price_unit,
+            'price': line.price_unit,
             'budget_id': sale_budget_created.id if sale_budget_created else False,
             'sol_id': line.id,
             'state': state,
             'active': active,
             'wholesale_price': line.wholesale_price,
             'subscription_line_id': subscription_line_id.id,
-            'upsell_down_sell_price': 0.0
+            'upsell_down_sell_price': 0.0,
+            'final_report_price': line.subscription_id.recurring_total
         }
+        if line.order_id.subscription_management != 'create':
+            vals.update({
+                'final_report_price': 0.0
+            })
         return vals
 
     def create_or_update_budget_line(self, line, sale_budget):
@@ -97,6 +100,7 @@ class SaleSubscription(models.Model):
         )
         params = self.env['ir.config_parameter'].sudo()
         month_selection = int(params.get_param('budget_month')) or False
+        base_line = line.subscription_id.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base')
         if not month_selection and not line.end_date:
             raise ValidationError(_(
                 "Please check Configuration of the Month When End date is not set."
@@ -115,7 +119,7 @@ class SaleSubscription(models.Model):
                         # month_start_date = datetime.date(datetime.datetime.today().year,
                         #                                  month_selection, 1)
                         # r = relativedelta(month_start_date, line_start_date)
-                        for i in range(0, month_selection):
+                        for i in range(1, month_selection):
                             temp = line_start_date + relativedelta(months=1)
                             vals = self.prepared_vals(line, sale_budget, temp)
                             budget_line_id = self.env['sale.budget.line'].create(vals)
@@ -129,12 +133,12 @@ class SaleSubscription(models.Model):
                             budget_line_id = self.env['sale.budget.line'].create(vals)
                             line_start_date = budget_line_id.start_date
                             self.create_chatter_log(budget_line_id, user)
-
                 elif line.order_id.subscription_management == 'upsell' and not subscription_line_id.end_date:
                     old_budget_line = budget_line.filtered(
                         lambda x: x.partner_id.id == line.order_id.partner_id.id and x.sol_id.id != line.id)
                     old_budget_line = old_budget_line.filtered(lambda x: x.start_date >= line.start_date)
-                    [bgt_line.write({'upsell_down_sell_price': line.price_unit}) for bgt_line in
+                    [bgt_line.write({'upsell_down_sell_price': line.price_unit,
+                                     'final_report_price': line.subscription_id.recurring_total}) for bgt_line in
                      old_budget_line]
                 elif line.order_id.subscription_management == 'downsell' and not subscription_line_id.end_date:
                     old_budget_line = budget_line.filtered(
