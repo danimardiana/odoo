@@ -303,5 +303,9 @@
 
 ## 09/29/2020
 #### Version 13.3.0.0.11
-- [FIX] clx_invoice_reports : fixed duplicate date issue on invoice pdf report. 
+- [FIX] clx_invoice_reports : fixed duplicate date issue on invoice pdf report.
+
+## 09/29/2020
+#### Version 13.3.0.0.12
+- [FIX] clx_invoice_reports : solved Unknown string format error. 
 
