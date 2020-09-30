@@ -317,3 +317,8 @@
 #### Version 13.3.0.0.5
 - [FIX] clx_budget_management : Fix the issue when subscription have end date.
 - Filter only those date between subscription start date and end date and update only those data.
+
+## 09/30/2020
+#### Version 13.3.0.0.24
+- [ADD] clx_task_management : added sale order field on request form line, filtered only active sale order.
+- [ADD] Set price unit on sale order line from pricelist's field minimum price.

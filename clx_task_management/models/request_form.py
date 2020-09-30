@@ -22,6 +22,7 @@ class RequestForm(models.Model):
                              default='draft', tracking=True)
     is_create_client_launch = fields.Boolean('Is this a brand new client launch?')
 
+
     def open_active_saleorders(self):
         """
         this method is used for open Active sale order of the particular customer from the request form.
@@ -236,6 +237,8 @@ class RequestFormLine(models.Model):
     task_id = fields.Many2one('main.task', string='Task')
     description = fields.Text(string='Description',
                               help='It will set as Task Description')
+    sale_order_id = fields.Many2one('sale.order', string="Sale Order")
+
 
     @api.onchange('req_type')
     def _onchange_main_task(self):
