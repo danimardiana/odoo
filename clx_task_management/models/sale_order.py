@@ -28,8 +28,7 @@ class SaleOrder(models.Model):
                     [args or [], [('id', 'in', sale_orders.ids)]])
             return super(SaleOrder, self.sudo())._name_search(name=name, args=domain, operator=operator, limit=limit,
                                                               name_get_uid=name_get_uid)
-        return super(SaleOrder, self)._name_search(name=name, args=args, operator=operator, limit=limit,
-                                                   name_get_uid=name_get_uid)
+        
 
     def _action_confirm(self):
         result = super(SaleOrder, self)._action_confirm()

@@ -67,13 +67,34 @@ class SaleOrderLine(models.Model):
 
     def write(self, values):
         res = super(SaleOrderLine, self).write(values)
+        budget_obj = self.env['sale.budget.line']
         if values.get('end_date', False):
             subscription_lines = self.env['sale.subscription.line'].search([('so_line_id', '=', self.id)])
             if subscription_lines:
                 [sub_line.write({'end_date': values.get('end_date')}) for sub_line in subscription_lines]
-            budget_lines = self.env['sale.budget.line'].search([('sol_id', '=', self.id)])
+            budget_lines = budget_obj.search([('sol_id', '=', self.id)])
             if budget_lines:
                 [budget_line.write({'end_date': values.get('end_date')}) for budget_line in budget_lines]
+            if self.order_id.subscription_management == 'upsell':
+                budget_lines = budget_obj.search([
+                    ('partner_id', '=', self.order_id.partner_id.id),
+                    ('sol_id', '!=', self.id),
+                    ('status', '!=', 'upsell'),
+                    # ('is_updated', '=', False),
+                    ('start_date', '>=', self.end_date),
+                    '|', ('active', '=', True), ('active', '=', False)])
+                # if not all(budget_line == False for budget_line in budget_lines):
+                #     return res
+                if budget_lines:
+                    [bgt_line.write(
+                        {
+                            'final_report_price': self.subscription_id.recurring_invoice_line_ids.filtered(
+                                lambda x: x.line_type == 'base').price_subtotal,
+                            'is_updated': True
+                        }) for bgt_line in
+                        budget_lines]
+                # subscription_line_after_end_date = self.subscription_id.recurring_invoice_line_ids.filtered(
+                #     lambda x: x.start_date >= self.end_date)
         return res
 
     @api.onchange('product_id')

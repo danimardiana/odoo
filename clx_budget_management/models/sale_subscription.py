@@ -104,6 +104,9 @@ class SaleSubscription(models.Model):
             raise ValidationError(_(
                 "Please check Configuration of the Month When End date is not set."
             ))
+        today = fields.Date.today()
+        after_adding_month_date = today + relativedelta(months=month_selection - 1)
+        difference_today_end_date = relativedelta(after_adding_month_date, today)
         if line:
             available_budget_line = budget_line.filtered(
                 lambda x: x.sol_id.id == line.id)
@@ -118,7 +121,7 @@ class SaleSubscription(models.Model):
                         # month_start_date = datetime.date(datetime.datetime.today().year,
                         #                                  month_selection, 1)
                         # r = relativedelta(month_start_date, line_start_date)
-                        for i in range(1, month_selection):
+                        for i in range(1, difference_today_end_date.months):
                             temp = line_start_date + relativedelta(months=1)
                             vals = self.prepared_vals(line, sale_budget, temp)
                             budget_line_id = self.env['sale.budget.line'].create(vals)
@@ -135,19 +138,20 @@ class SaleSubscription(models.Model):
                 elif line.order_id.subscription_management == 'upsell' and not subscription_line_id.end_date:
                     old_budget_line = budget_line.filtered(
                         lambda x: x.partner_id.id == line.order_id.partner_id.id and x.sol_id.id != line.id)
-                    old_budget_line = old_budget_line.filtered(lambda x: x.start_date >= line.start_date)
+                    old_budget_line = old_budget_line.filtered(lambda x: x.start_date >= line.start_date and x.product_id.id == line.product_id.id)
                     [bgt_line.write({'upsell_down_sell_price': line.price_unit,
-                                     'final_report_price': line.subscription_id.recurring_total}) for bgt_line in
+                                     'final_report_price': line.subscription_id.recurring_invoice_line_ids.filtered(lambda x:x.line_type == 'base').price_subtotal + line.price_unit}) for bgt_line in
                      old_budget_line]
                 elif line.order_id.subscription_management == 'upsell' and subscription_line_id.end_date:
                     old_budget_line = self.env['sale.budget.line'].search([
                         ('partner_id', '=', line.order_id.partner_id.id),
+                        ('product_id', '=', line.product_id.id),
                         ('sol_id', '!=', line.id),
                         ('start_date', '>=', line.start_date),
                         ('end_date', '<=', line.end_date),
                         '|', ('active', '=', True), ('active', '=', False)])
                     [bgt_line.write({'upsell_down_sell_price': line.price_unit,
-                                     'final_report_price': line.subscription_id.recurring_total}) for bgt_line in
+                                     'final_report_price': line.subscription_id.recurring_invoice_line_ids.filtered(lambda x:x.line_type == 'base').price_subtotal + line.price_unit}) for bgt_line in
                      old_budget_line]
 
     @api.model
