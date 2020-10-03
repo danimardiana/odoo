@@ -88,6 +88,7 @@ class Partner(models.Model):
                                       ('pst', 'PST')
                                       ], string="Timezone2")
     yardi_code = fields.Char(string="Yardi Code")
+    ads_link_ids = fields.One2many('ads.link', 'partner_id',string="Ads Link")
 
     @api.model
     def read_group(self, domain, fields, groupby,

@@ -12,7 +12,7 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Date('Date',default=fields.Date.today())
+    request_date = fields.Date('Date', default=fields.Date.today())
     description = fields.Text('Project Title',
                               help="It will be set as project title")
     request_line = fields.One2many('request.form.line', 'request_form_id',
@@ -21,35 +21,21 @@ class RequestForm(models.Model):
                              string='state',
                              default='draft', tracking=True)
     is_create_client_launch = fields.Boolean('Is this a brand new client launch?')
+    ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
 
-
-    def open_active_saleorders(self):
+    def open_active_subscription_line(self):
         """
         this method is used for open Active sale order of the particular customer from the request form.
         :return: action of sale order
         """
-        action = self.env.ref('sale.action_orders').read()[0]
+        action = self.env.ref('clx_task_management.action_sale_subscription_line').read()[0]
         today = fields.Date.today()
         subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
         if subscriptions:
             active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
-                lambda x: x.start_date and x.start_date <= today)
+                lambda x: x.start_date and x.start_date <= today and not x.end_date)
             if active_subscription_lines:
-                sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
-                action["context"] = {"create": False}
-                if len(sale_orders) > 1:
-                    action['domain'] = [('id', 'in', sale_orders.ids)]
-                elif len(sale_orders) == 1:
-                    form_view = [(self.env.ref('sale.view_order_form').id, 'form')]
-                    if 'views' in action:
-                        action['views'] = form_view + [
-                            (state, view)
-                            for state, view in action['views'] if view != 'form']
-                    else:
-                        action['views'] = form_view
-                    action['res_id'] = sale_orders.ids[0]
-                else:
-                    action = {'type': 'ir.actions.act_window_close'}
+                action['domain'] = [('id', 'in', active_subscription_lines.ids)]
                 return action
 
     @api.model
@@ -199,6 +185,16 @@ class RequestForm(models.Model):
         cl_task = self.env.ref('clx_task_management.clx_client_launch_sub_task_1')
         if not self.request_line:
             raise UserError('There is no Request Line, Please add some line')
+        today = fields.Date.today()
+        subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
+        if not subscriptions:
+            raise UserError('You can not submit request form there is no active sale for this customer!!')
+        elif subscriptions:
+            active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
+                lambda x: x.start_date and x.start_date <= today and not x.end_date)
+            if not active_subscription_lines:
+                raise UserError('You can not submit request form there is no active sale for this customer!!')
+
         if self.description and self.partner_id:
             vals = self.prepared_project_vals(self.description,
                                               self.partner_id)
@@ -238,7 +234,6 @@ class RequestFormLine(models.Model):
     description = fields.Text(string='Description',
                               help='It will set as Task Description')
     sale_order_id = fields.Many2one('sale.order', string="Sale Order")
-
 
     @api.onchange('req_type')
     def _onchange_main_task(self):

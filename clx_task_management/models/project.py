@@ -30,6 +30,11 @@ class ProjectProject(models.Model):
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
+    def _get_sub_task(self):
+        domain = [('parent_id', '=', self.repositary_task_id)]
+        records = self.env['sub.task'].search(domain)
+        return records.ids
+
     repositary_task_id = fields.Many2one('main.task', string='Repository Task')
     sub_repositary_task_ids = fields.Many2many('sub.task',
                                                string='Repository Sub Task')
@@ -40,6 +45,10 @@ class ProjectTask(models.Model):
     team_members_ids = fields.Many2many('res.users', string="Team Members")
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
     clx_sale_order_line_id = fields.Many2one('sale.order.line', string="Sale order Item")
+    clx_sub_task_ids = fields.Many2many('sub.task', 'sub_task_project_task_clx', 'sub_task_id', 'task_id',
+                                        string="Sub Task",
+                                        default=lambda self: self._get_sub_task()
+                                        )
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """

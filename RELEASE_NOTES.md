@@ -322,3 +322,18 @@
 #### Version 13.3.0.0.24
 - [ADD] clx_task_management : added sale order field on request form line, filtered only active sale order.
 - [ADD] Set price unit on sale order line from pricelist's field minimum price.
+
+## 10/01/2020
+#### Version 13.3.0.0.5
+- [ADD] clx_budget_management : when user confirm sale order if customer type is company customer than user can confirm the sale order otherwise raise warning.
+
+## 10/01/2020
+#### Version 13.1.1.0.9
+- [ADD] contact_modification : invisible some field on contacts view and added new field for ads line.
+
+## 10/01/2020
+#### Version 13.3.0.0.25
+- [ADD] Show active subscription line on request form.
+- [ADD] when user submit request form than if that cutomer have any active sale order than user can submit the request form otherwise raise warning.
+- [ADD] When user create quotation from the crm if that crm record state is won after that user can create quotation otherwise raise warning.
+

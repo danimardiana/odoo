@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
-from odoo import models
+from odoo import models, _
+from odoo.exceptions import UserError
 
 
 class SaleOrder(models.Model):
@@ -11,12 +12,14 @@ class SaleOrder(models.Model):
         """
         inherited method for create budget line when confirm the sale order
         """
+        if self.partner_id.company_type_rel != 'company':
+            raise UserError(_("You can not confirm the Sale order Because Customer type is not Company Management!!"))
         res = super(SaleOrder, self)._action_confirm()
         self.env['sale.subscription']._create_sale_budget(self)
         return res
 
     def open_budget_line(self):
-        budget_lines = self.env['sale.budget.line'].search([('sol_id.order_id','=',self.id)])
+        budget_lines = self.env['sale.budget.line'].search([('sol_id.order_id', '=', self.id)])
         if budget_lines:
             print()
             action = self.env.ref(
