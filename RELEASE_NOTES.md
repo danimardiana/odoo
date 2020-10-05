@@ -333,7 +333,18 @@
 
 ## 10/01/2020
 #### Version 13.3.0.0.25
-- [ADD] Show active subscription line on request form.
-- [ADD] when user submit request form than if that cutomer have any active sale order than user can submit the request form otherwise raise warning.
+- [ADD] contact_modification : Show active subscription line on request form.
+- [ADD] when user submit request form than if that customers have any active sale order than user can submit the request form otherwise raise warning.
 - [ADD] When user create quotation from the crm if that crm record state is won after that user can create quotation otherwise raise warning.
 
+## 10/05/2020
+#### Version 13.3.0.0.26
+- clx_task_management
+    - [ADD] added some fields on request form and when creating subtask set those fields data on task records.
+    - [ADD] added in logic where the current date will automatically determine due dates of +3 business days for Update tasks and +5 business days for New tasks.
+    - [ADD] added stage field on sub task page in project task records.
+    - [MOD] Remove “Industry” from the “Sales & Purchase” tab.
+    - [ADD] Added attachments tab on request form.
+    - [MOD] Changed tree view of the request form and added separate menu for request form.
+- contact_modification
+    - [MOD] Change menu sequence for contacts application.

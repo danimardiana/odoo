@@ -49,8 +49,19 @@
                 <field name="team_members_ids" widget="many2many_tags"/>
             </field>
             <xpath expr="//page[@name='description_page']" position="after">
-                <page name="sub_task" string="Sub Task">
-                    <field name="clx_sub_task_ids" domain="[('parent_id','=',repositary_task_id)]"/>
+                <page name="sub_task" string="Sub Task"
+                      attrs="{'invisible' : ['|', ('parent_id', '!=', False), ('id', '=', False)]}">
+                    <field name="clx_sub_task_ids">
+                        <tree>
+                            <field name="sub_task_name"/>
+                            <field name="stage_id"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name="requirements" string="Requirements">
+                    <group>
+                        <field name="requirements"/>
+                    </group>
                 </page>
             </xpath>
         </field>

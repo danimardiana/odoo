@@ -16,6 +16,7 @@
         'account',
         'purchase',
         'project',
+        'website'
     ],
     'data': [
         'security/ir.model.access.csv',

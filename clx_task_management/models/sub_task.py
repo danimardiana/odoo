@@ -9,6 +9,7 @@ class SubTask(models.Model):
     _description = 'sub Task'
     _order = 'sequence'
 
+
     name = fields.Char(string='name')
     sub_task_name = fields.Char(string='Sub Task Name')
     team_id = fields.Many2one('clx.team', string='Team')
@@ -18,6 +19,7 @@ class SubTask(models.Model):
     dependency_ids = fields.Many2many('sub.task', 'clx_sub_task_sub_task_rel', 'sub_task_id',
                                       'sub_id')
     sequence = fields.Integer()
+    stage_id = fields.Many2one('project.task.type', string='Stage')
 
     @api.model
     def create(self, vals):

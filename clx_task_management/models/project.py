@@ -30,10 +30,15 @@ class ProjectProject(models.Model):
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    def _get_sub_task(self):
-        domain = [('parent_id', '=', self.repositary_task_id)]
+    def _compute_sub_task(self):
+        domain = [('parent_id', '=', self.repositary_task_id.id)]
         records = self.env['sub.task'].search(domain)
-        return records.ids
+        for record in records:
+            task = self.search([('name', '=', record.sub_task_name), ('parent_id', '=', self.id),
+                                ('project_id', '=', self.project_id.id)])
+            if task:
+                record.stage_id = task[0].stage_id.id
+        self.clx_sub_task_ids = records.ids
 
     repositary_task_id = fields.Many2one('main.task', string='Repository Task')
     sub_repositary_task_ids = fields.Many2many('sub.task',
@@ -47,8 +52,9 @@ class ProjectTask(models.Model):
     clx_sale_order_line_id = fields.Many2one('sale.order.line', string="Sale order Item")
     clx_sub_task_ids = fields.Many2many('sub.task', 'sub_task_project_task_clx', 'sub_task_id', 'task_id',
                                         string="Sub Task",
-                                        default=lambda self: self._get_sub_task()
+                                        compute='_compute_sub_task'
                                         )
+    requirements = fields.Text(string='Requirements')
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """

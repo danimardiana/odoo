@@ -3,6 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, api, models, _
 from odoo.exceptions import UserError
+import datetime
 
 
 class RequestForm(models.Model):
@@ -12,9 +13,9 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Date('Date', default=fields.Date.today())
+    request_date = fields.Datetime('Launch Date', default=fields.Date.today())
     description = fields.Text('Project Title',
-                              help="It will be set as project title")
+                              help="Choose a title for this client’s project request")
     request_line = fields.One2many('request.form.line', 'request_form_id',
                                    string='Line Item Details')
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
@@ -22,6 +23,8 @@ class RequestForm(models.Model):
                              default='draft', tracking=True)
     is_create_client_launch = fields.Boolean('Is this a brand new client launch?')
     ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
+    intended_launch_date = fields.Date(string='Intended Launch Date')
+    attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
 
     def open_active_subscription_line(self):
         """
@@ -115,14 +118,29 @@ class RequestForm(models.Model):
             return action
         return False
 
-    def prepared_sub_task_vals(self, sub_task, main_task):
+    def prepared_sub_task_vals(self, sub_task, main_task, line):
         """
         Prepared vals for sub task
         :param sub_task: browsable object of the sub.task
         :param main_task: brwosable object of the main.task
+        :param line: brwosable object of the request.line
         :return: dictionary for the sub task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        today = fields.Date.today()
+        if line.req_type == 'update':
+            business_days_to_add = 3
+        else:
+            business_days_to_add = 5
+        current_date = today
+        # code for skip saturday and sunday for set deadline on task.
+        while business_days_to_add > 0:
+            current_date += datetime.timedelta(days=1)
+            weekday = current_date.weekday()
+            if weekday >= 5:  # sunday = 6, saturday = 5
+                continue
+            business_days_to_add -= 1
+        print(current_date)
         if stage_id:
             vals = {
                 'name': sub_task.sub_task_name,
@@ -133,7 +151,7 @@ class RequestForm(models.Model):
                 'sub_task_id': sub_task.id,
                 'team_id': sub_task.team_id.id,
                 'team_members_ids': sub_task.team_members_ids.ids,
-                'date_deadline': self.request_date if self.request_date else False
+                'date_deadline': current_date
             }
             return vals
 
@@ -154,7 +172,8 @@ class RequestForm(models.Model):
             'req_type': line.task_id.req_type,
             'team_id': line.task_id.team_id.id,
             'team_members_ids': line.task_id.team_members_ids.ids,
-            'date_deadline': self.request_date if self.request_date else False
+            'date_deadline': self.request_date if self.request_date else False,
+            'requirements': line.requirements
         }
         return vals
 
@@ -216,7 +235,7 @@ class RequestForm(models.Model):
                                      '|', ('dependency_ids', '=', False), ('dependency_ids', '=', cl_task.id)])
                                 for sub_task in dependency_sub_tasks:
                                     vals = self.prepared_sub_task_vals(
-                                        sub_task, main_task)
+                                        sub_task, main_task, line)
                                     project_task_obj.create(vals)
         self.state = 'submitted'
 
@@ -231,9 +250,10 @@ class RequestFormLine(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
-    description = fields.Text(string='Description',
+    description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     sale_order_id = fields.Many2one('sale.order', string="Sale Order")
+    requirements = fields.Text(string='Requirements')
 
     @api.onchange('req_type')
     def _onchange_main_task(self):
