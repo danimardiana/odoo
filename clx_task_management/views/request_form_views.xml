@@ -31,7 +31,7 @@
                     </div>
                     <group>
                         <group>
-                            <field name="partner_id" required="1"/>
+                            <field name="partner_id" required="1" domain="[('company_type','=','company')]"/>
                             <field name="request_date"/>
                             <field name="intended_launch_date"/>
                         </group>

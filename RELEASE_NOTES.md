@@ -366,6 +366,10 @@
             - Invoice Created Months of Nov - Dec
             - Products1 - 2000, Invoicing Period : 1-Nov-20, 31-Dec-2020
             - Products2 - 1000, Invoicing Period : 01-Dec-2020 - 31-Dec-2020
+## 10/07/2020
+- [MOD] clx_task_management - Hide extra info tab in project task.
+- [MOD] added domain for select only company type contacts on request form.
+- [MOD] contact_modification : hide address field for individual contacts. 
             
         
  
