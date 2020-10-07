@@ -12,5 +12,5 @@ class CrmLead(models.Model):
         res = super(CrmLead, self).action_sale_quotations_new()
         won_stage_id = self.env.ref('crm.stage_lead4')
         if won_stage_id and self.stage_id != won_stage_id:
-            raise UserError(_("You can not create Quotation, You need WON lead!!"))
+            raise UserError(_("You will need WON stage to create Quotation."))
         return res

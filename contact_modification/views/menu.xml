@@ -2,7 +2,7 @@
 <odoo>
     <!-- Company Type Owner Contact -->
     <record id="action_partner_company_type_owner" model="ir.actions.act_window">
-        <field name="name">Owner Contact</field>
+        <field name="name">Ownership Contact</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">kanban,tree,form,activity</field>

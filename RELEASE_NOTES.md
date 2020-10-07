@@ -348,3 +348,24 @@
     - [MOD] Changed tree view of the request form and added separate menu for request form.
 - contact_modification
     - [MOD] Change menu sequence for contacts application.
+    
+## 10/07/2020
+- clx_budget_management - 13.3.0.0.6
+    - [MOD] Change warning message when confirming the sale order.
+- clx_task_management - 13.3.0.0.28
+    - [MOD] Change warning message when create quotation from the crm and also changed config settings message.
+- contact_modification - 13.1.1.0.10
+    - [MOD] Change menu sequence and some field label.
+- clx_invoice_policy - 13.1.0.0.9
+    - [MOD] Major changes for invoice creation. Create invoice in advance month.
+        - Example
+            - Invoice Policy - Adv +1. 
+            - Sale order Confirm on Oct Month.
+            - Product1, Start Date :  01-Nov-2020 , End Date : Not set, Price : 1000.
+            - Product2, Start Date :  01-Dec-2020 , End Date : Not Set, Price : 1000
+            - Invoice Created Months of Nov - Dec
+            - Products1 - 2000, Invoicing Period : 1-Nov-20, 31-Dec-2020
+            - Products2 - 1000, Invoicing Period : 01-Dec-2020 - 31-Dec-2020
+            
+        
+ 

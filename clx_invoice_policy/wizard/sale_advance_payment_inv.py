@@ -37,26 +37,39 @@ class SaleAdvancePaymentInv(models.TransientModel):
         for order in sale_orders.filtered(lambda x: not x.clx_invoice_policy_id):
             order._create_invoices(
                 final=self.deduct_down_payments)
-        if self.invoice_selection and sale_orders.filtered(lambda x: x.clx_invoice_policy_id):
-            if self.invoice_selection == 'sol':
-                advance_sale_orders = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'advance')
-                if advance_sale_orders:
-                    advance_sale_orders.with_context(invoice_section='sol')._create_invoices_wizard(
-                        final=self.deduct_down_payments)
-                arrears_sale_orders = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'arrears')
-                if arrears_sale_orders:
-                    for order in arrears_sale_orders:
-                        order.partner_id.with_context(create_invoice_from_wzrd=True, order=order.id).generate_invoice()
+        # filter sale order invoice policy advance and invoice creation based on sale order line
+        advance_sale_orders_sol = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'advance'
+                                                                 and x.partner_id.invoice_selection == 'sol'
+                                                       )
+        if advance_sale_orders_sol:
+            # advance_sale_orders_sol.with_context(invoice_section='sol')._create_invoices_wizard(
+            #     final=self.deduct_down_payments)
+            for order in advance_sale_orders_sol:
+                order.partner_id.with_context(create_invoice_from_wzrd=True, sol=True,
+                                              order=order.id).generate_invoice()
 
-            if self.invoice_selection == 'prod_categ':
-                act_move = self.env['account.move']
-                if not act_move.check_access_rights('create', False):
-                    try:
-                        self.check_access_rights('write')
-                        self.check_access_rule('write')
-                    except AccessError:
-                        return act_move
-                for order in sale_orders.filtered(lambda x: x.clx_invoice_policy_id):
-                    order.partner_id.with_context(create_invoice_from_wzrd=True, order=order.id).generate_invoice()
+        # filter sale order invoice policy advance and invoice creation based on Category wise
+        advance_sale_orders_categ = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'advance'
+                                                                   and x.partner_id.invoice_selection == 'prod_categ'
+                                                         )
+        if advance_sale_orders_categ:
+            for order in advance_sale_orders_categ:
+                order.partner_id.with_context(create_invoice_from_wzrd=True, order=order.id).generate_invoice()
+
+        # filter sale order invoice policy arrears and invoice creation based on sale order line
+        arrears_sale_orders_sol = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'arrears'
+                                                                 and x.partner_id.invoice_selection == 'sol'
+                                                       )
+        if arrears_sale_orders_sol:
+            for order in arrears_sale_orders_sol:
+                order.partner_id.with_context(create_invoice_from_wzrd=True, sol=True,
+                                              order=order.id).generate_invoice()
+        # filter sale order invoice policy arrears and invoice creation based on category
+        arrears_sale_orders_categ = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'arrears'
+                                                                   and x.partner_id.invoice_selection == 'prod_categ'
+                                                         )
+        if arrears_sale_orders_categ:
+            for order in arrears_sale_orders_categ:
+                order.partner_id.with_context(create_invoice_from_wzrd=True, order=order.id).generate_invoice()
         if self._context.get('open_invoices', False):
             return sale_orders.action_view_invoice()

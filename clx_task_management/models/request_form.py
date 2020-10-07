@@ -34,12 +34,14 @@ class RequestForm(models.Model):
         action = self.env.ref('clx_task_management.action_sale_subscription_line').read()[0]
         today = fields.Date.today()
         subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
-        if subscriptions:
-            active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
-                lambda x: x.start_date and x.start_date <= today and not x.end_date)
-            if active_subscription_lines:
-                action['domain'] = [('id', 'in', active_subscription_lines.ids)]
-                return action
+        if not subscriptions:
+            raise UserError(_("No active Subscription for customer"))
+        active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
+            lambda x: x.start_date and x.start_date <= today and not x.end_date)
+        if not active_subscription_lines:
+            raise UserError(_("No active Subscription for customer"))
+        action['domain'] = [('id', 'in', active_subscription_lines.ids)]
+        return action
 
     @api.model
     def create(self, vals):
@@ -140,7 +142,6 @@ class RequestForm(models.Model):
             if weekday >= 5:  # sunday = 6, saturday = 5
                 continue
             business_days_to_add -= 1
-        print(current_date)
         if stage_id:
             vals = {
                 'name': sub_task.sub_task_name,
@@ -263,7 +264,7 @@ class RequestFormLine(models.Model):
                 [('partner_id', '=', self.request_form_id.partner_id.id)])
             if not subscriptions:
                 raise UserError(_(
-                    """You can not to update request because this customer does not have any active sale order!! You Can Create New request for this Customer!!"""))
+                    """You can only create new request as customer do not have active subscription."""))
             if subscriptions:
                 active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
                     lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
@@ -271,13 +272,12 @@ class RequestFormLine(models.Model):
                 )
                 if not active_subscription_lines:
                     raise UserError(_(
-                        """You can not to update request because this customer does not have any active sale order!! You Can Create New request for this Customer!!"""))
+                        """You can only create new request as customer do not have active subscription."""))
                 if active_subscription_lines:
                     sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
                     if not sale_orders:
                         raise UserError(_(
-                            """You can not to update request because this customer does not have any active sale order!!
-                             You Can Create New request for this Customer!!"""))
+                            """You can only create new request as customer do not have active subscription."""))
         client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
         if client_launch_task:
             for line in self:

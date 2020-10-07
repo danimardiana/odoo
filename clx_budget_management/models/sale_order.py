@@ -13,7 +13,7 @@ class SaleOrder(models.Model):
         inherited method for create budget line when confirm the sale order
         """
         if self.partner_id.company_type_rel != 'company':
-            raise UserError(_("You can not confirm the Sale order Because Customer type is not Company Management!!"))
+            raise UserError(_("Please select customer Company to Confirm the sale order"))
         res = super(SaleOrder, self)._action_confirm()
         self.env['sale.subscription']._create_sale_budget(self)
         return res
@@ -21,7 +21,6 @@ class SaleOrder(models.Model):
     def open_budget_line(self):
         budget_lines = self.env['sale.budget.line'].search([('sol_id.order_id', '=', self.id)])
         if budget_lines:
-            print()
             action = self.env.ref(
                 'clx_budget_management.action_sale_budget_line').read()[0]
             action["context"] = {"create": False}

@@ -7,7 +7,8 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after">
-                <field name="clx_invoice_policy_id" attrs="{'invisible': [('company_type', 'in', ('person','owner','management'))]}"/>
+                <field name="clx_invoice_policy_id"
+                       attrs="{'invisible': [('company_type', 'in', ('person','owner','management'))]}"/>
                 <field name="is_subscribed" invisible="True"/>
             </xpath>
             <sheet position="before">
@@ -31,7 +32,8 @@
                 </header>
             </sheet>
             <notebook position="inside">
-                <page name="clx_policy_history" string="Policy" attrs="{'invisible': [('company_type', 'in', ('person'))]}">
+                <page name="clx_policy_history" string="Policy"
+                      attrs="{'invisible': [('company_type', 'in', ('person'))]}">
                     <field name="policy_hst_ids" readonly="True">
                         <tree>
                             <field name="create_date"/>
@@ -40,6 +42,12 @@
                             <field name="is_subscribed"/>
                         </tree>
                     </field>
+                </page>
+                <page name="clx_invoice_policy_creation" string="Invoice Policy Selection"
+                      attrs="{'invisible': [('company_type', 'not in', ('company'))]}">
+                    <group>
+                        <field name="invoice_selection" widget="radio"/>
+                    </group>
                 </page>
             </notebook>
         </field>
