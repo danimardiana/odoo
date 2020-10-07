@@ -16,10 +16,8 @@
                         <div class="o_setting_right_pane">
                             <label for="is_create_auto_task"/>
                             <div class="text-muted">
-                                if this Check box is Enable then When User Cancel any task then System will create
-                                Automatic dependent Task. and set current task as Cancelled Stage.
-                                If this Check Box is Disable then System doest not create dependent task, Just Cancel
-                                Current Task.
+                                <p>Enable to Cancel/Delete any subtask without changing the dependency subtasks creation.</p>
+                                <p>Disable to Cancel/Delete any Subtask and its subsequent subtask.</p>
                             </div>
                         </div>
                     </div>

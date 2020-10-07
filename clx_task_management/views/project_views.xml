@@ -27,6 +27,7 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
+
             <xpath expr="//header" position="inside">
                 <button type="object" name="action_view_cancel_task" class="oe_stat_button"
                         string="Cancel"/>
@@ -40,13 +41,29 @@
                 <field name="req_type" widget="radio" attrs="{'invisible' : [('parent_id', '!=', False)]}"/>
                 <field name="repositary_task_id"
                        attrs="{'invisible' : ['|', ('parent_id', '!=', False), ('id', '=', False)]}"
-                        domain="[('req_type','=',req_type)]"
+                       domain="[('req_type','=',req_type)]"
                 />
                 <field name="sub_repositary_task_ids" widget="many2many_tags"
                        attrs="{'invisible' : ['|', ('parent_id', '=', False), ('id', '=', False)]}"/>
                 <field name="team_id"/>
                 <field name="team_members_ids" widget="many2many_tags"/>
             </field>
+            <xpath expr="//page[@name='description_page']" position="after">
+                <page name="sub_task" string="Sub Task"
+                      attrs="{'invisible' : ['|', ('parent_id', '!=', False), ('id', '=', False)]}">
+                    <field name="clx_sub_task_ids">
+                        <tree>
+                            <field name="sub_task_name"/>
+                            <field name="stage_id"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name="requirements" string="Requirements">
+                    <group>
+                        <field name="requirements"/>
+                    </group>
+                </page>
+            </xpath>
         </field>
     </record>
 

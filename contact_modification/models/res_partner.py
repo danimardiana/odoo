@@ -43,7 +43,7 @@ class Partner(models.Model):
             ('vendor', 'Vendor')
         ], inverse='_write_company_type')
     ownership_company_type_id = fields.Many2one(
-        'res.partner', string='Owner Ship Company')
+        'res.partner', string='OwnerShip Company')
     management_company_type_id = fields.Many2one(
         'res.partner', string='Mgmt. Company')
     is_owner = fields.Boolean(
@@ -88,6 +88,7 @@ class Partner(models.Model):
                                       ('pst', 'PST')
                                       ], string="Timezone2")
     yardi_code = fields.Char(string="Yardi Code")
+    ads_link_ids = fields.One2many('ads.link', 'partner_id',string="Ads Link")
 
     @api.model
     def read_group(self, domain, fields, groupby,

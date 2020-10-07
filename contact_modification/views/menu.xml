@@ -2,7 +2,7 @@
 <odoo>
     <!-- Company Type Owner Contact -->
     <record id="action_partner_company_type_owner" model="ir.actions.act_window">
-        <field name="name">Owner Contact</field>
+        <field name="name">Ownership Contact</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">kanban,tree,form,activity</field>
@@ -11,7 +11,7 @@
 
     <menuitem action="action_partner_company_type_owner"
               id="menu_partner_company_type_owner"
-              sequence="2"
+              sequence="4"
               parent="contacts.menu_contacts"/>
 
     <!-- Company Type Customer Company Contact -->
@@ -25,7 +25,7 @@
 
     <menuitem action="action_partner_company_type_customer_company"
               id="menu_partner_company_type_customer_company"
-              sequence="2"
+              sequence="1"
               parent="contacts.menu_contacts"/>
 
     <!-- Company Type Customer Management Company -->
@@ -53,7 +53,7 @@
 
     <menuitem action="action_partner_company_type_person"
               id="menu_partner_company_type_person"
-              sequence="2"
+              sequence="3"
               parent="contacts.menu_contacts"/>
 
     <menuitem id="contacts.res_partner_menu_config"
@@ -82,4 +82,15 @@
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="view_partner_tree_assignation_contacts"/>
     </record>
+
+    <menuitem id="contacts.res_partner_menu_contacts"
+              name="Contacts"
+              action="contacts.action_contacts"
+              parent="contacts.menu_contacts"
+              sequence="10"/>
+    <menuitem id="contacts.res_partner_menu_config"
+              name="Configuration"
+              parent="contacts.menu_contacts"
+              groups="base.group_system"
+              sequence="20"/>
 </odoo>

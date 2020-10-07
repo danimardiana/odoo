@@ -14,7 +14,7 @@ class SaleSubscription(models.Model):
         """
         for subscription in self:
             product_id = subscription.recurring_invoice_line_ids.mapped('product_id')
-            subscription.product_id = product_id.id if product_id else False
+            subscription.product_id = product_id[0].id if product_id else False
 
     product_id = fields.Many2one('product.product', string="Product",
                                  compute='_get_product_from_line')
@@ -70,3 +70,4 @@ class SaleSubscriptionLine(models.Model):
         ('upsell', 'Upsell'),
         ('downsell', 'Downsell')
     ], string='Origin', default='base')
+

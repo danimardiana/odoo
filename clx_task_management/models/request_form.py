@@ -3,6 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, api, models, _
 from odoo.exceptions import UserError
+import datetime
 
 
 class RequestForm(models.Model):
@@ -12,44 +13,35 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Date('Date')
-    description = fields.Text('Description',
-                              help="It will be set as project title")
+    request_date = fields.Datetime('Launch Date', default=fields.Date.today())
+    description = fields.Text('Project Title',
+                              help="Choose a title for this client’s project request")
     request_line = fields.One2many('request.form.line', 'request_form_id',
                                    string='Line Item Details')
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
                              default='draft', tracking=True)
     is_create_client_launch = fields.Boolean('Is this a brand new client launch?')
+    ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
+    intended_launch_date = fields.Date(string='Intended Launch Date')
+    attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
 
-    def open_active_saleorders(self):
+    def open_active_subscription_line(self):
         """
         this method is used for open Active sale order of the particular customer from the request form.
         :return: action of sale order
         """
-        action = self.env.ref('sale.action_orders').read()[0]
+        action = self.env.ref('clx_task_management.action_sale_subscription_line').read()[0]
         today = fields.Date.today()
         subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
-        if subscriptions:
-            active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
-                lambda x: x.start_date and x.start_date <= today)
-            if active_subscription_lines:
-                sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
-                action["context"] = {"create": False}
-                if len(sale_orders) > 1:
-                    action['domain'] = [('id', 'in', sale_orders.ids)]
-                elif len(sale_orders) == 1:
-                    form_view = [(self.env.ref('sale.view_order_form').id, 'form')]
-                    if 'views' in action:
-                        action['views'] = form_view + [
-                            (state, view)
-                            for state, view in action['views'] if view != 'form']
-                    else:
-                        action['views'] = form_view
-                    action['res_id'] = sale_orders.ids[0]
-                else:
-                    action = {'type': 'ir.actions.act_window_close'}
-                return action
+        if not subscriptions:
+            raise UserError(_("No active Subscription for customer"))
+        active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
+            lambda x: x.start_date and x.start_date <= today and not x.end_date)
+        if not active_subscription_lines:
+            raise UserError(_("No active Subscription for customer"))
+        action['domain'] = [('id', 'in', active_subscription_lines.ids)]
+        return action
 
     @api.model
     def create(self, vals):
@@ -128,14 +120,28 @@ class RequestForm(models.Model):
             return action
         return False
 
-    def prepared_sub_task_vals(self, sub_task, main_task):
+    def prepared_sub_task_vals(self, sub_task, main_task, line):
         """
         Prepared vals for sub task
         :param sub_task: browsable object of the sub.task
         :param main_task: brwosable object of the main.task
+        :param line: brwosable object of the request.line
         :return: dictionary for the sub task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        today = fields.Date.today()
+        if line.req_type == 'update':
+            business_days_to_add = 3
+        else:
+            business_days_to_add = 5
+        current_date = today
+        # code for skip saturday and sunday for set deadline on task.
+        while business_days_to_add > 0:
+            current_date += datetime.timedelta(days=1)
+            weekday = current_date.weekday()
+            if weekday >= 5:  # sunday = 6, saturday = 5
+                continue
+            business_days_to_add -= 1
         if stage_id:
             vals = {
                 'name': sub_task.sub_task_name,
@@ -146,7 +152,7 @@ class RequestForm(models.Model):
                 'sub_task_id': sub_task.id,
                 'team_id': sub_task.team_id.id,
                 'team_members_ids': sub_task.team_members_ids.ids,
-                'date_deadline': self.request_date if self.request_date else False
+                'date_deadline': current_date
             }
             return vals
 
@@ -167,7 +173,8 @@ class RequestForm(models.Model):
             'req_type': line.task_id.req_type,
             'team_id': line.task_id.team_id.id,
             'team_members_ids': line.task_id.team_members_ids.ids,
-            'date_deadline': self.request_date if self.request_date else False
+            'date_deadline': self.request_date if self.request_date else False,
+            'requirements': line.requirements
         }
         return vals
 
@@ -195,8 +202,19 @@ class RequestForm(models.Model):
         project_obj = self.env['project.project']
         project_task_obj = self.env['project.task']
         sub_task_obj = self.env['sub.task']
+        cl_task = self.env.ref('clx_task_management.clx_client_launch_sub_task_1')
         if not self.request_line:
             raise UserError('There is no Request Line, Please add some line')
+        today = fields.Date.today()
+        subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
+        if not subscriptions:
+            raise UserError('You can not submit request form there is no active sale for this customer!!')
+        elif subscriptions:
+            active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
+                lambda x: x.start_date and x.start_date <= today and not x.end_date)
+            if not active_subscription_lines:
+                raise UserError('You can not submit request form there is no active sale for this customer!!')
+
         if self.description and self.partner_id:
             vals = self.prepared_project_vals(self.description,
                                               self.partner_id)
@@ -215,10 +233,10 @@ class RequestForm(models.Model):
                                 dependency_sub_tasks = sub_task_obj. \
                                     search(
                                     [('parent_id', '=', line.task_id.id),
-                                     ('dependency_ids', '=', False)])
+                                     '|', ('dependency_ids', '=', False), ('dependency_ids', '=', cl_task.id)])
                                 for sub_task in dependency_sub_tasks:
                                     vals = self.prepared_sub_task_vals(
-                                        sub_task, main_task)
+                                        sub_task, main_task, line)
                                     project_task_obj.create(vals)
         self.state = 'submitted'
 
@@ -233,8 +251,10 @@ class RequestFormLine(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
-    description = fields.Text(string='Description',
+    description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
+    sale_order_id = fields.Many2one('sale.order', string="Sale Order")
+    requirements = fields.Text(string='Requirements')
 
     @api.onchange('req_type')
     def _onchange_main_task(self):
@@ -244,7 +264,7 @@ class RequestFormLine(models.Model):
                 [('partner_id', '=', self.request_form_id.partner_id.id)])
             if not subscriptions:
                 raise UserError(_(
-                    """You can not to update request because this customer does not have any active sale order!! You Can Create New request for this Customer!!"""))
+                    """You can only create new request as customer do not have active subscription."""))
             if subscriptions:
                 active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
                     lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
@@ -252,13 +272,12 @@ class RequestFormLine(models.Model):
                 )
                 if not active_subscription_lines:
                     raise UserError(_(
-                        """You can not to update request because this customer does not have any active sale order!! You Can Create New request for this Customer!!"""))
+                        """You can only create new request as customer do not have active subscription."""))
                 if active_subscription_lines:
                     sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
                     if not sale_orders:
                         raise UserError(_(
-                            """You can not to update request because this customer does not have any active sale order!!
-                             You Can Create New request for this Customer!!"""))
+                            """You can only create new request as customer do not have active subscription."""))
         client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
         if client_launch_task:
             for line in self:

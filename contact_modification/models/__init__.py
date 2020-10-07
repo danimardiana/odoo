@@ -3,5 +3,6 @@
 # See LICENSE file for full copyright & licensing details.
 
 from . import purchase
+from . import ads_link
 from . import res_partner
 from . import res_partner_clx_child

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="tree_view_sale_subscription_line" model="ir.ui.view">
+        <field name="name">tree.views.sale.subscription.line</field>
+        <field name="model">sale.subscription.line</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="product_id"
+                       domain="[('recurring_invoice', '=', True), '|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]"
+                       context="{'default_recurring_invoice': True}"/>
+                <field name="name" optional="show"/>
+                <field name="quantity"/>
+                <field name="product_uom_category_id" invisible="1"/>
+                <field name="uom_id" string="UoM" groups="uom.group_uom" optional="show"/>
+                <field name="price_unit"/>
+                <field name="discount" string="Disc.%" groups="product.group_discount_per_so_line" optional="show"/>
+                <field name="price_subtotal"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_sale_subscription_line" model="ir.actions.act_window">
+        <field name="name">Subscriptions</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.subscription.line</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

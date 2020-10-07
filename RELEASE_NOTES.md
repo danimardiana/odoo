@@ -271,3 +271,101 @@
 #### Version 13.3.0.0.21
 - [ADD] clx_task_management : added chatter box on the request form view.
 - [FIX] change in domain for select parent task on the sale order line. 
+
+## 09/28/2020
+#### Version 13.3.0.0.3
+- [ADD] clx_budget_management : change configuration for the budget creation if end date is not set on sale order line.
+- [ADD] added new action for close multiple budget line at time if budget line closed than subscription will be closed automatically.
+
+## 09/28/2020
+#### Version 13.1.1.0.3
+- [FIX] clx_subscription_creation : fix the issue when sale order have end date than set end date on subscription line and budget line also.
+
+## 09/28/2020
+#### Version 13.3.0.0.22
+- [FIX] clx_task_management : if client launch sub task is dependent on another main task's of sub task than create those task also create task which does sub task does not have dependency.
+
+## 09/28/2020
+#### Version 13.3.0.0.4
+- [FIX] clx_budget_analysis_report : fix the issue regarding budget pivot report for upsell and downsell.
+
+## 09/28/2020
+#### Version 13.3.0.0.23
+- [FIX] clx_task_management : fix some view related changes on request form.
+
+## 09/29/2020
+#### Version 13.3.0.0.5
+- [FIX] clx_budget_analysis_report : changed field on pivot report. changed some fields on budget line table according to that set field on pivot report.
+
+## 09/29/2020
+#### Version 13.3.0.0.4
+- [FIX] clx_budget_management : added some extra fields for calculation of the pivot report.
+
+## 09/29/2020
+#### Version 13.3.0.0.11
+- [FIX] clx_invoice_reports : fixed duplicate date issue on invoice pdf report.
+
+## 09/29/2020
+#### Version 13.3.0.0.12
+- [FIX] clx_invoice_reports : solved Unknown string format error. 
+
+## 09/29/2020
+#### Version 13.3.0.0.13
+- [REMOVE] clx_invoice_reports : Remove extra code.
+
+## 09/29/2020
+#### Version 13.3.0.0.5
+- [FIX] clx_budget_management : Fix the issue when subscription have end date.
+- Filter only those date between subscription start date and end date and update only those data.
+
+## 09/30/2020
+#### Version 13.3.0.0.24
+- [ADD] clx_task_management : added sale order field on request form line, filtered only active sale order.
+- [ADD] Set price unit on sale order line from pricelist's field minimum price.
+
+## 10/01/2020
+#### Version 13.3.0.0.5
+- [ADD] clx_budget_management : when user confirm sale order if customer type is company customer than user can confirm the sale order otherwise raise warning.
+
+## 10/01/2020
+#### Version 13.1.1.0.9
+- [ADD] contact_modification : invisible some field on contacts view and added new field for ads line.
+
+## 10/01/2020
+#### Version 13.3.0.0.25
+- [ADD] contact_modification : Show active subscription line on request form.
+- [ADD] when user submit request form than if that customers have any active sale order than user can submit the request form otherwise raise warning.
+- [ADD] When user create quotation from the crm if that crm record state is won after that user can create quotation otherwise raise warning.
+
+## 10/05/2020
+#### Version 13.3.0.0.26
+- clx_task_management
+    - [ADD] added some fields on request form and when creating subtask set those fields data on task records.
+    - [ADD] added in logic where the current date will automatically determine due dates of +3 business days for Update tasks and +5 business days for New tasks.
+    - [ADD] added stage field on sub task page in project task records.
+    - [MOD] Remove “Industry” from the “Sales & Purchase” tab.
+    - [ADD] Added attachments tab on request form.
+    - [MOD] Changed tree view of the request form and added separate menu for request form.
+- contact_modification
+    - [MOD] Change menu sequence for contacts application.
+    
+## 10/07/2020
+- clx_budget_management - 13.3.0.0.6
+    - [MOD] Change warning message when confirming the sale order.
+- clx_task_management - 13.3.0.0.28
+    - [MOD] Change warning message when create quotation from the crm and also changed config settings message.
+- contact_modification - 13.1.1.0.10
+    - [MOD] Change menu sequence and some field label.
+- clx_invoice_policy - 13.1.0.0.9
+    - [MOD] Major changes for invoice creation. Create invoice in advance month.
+        - Example
+            - Invoice Policy - Adv +1. 
+            - Sale order Confirm on Oct Month.
+            - Product1, Start Date :  01-Nov-2020 , End Date : Not set, Price : 1000.
+            - Product2, Start Date :  01-Dec-2020 , End Date : Not Set, Price : 1000
+            - Invoice Created Months of Nov - Dec
+            - Products1 - 2000, Invoicing Period : 1-Nov-20, 31-Dec-2020
+            - Products2 - 1000, Invoicing Period : 01-Dec-2020 - 31-Dec-2020
+            
+        
+ 

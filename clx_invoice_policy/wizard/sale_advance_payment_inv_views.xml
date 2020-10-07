@@ -10,7 +10,7 @@
                 <group>
                     <field name="is_advanced" invisible="True"/>
                     <field name="invoice_selection"
-                           widget="radio"
+                           widget="radio" invisible="True"
                            />
                 </group>
             </xpath>
