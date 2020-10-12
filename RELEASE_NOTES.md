@@ -389,7 +389,11 @@
 
 ## 10/12/2020
 #### Version 13.3.0.0.7
-- [MOD] clx_budget_analysis_report : Given access rights to temporary table for budget report. 
+- [MOD] clx_budget_analysis_report : Given access rights to temporary table for budget report.
+
+## 10/12/2020
+#### Version 13.1.1.0.4
+- [FIX]  clx_subscription_creation : removed extra code when subscription is creating from upsell.
 
         
  
