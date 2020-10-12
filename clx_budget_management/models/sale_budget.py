@@ -64,9 +64,6 @@ class SaleBudgetLine(models.Model):
     active = fields.Boolean(string="Active")
     wholesale_price = fields.Float(string='Wholesale Price')
     subscription_line_id = fields.Many2one('sale.subscription.line', string="Subscription Line")
-    upsell_down_sell_price = fields.Float(string='UpSale Or DownSale Price')
-    final_report_price = fields.Float()
-    is_updated = fields.Boolean()
 
     def close_budget_line(self):
         sub_closed_stage = self.env.ref('sale_subscription.sale_subscription_stage_closed')

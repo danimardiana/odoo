@@ -256,6 +256,11 @@ class RequestFormLine(models.Model):
     sale_order_id = fields.Many2one('sale.order', string="Sale Order")
     requirements = fields.Text(string='Requirements')
 
+    @api.onchange('task_id')
+    def _onchange_task_id(self):
+        if self.task_id:
+            self.requirements = self.task_id.requirements
+
     @api.onchange('req_type')
     def _onchange_main_task(self):
         if self.req_type and self.req_type == 'update':
