@@ -6,7 +6,19 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Ads Link" name="ads_link">
+                    <group>
+                        <field name="project_ads_link_ids">
+                            <tree editable="bottom">
+                                <field name="product_id"/>
+                                <field name="link"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
 
+            </xpath>
             <xpath expr="//header" position="inside">
                 <field name="clx_state" widget="statusbar"/>
                 <button type="object" name="action_done_project" class="oe_stat_button"
@@ -28,8 +40,8 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='extra_info']" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </xpath>
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <xpath expr="//header" position="inside">
                 <button type="object" name="action_view_cancel_task" class="oe_stat_button"
                         string="Cancel"/>

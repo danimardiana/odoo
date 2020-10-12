@@ -22,22 +22,22 @@ class SaleSubscription(models.Model):
                 <br/> Upsell Date : %s <br/>
              Upsell Amount : %s
                 .</p>""") % (
-                                                           budget_line_id.sol_id.id,
-                                                           budget_line_id.sol_id.display_name,
-                                                           budget_line_id.sol_id.order_id.id,
-                                                           budget_line_id.sol_id.order_id.name,
-                                                           budget_line_id.subscription_id.id,
-                                                           budget_line_id.subscription_id.code,
-                                                           fields.Date.today(),
-                                                           user.id,
-                                                           user.name,
-                                                           budget_line_id.start_date if
-                                                           budget_line_id.status ==
-                                                           'upsell' else 'NO Upsell',
-                                                           budget_line_id.price if
-                                                           budget_line_id.status ==
-                                                           'upsell' else 0.0
-                                                       ))
+                           budget_line_id.sol_id.id,
+                           budget_line_id.sol_id.display_name,
+                           budget_line_id.sol_id.order_id.id,
+                           budget_line_id.sol_id.order_id.name,
+                           budget_line_id.subscription_id.id,
+                           budget_line_id.subscription_id.code,
+                           fields.Date.today(),
+                           user.id,
+                           user.name,
+                           budget_line_id.start_date if
+                           budget_line_id.status ==
+                           'upsell' else 'NO Upsell',
+                           budget_line_id.price if
+                           budget_line_id.status ==
+                           'upsell' else 0.0
+                           ))
 
     def prepared_vals(self, line, sale_budget_created, start_date=False):
         """
@@ -74,13 +74,7 @@ class SaleSubscription(models.Model):
             'active': active,
             'wholesale_price': line.wholesale_price,
             'subscription_line_id': subscription_line_id.id,
-            'upsell_down_sell_price': 0.0,
-            'final_report_price': line.subscription_id.recurring_total
         }
-        if line.order_id.subscription_management != 'create':
-            vals.update({
-                'final_report_price': 0.0
-            })
         return vals
 
     def create_or_update_budget_line(self, line, sale_budget):
@@ -135,24 +129,6 @@ class SaleSubscription(models.Model):
                             budget_line_id = self.env['sale.budget.line'].create(vals)
                             line_start_date = budget_line_id.start_date
                             self.create_chatter_log(budget_line_id, user)
-                elif line.order_id.subscription_management == 'upsell' and not subscription_line_id.end_date:
-                    old_budget_line = budget_line.filtered(
-                        lambda x: x.partner_id.id == line.order_id.partner_id.id and x.sol_id.id != line.id)
-                    old_budget_line = old_budget_line.filtered(lambda x: x.start_date >= line.start_date and x.product_id.id == line.product_id.id)
-                    [bgt_line.write({'upsell_down_sell_price': line.price_unit,
-                                     'final_report_price': line.subscription_id.recurring_invoice_line_ids.filtered(lambda x:x.line_type == 'base').price_subtotal + line.price_unit}) for bgt_line in
-                     old_budget_line]
-                elif line.order_id.subscription_management == 'upsell' and subscription_line_id.end_date:
-                    old_budget_line = self.env['sale.budget.line'].search([
-                        ('partner_id', '=', line.order_id.partner_id.id),
-                        ('product_id', '=', line.product_id.id),
-                        ('sol_id', '!=', line.id),
-                        ('start_date', '>=', line.start_date),
-                        ('end_date', '<=', line.end_date),
-                        '|', ('active', '=', True), ('active', '=', False)])
-                    [bgt_line.write({'upsell_down_sell_price': line.price_unit,
-                                     'final_report_price': line.subscription_id.recurring_invoice_line_ids.filtered(lambda x:x.line_type == 'base').price_subtotal + line.price_unit}) for bgt_line in
-                     old_budget_line]
 
     @api.model
     def _create_sale_budget(self, sale_order=False):

@@ -370,6 +370,22 @@
 - [MOD] clx_task_management - Hide extra info tab in project task.
 - [MOD] added domain for select only company type contacts on request form.
 - [MOD] contact_modification : hide address field for individual contacts. 
-            
+
+## 10/12/2020
+#### Version 13.3.0.0.6
+- [MOD] clx_budget_analysis report : Major changes for budget report whole data now is taken from the subscription line, previously the data was taken from the budget line table.
+
+## 10/12/2020
+#### Version 13.3.0.0.30
+- [MOD] clx_task_management : added ads link field in project and also added requirements field on main task.
+
+## 10/12/2020
+#### Version 13.3.0.0.30
+- [ADD] contact_modification : given delete access rights to internal user for ads link.
+
+## 10/12/2020
+#### Version 13.3.0.0.7
+- [FIX] clx_budget_management : removed extra code for budget report.
+
         
  

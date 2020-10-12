@@ -15,6 +15,7 @@ class MainTask(models.Model):
     sub_task_count = fields.Integer(string="", compute='_compute_sub_task_count')
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')], string='Request Type')
     active = fields.Boolean(default=True)
+    requirements = fields.Text(string="Requirements")
 
     def _compute_sub_task_count(self):
         sub_task_obj = self.env['sub.task']
