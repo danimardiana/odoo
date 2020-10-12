@@ -373,7 +373,7 @@
 
 ## 10/12/2020
 #### Version 13.3.0.0.6
-- [MOD] clx_budget_analysis report : Major changes for budget report whole data now is taken from the subscription line, previously the data was taken from the budget line table.
+- [MOD] clx_budget_analysis_report : Major changes for budget report whole data now is taken from the subscription line, previously the data was taken from the budget line table.
 
 ## 10/12/2020
 #### Version 13.3.0.0.30
@@ -386,6 +386,10 @@
 ## 10/12/2020
 #### Version 13.3.0.0.7
 - [FIX] clx_budget_management : removed extra code for budget report.
+
+## 10/12/2020
+#### Version 13.3.0.0.7
+- [MOD] clx_budget_analysis_report : Given access rights to temporary table for budget report. 
 
         
  
