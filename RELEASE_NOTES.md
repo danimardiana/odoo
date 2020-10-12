@@ -395,5 +395,16 @@
 #### Version 13.1.1.0.4
 - [FIX]  clx_subscription_creation : removed extra code when subscription is creating from upsell.
 
+## 10/12/2020
+#### Version 13.1.0.0.10
+- [MOD] clx_invoice_policy : invoice selection field visible on management type contact and set that field value on child contact.
+
+## 10/12/2020
+#### Version 13.3.0.0.31
+- [MOD] clx_task_management : removed sale order field from the request line and added that field on request form.
+- [MOD] when user select sale order on request form based on order line request line will be created and set products from the selected sale order.
+
+
+
         
  
