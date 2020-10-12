@@ -1,3 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sale_budget_report_user,sale.budget.report,model_sale_budget_report,base.group_user,1,0,0,0
-access_sale_subscription_report_data,sale.subscription.report.data,model_sale_subscription_report_data,1,1,1,1
+access_sale_subscription_report_data,sale.subscription.report.data,model_sale_subscription_report_data,base.group_user,1,1,1,1
