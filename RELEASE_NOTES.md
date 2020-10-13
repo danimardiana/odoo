@@ -404,6 +404,17 @@
 - [MOD] clx_task_management : removed sale order field from the request line and added that field on request form.
 - [MOD] when user select sale order on request form based on order line request line will be created and set products from the selected sale order.
 
+## 10/13/2020
+#### Version 13.1.1.0.13
+- [MOD] contact_modification : merge link contact.
+
+## 10/13/2020
+#### Version 13.3.0.0.32
+- [MOD] clx_task_management : removed product field from the request line.
+
+
+
+
 
 
         

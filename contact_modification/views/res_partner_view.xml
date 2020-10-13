@@ -289,8 +289,10 @@
             <xpath expr="//group[@name='purchase']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-
-            <notebook position="inside">
+            <xpath expr="//field[@name='child_ids']/kanban" position="attributes">
+                <attribute name="create">0</attribute>
+            </xpath>
+            <xpath expr="//page[1]" position="inside">
                 <page string="link Contacts">
                     <field name="contact_child_ids" mode="kanban">
                         <kanban>
@@ -431,6 +433,8 @@
                         </form>
                     </field>
                 </page>
+            </xpath>
+            <notebook position="inside">
                 <page string="Ads Link">
                     <field name="ads_link_ids">
                         <tree editable="bottom">

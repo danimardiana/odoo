@@ -25,7 +25,7 @@ class RequestForm(models.Model):
     ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
     intended_launch_date = fields.Date(string='Intended Launch Date')
     attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
-    sale_order_id = fields.Many2one('sale.order', string="Sale Order")
+    sale_order_id = fields.Many2many('sale.order', string="Sale Order")
 
     def open_active_subscription_line(self):
         """
@@ -242,16 +242,21 @@ class RequestForm(models.Model):
         self.state = 'submitted'
 
     @api.onchange('sale_order_id')
-    def _onchange_product_id(self):
+    def _onchange_sale_order_id(self):
         req_line_obj = self.env['request.form.line']
+        today = fields.Date.today()
+        order_lines = False
+        list_product = []
         if self.sale_order_id and self.sale_order_id.order_line:
-            list_product = []
-            for line in self.sale_order_id.order_line:
+            order_lines = self.sale_order_id.order_line.filtered(
+                lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
+                          or (x.start_date and not x.end_date and x.start_date <= today))
+            for line in order_lines:
                 line_id = req_line_obj.create({
-                    'product_id': line.product_id.id,
+                    'sale_line_id': line._origin.id
                 })
                 list_product.append(line_id.id)
-            self.request_line = [(6, 0, list_product)]
+        self.request_line = [(6, 0, list_product)]
 
 
 class RequestFormLine(models.Model):
@@ -267,7 +272,7 @@ class RequestFormLine(models.Model):
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
-    product_id = fields.Many2one('product.product', string="Products")
+    sale_line_id = fields.Many2one('sale.order.line', string="Sale line")
 
     @api.onchange('task_id')
     def _onchange_task_id(self):

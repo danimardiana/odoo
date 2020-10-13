@@ -15,7 +15,7 @@
     'website': 'https://conversionlogix.com/',
     'category': 'subscription',
     'depends': [
-        'sale_subscription'
+        'clx_budget_management'
     ],
     'data': [
         'views/sale_order_views.xml',
