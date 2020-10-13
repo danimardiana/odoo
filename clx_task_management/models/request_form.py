@@ -25,6 +25,7 @@ class RequestForm(models.Model):
     ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
     intended_launch_date = fields.Date(string='Intended Launch Date')
     attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
+    sale_order_id = fields.Many2many('sale.order', string="Sale Order")
 
     def open_active_subscription_line(self):
         """
@@ -240,6 +241,23 @@ class RequestForm(models.Model):
                                     project_task_obj.create(vals)
         self.state = 'submitted'
 
+    @api.onchange('sale_order_id')
+    def _onchange_sale_order_id(self):
+        req_line_obj = self.env['request.form.line']
+        today = fields.Date.today()
+        order_lines = False
+        list_product = []
+        if self.sale_order_id and self.sale_order_id.order_line:
+            order_lines = self.sale_order_id.order_line.filtered(
+                lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
+                          or (x.start_date and not x.end_date and x.start_date <= today))
+            for line in order_lines:
+                line_id = req_line_obj.create({
+                    'sale_line_id': line._origin.id
+                })
+                list_product.append(line_id.id)
+        self.request_line = [(6, 0, list_product)]
+
 
 class RequestFormLine(models.Model):
     _name = 'request.form.line'
@@ -253,8 +271,8 @@ class RequestFormLine(models.Model):
     task_id = fields.Many2one('main.task', string='Task')
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
-    sale_order_id = fields.Many2one('sale.order', string="Sale Order")
     requirements = fields.Text(string='Requirements')
+    sale_line_id = fields.Many2one('sale.order.line', string="Sale line")
 
     @api.onchange('task_id')
     def _onchange_task_id(self):

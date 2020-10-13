@@ -115,7 +115,7 @@ class SaleSubscription(models.Model):
                         # month_start_date = datetime.date(datetime.datetime.today().year,
                         #                                  month_selection, 1)
                         # r = relativedelta(month_start_date, line_start_date)
-                        for i in range(1, difference_today_end_date.months):
+                        for i in range(0, difference_today_end_date.months):
                             temp = line_start_date + relativedelta(months=1)
                             vals = self.prepared_vals(line, sale_budget, temp)
                             budget_line_id = self.env['sale.budget.line'].create(vals)
@@ -150,7 +150,6 @@ class SaleSubscription(models.Model):
                         for line in order.order_line.filtered(
                                 lambda x: x.product_id.recurring_invoice):
                             self.create_or_update_budget_line(line, sale_budget_created)
-
             else:
                 subscription = order.order_line.mapped('subscription_id')
                 if subscription and sale_budget:

@@ -23,6 +23,9 @@ class Partner(models.Model):
         ('sol', 'Sale Order Line')
     ], string="Display on", default="prod_categ")
 
+    child_invoice_selection = fields.Selection(
+        related="management_company_type_id.invoice_selection", string="Display on")
+
     def generate_invoice(self):
         """
         Invoice will be generated for Arrears Policy Type.
@@ -110,7 +113,7 @@ class Partner(models.Model):
                 'manual': True,
                 'end_date': end_date,
                 'start_date': date_order,
-                'sol':self._context.get('sol')
+                'sol': self._context.get('sol')
             })._prepare_invoice_line() for line in so_lines]
         else:
             prepared_lines = [line.with_context({

@@ -68,8 +68,6 @@ class SaleBudgetReport(models.Model):
         all_subscription_lines = self.env['sale.subscription.line'].search([('start_date', '!=', False)])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         for subscription_line in subscription_lines:
-            if subscription_line.analytic_account_id.id == 29:
-                print("----------")
             if subscription_line.end_date:
                 r = len(OrderedDict(((subscription_line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                     range((subscription_line.end_date - subscription_line.start_date).days)))
