@@ -101,13 +101,7 @@ class Partner(models.Model):
             so_lines = lines.filtered(
                 lambda sol: (sol.invoice_start_date and
                              sol.invoice_end_date and
-                             sol.invoice_start_date <= end_date and
-                             sol.invoice_end_date >= end_date
-                             ) or (
-                                    sol.end_date and sol.end_date < end_date and not sol.last_invoiced and
-                                    sol.line_type != 'base'
-                            )
-            )
+                             sol.invoice_start_date <= end_date and sol.invoice_end_date <= end_date))
             prepared_lines = [line.with_context({
                 'advance': True,
                 'manual': True,
@@ -139,6 +133,9 @@ class Partner(models.Model):
                         base_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
                         base_lines[line['category_id']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
                         base_lines[line['category_id']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
+                        base_lines[line['category_id']]['management_fees'] += line.get('management_fees')
+                        base_lines[line['category_id']]['wholesale'] += line.get('wholesale')
+
                 elif line_type == 'upsell':
                     if line['category_id'] not in upsell_lines:
                         upsell_lines.update({line['category_id']: line})
@@ -154,6 +151,8 @@ class Partner(models.Model):
                             line['analytic_tag_ids'][0][2])
                         upsell_lines[line['category_id']]['subscription_ids'][0][2].extend(
                             line['subscription_ids'][0][2])
+                        base_lines[line['category_id']]['management_fees'] += line.get('management_fees')
+                        base_lines[line['category_id']]['wholesale'] += line.get('wholesale')
                 elif line_type == 'downsell':
                     if line['category_id'] not in downsell_lines:
                         downsell_lines.update({line['category_id']: line})
@@ -169,6 +168,8 @@ class Partner(models.Model):
                             line['analytic_tag_ids'][0][2])
                         downsell_lines[line['category_id']]['subscription_ids'][0][2].extend(
                             line['subscription_ids'][0][2])
+                        base_lines[line['category_id']]['management_fees'] += line.get('management_fees')
+                        base_lines[line['category_id']]['wholesale'] += line.get('wholesale')
             order = so_lines[0].so_line_id.order_id
             self.env['account.move'].create({
                 'ref': order.client_order_ref,

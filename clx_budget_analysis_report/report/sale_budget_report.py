@@ -82,6 +82,9 @@ class SaleBudgetReport(models.Model):
             elif subscription_line.line_type == 'upsell' and subscription_line.end_date:
                 current_month_start_date = subscription_line.start_date
             for i in range(0, budget_month):
+                base = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(lambda
+                      x: x.line_type == 'base'
+                         and x.product_id.id == subscription_line.product_id.id)
                 vals = {
                     'date': current_month_start_date,
                     'product_id': subscription_line.product_id.id,
@@ -89,15 +92,14 @@ class SaleBudgetReport(models.Model):
                     'subscription_line_id': subscription_line.id,
                     'partner_id': subscription_line.so_line_id.order_id.partner_id.id,
                     'wholesale_price': subscription_line.so_line_id.wholesale_price,
-                    'base_price': subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
-                        lambda x: x.line_type == 'base').price_unit,
+                    'base_price': base[0].price_unit,
                 }
                 if subscription_line.line_type == 'upsell':
                     vals.update({
                         'upsell_down_sell_price': subscription_line.price_unit,
                     })
                     base_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
-                        lambda x: x.line_type == 'base')
+                        lambda x: x.line_type == 'base' and x.product_id.id == subscription_line.product_id.id)
                     all_report_data = report_data_table.search([]).filtered(
                         lambda x: x.date.month == current_month_start_date.month
                                   and base_line.id == x.subscription_line_id.id
@@ -143,8 +145,7 @@ class SaleBudgetReport(models.Model):
             budget_month = int(params.get_param('budget_month')) or False
             current_month_start_date = fields.Date.today().replace(day=1)
 
-        all_report_data = report_data_table.search([]).filtered(
-            lambda x: x.date.month == end_date.month)
+        all_report_data = report_data_table.search([]).filtered(lambda x:x.date > end_date)
         if all_report_data:
             all_report_data.unlink()
         tools.drop_view_if_exists(self._cr, self._table)

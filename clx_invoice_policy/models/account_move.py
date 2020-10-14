@@ -11,3 +11,7 @@ class AccountMoveLine(models.Model):
     category_id = fields.Many2one('product.category', string="Category")
     subscription_ids = fields.Many2many(
         'sale.subscription', string="Subscription(s)")
+
+    management_fees = fields.Float(string="Management Fees")
+    retail_price = fields.Float(string="Retails Price")
+    wholesale = fields.Float(string="Wholsesale")
