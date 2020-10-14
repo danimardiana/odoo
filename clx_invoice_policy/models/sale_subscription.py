@@ -220,6 +220,12 @@ class SaleSubscriptionLine(models.Model):
                 res.update({
                     'price_unit': line.price_unit * advance_num_month if (self._context.get(
                         'end_date') - line.start_date).days not in (30, 31) else line.price_unit,
-                    'name': period_msg
+                    'name': period_msg,
+                    'management_fees': line.management_price * advance_num_month if (self._context.get(
+                        'end_date') - line.start_date).days not in (30, 31) else line.management_price,
+                    'wholesale': line.wholesale_price * advance_num_month if (self._context.get(
+                        'end_date') - line.start_date).days not in (30, 31) else line.wholesale_price,
+
                 })
+
         return res

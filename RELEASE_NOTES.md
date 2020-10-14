@@ -412,6 +412,30 @@
 #### Version 13.3.0.0.32
 - [MOD] clx_task_management : removed product field from the request line.
 
+## 10/14/2020
+#### Version 13.3.0.0.9
+- [FIX] clx_budget_analysis_report : Fix the issue pivot report for the budget regarding singleton error and end date filter.
+
+## 10/14/2020
+#### Version 13.3.0.0.8
+- [FIX] clx_budget_management : fix the issue when user set yearly date on budget line.
+
+## 10/14/2020
+#### Version 13.1.0.0.11
+- [ADD] clx_invoice_policy : added management fees and wholesale price in account move line.
+
+## 10/14/2020
+#### Version 13.1.0.0.11
+- [FIX] clx_retail_pricelist : when display management is checked than show management price on pdf report otherwise not.
+
+## 10/14/2020
+#### Version 13.3.0.0.33
+- [FIX] clx_task_management : fix the issue when display active sale order.
+
+
+  
+ 
+
 
 
 

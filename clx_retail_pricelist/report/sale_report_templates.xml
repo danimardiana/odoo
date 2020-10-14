@@ -19,12 +19,14 @@
         </xpath>
         <xpath expr="//t[@t-foreach='doc.order_line']" position="after">
             <t t-set="priceunit" t-value="0"/>
-            <tr>
-                <td>Management Fees</td>
-                <td colspan="2" class="text-righ">
-                    <span t-esc="management_fees"/>
-                </td>
-            </tr>
+            <t t-if="doc.display_management_fee">
+                <tr>
+                    <td>Management Fees</td>
+                    <td colspan="2" class="text-righ">
+                        <span t-esc="management_fees"/>
+                    </td>
+                </tr>
+            </t>
         </xpath>
     </template>
 </odoo>

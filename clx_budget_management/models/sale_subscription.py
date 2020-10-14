@@ -3,7 +3,8 @@ import datetime
 
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError
-
+from collections import OrderedDict
+from datetime import timedelta
 from odoo import fields, models, api, _
 
 
@@ -123,7 +124,10 @@ class SaleSubscription(models.Model):
                             self.create_chatter_log(budget_line_id, user)
                     elif line.start_date and line.end_date:
                         difference_start_end_date = relativedelta(line.end_date, line.start_date)
-                        for i in range(0, difference_start_end_date.months):
+                        r = len(
+                            OrderedDict(((line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                        range((line.end_date - line.start_date).days)))
+                        for i in range(0, r):
                             temp = line_start_date + relativedelta(months=1)
                             vals = self.prepared_vals(line, sale_budget, temp)
                             budget_line_id = self.env['sale.budget.line'].create(vals)
