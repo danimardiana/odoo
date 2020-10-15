@@ -5,8 +5,7 @@
 from odoo import models
 
 from dateutil import parser
-from dateutil import relativedelta
-from datetime import datetime, timedelta
+from datetime import timedelta
 from collections import OrderedDict
 
 

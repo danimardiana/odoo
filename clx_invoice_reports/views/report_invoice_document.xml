@@ -126,6 +126,7 @@
                 </thead>
                 <tbody class="invoice_tbody">
                     <t t-set="current_subtotal" t-value="0"/>
+                    <t t-set="management_fees" t-value="0"/>
                     <t t-set="lines"
                        t-value="o.invoice_line_ids.sorted(key=lambda l: (-l.sequence, l.date, l.move_name, -l.id), reverse=True)"/>
 
@@ -144,10 +145,24 @@
                                 </t>
                             </td>
                             <td>
-                                <span t-field="line.price_subtotal" style="float:right;"/>
+                                <!--<span t-field="line.price_subtotal" style="float:right;"/>-->
+                                <t t-set="priceunit" t-value="line.price_total- line.management_fees"/>
+                                <td name="td_priceunit" class="text-right">
+                                    <span t-esc="priceunit" style="float:right;"/>
+                                </td>
+                                <t t-set="priceunit" t-value="0"/>
                             </td>
                         </tr>
+                        <tr>
+                            <t t-set="management_fees" t-value="management_fees + line.management_fees"/>
+                        </tr>
                     </t>
+                    <tr>
+                        <td>Management Fees</td>
+                        <td colspan="2" class="text-righ">
+                            <span t-esc="management_fees" style="float:right;"/>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             <hr style="border: 1px dashed black;"/>

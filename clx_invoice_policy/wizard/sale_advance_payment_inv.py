@@ -39,7 +39,7 @@ class SaleAdvancePaymentInv(models.TransientModel):
                 final=self.deduct_down_payments)
         # filter sale order invoice policy advance and invoice creation based on sale order line
         advance_sale_orders_sol = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'advance'
-                                                                 and x.partner_id.invoice_selection == 'sol'
+                                                                 and x.partner_id.child_invoice_selection == 'sol'
                                                        )
         if advance_sale_orders_sol:
             # advance_sale_orders_sol.with_context(invoice_section='sol')._create_invoices_wizard(
@@ -50,7 +50,7 @@ class SaleAdvancePaymentInv(models.TransientModel):
 
         # filter sale order invoice policy advance and invoice creation based on Category wise
         advance_sale_orders_categ = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'advance'
-                                                                   and x.partner_id.invoice_selection == 'prod_categ'
+                                                                   and x.partner_id.child_invoice_selection == 'prod_categ'
                                                          )
         if advance_sale_orders_categ:
             for order in advance_sale_orders_categ:
@@ -58,7 +58,7 @@ class SaleAdvancePaymentInv(models.TransientModel):
 
         # filter sale order invoice policy arrears and invoice creation based on sale order line
         arrears_sale_orders_sol = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'arrears'
-                                                                 and x.partner_id.invoice_selection == 'sol'
+                                                                 and x.partner_id.child_invoice_selection == 'sol'
                                                        )
         if arrears_sale_orders_sol:
             for order in arrears_sale_orders_sol:
@@ -66,7 +66,7 @@ class SaleAdvancePaymentInv(models.TransientModel):
                                               order=order.id).generate_invoice()
         # filter sale order invoice policy arrears and invoice creation based on category
         arrears_sale_orders_categ = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'arrears'
-                                                                   and x.partner_id.invoice_selection == 'prod_categ'
+                                                                   and x.partner_id.child_invoice_selection == 'prod_categ'
                                                          )
         if arrears_sale_orders_categ:
             for order in arrears_sale_orders_categ:

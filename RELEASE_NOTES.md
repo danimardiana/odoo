@@ -432,6 +432,33 @@
 #### Version 13.3.0.0.33
 - [FIX] clx_task_management : fix the issue when display active sale order.
 
+## 10/15/2020
+#### Version 13.3.0.0.33
+- [ADD] clx_task_management : removed the validation when create quotation from the crm.
+- [ADD] when user confirm the sale order that time system check if the sale order is created from the crm than check stage
+    crm if the crm stage is won than user confirm the sale order.
+- [ADD] Add new filter for show future sale order on request form.
+
+## 10/15/2020
+#### Version 13.1.1.0.5
+- [ADD] clx_subscription_creation : hide the quantity fields on sale order line.
+
+## 10/15/2020
+#### Version 13.3.0.0.10
+- [ADD] clx_invoice_reports : clx_budget_report_analysis : added filter on search view names as client
+
+## 10/15/2020
+#### Version 13.3.0.0.15
+- [ADD] added management fees on invoice report and wholesale price.
+
+## 10/15/2020
+#### Version 13.1.0.0.13
+- [ADD] clx_invoice_policy :  Added wholesale price and management price on invoice line for display on the invoice pdf report.
+
+
+
+
+ 
 
   
  

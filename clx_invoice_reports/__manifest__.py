@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Reports',
-    'version': '13.3.0.0.13',
+    'version': '13.3.0.0.15',
     'summary': 'CLX Reports',
     'sequence': 1,
     'description': """ CLX Reports """,
@@ -11,7 +11,7 @@
     'author': 'CLx Media',
     'website': 'https://conversionlogix.com/',
     'depends': ['account',
-                'clx_invoice_policy'
+                'clx_invoice_policy',
                 ],
     'data': [
         'views/report_templates.xml',

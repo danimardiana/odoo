@@ -154,7 +154,19 @@ class SaleSubscriptionLine(models.Model):
             'analytic_account_id': line.order_id.analytic_account_id.id,
             'analytic_tag_ids': [(6, 0, line.analytic_tag_ids.ids)],
             'line_type': self.line_type,
-            'sale_line_ids': line.ids
+            'sale_line_ids': line.ids,
+            'management_fees': line.management_price * (
+                2 if self.line_type == 'upsell' and
+                     not self.last_invoiced and
+                     (not self.end_date or
+                      self.end_date.month > today.month) else 1
+            ),
+            'wholesale': line.wholesale_price * (
+                2 if self.line_type == 'upsell' and
+                     not self.last_invoiced and
+                     (not self.end_date or
+                      self.end_date.month > today.month) else 1
+            ),
         }
 
         if line.display_type:
@@ -225,7 +237,5 @@ class SaleSubscriptionLine(models.Model):
                         'end_date') - line.start_date).days not in (30, 31) else line.management_price,
                     'wholesale': line.wholesale_price * advance_num_month if (self._context.get(
                         'end_date') - line.start_date).days not in (30, 31) else line.wholesale_price,
-
                 })
-
         return res
