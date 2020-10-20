@@ -13,7 +13,7 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Datetime('Launch Date', default=fields.Date.today())
+    request_date = fields.Datetime('Request Submission Date', default=fields.Date.today())
     description = fields.Text('Project Title',
                               help="Choose a title for this client’s project request")
     request_line = fields.One2many('request.form.line', 'request_form_id',
@@ -153,7 +153,7 @@ class RequestForm(models.Model):
                 'sub_task_id': sub_task.id,
                 'team_id': sub_task.team_id.id,
                 'team_members_ids': sub_task.team_members_ids.ids,
-                'date_deadline': current_date
+                'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date
             }
             return vals
 
@@ -251,6 +251,9 @@ class RequestForm(models.Model):
             order_lines = self.sale_order_id.order_line.filtered(
                 lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
                           or (x.start_date and not x.end_date and x.start_date <= today))
+            future_lines = self.sale_order_id.order_line.filtered(lambda x:x.start_date and x.start_date >= today)
+            if future_lines:
+                order_lines += future_lines
             for line in order_lines:
                 line_id = req_line_obj.create({
                     'sale_line_id': line._origin.id

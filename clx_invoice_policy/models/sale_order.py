@@ -15,6 +15,34 @@ class SaleOrder(models.Model):
     clx_invoice_policy_id = fields.Many2one(
         'clx.invoice.policy', string="Invoice Policy")
 
+    def _action_confirm(self):
+        """
+        Create draft invoice when confirm the sale order.
+        if sale order line start date is in current month.
+        than create invoice current month.
+        :return:
+        """
+        res = super(SaleOrder, self)._action_confirm()
+        lines = self.env['sale.subscription.line'].search([
+            ('so_line_id', 'in', self.order_line.ids),
+        ])
+        today = fields.Date.today()
+        so_lines = lines.filtered(
+            lambda sol: sol.start_date.month == today.month)
+        if lines:
+            if self.partner_id.child_invoice_selection:
+                if self.partner_id.child_invoice_selection == 'sol':
+                    self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
+                else:
+                    self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
+            if not self.partner_id.child_invoice_selection and self.partner_id.invoice_selection:
+                if self.partner_id.invoice_selection == 'sol':
+                    self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
+                else:
+                    self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
+
+        return res
+
     @api.onchange('partner_id')
     def onchange_partner_id(self):
         super(SaleOrder, self).onchange_partner_id()

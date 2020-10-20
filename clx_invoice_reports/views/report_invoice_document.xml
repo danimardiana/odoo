@@ -115,17 +115,17 @@
             <table class="table table-sm o_main_table" name="invoice_line_table">
                 <thead style=" background-color:  #E0E0E0;">
                     <tr>
-                        <t t-set="colspan" t-value="6"/>
-                        <th name="th_description" class="text-left">
+                        <th name="th_description">
                             <span>Description</span>
                         </th>
-                        <th name="th_description" class="text-left">
-                            <span style="float:right;">Amount</span>
+                        <th name="th_amount" class="text-right">
+                            <span>Amount</span>
                         </th>
                     </tr>
                 </thead>
                 <tbody class="invoice_tbody">
                     <t t-set="current_subtotal" t-value="0"/>
+                    <t t-set="management_fees" t-value="0"/>
                     <t t-set="lines"
                        t-value="o.invoice_line_ids.sorted(key=lambda l: (-l.sequence, l.date, l.move_name, -l.id), reverse=True)"/>
 
@@ -144,10 +144,21 @@
                                 </t>
                             </td>
                             <td>
-                                <span t-field="line.price_subtotal" style="float:right;"/>
+                                <t t-set="priceunit" t-value="line.price_total- line.management_fees"/>
+                                <span t-esc="priceunit" style="float:right;"/>
+                                <t t-set="priceunit" t-value="0"/>
                             </td>
                         </tr>
+                        <tr>
+                            <t t-set="management_fees" t-value="management_fees + line.management_fees"/>
+                        </tr>
                     </t>
+                    <tr>
+                        <td>Management Fees</td>
+                        <td colspan="2" class="text-righ">
+                            <span t-esc="management_fees" style="float:right;"/>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             <hr style="border: 1px dashed black;"/>
