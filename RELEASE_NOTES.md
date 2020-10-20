@@ -468,6 +468,10 @@
 #### Version 13.3.0.0.16
 - [ADD] clx_invoice_reports : added calculation for the display management fees and wholesale price
 
+## 10/20/2020
+#### Version 13.1.1.0.14
+- [ADD] contact_modification : change field label.
+
 
 
 
