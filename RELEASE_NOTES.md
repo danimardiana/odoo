@@ -445,7 +445,7 @@
 
 ## 10/15/2020
 #### Version 13.3.0.0.10
-- [ADD] clx_invoice_reports : clx_budget_report_analysis : added filter on search view names as client
+- [ADD] clx_budget_report_analysis : added filter on search view names as client.
 
 ## 10/15/2020
 #### Version 13.3.0.0.15
@@ -453,7 +453,21 @@
 
 ## 10/15/2020
 #### Version 13.1.0.0.13
-- [ADD] clx_invoice_policy :  Added wholesale price and management price on invoice line for display on the invoice pdf report.
+- [ADD] clx_invoice_policy : Added wholesale price and management price on invoice line for display on the invoice pdf report.
+
+## 10/20/2020
+#### Version 13.1.0.0.14
+- [ADD] clx_invoice_policy : When user confirm the sale order invoice is created only current month lines.
+- [ADD] While creating the invoices from button added some validation for that.
+
+## 10/20/2020
+#### Version 13.1.0.0.12
+- [ADD] clx_retail_pricelist : hide the quantity and price field on configurator.
+
+## 10/20/2020
+#### Version 13.3.0.0.16
+- [ADD] clx_invoice_reports : added calculation for the display management fees and wholesale price
+
 
 
 

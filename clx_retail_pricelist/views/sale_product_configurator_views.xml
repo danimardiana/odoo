@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="configure_inherit_clx_retail_pricelist" inherit_id="sale_product_configurator.configure">
+        <xpath expr="//h2" position="replace">
+        </xpath>
+        <xpath expr="//div/div/t/div/div" position="replace">
+        </xpath>
+    </template>
+</odoo>
+

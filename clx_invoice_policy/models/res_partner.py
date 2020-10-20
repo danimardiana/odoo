@@ -86,6 +86,8 @@ class Partner(models.Model):
                                 sol.line_type != 'base'
                         )
         )
+        if not so_lines:
+            return self
         so_lines |= self.get_advanced_sub_lines(
             lines.filtered(lambda l: l not in so_lines))
         base_lines = {}
@@ -98,16 +100,29 @@ class Partner(models.Model):
             date_order = orders.date_order.date().replace(day=1)
             date_order = date_order + relativedelta(months=1)
             end_date = date_order + relativedelta(months=orders.clx_invoice_policy_id.num_of_month + 1, days=-1)
-            so_lines = lines.filtered(
-                lambda sol: (sol.invoice_start_date and
-                             sol.invoice_end_date and
-                             sol.invoice_start_date <= end_date and sol.invoice_end_date <= end_date))
+            invoice_lines = orders.invoice_ids.line_ids.mapped('subscription_start_date')
+            invoice_lines_months = [a.month for a in invoice_lines if a]
+            so_lines = lines.filtered(lambda x: x.start_date.month not in invoice_lines_months)
+            if not so_lines:
+                return self
+            so_lines = lines.filtered(lambda sol: ((sol.start_date and
+                                                    sol.end_date and
+                                                    sol.start_date <= end_date and sol.end_date <= end_date)
+                                                   or (sol.start_date and
+                                                       not sol.end_date and
+                                                       sol.start_date <= end_date)
+                                                   ))
             prepared_lines = [line.with_context({
                 'advance': True,
                 'manual': True,
                 'end_date': end_date,
                 'start_date': date_order,
                 'sol': self._context.get('sol')
+            })._prepare_invoice_line() for line in so_lines]
+        elif self._context.get('cofirm_sale'):
+            prepared_lines = [line.with_context({
+                'advance': True,
+                'cofirm_sale': True
             })._prepare_invoice_line() for line in so_lines]
         else:
             prepared_lines = [line.with_context({

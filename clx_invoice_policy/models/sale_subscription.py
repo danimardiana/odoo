@@ -4,7 +4,6 @@
 
 from calendar import monthrange
 from datetime import date
-
 from dateutil.relativedelta import relativedelta
 
 from odoo import fields, models, _
@@ -172,6 +171,7 @@ class SaleSubscriptionLine(models.Model):
         if line.display_type:
             res['account_id'] = False
         if self._context.get('advance', False):
+            product_qty = 1
             policy_month = self.so_line_id.order_id.clx_invoice_policy_id.num_of_month
             if self.line_type == 'base':
                 date_start = today.replace(day=1)
@@ -183,15 +183,16 @@ class SaleSubscriptionLine(models.Model):
                     months=policy_month)
                 date_end = date_end.replace(
                     day=monthrange(date_end.year, date_end.month)[1])
-            product_qty = self.get_date_month(
-                self.invoice_end_date, self.invoice_start_date) + self.start_in_next()
+            if self.invoice_end_date and self.invoice_start_date:
+                product_qty = self.get_date_month(
+                    self.invoice_end_date, self.invoice_start_date) + self.start_in_next()
             period_msg = self._format_period_msg(
                 date_start, date_end, line,
                 date_start, self.invoice_end_date)
             vals = {
                 'last_invoiced': today,
-                'invoice_start_date': False,
-                'invoice_end_date': False,
+                # 'invoice_start_date': False,
+                # 'invoice_end_date': False,
             }
             expire_date = (date_end + relativedelta(
                 months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
@@ -238,4 +239,25 @@ class SaleSubscriptionLine(models.Model):
                     'wholesale': line.wholesale_price * advance_num_month if (self._context.get(
                         'end_date') - line.start_date).days not in (30, 31) else line.wholesale_price,
                 })
+            if self._context.get('cofirm_sale'):
+                start_date = line.start_date
+                end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=1, days=-1)
+                lang = line.order_id.partner_invoice_id.lang
+                format_date = self.env['ir.qweb.field.date'].with_context(
+                    lang=lang).value_to_html
+                new_period_msg = _("Invoicing period: %s - %s") % (
+                    format_date(fields.Date.to_string(start_date), {}),
+                    format_date(fields.Date.to_string(end_date), {}))
+                r = end_date - start_date
+                per_day_price = line.price_unit / end_date.day
+                new_price = per_day_price * r.days
+                per_day_management_price = line.management_price / end_date.day
+                new_management_price = per_day_management_price * r.days
+                res.update({
+                    'price_unit': new_price,
+                    'management_fees': new_management_price,
+                    'wholesale': new_price - new_management_price,
+                    'name': new_period_msg
+                })
+
         return res
