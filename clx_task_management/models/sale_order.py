@@ -27,12 +27,12 @@ class SaleOrder(models.Model):
                 future_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
                     lambda x: x.start_date and x.start_date >= today)
                 if active_subscription_lines:
-                    sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
+                    sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id').ids
                 if future_subscription_lines:
-                    sale_orders += future_subscription_lines.mapped('so_line_id').mapped('order_id')
+                    sale_orders += future_subscription_lines.mapped('so_line_id').mapped('order_id').ids
             if sale_orders:
                 domain = expression.AND(
-                    [args or [], [('id', 'in', sale_orders.ids)]])
+                    [args or [], [('id', 'in', sale_orders)]])
             return super(SaleOrder, self.sudo())._name_search(name=name, args=domain, operator=operator, limit=limit,
                                                               name_get_uid=name_get_uid)
 
