@@ -15,7 +15,7 @@ class SaleOrder(models.Model):
             domain = expression.AND(
                 [args or []])
             active_subscription_lines = False
-            sale_orders = False
+            sale_orders = []
             today = fields.Date.today()
             subscriptions = self.env['sale.subscription'].search(
                 [('partner_id', '=', self._context.get('req_partner_id'))])
