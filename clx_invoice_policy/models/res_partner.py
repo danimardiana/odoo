@@ -5,8 +5,8 @@
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
-
-from odoo import fields, models, api
+from odoo.exceptions import UserError
+from odoo import fields, models, api, _
 
 
 class Partner(models.Model):
@@ -87,6 +87,8 @@ class Partner(models.Model):
                         )
         )
         if not so_lines:
+            if self._context.get('from_generate_invoice'):
+                raise UserError(_("You must have a sales order to create an invoice"))
             return self
         so_lines |= self.get_advanced_sub_lines(
             lines.filtered(lambda l: l not in so_lines))
@@ -246,6 +248,8 @@ class Partner(models.Model):
                                 sol.last_invoiced.month != today.month)
         )
         if not so_lines:
+            if self._context.get('from_generate_invoice'):
+                raise UserError(_("You must have a sales order to create an invoice"))
             return self
         invoice_lines = {}
 

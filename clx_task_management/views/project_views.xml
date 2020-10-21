@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+
+    <record id="view_project_kanban_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">view_project_inherit_kanban</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban//templates//t//div//div[hasclass('o_primary')]" position="after">
+                <div>
+                    <strong><span>Salesperson : </span></strong>
+                    <field name="user_id"/><br/>
+                    <strong><span>Project Manager : </span></strong>
+                    <field name="clx_project_manager_id"/><br/>
+                    <strong><span>Designer : </span></strong>
+                    <field name="clx_project_designer_id"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+
     <!-- Inherit Form View to add state for the project it -->
     <record id="edit_project_inherit_clx_project_management" model="ir.ui.view">
         <field name="name">project.project.form</field>
@@ -17,7 +37,6 @@
                         </field>
                     </group>
                 </page>
-
             </xpath>
             <xpath expr="//header" position="inside">
                 <field name="clx_state" widget="statusbar"/>
@@ -26,9 +45,17 @@
             </xpath>
             <field name="partner_id" position="after">
                 <field name="clx_sale_order_id"/>
+                <field name="clx_project_manager_id" domain="[('share','=',False)]"/>
+                <field name="clx_project_designer_id" domain="[('share','=',False)]"/>
             </field>
             <field name="message_follower_ids" position="after">
                 <field name="message_ids" widget="mail_thread"/>
+            </field>
+            <xpath expr="//group[@name='misc']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <field name="user_id" position="attributes">
+                <attribute name="string">Salesperson</attribute>
             </field>
         </field>
     </record>

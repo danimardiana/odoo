@@ -125,6 +125,12 @@
             <xpath expr="//page[@name='accounting']" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))]}</attribute>
             </xpath>
+            <xpath expr="//page[@name='accounting']" position="inside">
+                <group attrs="{'invisible': [('company_type', 'not in', ('company'))]}">
+                    <field name="accounting_notes"/>
+                    <field name="merchant_number"/>
+                </group>
+            </xpath>
 
         </field>
     </record>
@@ -444,11 +450,35 @@
                     </field>
                 </page>
             </notebook>
+            <notebook position="inside">
+                <page string="Client Setup" attrs="{'invisible': [('company_type', 'not in', ('company'))]}">
+                    <group>
+                        <group>
+                            <field name="tap_clicks_username"/>
+                            <field name="tap_clicks_password"/>
+                            <field name="call_rail_destination_number"/>
+                        </group>
+                        <group>
+                            <field name="client_provided_tracking_email"/>
+                            <field name="client_provided_utm_tracking_urls"/>
+                            <field name="art_assets"/>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+            <xpath expr="//page[@name='internal_notes']" position="inside">
+                <group attrs="{'invisible': [('company_type', 'not in', ('company'))]}">
+                    <field name="cs_notes"/>
+                    <field name="ops_notes"/>
+                    <field name="cat_notes"/>
+                </group>
+            </xpath>
             <field name="vat" position="after">
                 <field name="vertical"/>
                 <field name="branding_name" attrs="{'invisible': [('company_type', 'not in', ('vendor'))]}"/>
                 <field name="timezone_char"/>
                 <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company','vendor'))]}"/>
+                <field name="master_id"/>
             </field>
         </field>
     </record>

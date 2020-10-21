@@ -45,7 +45,7 @@
                     <notebook>
                         <page string="Line Item Details" name="line_item_details">
                             <field name="request_line" widget="section_and_note_one2many">
-                                <tree>
+                                <tree editable="bottom">
                                     <field name="sale_line_id" readonly="1"/>
                                     <field name="request_form_id" invisible="1"/>
                                     <field name="req_type" required="1"/>
@@ -59,7 +59,7 @@
                                         <group>
                                             <field name="sale_line_id" readonly="1"/>
                                             <field name="req_type"/>
-                                            <field name="task_id"/>
+                                            <field name="task_id" domain="[('req_type', '=', req_type)]"/>
                                             <field name="requirements" widget="text"/>
                                         </group>
                                         <group>
