@@ -16,6 +16,7 @@
                     <button string="Generate Invoice"
                             type="object"
                             name="generate_invoice"
+                            context="{'from_generate_invoice': True}"
                             class="btn-primary"/>
                     <button string="Subscribe"
                             type="object"

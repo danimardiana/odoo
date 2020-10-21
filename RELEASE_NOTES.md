@@ -472,6 +472,20 @@
 #### Version 13.1.1.0.14
 - [ADD] contact_modification : change field label.
 
+## 10/21/2020
+#### Version 13.1.0.0.15
+- [MOD] clx_invoice_policy : added warning message when invoice is not generated.
+
+## 10/21/2020
+#### Version 13.3.0.0.35
+- [MOD] clx_task_management : added new fields in project and also change kanban view of the project.
+- [MOD] set Intended Launch Date in main task also earlier it was set only subtask only.
+- [FIX] Fix timezone issue when set default time on request form field in request form.
+
+## 10/21/2020
+#### Version 13.1.1.0.15
+- [Add] contact_modification : Added new fields as per new documents.
+
 
 
 

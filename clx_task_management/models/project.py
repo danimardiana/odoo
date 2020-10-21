@@ -18,6 +18,8 @@ class ProjectProject(models.Model):
     clx_state = fields.Selection([('in_progress', 'In Progress'), ('done', 'Done')], string="State")
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
     project_ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link", readonly=False)
+    clx_project_manager_id = fields.Many2one('res.users', string="Project Manager")
+    clx_project_designer_id = fields.Many2one('res.users', string="Designer")
 
     def action_done_project(self):
         tasks = self.env['project.task'].search([('project_id', '=', self.id)])

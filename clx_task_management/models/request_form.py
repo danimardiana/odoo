@@ -13,7 +13,7 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Datetime('Request Submission Date', default=fields.Date.today())
+    request_date = fields.Datetime('Request Submission Date', default=datetime.datetime.today())
     description = fields.Text('Project Title',
                               help="Choose a title for this client’s project request")
     request_line = fields.One2many('request.form.line', 'request_form_id',
@@ -165,6 +165,19 @@ class RequestForm(models.Model):
         return : dictionary of the task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        today = fields.Date.today()
+        if line.req_type == 'update':
+            business_days_to_add = 3
+        else:
+            business_days_to_add = 5
+        current_date = today
+        # code for skip saturday and sunday for set deadline on task.
+        while business_days_to_add > 0:
+            current_date += datetime.timedelta(days=1)
+            weekday = current_date.weekday()
+            if weekday >= 5:  # sunday = 6, saturday = 5
+                continue
+            business_days_to_add -= 1
         vals = {
             'name': line.task_id.name,
             'project_id': project_id.id,
@@ -174,8 +187,8 @@ class RequestForm(models.Model):
             'req_type': line.task_id.req_type,
             'team_id': line.task_id.team_id.id,
             'team_members_ids': line.task_id.team_members_ids.ids,
-            'date_deadline': self.request_date if self.request_date else False,
-            'requirements': line.requirements
+            'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
+            'requirements': line.requirements,
         }
         return vals
 
@@ -290,20 +303,7 @@ class RequestFormLine(models.Model):
                 [('partner_id', '=', self.request_form_id.partner_id.id)])
             if not subscriptions:
                 raise UserError(_(
-                    """You can only create new request as customer do not have active subscription."""))
-            if subscriptions:
-                active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
-                    lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
-                              or (x.start_date and not x.end_date and x.start_date <= today)
-                )
-                if not active_subscription_lines:
-                    raise UserError(_(
-                        """You can only create new request as customer do not have active subscription."""))
-                if active_subscription_lines:
-                    sale_orders = active_subscription_lines.mapped('so_line_id').mapped('order_id')
-                    if not sale_orders:
-                        raise UserError(_(
-                            """You can only create new request as customer do not have active subscription."""))
+                    """There is no subscription available for this customer."""))
         client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
         if client_launch_task:
             for line in self:
