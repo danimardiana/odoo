@@ -486,7 +486,16 @@
 #### Version 13.1.1.0.15
 - [Add] contact_modification : Added new fields as per new documents.
 
+## 10/22/2020
+#### Version 13.1.1.0.16
+- [ADD] contact_modification : added new fields in contacts.
+- [MOD] while click on projects smart button open request form records.
 
+## 10/22/2020
+#### Version 13.3.0.0.36
+- [ADD] clx_task_management : added security group for user and manager and given access rights to the user as per user and manager.
+- [ADD] Added related fields from the contacts to project and all subtask.
+- [MOD] When quotation is created from the crm than automatically change state of the crm.
 
 
 

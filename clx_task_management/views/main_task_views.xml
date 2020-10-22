@@ -62,6 +62,7 @@
     <!-- Parent Menu -->
     <menuitem id="parent_menu_main_task"
               name="Task Management"
+              groups="group_clx_task_user,group_clx_task_manager"
               sequence="1"/>
 
     <!--Sub Menu-->
