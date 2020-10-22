@@ -89,7 +89,7 @@ class Partner(models.Model):
                                       ], string="Timezone2")
     yardi_code = fields.Char(string="Yardi Code")
     master_id = fields.Char(string="Master ID")
-    ads_link_ids = fields.One2many('ads.link', 'partner_id',string="Ads Link")
+    ads_link_ids = fields.One2many('ads.link', 'partner_id', string="Ads Link")
     cs_notes = fields.Text(string="CS Notes")
     ops_notes = fields.Text(string="Ops Notes")
     cat_notes = fields.Text(string="Cat Notes")
@@ -101,7 +101,44 @@ class Partner(models.Model):
     client_provided_tracking_email = fields.Char(string="Client-Provided Tracking Email")
     client_provided_utm_tracking_urls = fields.Char(string="Client-Provided UTM Tracking URLs")
     art_assets = fields.Char(string="Art Assets")
+    google_analytics_cl_account_location = fields.Selection([
+        ('greystaranalytics@conversionlogix.com', 'greystaranalytics@conversionlogix.com'),
+        ('RESdata@conversionlogix.com', 'RESdata@conversionlogix.com'),
+        ('SRLdata@conversionlogix.com', 'SRLdata@conversionlogix.com'),
+        ('Localdata@conversionlogix.com', 'Localdata@conversionlogix.com'),
+        ('Autodata@conversionlogix.com', 'Autodata@conversionlogix.com'),
+        ('RESanalytics@clxmedia.com', 'RESanalytics@clxmedia.com'),
+        ('reporting@conversionlogix.com', 'reporting@conversionlogix.com'),
+        ('reporting1@conversionlogix.com', 'reporting1@conversionlogix.com'),
+        ('reporting2@conversionlogix.com', 'reporting2@conversionlogix.com'),
+        ('cd1@adsupnow.com', 'cd1@adsupnow.com'),
+        ('cd2@adsupnow.com', 'cd2@adsupnow.com'),
+        ('cd3@adsupnow.com', 'cd3@adsupnow.com'),
+        ('cd4@adsupnow.com', 'cd4@adsupnow.com'),
+        ('cd5@adsupnow.com', 'cd5@adsupnow.com'),
+        ('Missing: pursue', 'Missing: pursue'),
+        ('Missing: abandoned', 'Missing: abandoned')
+    ], string="Google Analytics CL Account Location")
 
+    def open_submitted_req_form(self):
+        request_forms = self.env['request.form'].search([('partner_id', '=', self.id), ('state', '=', 'submitted')])
+        if request_forms:
+            action = self.env.ref("clx_task_management.action_request_form_submitted").read()[0]
+            action["context"] = {"create": False}
+            if len(request_forms) > 1:
+                action['domain'] = [('id', 'in', request_forms.ids)]
+            elif len(request_forms) == 1:
+                form_view = [(self.env.ref('clx_task_management.request_form_form_view').id, 'form')]
+                if 'views' in action:
+                    action['views'] = form_view + [
+                        (state, view)
+                        for state, view in action['views'] if view != 'form']
+                else:
+                    action['views'] = form_view
+                action['res_id'] = request_forms.ids[0]
+            else:
+                action = {'type': 'ir.actions.act_window_close'}
+            return action
 
     @api.model
     def read_group(self, domain, fields, groupby,

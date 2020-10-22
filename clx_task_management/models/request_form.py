@@ -10,6 +10,7 @@ class RequestForm(models.Model):
     _name = 'request.form'
     _description = 'Request Form'
     _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = 'id desc'
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
@@ -202,7 +203,9 @@ class RequestForm(models.Model):
         vals = {
             'partner_id': partner_id.id,
             'name': description,
-            'clx_state': 'in_progress'
+            'clx_state': 'in_progress',
+            'clx_sale_order_ids': self.sale_order_id.ids,
+            'user_id': self.sale_order_id[0].user_id.id
         }
         return vals
 
@@ -264,7 +267,7 @@ class RequestForm(models.Model):
             order_lines = self.sale_order_id.order_line.filtered(
                 lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
                           or (x.start_date and not x.end_date and x.start_date <= today))
-            future_lines = self.sale_order_id.order_line.filtered(lambda x:x.start_date and x.start_date >= today)
+            future_lines = self.sale_order_id.order_line.filtered(lambda x: x.start_date and x.start_date >= today)
             if future_lines:
                 order_lines += future_lines
             for line in order_lines:

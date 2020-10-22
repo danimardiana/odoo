@@ -457,6 +457,7 @@
                             <field name="tap_clicks_username"/>
                             <field name="tap_clicks_password"/>
                             <field name="call_rail_destination_number"/>
+                            <field name="google_analytics_cl_account_location"/>
                         </group>
                         <group>
                             <field name="client_provided_tracking_email"/>
@@ -492,6 +493,10 @@
                    position="attributes">
                 <attribute name="string">Projects</attribute>
             </field>
+            <xpath expr="//button[@name='%(project.project_task_action_from_partner)d']" position="attributes">
+                <attribute name="type">object</attribute>
+                <attribute name="name">open_submitted_req_form</attribute>
+            </xpath>
         </field>
     </record>
 </odoo>

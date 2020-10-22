@@ -16,10 +16,15 @@ class ProjectProject(models.Model):
 
     req_form_id = fields.Many2one('request.form', string='Request Form')
     clx_state = fields.Selection([('in_progress', 'In Progress'), ('done', 'Done')], string="State")
-    clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
+    clx_sale_order_ids = fields.Many2many('sale.order', string='Sale order')
     project_ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link", readonly=False)
     clx_project_manager_id = fields.Many2one('res.users', string="Project Manager")
     clx_project_designer_id = fields.Many2one('res.users', string="Designer")
+    management_company_type_id = fields.Many2one(related='partner_id.management_company_type_id')
+    google_analytics_cl_account_location = fields.Selection(related='partner_id.google_analytics_cl_account_location')
+    cs_notes = fields.Text(related='partner_id.cs_notes')
+    ops_notes = fields.Text(related='partner_id.ops_notes')
+    cat_notes = fields.Text(related='partner_id.cat_notes')
 
     def action_done_project(self):
         tasks = self.env['project.task'].search([('project_id', '=', self.id)])
@@ -58,12 +63,20 @@ class ProjectTask(models.Model):
                                         compute='_compute_sub_task'
                                         )
     requirements = fields.Text(string='Requirements')
+    clx_task_manager_id = fields.Many2one(related="project_id.clx_project_manager_id")
+    clx_task_designer_id = fields.Many2one("res.users", string="Designer")
+
+    management_company_type_id = fields.Many2one(related='project_id.partner_id.management_company_type_id')
+    google_analytics_cl_account_location = fields.Selection(related='project_id.partner_id.google_analytics_cl_account_location')
+    cs_notes = fields.Text(related='project_id.partner_id.cs_notes')
+    ops_notes = fields.Text(related='project_id.partner_id.ops_notes')
+    cat_notes = fields.Text(related='project_id.partner_id.cat_notes')
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """
         Prepared vals for sub task
         :param sub_task: browsable object of the sub.task
-        :param main_task: brwosable object of the main.task
+        :param main_task: browsable object of the main.task
         :return: dictionary for the sub task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')

@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Task Management',
-    'version': '13.3.0.0.35',
+    'version': '13.3.0.0.36',
     'summary': 'CLX Task Management',
     'sequence': 1,
     'description': """ CLX Task Management """,
@@ -18,6 +18,7 @@
                 'contact_modification'
                 ],
     'data': [
+        'security/task_security.xml',
         'security/ir.model.access.csv',
         'data/ir_sequence.xml',
         'data/task_stages.xml',
