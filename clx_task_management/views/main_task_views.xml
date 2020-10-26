@@ -25,6 +25,7 @@
                             <field name="display_to_customer"/>
                             <field name="req_type"/>
                             <field name="requirements"/>
+                            <field name="category_id"/>
                         </group>
                     </group>
                 </sheet>

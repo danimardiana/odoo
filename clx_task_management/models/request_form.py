@@ -292,6 +292,7 @@ class RequestFormLine(models.Model):
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
     sale_line_id = fields.Many2one('sale.order.line', string="Sale line")
+    category_id = fields.Many2one(related="sale_line_id.product_id.categ_id")
 
     @api.onchange('task_id')
     def _onchange_task_id(self):

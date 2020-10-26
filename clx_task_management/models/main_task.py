@@ -16,6 +16,7 @@ class MainTask(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')], string='Request Type')
     active = fields.Boolean(default=True)
     requirements = fields.Text(string="Requirements")
+    category_id = fields.Many2one('product.category', string="Product Category")
 
     def _compute_sub_task_count(self):
         sub_task_obj = self.env['sub.task']
