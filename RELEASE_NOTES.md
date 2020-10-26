@@ -497,6 +497,15 @@
 - [ADD] Added related fields from the contacts to project and all subtask.
 - [MOD] When quotation is created from the crm than automatically change state of the crm.
 
+## 10/23/2020
+#### Version 13.1.0.0.16
+- [ADD] clx_invoice_policy : added field company management and also added group by and filter for the same.
+
+## 10/23/2020
+#### Version 13.3.0.0.37
+- [ADD] clx_task_management : added category field on main task according to that added domain while selecting task from the request from.
+- [Add] When user change task stage from all sub task form view than project task stage will be changed.
+
 
 
  

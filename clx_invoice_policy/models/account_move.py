@@ -5,6 +5,12 @@
 from odoo import fields, models
 
 
+class AccountMove(models.Model):
+    _inherit = 'account.move'
+
+    mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
+
+
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 

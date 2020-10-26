@@ -9,7 +9,6 @@ class SubTask(models.Model):
     _description = 'sub Task'
     _order = 'sequence'
 
-
     name = fields.Char(string='name')
     sub_task_name = fields.Char(string='Sub Task Name')
     team_id = fields.Many2one('clx.team', string='Team')
@@ -20,12 +19,18 @@ class SubTask(models.Model):
                                       'sub_id')
     sequence = fields.Integer()
     stage_id = fields.Many2one('project.task.type', string='Stage')
+    task_id = fields.Many2one('project.task', string="Task")
 
     @api.model
     def create(self, vals):
         if vals.get('name', _('New')) == _('New'):
             vals['name'] = self.env['ir.sequence'].next_by_code('sub.task')
         return super(SubTask, self).create(vals)
+
+    @api.onchange('stage_id')
+    def onchange_stage_id(self):
+        if self.task_id:
+            self.task_id.stage_id = self.stage_id.id
 
     def open_parent_task(self):
         self.ensure_one()

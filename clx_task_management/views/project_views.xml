@@ -8,11 +8,19 @@
         <field name="arch" type="xml">
             <xpath expr="//kanban//templates//t//div//div[hasclass('o_primary')]" position="after">
                 <div>
-                    <strong><span>Salesperson : </span></strong>
-                    <field name="user_id"/><br/>
-                    <strong><span>Project Manager : </span></strong>
-                    <field name="clx_project_manager_id"/><br/>
-                    <strong><span>Designer : </span></strong>
+                    <strong>
+                        <span>Salesperson :</span>
+                    </strong>
+                    <field name="user_id"/>
+                    <br/>
+                    <strong>
+                        <span>Project Manager :</span>
+                    </strong>
+                    <field name="clx_project_manager_id"/>
+                    <br/>
+                    <strong>
+                        <span>Designer :</span>
+                    </strong>
                     <field name="clx_project_designer_id"/>
                 </div>
             </xpath>
@@ -105,9 +113,42 @@
                       attrs="{'invisible' : ['|', ('parent_id', '!=', False), ('id', '=', False)]}">
                     <field name="clx_sub_task_ids">
                         <tree>
-                            <field name="sub_task_name"/>
-                            <field name="stage_id"/>
+                            <field name="sub_task_name" readonly="1"/>
+                            <field name="team_id" readonly="1"/>
+                            <field name="team_members_ids" widget="many2many_tags" readonly="1"/>
+                            <field name="stage_id" readonly="1"/>
                         </tree>
+                        <form>
+                            <sheet>
+                                <div class="oe_button_box" name="button_box">
+                                    <button name="open_parent_task" type="object" string="Parent Task"
+                                            class="oe_stat_button">
+                                    </button>
+                                </div>
+                                <div class="oe_title">
+                                    <h1>
+                                        <field name="name" readonly="1"/>
+                                    </h1>
+                                </div>
+                                <group>
+                                    <group>
+                                        <field name="sub_task_name" readonly="1"/>
+                                        <field name="dependency_ids" widget="many2many_tags" readonly="1"/>
+                                        <field name="parent_id" readonly="1"/>
+                                        <field name="team_id" readonly="1"/>
+                                        <field name="sequence" readonly="1"/>
+                                        <field name="task_id" readonly="1"/>
+                                        <field name="stage_id" readonly="0"
+                                               context="{'write_from_compute_field': True}"
+                                               attrs="{'readonly': [('task_id', '=', False)]}"
+                                        />
+                                    </group>
+                                    <group>
+                                        <field name="team_members_ids" widget="many2many_tags" readonly="1"/>
+                                    </group>
+                                </group>
+                            </sheet>
+                        </form>
                     </field>
                 </page>
                 <page name="requirements" string="Requirements">
