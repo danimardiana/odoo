@@ -77,6 +77,10 @@ class ProjectTask(models.Model):
     cs_notes = fields.Text(related='project_id.partner_id.cs_notes')
     ops_notes = fields.Text(related='project_id.partner_id.ops_notes')
     cat_notes = fields.Text(related='project_id.partner_id.cat_notes')
+    vertical = fields.Selection(related='project_id.partner_id.vertical')
+    account_user_id = fields.Many2one(related='project_id.partner_id.account_user_id')
+    website = fields.Char(related='project_id.partner_id.website')
+    partner_id = fields.Many2one(related='project_id.partner_id')
 
 
     def prepared_sub_task_vals(self, sub_task, main_task):

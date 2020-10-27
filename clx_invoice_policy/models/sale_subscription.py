@@ -249,15 +249,16 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(start_date), {}),
                     format_date(fields.Date.to_string(end_date), {}))
                 r = end_date - start_date
-                per_day_price = line.price_unit / end_date.day
-                new_price = per_day_price * r.days
-                per_day_management_price = line.management_price / end_date.day
-                new_management_price = per_day_management_price * r.days
-                res.update({
-                    'price_unit': new_price,
-                    'management_fees': new_management_price,
-                    'wholesale': new_price - new_management_price,
-                    'name': new_period_msg
-                })
+                if r.days not in (30,31):
+                    per_day_price = line.price_unit / end_date.day
+                    new_price = per_day_price * r.days
+                    per_day_management_price = line.management_price / end_date.day
+                    new_management_price = per_day_management_price * r.days
+                    res.update({
+                        'price_unit': new_price,
+                        'management_fees': new_management_price,
+                        'wholesale': new_price - new_management_price,
+                        'name': new_period_msg
+                    })
 
         return res

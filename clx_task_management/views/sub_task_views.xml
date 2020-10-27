@@ -34,7 +34,20 @@
             </form>
         </field>
     </record>
-
+    <record id="view_sub_task_filter" model="ir.ui.view">
+        <field name="name">sub.task.search.view</field>
+        <field name="model">sub.task</field>
+        <field name="arch" type="xml">
+            <search string="Search SubTask">
+                <field name="name"/>
+                <field name="sub_task_name"/>
+                <group expand='0' string='Group by...'>
+                    <filter string='Team' name="team_id" context="{'group_by': 'team_id'}"/>
+                    <filter string='Parent Task' name="parent_id" context="{'group_by': 'parent_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <!--Tree View -->
     <record id="tree_view_sub_task" model="ir.ui.view">
         <field name="name">sub.task.tree.view</field>

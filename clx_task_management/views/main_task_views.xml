@@ -33,6 +33,24 @@
         </field>
     </record>
 
+    <record id="view_main_task_filter" model="ir.ui.view">
+        <field name="name">main.task.search.view</field>
+        <field name="model">main.task</field>
+        <field name="arch" type="xml">
+            <search string="Search Task">
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active','=',False)]"/>
+                <group expand='0' string='Group by...'>
+                    <filter string='Team' name="team_id" context="{'group_by': 'team_id'}"/>
+                    <filter string='Request Type' name="rew_type" context="{'group_by': 'req_type'}"/>
+                    <filter string='Product Category'
+                            name="groupby_category"
+                            context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <!--Tree View -->
     <record id="tree_view_main_task" model="ir.ui.view">
         <field name="name">task.management.tree.view</field>
