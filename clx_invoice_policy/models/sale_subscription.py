@@ -191,8 +191,8 @@ class SaleSubscriptionLine(models.Model):
                 date_start, self.invoice_end_date)
             vals = {
                 'last_invoiced': today,
-                # 'invoice_start_date': False,
-                # 'invoice_end_date': False,
+                'invoice_start_date': False,
+                'invoice_end_date': False,
             }
             expire_date = (date_end + relativedelta(
                 months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
@@ -249,7 +249,7 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(start_date), {}),
                     format_date(fields.Date.to_string(end_date), {}))
                 r = end_date - start_date
-                if r.days not in (30,31):
+                if r.days <= 30 or r.days <= 31:
                     per_day_price = line.price_unit / end_date.day
                     new_price = per_day_price * r.days
                     per_day_management_price = line.management_price / end_date.day
