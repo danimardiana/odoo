@@ -517,8 +517,12 @@
 ## 10/27/2020
 #### Version 13.3.0.0.38
 - [ADD] clx_task_management : added new fields on task and subtask.
-- [ADD] added search view for main taks and subtask.
+- [ADD] added search view for main task and subtask.
 
+## 10/27/2020
+#### Version 13.1.0.0.18
+- [FIX] clx_invoice_policy : Fix the issue do not create duplicate invoice.
+- [FIX] Fix the issue date difference less than 1 month than calculate unit price per day wise.
 
  
 
