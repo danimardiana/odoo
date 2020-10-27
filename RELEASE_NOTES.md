@@ -506,6 +506,18 @@
 - [ADD] clx_task_management : added category field on main task according to that added domain while selecting task from the request from.
 - [Add] When user change task stage from all sub task form view than project task stage will be changed.
 
+## 10/27/2020
+#### Version 13.1.0.0.17
+- [FIX] clx_invoice_policy : fix the issue when start date and end date difference is 1 month that time take 1 month price
+
+## 10/27/2020
+#### Version 13.1.1.0.6
+- [MOD] clx_subscription_creation : make contract field required and added warning if start date is not set.
+
+## 10/27/2020
+#### Version 13.3.0.0.38
+- [ADD] clx_task_management : added new fields on task and subtask.
+- [ADD] added search view for main taks and subtask.
 
 
  

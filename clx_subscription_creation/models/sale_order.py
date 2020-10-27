@@ -81,7 +81,8 @@ class SaleOrderLine(models.Model):
     def onchange_start_date(self):
         if self.product_id and self.order_id.contract_start_date:
             self.start_date = self.order_id.contract_start_date
-
+        elif self.product_id and not self.start_date:
+            raise ValidationError(_("Please select start date."))
 
     @api.onchange('start_date', 'end_date')
     def onchange_date_validation(self):

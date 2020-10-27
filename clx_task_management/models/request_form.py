@@ -222,16 +222,9 @@ class RequestForm(models.Model):
         cl_task = self.env.ref('clx_task_management.clx_client_launch_sub_task_1')
         if not self.request_line:
             raise UserError('There is no Request Line, Please add some line')
-        today = fields.Date.today()
         subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
         if not subscriptions:
             raise UserError('You can not submit request form there is no active sale for this customer!!')
-        elif subscriptions:
-            active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
-                lambda x: x.start_date and x.start_date <= today and not x.end_date)
-            if not active_subscription_lines:
-                raise UserError('You can not submit request form there is no active sale for this customer!!')
-
         if self.description and self.partner_id:
             vals = self.prepared_project_vals(self.description,
                                               self.partner_id)
