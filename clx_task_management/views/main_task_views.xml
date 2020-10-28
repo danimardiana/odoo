@@ -82,6 +82,7 @@
     <menuitem id="parent_menu_main_task"
               name="Task Management"
               groups="group_clx_task_user,group_clx_task_manager"
+              web_icon="clx_task_management,static/description/icon.png"
               sequence="1"/>
 
     <!--Sub Menu-->

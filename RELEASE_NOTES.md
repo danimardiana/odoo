@@ -524,6 +524,15 @@
 - [FIX] clx_invoice_policy : Fix the issue do not create duplicate invoice.
 - [FIX] Fix the issue date difference less than 1 month than calculate unit price per day wise.
 
+## 10/27/2020
+#### Version 13.3.0.0.39
+- [ADD] clx_task_management : added icon for task management and request form.
+- [MOD] Given user to add team members on subtask.
+
+## 10/27/2020
+#### Version 13.1.0.0.19
+- [FIX] clx_invoice_policy : Fix the issue per day calculation when days difference less than month.
+
  
 
   

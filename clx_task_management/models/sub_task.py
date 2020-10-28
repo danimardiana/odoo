@@ -27,10 +27,11 @@ class SubTask(models.Model):
             vals['name'] = self.env['ir.sequence'].next_by_code('sub.task')
         return super(SubTask, self).create(vals)
 
-    @api.onchange('stage_id')
+    @api.onchange('stage_id', 'team_members_ids')
     def onchange_stage_id(self):
         if self.task_id:
             self.task_id.stage_id = self.stage_id.id
+            self.task_id.team_members_ids = self.team_members_ids.ids
 
     def open_parent_task(self):
         self.ensure_one()

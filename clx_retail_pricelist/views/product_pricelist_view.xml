@@ -10,6 +10,9 @@
             <field name="currency_id" position="after">
                 <field name="display_management_fee"/>
             </field>
+            <xpath expr="//notebook/page[@name='pricelist_rules']/field/tree/field[@name='date_start']" position='before'>
+                <field name="min_price"/>
+            </xpath>
         </field>
     </record>
 

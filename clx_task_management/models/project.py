@@ -80,8 +80,7 @@ class ProjectTask(models.Model):
     vertical = fields.Selection(related='project_id.partner_id.vertical')
     account_user_id = fields.Many2one(related='project_id.partner_id.account_user_id')
     website = fields.Char(related='project_id.partner_id.website')
-    partner_id = fields.Many2one(related='project_id.partner_id')
-
+    partner_id = fields.Many2one(related='project_id.partner_id', store=True)
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """
