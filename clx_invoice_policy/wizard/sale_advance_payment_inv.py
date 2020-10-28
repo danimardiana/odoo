@@ -3,8 +3,6 @@
 # See LICENSE file for full copyright & licensing details.
 
 
-from odoo.exceptions import AccessError
-
 from odoo import models, fields, api
 
 
@@ -30,8 +28,9 @@ class SaleAdvancePaymentInv(models.TransientModel):
 
         # filter sale order invoice policy advance and invoice creation based on Category wise
         advance_sale_orders_categ = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'advance'
-                                                           and (x.partner_id.child_invoice_selection == 'prod_categ' or
-                                                           x.partner_id.invoice_selection == 'prod_categ')
+                                                                   and (
+                                                                               x.partner_id.child_invoice_selection == 'prod_categ' or
+                                                                               x.partner_id.invoice_selection == 'prod_categ')
                                                          )
         if advance_sale_orders_categ:
             for order in advance_sale_orders_categ:
@@ -40,7 +39,7 @@ class SaleAdvancePaymentInv(models.TransientModel):
         # filter sale order invoice policy arrears and invoice creation based on sale order line
         arrears_sale_orders_sol = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'arrears'
                                                                  and (x.partner_id.child_invoice_selection == 'sol'
-                                                                  or x.partner_id.invoice_selection == 'sol')
+                                                                      or x.partner_id.invoice_selection == 'sol')
                                                        )
         if arrears_sale_orders_sol:
             for order in arrears_sale_orders_sol:
@@ -48,8 +47,9 @@ class SaleAdvancePaymentInv(models.TransientModel):
                                               order=order.id).generate_invoice()
         # filter sale order invoice policy arrears and invoice creation based on category
         arrears_sale_orders_categ = sale_orders.filtered(lambda x: x.clx_invoice_policy_id.policy_type == 'arrears'
-                                                                   and (x.partner_id.child_invoice_selection == 'prod_categ'
-                                                                   or x.partner_id.invoice_selection == 'prod_categ')
+                                                                   and (
+                                                                               x.partner_id.child_invoice_selection == 'prod_categ'
+                                                                               or x.partner_id.invoice_selection == 'prod_categ')
                                                          )
         if arrears_sale_orders_categ:
             for order in arrears_sale_orders_categ:

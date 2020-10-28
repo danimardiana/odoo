@@ -153,7 +153,8 @@
                                         />
                                     </group>
                                     <group>
-                                        <field name="team_members_ids" widget="many2many_tags" readonly="1"/>
+                                        <field name="team_members_ids" widget="many2many_tags"
+                                        attrs="{'readonly': [('task_id', '=', False)]}"/>
                                     </group>
                                 </group>
                             </sheet>

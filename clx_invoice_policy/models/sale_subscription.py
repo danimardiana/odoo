@@ -249,7 +249,9 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(start_date), {}),
                     format_date(fields.Date.to_string(end_date), {}))
                 r = end_date - start_date
-                if r.days <= 30 or r.days <= 31:
+                if r.days >= 30 or r.days >= 31:
+                    return res
+                if r.days < 30 or r.days < 31:
                     per_day_price = line.price_unit / end_date.day
                     new_price = per_day_price * r.days
                     per_day_management_price = line.management_price / end_date.day

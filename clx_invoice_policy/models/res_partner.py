@@ -26,6 +26,16 @@ class Partner(models.Model):
     child_invoice_selection = fields.Selection(
         related="management_company_type_id.invoice_selection", string="Display on")
 
+    def generate_invoice_with_date_range(self):
+        view_id = self.env.ref('clx_invoice_policy.generate_invoice_date_range_form_view').id
+        return {'type': 'ir.actions.act_window',
+                'name': _('Generate Invoice Date range'),
+                'res_model': 'generate.invoice.date.range',
+                'target': 'new',
+                'view_mode': 'form',
+                'views': [[view_id, 'form']],
+                }
+
     def generate_invoice(self):
         """
         Invoice will be generated for Arrears Policy Type.

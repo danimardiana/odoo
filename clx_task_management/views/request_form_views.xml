@@ -132,6 +132,7 @@
     <!-- Parent Menu -->
     <menuitem id="menu_request_form"
               name="Request Form"
+              web_icon="clx_task_management,static/description/request_form_icon.png"
               sequence="5"/>
     <!--SUB MENU-->
     <menuitem id="menu_request_form_draft"
