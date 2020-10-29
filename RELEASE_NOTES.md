@@ -533,6 +533,10 @@
 #### Version 13.1.0.0.19
 - [FIX] clx_invoice_policy : Fix the issue per day calculation when days difference less than month.
 
+## 10/27/2020
+#### Version 13.1.0.0.20
+- [FIX] clx_invoice_policy : changed in the flow for set invoice start date and invoice end date on subscription line.
+
  
 
   

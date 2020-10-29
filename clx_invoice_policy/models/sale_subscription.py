@@ -141,7 +141,7 @@ class SaleSubscriptionLine(models.Model):
             'product_id': self.product_id.id,
             'category_id': self.product_id.categ_id.id,
             'product_uom_id': line.product_uom.id,
-            'quantity': line.qty_to_invoice,
+            'quantity': 1,
             'discount': self.discount,
             'price_unit': self.price_unit * (
                 2 if self.line_type == 'upsell' and
@@ -196,12 +196,12 @@ class SaleSubscriptionLine(models.Model):
             }
             expire_date = (date_end + relativedelta(
                 months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
-            if self.end_date and self.end_date > date_end:
-                vals.update({
-                    'invoice_start_date': (
-                            date_end + relativedelta(months=1)).replace(day=1),
-                    'invoice_end_date': expire_date
-                })
+            # if self.end_date and self.end_date > date_end:
+            vals.update({
+                'invoice_start_date': (
+                        date_end + relativedelta(months=1)).replace(day=1),
+                'invoice_end_date': expire_date
+            })
             self.write(vals)
             res.update({
                 'name': period_msg,
@@ -249,7 +249,7 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(start_date), {}),
                     format_date(fields.Date.to_string(end_date), {}))
                 r = end_date - start_date
-                if r.days >= 30 or r.days >= 31:
+                if r.days in (30, 31):
                     return res
                 if r.days < 30 or r.days < 31:
                     per_day_price = line.price_unit / end_date.day
@@ -262,5 +262,4 @@ class SaleSubscriptionLine(models.Model):
                         'wholesale': new_price - new_management_price,
                         'name': new_period_msg
                     })
-
         return res
