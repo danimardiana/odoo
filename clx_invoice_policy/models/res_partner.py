@@ -96,6 +96,8 @@ class Partner(models.Model):
                                 sol.line_type != 'base'
                         )
         )
+        if self._context.get('generate_invoice_date_range'):
+            so_lines = lines
         if not so_lines:
             if self._context.get('from_generate_invoice'):
                 raise UserError(_("You must have a sales order to create an invoice"))
@@ -135,6 +137,15 @@ class Partner(models.Model):
             prepared_lines = [line.with_context({
                 'advance': True,
                 'cofirm_sale': True
+            })._prepare_invoice_line() for line in so_lines]
+        elif self._context.get('generate_invoice_date_range'):
+            start_date = self._context.get('start_date')
+            end_date = self._context.get('end_date')
+            prepared_lines = [line.with_context({
+                'advance': True,
+                'start_date': start_date,
+                'end_date': end_date,
+                'generate_invoice_date_range': True
             })._prepare_invoice_line() for line in so_lines]
         else:
             prepared_lines = [line.with_context({

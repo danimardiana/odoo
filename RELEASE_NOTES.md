@@ -537,6 +537,10 @@
 #### Version 13.1.0.0.20
 - [FIX] clx_invoice_policy : changed in the flow for set invoice start date and invoice end date on subscription line.
 
+## 10/27/2020
+#### Version 13.1.0.0.20
+- [ADD] clx_invoice_policy : added new features for create invoice with data range manually. 
+
  
 
   

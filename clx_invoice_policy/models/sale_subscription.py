@@ -5,7 +5,8 @@
 from calendar import monthrange
 from datetime import date
 from dateutil.relativedelta import relativedelta
-
+from collections import OrderedDict
+from datetime import timedelta
 from odoo import fields, models, _
 
 
@@ -249,7 +250,7 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(start_date), {}),
                     format_date(fields.Date.to_string(end_date), {}))
                 r = end_date - start_date
-                if r.days in (30, 31):
+                if r.days + 1 in (30, 31):
                     return res
                 if r.days < 30 or r.days < 31:
                     per_day_price = line.price_unit / end_date.day
@@ -262,4 +263,34 @@ class SaleSubscriptionLine(models.Model):
                         'wholesale': new_price - new_management_price,
                         'name': new_period_msg
                     })
+            if self._context.get('generate_invoice_date_range'):
+                start_date = self._context.get('start_date')
+                end_date = self._context.get('end_date')
+                lang = line.order_id.partner_invoice_id.lang
+                format_date = self.env['ir.qweb.field.date'].with_context(
+                    lang=lang).value_to_html
+                new_period_msg = _("Invoicing period: %s - %s") % (
+                    format_date(fields.Date.to_string(start_date), {}),
+                    format_date(fields.Date.to_string(end_date), {}))
+                if self.end_date:
+                    end_date = self.end_date
+                a = len(
+                    OrderedDict(((start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                range((end_date - start_date).days)))
+                res.update({
+                    'price_unit': self.price_unit * a,
+                    'name': new_period_msg
+                })
+                vals = {
+                    'last_invoiced': today,
+                    'invoice_start_date': False,
+                    'invoice_end_date': False,
+                }
+                expire_date = (end_date + relativedelta(
+                    months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
+                vals.update({
+                    'invoice_start_date': (end_date + relativedelta(months=1)).replace(day=1),
+                    'invoice_end_date': expire_date
+                })
+                self.write(vals)
         return res
