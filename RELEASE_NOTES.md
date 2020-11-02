@@ -533,13 +533,22 @@
 #### Version 13.1.0.0.19
 - [FIX] clx_invoice_policy : Fix the issue per day calculation when days difference less than month.
 
-## 10/27/2020
+## 10/29/2020
 #### Version 13.1.0.0.20
 - [FIX] clx_invoice_policy : changed in the flow for set invoice start date and invoice end date on subscription line.
 
-## 10/27/2020
+## 10/30/2020
 #### Version 13.1.0.0.21
-- [ADD] clx_invoice_policy : added new features for create invoice with data range manually. 
+- [ADD] clx_invoice_policy : added new features for create invoice with data range manually.
+
+## 11/02/2020
+#### Version 13.1.0.0.22
+- [FIX] clx_invoice_policy : Fix the issue related to change year when invoice is created in next period. it was set 2020 year it should set 2021 year.
+
+## 11/02/2020
+#### Version 13.1.0.0.1
+- [Add] clx_ratio_invoice : added module for co-op. 
+ 
 
  
 

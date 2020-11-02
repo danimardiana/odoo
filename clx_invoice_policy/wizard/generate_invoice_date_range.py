@@ -26,7 +26,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 ('so_line_id.order_id.partner_id', 'child_of', partner_id.id),
                 ('so_line_id.order_id.state', '=', 'sale'),
             ])
-            so_lines = lines.filtered(lambda x: x.invoice_start_date <= self.start_date)
+            so_lines = lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= self.start_date)
             if not so_lines:
                 raise UserError(_("You can not create invoice selected date range"))
             elif so_lines:

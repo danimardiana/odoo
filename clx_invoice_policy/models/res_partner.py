@@ -96,6 +96,17 @@ class Partner(models.Model):
                                 sol.line_type != 'base'
                         )
         )
+        if self._context.get('from_generate_invoice') and not so_lines:
+            so_lines = lines.filtered(
+                lambda sol: (sol.invoice_start_date and
+                             sol.invoice_end_date and
+                             sol.invoice_start_date >= today and
+                             sol.invoice_end_date >= today
+                             ) or (
+                                    sol.end_date and sol.end_date < today and not sol.last_invoiced and
+                                    sol.line_type != 'base'
+                            )
+            )
         if self._context.get('generate_invoice_date_range'):
             so_lines = lines
         if not so_lines:

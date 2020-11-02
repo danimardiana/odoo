@@ -91,7 +91,7 @@ class SaleOrderLine(models.Model):
             if self.line_type == 'base':
                 date_start = date_start.replace(day=1)
                 date_end = date_start + relativedelta(
-                    months=invoice_month + 1, days=-1)
+                    months=invoice_month + 1, days=-1) if not self.end_date else self.end_date
             else:
                 date_end = date_start + relativedelta(
                     months=invoice_month)
