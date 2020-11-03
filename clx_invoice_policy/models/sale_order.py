@@ -23,6 +23,8 @@ class SaleOrder(models.Model):
         :return:
         """
         res = super(SaleOrder, self)._action_confirm()
+        if self.is_ratio:
+            return res
         lines = self.env['sale.subscription.line'].search([
             ('so_line_id', 'in', self.order_line.ids),
         ])

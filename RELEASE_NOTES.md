@@ -547,7 +547,19 @@
 
 ## 11/02/2020
 #### Version 13.1.0.0.1
-- [Add] clx_ratio_invoice : added module for co-op. 
+- [Add] clx_ratio_invoice : added module for co-op.
+
+## 11/03/2020
+#### Version 13.1.0.0.23
+- [MOD] clx_invoice_policy : changes for invoice creation flow when sale oreder co-op configuration is checked.
+
+## 11/03/2020
+#### Version 13.1.0.0.2
+- [Add] clx_ratio_invoice : added smart button and written method for create invoice based on partner ratio.
+
+## 11/03/2020
+#### Version 13.1.1.0.7
+- [ADD] clx_subscription_creation : added code for create subscriptions based on added ratio partner on sale order.
  
 
  

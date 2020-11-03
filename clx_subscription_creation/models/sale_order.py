@@ -12,6 +12,17 @@ class SaleOrder(models.Model):
 
     contract_start_date = fields.Date(string='Contract Start Date')
 
+    def _prepare_subscription_data(self, template):
+        res = super(SaleOrder, self)._prepare_subscription_data(template)
+        if not self.is_ratio:
+            return res
+        if self.is_ratio:
+            partner_id = self._context.get('co_op_partner')
+            res.update({
+                'partner_id': partner_id
+            })
+            return res
+
     def update_existing_subscriptions(self):
         """
         Call super method when upsell is created from the subscription
@@ -27,25 +38,51 @@ class SaleOrder(models.Model):
         """
         res = []
         sale_subscription_obj = self.env['sale.subscription'].sudo()
-        if self.subscription_management == "create":
-            for line in self.order_line.filtered(
-                    lambda x: x.product_id.recurring_invoice):
-                if not line.product_id.subscription_template_id:
-                    raise ValidationError(_(
-                        "Please select Subscription Template on {}"
-                    ).format(line.product_id.name))
-                values = line.order_id._prepare_subscription_data(
-                    line.product_id.subscription_template_id)
-                values['recurring_invoice_line_ids'] = line._prepare_subscription_line_data()
-                subscription = sale_subscription_obj.create(values)
-                res.append(subscription.id)
-                subscription.message_post_with_view(
-                    'mail.message_origin_link',
-                    values={'self': subscription, 'origin': line.order_id},
-                    subtype_id=self.env.ref('mail.mt_note').id,
-                    author_id=self.env.user.partner_id.id
-                )
-                line.subscription_id = subscription.id
+        if not self.is_ratio:
+            if self.subscription_management == "create":
+                for line in self.order_line.filtered(
+                        lambda x: x.product_id.recurring_invoice):
+                    if not line.product_id.subscription_template_id:
+                        raise ValidationError(_(
+                            "Please select Subscription Template on {}"
+                        ).format(line.product_id.name))
+                    values = line.order_id._prepare_subscription_data(
+                        line.product_id.subscription_template_id)
+                    values['recurring_invoice_line_ids'] = line._prepare_subscription_line_data()
+                    subscription = sale_subscription_obj.create(values)
+                    res.append(subscription.id)
+                    subscription.message_post_with_view(
+                        'mail.message_origin_link',
+                        values={'self': subscription, 'origin': line.order_id},
+                        subtype_id=self.env.ref('mail.mt_note').id,
+                        author_id=self.env.user.partner_id.id
+                    )
+                    line.subscription_id = subscription.id
+        elif self.is_ratio:
+            if self.subscription_management == "create":
+                for co_op_partner in self.co_op_sale_order_partner_ids:
+                    if co_op_partner.partner_id:
+                        for line in self.order_line.filtered(
+                                lambda x: x.product_id.recurring_invoice):
+                            if not line.product_id.subscription_template_id:
+                                raise ValidationError(_(
+                                    "Please select Subscription Template on {}"
+                                ).format(line.product_id.name))
+                            values = line.order_id.with_context(co_op_partner=co_op_partner.partner_id.id)._prepare_subscription_data(
+                                line.product_id.subscription_template_id)
+                            values['recurring_invoice_line_ids'] = line.with_context(ratio=co_op_partner.ratio)._prepare_subscription_line_data()
+                            subscription = sale_subscription_obj.create(values)
+                            res.append(subscription.id)
+                            subscription.message_post_with_view(
+                                'mail.message_origin_link',
+                                values={'self': subscription, 'origin': line.order_id},
+                                subtype_id=self.env.ref('mail.mt_note').id,
+                                author_id=self.env.user.partner_id.id
+                            )
+                            line.subscription_id = subscription.id
+                            clx_sub_list = line.clx_subscription_ids.ids
+                            clx_sub_list.append(subscription.id)
+                            line.clx_subscription_ids = clx_sub_list
         return res
 
 
@@ -108,6 +145,12 @@ class SaleOrderLine(models.Model):
         inherited method to set start date and end_date on subscription line
         """
         res = super(SaleOrderLine, self)._prepare_subscription_line_data()
+        if self.order_id.is_ratio:
+            ratio = self._context.get('ratio')
+            price_unit = (self.price_unit * ratio) / 100
+            res[0][-1].update({
+                'price_unit': price_unit
+            })
         res[0][-1].update({
             'start_date': self.start_date,
             'end_date': self.end_date,

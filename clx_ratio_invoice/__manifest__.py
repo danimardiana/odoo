@@ -8,15 +8,17 @@
     'summary': 'Ration Invoice Creation',
     'author': 'CLx Media',
     'website': 'https://conversionlogix.com/',
-    'version': '13.1.0.0.1',
+    'version': '13.1.0.0.2',
     'sequence': 1,
     'license': 'AGPL-3',
     'description': """Create invoice based on ratio.""",
     'depends': [
-                'sale'
+                'sale',
+                'clx_invoice_policy'
     ],
     'data': [
             'security/ir.model.access.csv',
+            'data/res_partner_data.xml',
             'views/sale_order_views.xml'
 
     ],
