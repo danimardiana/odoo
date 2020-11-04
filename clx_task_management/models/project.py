@@ -58,7 +58,7 @@ class ProjectTask(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update')],
                                 string='Request Type')
     sub_task_id = fields.Many2one('sub.task', string="Sub Task from Master Table")
-    team_id = fields.Many2one('clx.team', string='Team')
+    team_ids = fields.Many2many('clx.team', string='Team')
     team_members_ids = fields.Many2many('res.users', string="Team Members")
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
     clx_sale_order_line_id = fields.Many2one('sale.order.line', string="Sale order Item")

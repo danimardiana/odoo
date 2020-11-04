@@ -560,6 +560,11 @@
 ## 11/03/2020
 #### Version 13.1.1.0.7
 - [ADD] clx_subscription_creation : added code for create subscriptions based on added ratio partner on sale order.
+
+## 11/03/2020
+#### Version 13.3.0.0.40
+- [MOD] clx_task_management : given selection to select multiple team on main task and subtask as well changes on project task.
+- [MOD] Menu changes for the projects app.
  
 
  

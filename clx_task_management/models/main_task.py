@@ -9,7 +9,7 @@ class MainTask(models.Model):
     _description = 'Main Task'
 
     name = fields.Char(string='name')
-    team_id = fields.Many2one('clx.team', string='Team')
+    team_ids = fields.Many2many('clx.team', string='Team')
     team_members_ids = fields.Many2many('res.users', string='Team Members')
     display_to_customer = fields.Boolean(string='Display To Customer')
     sub_task_count = fields.Integer(string="", compute='_compute_sub_task_count')
