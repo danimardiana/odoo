@@ -7,33 +7,33 @@
                 client.
             </field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
-            <field name="team_id" ref="clx_task_management.clx_sales_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_sales_team'))]"></field>
         </record>
         <record id="clx_client_launch_sub_task_2" model="sub.task">
             <field name="sub_task_name">Verify Signal is present on the client's website.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
             <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
-            <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_cs_team'))]"></field>
         </record>
 
         <record id="clx_client_launch_sub_task_3" model="sub.task">
             <field name="sub_task_name">Verify Google Analytics access (edit or higher) has been provided.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
             <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
-            <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_cs_team'))]"></field>
         </record>
 
         <record id="clx_client_launch_sub_task_4" model="sub.task">
             <field name="sub_task_name">Verify GMB access has been provided.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
             <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
-            <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_cs_team'))]"></field>
         </record>
         <record id="clx_client_launch_sub_task_5" model="sub.task">
             <field name="sub_task_name">Request admin access to the client's Facebook page.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
             <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_1'))]"/>
-            <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_cs_team'))]"></field>
         </record>
         <record id="clx_client_launch_sub_task_6" model="sub.task">
             <field name="sub_task_name">Verify admin access to the client's Facebook page has been provided.</field>
@@ -43,32 +43,32 @@
         <record id="clx_client_launch_sub_task_7" model="sub.task">
             <field name="sub_task_name">Generate invoice and issue to the client.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
-            <field name="team_id" ref="clx_task_management.clx_accounting_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_accounting_team'))]"></field>
         </record>
         <record id="clx_client_launch_sub_task_8" model="sub.task">
             <field name="sub_task_name">Verify payment received.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
             <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_7'))]"/>
-            <field name="team_id" ref="clx_task_management.clx_accounting_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_accounting_team'))]"></field>
         </record>
         <record id="clx_client_launch_sub_task_9" model="sub.task">
             <field name="sub_task_name">Create client profile and user login in TapClicks andsetup automated reports in
                 an inactive state.
             </field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
-            <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_cs_team'))]"></field>
         </record>
         <record id="clx_client_launch_sub_task_10" model="sub.task">
             <field name="sub_task_name">Activate automated reports after campaign has launched.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
             <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_9'))]"/>
-            <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_cs_team'))]"></field>
         </record>
         <record id="clx_client_launch_sub_task_11" model="sub.task">
             <field name="sub_task_name">Issue campaign launch confirmation.</field>
             <field name="parent_id" ref="clx_task_management.clx_client_launch_task"/>
             <field name="dependency_ids" eval="[(4, ref('clx_task_management.clx_client_launch_sub_task_9'))]"/>
-            <field name="team_id" ref="clx_task_management.clx_cs_team"></field>
+            <field name="team_ids" eval="[(4, ref('clx_task_management.clx_cs_team'))]"></field>
         </record>
     </data>
 </odoo>

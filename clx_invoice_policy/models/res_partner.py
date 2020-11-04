@@ -96,6 +96,19 @@ class Partner(models.Model):
                                 sol.line_type != 'base'
                         )
         )
+        if self._context.get('from_generate_invoice') and not so_lines:
+            so_lines = lines.filtered(
+                lambda sol: (sol.invoice_start_date and
+                             sol.invoice_end_date and
+                             sol.invoice_start_date >= today and
+                             sol.invoice_end_date >= today
+                             ) or (
+                                    sol.end_date and sol.end_date < today and not sol.last_invoiced and
+                                    sol.line_type != 'base'
+                            )
+            )
+        if self._context.get('generate_invoice_date_range'):
+            so_lines = lines
         if not so_lines:
             if self._context.get('from_generate_invoice'):
                 raise UserError(_("You must have a sales order to create an invoice"))
@@ -135,6 +148,15 @@ class Partner(models.Model):
             prepared_lines = [line.with_context({
                 'advance': True,
                 'cofirm_sale': True
+            })._prepare_invoice_line() for line in so_lines]
+        elif self._context.get('generate_invoice_date_range'):
+            start_date = self._context.get('start_date')
+            end_date = self._context.get('end_date')
+            prepared_lines = [line.with_context({
+                'advance': True,
+                'start_date': start_date,
+                'end_date': end_date,
+                'generate_invoice_date_range': True
             })._prepare_invoice_line() for line in so_lines]
         else:
             prepared_lines = [line.with_context({
@@ -204,7 +226,7 @@ class Partner(models.Model):
                 'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
                 'invoice_user_id': order.user_id.id,
                 'narration': order.note,
-                'partner_id': order.partner_invoice_id.id,
+                'partner_id': self._context.get('co_op_invoice_partner') if self._context.get('co_op_invoice_partner') else order.partner_invoice_id.id,
                 'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
                 'partner_shipping_id': order.partner_shipping_id.id,
                 'currency_id': order.pricelist_id.currency_id.id,
@@ -234,7 +256,7 @@ class Partner(models.Model):
                 'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
                 'invoice_user_id': order.user_id.id,
                 'narration': order.note,
-                'partner_id': order.partner_invoice_id.id,
+                'partner_id': self._context.get('co_op_invoice_partner') if self._context.get('co_op_invoice_partner') else order.partner_invoice_id.id,
                 'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
                 'partner_shipping_id': order.partner_shipping_id.id,
                 'currency_id': order.pricelist_id.currency_id.id,

@@ -6,7 +6,6 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-
                     <group>
                         <field name="sub_task_ids" readonly="1">
                             <tree>
@@ -14,7 +13,7 @@
                                 <field name="sub_task_name"/>
                                 <field name="dependency_ids" widget="many2many_tags"/>
                                 <field name="parent_id"/>
-                                <field name="team_id"/>
+                                <field name="team_ids" widget="many2many_tags"/>
                             </tree>
                         </field>
                     </group>

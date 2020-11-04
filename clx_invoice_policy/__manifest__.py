@@ -4,7 +4,7 @@
 
 {
     'name': 'CLX Invoice Policy ',
-    'version': '13.1.0.0.19',
+    'version': '13.1.0.0.23',
     'summary': 'CLX Invoice Policy',
     'sequence': 1,
     'description': """CLX Invoice Policy""",
@@ -23,7 +23,7 @@
         'views/res_partner_views.xml',
         'views/sale_order_views.xml',
         'views/account_move_views.xml',
-        # 'wizard/generate_invoice_date_range_views.xml'
+        'wizard/generate_invoice_date_range_views.xml'
     ],
     'installable': True,
     'application': True,

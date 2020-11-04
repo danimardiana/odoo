@@ -5,7 +5,8 @@
 from calendar import monthrange
 from datetime import date
 from dateutil.relativedelta import relativedelta
-
+from collections import OrderedDict
+from datetime import timedelta
 from odoo import fields, models, _
 
 
@@ -92,7 +93,9 @@ class SaleSubscriptionLine(models.Model):
         :param start: Start date of interval
         :return: Total number of months
         """
-        return (end.year - start.year) * 12 + end.month - start.month
+
+        return len(OrderedDict(((start + timedelta(_)).strftime("%B-%Y"), 0) for _ in range((end - start).days)))
+        # return (end.year - start.year) * 12 + end.month - start.month
 
     def _format_period_msg(self, date_start, date_end, line, inv_start=False, inv_end=False):
         """
@@ -141,7 +144,7 @@ class SaleSubscriptionLine(models.Model):
             'product_id': self.product_id.id,
             'category_id': self.product_id.categ_id.id,
             'product_uom_id': line.product_uom.id,
-            'quantity': line.qty_to_invoice,
+            'quantity': 1,
             'discount': self.discount,
             'price_unit': self.price_unit * (
                 2 if self.line_type == 'upsell' and
@@ -185,21 +188,21 @@ class SaleSubscriptionLine(models.Model):
                     day=monthrange(date_end.year, date_end.month)[1])
             if self.invoice_end_date and self.invoice_start_date:
                 product_qty = self.get_date_month(
-                    self.invoice_end_date, self.invoice_start_date) + self.start_in_next()
+                    self.invoice_end_date, self.invoice_start_date)
             period_msg = self._format_period_msg(
                 date_start, date_end, line,
-                date_start, self.invoice_end_date)
+                self.invoice_start_date, self.invoice_end_date)
             vals = {
                 'last_invoiced': today,
                 'invoice_start_date': False,
                 'invoice_end_date': False,
             }
-            expire_date = (date_end + relativedelta(
+            expire_date = (self.invoice_end_date + relativedelta(
                 months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
-            if self.end_date and self.end_date > date_end:
+            # if self.end_date and self.end_date > date_end:
+            if not self.end_date:
                 vals.update({
-                    'invoice_start_date': (
-                            date_end + relativedelta(months=1)).replace(day=1),
+                    'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(day=1),
                     'invoice_end_date': expire_date
                 })
             self.write(vals)
@@ -241,7 +244,7 @@ class SaleSubscriptionLine(models.Model):
                 })
             if self._context.get('cofirm_sale'):
                 start_date = line.start_date
-                end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=1, days=-1)
+                end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=1, days=-1) if not line.end_date else line.end_date
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
@@ -249,7 +252,7 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(start_date), {}),
                     format_date(fields.Date.to_string(end_date), {}))
                 r = end_date - start_date
-                if r.days >= 30 or r.days >= 31:
+                if r.days + 1 in (30, 31):
                     return res
                 if r.days < 30 or r.days < 31:
                     per_day_price = line.price_unit / end_date.day
@@ -262,5 +265,34 @@ class SaleSubscriptionLine(models.Model):
                         'wholesale': new_price - new_management_price,
                         'name': new_period_msg
                     })
-
+            if self._context.get('generate_invoice_date_range'):
+                start_date = self._context.get('start_date')
+                end_date = self._context.get('end_date')
+                lang = line.order_id.partner_invoice_id.lang
+                format_date = self.env['ir.qweb.field.date'].with_context(
+                    lang=lang).value_to_html
+                new_period_msg = _("Invoicing period: %s - %s") % (
+                    format_date(fields.Date.to_string(start_date), {}),
+                    format_date(fields.Date.to_string(end_date), {}))
+                if self.end_date:
+                    end_date = self.end_date
+                a = len(
+                    OrderedDict(((start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                range((end_date - start_date).days)))
+                res.update({
+                    'price_unit': self.price_unit * a,
+                    'name': new_period_msg
+                })
+                vals = {
+                    'last_invoiced': today,
+                    'invoice_start_date': False,
+                    'invoice_end_date': False,
+                }
+                expire_date = (end_date + relativedelta(
+                    months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
+                vals.update({
+                    'invoice_start_date': (end_date + relativedelta(months=1)).replace(day=1),
+                    'invoice_end_date': expire_date
+                })
+                self.write(vals)
         return res

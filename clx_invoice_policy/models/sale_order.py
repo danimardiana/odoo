@@ -23,12 +23,15 @@ class SaleOrder(models.Model):
         :return:
         """
         res = super(SaleOrder, self)._action_confirm()
+        if self.is_ratio:
+            return res
         lines = self.env['sale.subscription.line'].search([
             ('so_line_id', 'in', self.order_line.ids),
         ])
-        today = fields.Date.today()
-        so_lines = lines.filtered(
-            lambda sol: sol.start_date.month == today.month)
+        current_month_start_day = fields.Date.today().replace(day=1)
+        end_date = current_month_start_day + relativedelta(months=self.clx_invoice_policy_id.num_of_month + 1)
+        end_date = end_date - relativedelta(days=1)
+        so_lines = lines.filtered(lambda x: x.start_date and x.start_date < end_date)
         if lines:
             if self.partner_id.child_invoice_selection:
                 if self.partner_id.child_invoice_selection == 'sol':
@@ -40,7 +43,6 @@ class SaleOrder(models.Model):
                     self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
                 else:
                     self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
-
         return res
 
     @api.onchange('partner_id')

@@ -533,6 +533,40 @@
 #### Version 13.1.0.0.19
 - [FIX] clx_invoice_policy : Fix the issue per day calculation when days difference less than month.
 
+## 10/29/2020
+#### Version 13.1.0.0.20
+- [FIX] clx_invoice_policy : changed in the flow for set invoice start date and invoice end date on subscription line.
+
+## 10/30/2020
+#### Version 13.1.0.0.21
+- [ADD] clx_invoice_policy : added new features for create invoice with data range manually.
+
+## 11/02/2020
+#### Version 13.1.0.0.22
+- [FIX] clx_invoice_policy : Fix the issue related to change year when invoice is created in next period. it was set 2020 year it should set 2021 year.
+
+## 11/02/2020
+#### Version 13.1.0.0.1
+- [Add] clx_ratio_invoice : added module for co-op.
+
+## 11/03/2020
+#### Version 13.1.0.0.23
+- [MOD] clx_invoice_policy : changes for invoice creation flow when sale oreder co-op configuration is checked.
+
+## 11/03/2020
+#### Version 13.1.0.0.2
+- [Add] clx_ratio_invoice : added smart button and written method for create invoice based on partner ratio.
+
+## 11/03/2020
+#### Version 13.1.1.0.7
+- [ADD] clx_subscription_creation : added code for create subscriptions based on added ratio partner on sale order.
+
+## 11/03/2020
+#### Version 13.3.0.0.40
+- [MOD] clx_task_management : given selection to select multiple team on main task and subtask as well changes on project task.
+- [MOD] Menu changes for the projects app.
+ 
+
  
 
   

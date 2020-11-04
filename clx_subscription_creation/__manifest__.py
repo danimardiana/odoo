@@ -4,7 +4,7 @@
 
 {
     'name': 'Subscription Creation',
-    'version': '13.1.1.0.6',
+    'version': '13.1.1.0.7',
     'sequence': 1,
     'description': """ Subscription Creation
      - Subscription is created From sale order line
@@ -15,7 +15,9 @@
     'website': 'https://conversionlogix.com/',
     'category': 'subscription',
     'depends': [
-        'clx_budget_management'
+        'clx_budget_management',
+        'clx_retail_pricelist'
+
     ],
     'data': [
         'views/sale_order_views.xml',

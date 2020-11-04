@@ -73,7 +73,7 @@ class RequestForm(models.Model):
                     'stage_id': stage_id.id,
                     'repositary_task_id': client_launch_task.id,
                     'req_type': client_launch_task.req_type,
-                    'team_id': client_launch_task.team_id.id,
+                    'team_ids': client_launch_task.team_ids.ids,
                     'team_members_ids': client_launch_task.team_members_ids.ids
                 }
                 main_task = project_task_obj.create(vals)
@@ -87,7 +87,7 @@ class RequestForm(models.Model):
                             'project_id': project_id.id,
                             'stage_id': stage_id.id,
                             'sub_repositary_task_ids': sub_task.dependency_ids.ids,
-                            'team_id': sub_task.team_id.id,
+                            'team_ids': sub_task.team_ids.ids,
                             'team_members_ids': sub_task.team_members_ids.ids,
                             'parent_id': main_task.id,
                             'sub_task_id': sub_task.id
@@ -126,8 +126,8 @@ class RequestForm(models.Model):
         """
         Prepared vals for sub task
         :param sub_task: browsable object of the sub.task
-        :param main_task: brwosable object of the main.task
-        :param line: brwosable object of the request.line
+        :param main_task: browsable object of the main.task
+        :param line: browsable object of the request.line
         :return: dictionary for the sub task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
@@ -152,9 +152,10 @@ class RequestForm(models.Model):
                 'sub_repositary_task_ids': sub_task.dependency_ids.ids,
                 'parent_id': main_task.id,
                 'sub_task_id': sub_task.id,
-                'team_id': sub_task.team_id.id,
+                'team_ids': sub_task.team_ids.ids,
                 'team_members_ids': sub_task.team_members_ids.ids,
-                'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date
+                'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
+                'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False
             }
             return vals
 
@@ -186,7 +187,7 @@ class RequestForm(models.Model):
             'stage_id': stage_id.id,
             'repositary_task_id': line.task_id.id,
             'req_type': line.task_id.req_type,
-            'team_id': line.task_id.team_id.id,
+            'team_ids': line.task_id.team_ids.ids,
             'team_members_ids': line.task_id.team_members_ids.ids,
             'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
             'requirements': line.requirements,
@@ -204,8 +205,8 @@ class RequestForm(models.Model):
             'partner_id': partner_id.id,
             'name': description,
             'clx_state': 'in_progress',
-            'clx_sale_order_ids': self.sale_order_id.ids,
-            'user_id': self.sale_order_id[0].user_id.id
+            'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
+            'user_id': self.sale_order_id[0].user_id.id if self.sale_order_id else False
         }
         return vals
 
@@ -269,6 +270,21 @@ class RequestForm(models.Model):
                 })
                 list_product.append(line_id.id)
         self.request_line = [(6, 0, list_product)]
+
+    @api.onchange('is_create_client_launch')
+    def _onchange_is_create_client_launch(self):
+        client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
+        req_form_line = self.env['request.form.line']
+        if self.is_create_client_launch:
+            client_launch_task.active = True
+            vals = {
+                'req_type': client_launch_task.req_type,
+                'task_id': client_launch_task.id,
+                'requirements': client_launch_task.requirements,
+            }
+            form_line_id = req_form_line.create(vals)
+            if form_line_id:
+                self.request_line = [(6,0,form_line_id.id)]
 
 
 class RequestFormLine(models.Model):

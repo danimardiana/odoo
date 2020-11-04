@@ -11,7 +11,7 @@ class SubTask(models.Model):
 
     name = fields.Char(string='name')
     sub_task_name = fields.Char(string='Sub Task Name')
-    team_id = fields.Many2one('clx.team', string='Team')
+    team_ids = fields.Many2many('clx.team', string='Team')
     parent_id = fields.Many2one('main.task', string='Parent Task', ondelete='cascade')
     team_members_ids = fields.Many2many('res.users', string='Team Members')
     display_to_customer = fields.Boolean(string='Display To Customer')
@@ -20,6 +20,20 @@ class SubTask(models.Model):
     sequence = fields.Integer()
     stage_id = fields.Many2one('project.task.type', string='Stage')
     task_id = fields.Many2one('project.task', string="Task")
+    tag_ids = fields.Many2many('project.tags', string="Tags")
+
+    def redirect_task(self):
+        if self.task_id:
+            view_id = self.env.ref('project.view_task_form2').id
+
+            return {
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'project.task',
+                'target': 'self',
+                'res_id': self.task_id.id,
+                'views': [[view_id, 'form']],
+            }
 
     @api.model
     def create(self, vals):

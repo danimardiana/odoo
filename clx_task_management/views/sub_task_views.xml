@@ -9,7 +9,7 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="open_parent_task" type="object" string="Parent Task"
-                                class="oe_stat_button">
+                                icon="fa-tasks" class="oe_stat_button">
                         </button>
                     </div>
                     <div class="oe_title">
@@ -22,10 +22,11 @@
                             <field name="sub_task_name"/>
                             <field name="dependency_ids" widget="many2many_tags"/>
                             <field name="parent_id"/>
-                            <field name="team_id"/>
+                            <field name="team_ids" widget="many2many_tags"/>
                             <field name="sequence"/>
                         </group>
                         <group>
+                            <field name="tag_ids" widget="many2many_tags"/>
                             <field name="team_members_ids" widget="many2many_tags"/>
                             <field name="display_to_customer"/>
                         </group>
@@ -42,7 +43,6 @@
                 <field name="name"/>
                 <field name="sub_task_name"/>
                 <group expand='0' string='Group by...'>
-                    <filter string='Team' name="team_id" context="{'group_by': 'team_id'}"/>
                     <filter string='Parent Task' name="parent_id" context="{'group_by': 'parent_id'}"/>
                 </group>
             </search>
@@ -59,7 +59,7 @@
                 <field name="sub_task_name"/>
                 <field name="parent_id"/>
                 <field name="dependency_ids" widget="many2many_tags"/>
-                <field name="team_id"/>
+                <field name="team_ids" widget="many2many_tags"/>
                 <field name="team_members_ids" widget="many2many_tags"/>
                 <field name="display_to_customer"/>
             </tree>
