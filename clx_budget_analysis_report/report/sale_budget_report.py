@@ -134,7 +134,7 @@ class SaleBudgetReport(models.Model):
                     'partner_id': subscription_line.so_line_id.order_id.partner_id.id,
                     'wholesale_price': subscription_line.so_line_id.wholesale_price,
                     'base_price': subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
-                        lambda x: x.line_type == 'base').price_unit,
+                        lambda x: x.line_type == 'base')[0].price_unit,
                 }
                 if subscription_line.line_type == 'upsell':
                     vals.update({
