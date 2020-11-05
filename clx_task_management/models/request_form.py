@@ -74,7 +74,8 @@ class RequestForm(models.Model):
                     'repositary_task_id': client_launch_task.id,
                     'req_type': client_launch_task.req_type,
                     'team_ids': client_launch_task.team_ids.ids,
-                    'team_members_ids': client_launch_task.team_members_ids.ids
+                    'team_members_ids': client_launch_task.team_members_ids.ids,
+                    'tag_ids': client_launch_task.tag_ids.ids if client_launch_task.tag_ids else False
                 }
                 main_task = project_task_obj.create(vals)
                 sub_tasks = self.env['sub.task'].search([('parent_id', '=', client_launch_task.id),
@@ -82,7 +83,6 @@ class RequestForm(models.Model):
                 if sub_tasks:
                     for sub_task in sub_tasks:
                         sub_task_vals = {
-
                             'name': sub_task.sub_task_name,
                             'project_id': project_id.id,
                             'stage_id': stage_id.id,
@@ -90,7 +90,8 @@ class RequestForm(models.Model):
                             'team_ids': sub_task.team_ids.ids,
                             'team_members_ids': sub_task.team_members_ids.ids,
                             'parent_id': main_task.id,
-                            'sub_task_id': sub_task.id
+                            'sub_task_id': sub_task.id,
+                            'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False
                         }
                         project_task_obj.create(sub_task_vals)
 
@@ -191,6 +192,7 @@ class RequestForm(models.Model):
             'team_members_ids': line.task_id.team_members_ids.ids,
             'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
             'requirements': line.requirements,
+            'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False
         }
         return vals
 
@@ -284,7 +286,7 @@ class RequestForm(models.Model):
             }
             form_line_id = req_form_line.create(vals)
             if form_line_id:
-                self.request_line = [(6,0,form_line_id.id)]
+                self.request_line = [(6, 0, form_line_id.id)]
 
 
 class RequestFormLine(models.Model):

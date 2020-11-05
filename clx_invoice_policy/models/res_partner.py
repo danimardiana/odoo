@@ -226,7 +226,8 @@ class Partner(models.Model):
                 'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
                 'invoice_user_id': order.user_id.id,
                 'narration': order.note,
-                'partner_id': self._context.get('co_op_invoice_partner') if self._context.get('co_op_invoice_partner') else order.partner_invoice_id.id,
+                'partner_id': self._context.get('co_op_invoice_partner') if self._context.get(
+                    'co_op_invoice_partner') else order.partner_invoice_id.id,
                 'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
                 'partner_shipping_id': order.partner_shipping_id.id,
                 'currency_id': order.pricelist_id.currency_id.id,
@@ -256,7 +257,8 @@ class Partner(models.Model):
                 'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
                 'invoice_user_id': order.user_id.id,
                 'narration': order.note,
-                'partner_id': self._context.get('co_op_invoice_partner') if self._context.get('co_op_invoice_partner') else order.partner_invoice_id.id,
+                'partner_id': self._context.get('co_op_invoice_partner') if self._context.get(
+                    'co_op_invoice_partner') else order.partner_invoice_id.id,
                 'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
                 'partner_shipping_id': order.partner_shipping_id.id,
                 'currency_id': order.pricelist_id.currency_id.id,
@@ -320,7 +322,8 @@ class Partner(models.Model):
                 so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
             'invoice_user_id': order.user_id.id,
             'narration': order.note,
-            'partner_id': order.partner_invoice_id.id,
+            'partner_id': self._context.get('co_op_invoice_partner', False) if self._context.get(
+                'co_op_invoice_partner', False) else order.partner_invoice_id.id,
             'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
             'partner_shipping_id': order.partner_shipping_id.id,
             'currency_id': order.pricelist_id.currency_id.id,
