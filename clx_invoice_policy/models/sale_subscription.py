@@ -197,12 +197,14 @@ class SaleSubscriptionLine(models.Model):
                 'invoice_start_date': False,
                 'invoice_end_date': False,
             }
-            expire_date = (self.invoice_end_date + relativedelta(
-                months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
+            expire_date = False
+            if self.invoice_end_date:
+                expire_date = (self.invoice_end_date + relativedelta(
+                    months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
             # if self.end_date and self.end_date > date_end:
             if not self.end_date:
                 vals.update({
-                    'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(day=1),
+                    'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(day=1) if self.invoice_end_date else False,
                     'invoice_end_date': expire_date
                 })
             self.write(vals)
@@ -276,11 +278,11 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(end_date), {}))
                 if self.end_date:
                     end_date = self.end_date
-                a = len(
+                month_diff = len(
                     OrderedDict(((start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                 range((end_date - start_date).days)))
                 res.update({
-                    'price_unit': self.price_unit * a,
+                    'price_unit': self.price_unit * month_diff,
                     'name': new_period_msg
                 })
                 vals = {

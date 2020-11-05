@@ -68,9 +68,11 @@ class SaleOrder(models.Model):
                                 raise ValidationError(_(
                                     "Please select Subscription Template on {}"
                                 ).format(line.product_id.name))
-                            values = line.order_id.with_context(co_op_partner=co_op_partner.partner_id.id)._prepare_subscription_data(
+                            values = line.order_id.with_context(
+                                co_op_partner=co_op_partner.partner_id.id)._prepare_subscription_data(
                                 line.product_id.subscription_template_id)
-                            values['recurring_invoice_line_ids'] = line.with_context(ratio=co_op_partner.ratio)._prepare_subscription_line_data()
+                            values['recurring_invoice_line_ids'] = line.with_context(
+                                ratio=co_op_partner.ratio)._prepare_subscription_line_data()
                             subscription = sale_subscription_obj.create(values)
                             res.append(subscription.id)
                             subscription.message_post_with_view(
@@ -106,9 +108,20 @@ class SaleOrderLine(models.Model):
         res = super(SaleOrderLine, self).write(values)
         budget_obj = self.env['sale.budget.line']
         if values.get('end_date', False):
+            end_date = values.get('end_date')
             subscription_lines = self.env['sale.subscription.line'].search([('so_line_id', '=', self.id)])
             if subscription_lines:
                 [sub_line.write({'end_date': values.get('end_date')}) for sub_line in subscription_lines]
+                for line in subscription_lines:
+                    if line.invoice_start_date > self.end_date:
+                        line.write({
+                            'invoice_start_date': False,
+                            'invoice_end_date': False
+                        })
+                    elif line.invoice_start_date < self.end_date and line.invoice_end_date > self.end_date:
+                        line.write({
+                            'invoice_end_date': self.end_date
+                        })
             budget_lines = budget_obj.search([('sol_id', '=', self.id)])
             if budget_lines:
                 [budget_line.write({'end_date': values.get('end_date')}) for budget_line in budget_lines]

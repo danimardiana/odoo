@@ -22,6 +22,7 @@
                         <group>
                             <field name="team_ids" widget="many2many_tags"/>
                             <field name="team_members_ids" widget="many2many_tags"/>
+                            <field name="tag_ids" widget="many2many_tags"/>
                             <field name="display_to_customer"/>
                             <field name="req_type"/>
                             <field name="requirements"/>
@@ -59,7 +60,9 @@
                 <field name="name"/>
                 <field name="team_ids" widget="many2many_tags"/>
                 <field name="team_members_ids" widget="many2many_tags"/>
+                <field name="tag_ids" widget="many2many_tags"/>
                 <field name="display_to_customer"/>
+                <field name="category_id"/>
             </tree>
         </field>
     </record>

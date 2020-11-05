@@ -20,12 +20,11 @@ class SubTask(models.Model):
     sequence = fields.Integer()
     stage_id = fields.Many2one('project.task.type', string='Stage')
     task_id = fields.Many2one('project.task', string="Task")
-    tag_ids = fields.Many2many('project.tags', string="Tags")
+    tag_ids = fields.Many2many(related='parent_id.tag_ids', string="Tags", readonly=False)
 
     def redirect_task(self):
         if self.task_id:
             view_id = self.env.ref('project.view_task_form2').id
-
             return {
                 'type': 'ir.actions.act_window',
                 'view_mode': 'form',

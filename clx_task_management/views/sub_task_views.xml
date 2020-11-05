@@ -61,6 +61,7 @@
                 <field name="dependency_ids" widget="many2many_tags"/>
                 <field name="team_ids" widget="many2many_tags"/>
                 <field name="team_members_ids" widget="many2many_tags"/>
+                <field name="tag_ids" widget="many2many_tags"/>
                 <field name="display_to_customer"/>
             </tree>
         </field>

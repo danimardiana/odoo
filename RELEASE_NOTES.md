@@ -565,11 +565,22 @@
 #### Version 13.3.0.0.40
 - [MOD] clx_task_management : given selection to select multiple team on main task and subtask as well changes on project task.
 - [MOD] Menu changes for the projects app.
- 
 
- 
+## 11/04/2020
+#### Version 13.3.0.0.41
+- [MOD] clx_task_management : added tag ids field on main task and set that tags into subtask.
 
-  
+## 11/04/2020
+#### Version 13.1.1.0.8
+- [ADD] clx_subscription_creation : update invoice start date and end date when user add end date on sale order line.
+
+## 11/04/2020
+#### Version 13.1.0.0.3
+- [ADD] clx_ratio_invoice : added code for calculated all subscription when the sale order is ratio type also according to that return view.
+
+## 11/04/2020
+#### Version 13.1.0.0.24
+- [ADD] clx_invoice_policy : added features for create arreas invoice for co-op sale order. 
  
 
 
