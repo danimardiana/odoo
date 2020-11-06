@@ -593,7 +593,7 @@
 - [ADD] contact_modification : set default US country while creating a contacts.
 
 ## 11/06/2020
-#### Version 13.0.2.0.1ss
+#### Version 13.0.2.0.1
 - [ADD] mail_debrand : added module for mail debranding.
 
 
