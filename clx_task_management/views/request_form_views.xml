@@ -61,7 +61,8 @@
                                             <field name="sale_line_id" readonly="1"/>
                                             <field name="category_id" invisible="1"/>
                                             <field name="req_type"/>
-                                            <field name="task_id" domain="[('req_type', '=', req_type),('category_id','=',category_id)]"/>
+                                            <field name="task_id"
+                                                   domain="[('req_type', '=', req_type),('category_id','=',category_id)]"/>
                                             <field name="requirements" widget="text"/>
                                         </group>
                                         <group>
@@ -80,12 +81,15 @@
                             </field>
                         </page>
                         <page string="Attachments">
-                            <field name="attachment_ids">
-                                <tree editable="bottom">
-                                    <field name="name"/>
-                                    <field name="attachment" widget="binary"/>
-                                </tree>
-                            </field>
+                            <group>
+                                <field name="clx_attachment_ids" widget="many2many_binary"/>
+                                <field name="attachment_ids" invisible="1">
+                                    <tree editable="bottom">
+                                        <field name="name"/>
+                                        <field name="attachment" widget="binary"/>
+                                    </tree>
+                                </field>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>

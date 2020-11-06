@@ -27,6 +27,9 @@ class RequestForm(models.Model):
     intended_launch_date = fields.Date(string='Intended Launch Date')
     attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
     sale_order_id = fields.Many2many('sale.order', string="Sale Order")
+    clx_attachment_ids = fields.Many2many(
+        "ir.attachment", 'att_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
+    )
 
     def open_active_subscription_line(self):
         """
@@ -206,7 +209,7 @@ class RequestForm(models.Model):
         vals = {
             'partner_id': partner_id.id,
             'name': description,
-            'clx_state': 'in_progress',
+            'clx_state': 'new',
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
             'user_id': self.sale_order_id[0].user_id.id if self.sale_order_id else False
         }
@@ -236,8 +239,8 @@ class RequestForm(models.Model):
                 if project_id:
                     project_id.req_form_id = self.id
                     self.assign_stage_project(project_id)
-                    if self.is_create_client_launch:
-                        self.create_client_launch_task(project_id)
+                    # if self.is_create_client_launch:
+                    #     self.create_client_launch_task(project_id)
                     for line in self.request_line:
                         if line.task_id:
                             vals = self.prepared_task_vals(line, project_id)
@@ -253,12 +256,15 @@ class RequestForm(models.Model):
                                     project_task_obj.create(vals)
         self.state = 'submitted'
 
-    @api.onchange('sale_order_id')
+    @api.onchange('sale_order_id', 'is_create_client_launch')
     def _onchange_sale_order_id(self):
+        self.request_line = False
         req_line_obj = self.env['request.form.line']
         today = fields.Date.today()
         order_lines = False
         list_product = []
+        if self.request_line:
+            list_product = self.request_line.ids
         if self.sale_order_id and self.sale_order_id.order_line:
             order_lines = self.sale_order_id.order_line.filtered(
                 lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
@@ -272,21 +278,17 @@ class RequestForm(models.Model):
                 })
                 list_product.append(line_id.id)
         self.request_line = [(6, 0, list_product)]
-
-    @api.onchange('is_create_client_launch')
-    def _onchange_is_create_client_launch(self):
-        client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
-        req_form_line = self.env['request.form.line']
         if self.is_create_client_launch:
+            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
             client_launch_task.active = True
             vals = {
                 'req_type': client_launch_task.req_type,
                 'task_id': client_launch_task.id,
                 'requirements': client_launch_task.requirements,
             }
-            form_line_id = req_form_line.create(vals)
-            if form_line_id:
-                self.request_line = [(6, 0, form_line_id.id)]
+            form_line_id = req_line_obj.create(vals)
+            list_product.append(form_line_id.id)
+            self.request_line = [(6, 0, list_product)]
 
 
 class RequestFormLine(models.Model):
