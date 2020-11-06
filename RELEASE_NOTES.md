@@ -581,7 +581,21 @@
 ## 11/04/2020
 #### Version 13.1.0.0.24
 - [ADD] clx_invoice_policy : added features for create arreas invoice for co-op sale order. 
- 
+
+## 11/06/2020
+#### Version 13.3.0.0.42
+- [ADD] clx_task_management : added ads link on all subtask and parent task.
+- [ADD] Added new state for the project manage the state based on project manager.
+- [FIX] Fix the issue related to onchange on request form.
+
+## 11/06/2020
+#### Version 13.1.1.0.17
+- [ADD] contact_modification : set default US country while creating a contacts.
+
+## 11/06/2020
+#### Version 13.0.2.0.1
+- [ADD] mail_debrand : added module for mail debranding.
+
 
 
 

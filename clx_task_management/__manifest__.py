@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Task Management',
-    'version': '13.3.0.0.41',
+    'version': '13.3.0.0.42',
     'summary': 'CLX Task Management',
     'sequence': 1,
     'description': """ CLX Task Management """,

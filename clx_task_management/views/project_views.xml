@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
 
+
+
+    <record id="view_project_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.project.tree</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="clx_state"/>
+            </xpath>
+
+        </field>
+    </record>
+
     <record id="view_project_kanban_inherit_clx_task_management" model="ir.ui.view">
         <field name="name">view_project_inherit_kanban</field>
         <field name="model">project.project</field>
@@ -126,6 +141,7 @@
                             <field name="sub_task_name" readonly="1"/>
                             <field name="team_ids" readonly="1" widget="many2many_tags"/>
                             <field name="team_members_ids" widget="many2many_tags" readonly="1"/>
+                            <field name="tag_ids" widget="many2many_tags"/>
                             <field name="stage_id" readonly="1"/>
                             <button string='Open' name="redirect_task"
                                     type="object"
@@ -178,6 +194,14 @@
                         <field name="cs_notes"/>
                         <field name="ops_notes"/>
                         <field name="cat_notes"/>
+                    </group>
+                </page>
+                <page name="ads_link" string="Ads Link">
+                    <group>
+                        <field name="project_ads_link_ids">
+                            <field name="product_id"/>
+                            <field name="link"/>
+                        </field>
                     </group>
                 </page>
             </xpath>

@@ -18,6 +18,14 @@ class ContactType(models.Model):
 class Partner(models.Model):
     _inherit = "res.partner"
 
+    @api.model
+    def default_get(self, fields):
+        result = super(Partner, self).default_get(fields)
+        country_id = self.env['res.country'].search([('code', '=', 'US')])
+        if country_id:
+            result.update({'country_id': country_id.id})
+        return result
+
     def _dafault_parent(self):
         return [(6, 0, self.parent_id.ids)]
 

@@ -15,7 +15,7 @@ class ProjectProject(models.Model):
     _inherit = 'project.project'
 
     req_form_id = fields.Many2one('request.form', string='Request Form')
-    clx_state = fields.Selection([('in_progress', 'In Progress'), ('done', 'Done')], string="State")
+    clx_state = fields.Selection([('new', 'NEW'), ('in_progress', 'In Progress'), ('done', 'Done')], string="State")
     clx_sale_order_ids = fields.Many2many('sale.order', string='Sale order')
     project_ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link", readonly=False)
     clx_project_manager_id = fields.Many2one('res.users', string="Project Manager")
@@ -25,6 +25,17 @@ class ProjectProject(models.Model):
     cs_notes = fields.Text(related='partner_id.cs_notes')
     ops_notes = fields.Text(related='partner_id.ops_notes')
     cat_notes = fields.Text(related='partner_id.cat_notes')
+
+    def write(self, vals):
+        res = super(ProjectProject, self).write(vals)
+        if vals.get('clx_project_manager_id', False):
+            print("_________________________")
+            cs_team = self.env['clx.team'].search([('team_name','=','CS')])
+            for task in self.task_ids:
+                if cs_team in task.team_ids:
+                    task.clx_task_manager_id = self.clx_project_manager_id.id
+            self.clx_state = 'in_progress'
+        return res
 
     def action_done_project(self):
         tasks = self.env['project.task'].search([('project_id', '=', self.id)])
@@ -81,6 +92,7 @@ class ProjectTask(models.Model):
     account_user_id = fields.Many2one(related='project_id.partner_id.account_user_id')
     website = fields.Char(related='project_id.partner_id.website')
     partner_id = fields.Many2one(related='project_id.partner_id', store=True)
+    project_ads_link_ids = fields.One2many(related='project_id.project_ads_link_ids', string="Ads Link", readonly=False)
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """
