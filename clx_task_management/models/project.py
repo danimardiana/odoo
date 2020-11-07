@@ -29,7 +29,7 @@ class ProjectProject(models.Model):
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
         if vals.get('clx_project_manager_id', False):
-            cs_team = self.env['clx.team'].search([('team_name','=','CS')])
+            cs_team = self.env['clx.team'].search([('team_name', '=', 'CS')])
             for task in self.task_ids:
                 if cs_team in task.team_ids:
                     task.clx_task_manager_id = self.clx_project_manager_id.id
