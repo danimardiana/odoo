@@ -29,7 +29,6 @@ class ProjectProject(models.Model):
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
         if vals.get('clx_project_manager_id', False):
-            print("_________________________")
             cs_team = self.env['clx.team'].search([('team_name','=','CS')])
             for task in self.task_ids:
                 if cs_team in task.team_ids:
@@ -110,7 +109,7 @@ class ProjectTask(models.Model):
                 'sub_repositary_task_ids': sub_task.dependency_ids.ids,
                 'parent_id': main_task.id,
                 'sub_task_id': sub_task.id,
-                'team_id': sub_task.team_id.id,
+                'team_ids': sub_task.team_ids.ids if sub_task.team_ids else False,
                 'team_members_ids': sub_task.team_members_ids.ids
             }
             return vals
@@ -188,7 +187,7 @@ class ProjectTask(models.Model):
                 'sub_repositary_task_ids': task.dependency_ids.ids,
                 'parent_id': sub_task.mapped('parent_id')[0].id,
                 'sub_task_id': task.id,
-                'team_id': task.team_id.id if task.team_id else False,
+                'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False
             }
             return vals
