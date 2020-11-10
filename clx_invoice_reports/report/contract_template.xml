@@ -3,110 +3,375 @@
 
     <template id="report_clx_contract_document">
         <t t-call="web.html_container">
-            <!--<t t-call="web.external_layout">
-            </t>-->
-            <img t-if="doc.company_id.logo" t-att-src="image_data_uri(doc.company_id.logo)"
-                 style="display: block;margin-left: auto;margin-right: auto;width: 40%;" alt="Logo"/>
-            <br/>
-            <br/>
-            <div t-field="doc.partner_id.name"
-                 style="display: block;margin-left: auto;margin-right: auto;width: 40%;"/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <div style="display: block;margin-left: auto;margin-right: auto;width: 40%;">
-                <span>Dedicated Account Representative Information:</span>
+            <t t-call="web.internal_layout">
+                <img alt="aaaa" src="/clx_invoice_reports/static/src/images/contract_template_img.png"
+                     style="display: block;margin-left: auto;margin-right: auto;width: 50%;"
+                     class="img img-responsive"/>
                 <br/>
-                <span>Name:</span>
-                <span t-field="doc.partner_id.account_user_id.name"/>
                 <br/>
-                <span>Email:</span>
-                <span t-field="doc.partner_id.account_user_id.email"/>
+                <div t-field="doc.partner_id.name"
+                     style="margin-left: 370px;color:#c02023;"/>
                 <br/>
-                <span>Phone:</span>
-                <span t-field="doc.partner_id.account_user_id.phone"/>
                 <br/>
-                <div name="financial_infos">
-                    <span t-field="doc.company_id.report_footer"/>
+                <br/>
+                <br/>
+                <br/>
+                <div>
+                    <span style="margin-left: 290px;color:#c02023">Dedicated Account Representative Information:</span>
+                    <br/>
+                    <span style="margin-left: 350px;color:#c02023">Name:</span>
+                    <span style="color:#c02023" t-field="doc.partner_id.account_user_id.name"/>
+                    <br/>
+                    <span style="margin-left: 350px;color:#c02023">Email:</span>
+                    <span style="color:#c02023" t-field="doc.partner_id.account_user_id.email"/>
+                    <br/>
+                    <span style="margin-left: 350px;color:#c02023">Phone:</span>
+                    <span style="color:#c02023" t-field="doc.partner_id.account_user_id.phone"/>
+                    <br/>
                 </div>
-            </div>
-            <p style="page-break-after: always;"/>
-            <div style="display: block;margin-left: auto;margin-right: auto;width: 40%;">
-                <span t-field="doc.partner_id.name"/>
-                <span>- Proposal of Services</span>
-            </div>
-            <hr/>
-            <table style="width: 100%;">
-                <t t-foreach="doc.order_line" t-as="line">
-                    <tbody>
-                        <tr>
-                            <td>
-                                <t t-esc="line.product_id.name"/>
-                            </td>
-                            <td></td>
-                            <td align="right">Monthly total :
-                                <t t-esc="line.price_unit"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td/>
-                            <td>aaaaaaaaaaaaaa</td>
-                            <td/>
-                        </tr>
-                    </tbody>
-                </t>
-            </table>
-            <span>First Month Spend :</span>
-            <br/>
-            <span>Recurring Monthly Spend :</span>
-            <p style="page-break-after: always;"/>
-            <span>Key Information :</span>
-            <table style="width: 100%;">
-                <tbody>
-                    <tr>
-                        <td>Community Name:</td>
-                        <td>Name of Community name</td>
-                    </tr>
-                    <tr>
-                        <td>Community address:</td>
-                        <td>Name of Community address</td>
-                    </tr>
-                    <tr>
-                        <td>Website:</td>
-                        <td>Website</td>
-                    </tr>
-                </tbody>
-            </table>
+                <p style="page-break-after: always;"/>
+                <p style="text-align:center;">
+                    <span t-field="doc.partner_id.name"/>
+                    <span>- Proposal of Services</span>
+                </p>
+                <hr/>
+                <table style="width: 100%;">
+                    <t t-foreach="doc.order_line" t-as="line">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <t t-esc="line.product_id.name"/>
+                                </td>
+                                <td/>
+                                <td align="right" style="border: 1px solid black;padding: 20px;">Monthly total :
+                                    <br/>
+                                    <t t-esc="line.price_unit"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td/>
+                                <td>aaaaaaaaaaaaaa</td>
+                                <td/>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <hr style="width:50%;text-align:left;margin-left:0"/>
+                                </td>
+                                <!--<td rowspan="2"><hr style="width:50%;text-align:left;margin-left:0"/></td>
+                                <td rowspan="2"><hr style="width:50%;text-align:left;margin-left:0"/></td>-->
+                            </tr>
+                        </tbody>
+                    </t>
+                </table>
+                <br/>
+                <br/>
+                <div style="border: 2px dotted">
+                    <span style="margin-left: 450px;">First Month Spend :
+                        <span t-field="doc.amount_total"/>
+                    </span>
+                </div>
+                <br/>
+                <br/>
+                <div style="border: 2px dotted">
+                    <span style="margin-left: 450px;">Recurring Monthly Spend :
+                        <span t-field="doc.amount_total"/>
+                    </span>
+                </div>
+                <p style="page-break-after: always;"/>
+                <p style="text-align:center;">Key Information</p>
+                <div style="border-style: dotted;">
+                    <table style="width: 100%;border: 1px solid #ddd;">
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom: 1px dashed red;">Community Name:</td>
+                                <td style="border-bottom: 1px dashed red;">Name of Community name</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px dashed red;">Community address:</td>
+                                <td style="border-bottom: 1px dashed red;">Name of Community address</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px dashed red;">Website:</td>
+                                <td style="border-bottom: 1px dashed red;">Website</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <br/>
+                <p style="text-align:center;">Length and Fees</p>
+                <div style="border-style: dotted;">
+                    <table style="width: 100%;border: 1px solid #ddd;">
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom: 1px dashed red;">Contract Length</td>
+                                <td style="border-bottom: 1px dashed red;">Contract Length</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px dashed red;">Intended Launch Date::</td>
+                                <td style="border-bottom: 1px dashed red;">Intended Launch Date:</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px dashed red;">Setup Fees:</td>
+                                <td style="border-bottom: 1px dashed red;">Fees</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <br/>
+                <p style="text-align:center;">Payment Details</p>
+                <div style="border-style: dotted;">
+                    <table style="width: 100%;border: 1px solid #ddd;">
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom: 1px dashed red;">Payment Method:</td>
+                                <td style="border-bottom: 1px dashed red;">Direct Bill</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p style="page-break-after: always;"/>
+                <p style="text-align:center;">MASTER SERVICES AGREEMENT:</p>
+                <br/>
+                <p>By signing Conversion Logix Insertion Order(s) that references this Master Services
+                    Agreement (together, the Insertion Order(s) and this Master Services Agreement are the
+                    “Agreement”), the entity identi ed on said Insertion Order
+                    <strong>
+                        <span t-field="doc.partner_id.name"/>
+                    </strong>
+                    and Conversion
+                    Logix, LLC (“Provider”) each signi es that it has read, understands, and agrees to be bound
+                    by the terms and conditions hereof. Provider and Customer may be referred to
+                    individually as a “Party” and collectively as the “Parties.” For good and valuable
+                    consideration, the receipt and su ciency of which are hereby acknowledged, the Parties
+                    agree to these terms and conditions through their undersigned authorized
+                    representatives.
+                </p>
+                <p>
+                    1. <strong>DEFINITIONS.</strong> Capitalized terms used herein shall have the meanings set forth in
+                    this
+                    Section 1.
+                </p>
+                <p>
+                    <strong>1.1. Aggregated Data</strong>
+                    means Personal Information and usage information that is
+                    anonymized and aggregated with similar data and information to the extent that the
+                    original Personal Information and usage information is no longer attributable to any
+                    specific individual.
+                </p>
+                <p>
+                    <strong>1.2. Authorized Persons</strong>
+                    means Provider’s employees, contractors, agents, and
+                    auditors who have a need to know or otherwise access Personal Information to enable
+                    Provider to perform its obligations under this Agreement, and who are bound by
+                    con dentiality and other obligations su cient to protect Personal Information in
+                    accordance with the terms and conditions of this Agreement.
+                </p>
+                <p>
+                    <strong>1.3. Personal Information</strong>
+                    means information that Customer provides or for which
+                    Customer provides access to Provider, or information which Provider creates or obtains
+                    on behalf of Customer, in accordance with this Agreement that: (i) directly or indirectly
+                    identi es an individual; or (ii) can be used to authenticate an individual.
+                </p>
+                <p>
+                    <strong>1.4. Data Breach</strong>
+                    means any act or omission that materially compromises the security,
+                    con dentiality, or integrity of Personal Information or the physical, technical,
+                    administrative, or organizational safeguards put in place by Provider, or by Customer
+                    should Provider have access to Customer’s systems, that relate to the protection of the
+                    security, con dentiality, or integrity of Personal Information, or (ii) receipt of a complaint
+                    in relation to the privacy and data security practices of Service Provider or a breach or
+                    alleged breach of this Agreement relating to such privacy and data security practices.
+                </p>
+                <p>
+                    <strong>1.5. Losses</strong>
+                    mean all losses, damages, liabilities, de ciencies, actions, judgments,
+                    interest, awards, penalties, nes, costs, or expenses of whatever kind, including
+                    reasonable attorneys’ fees and the cost of enforcing any right to indemni cation
+                    hereunder and the cost of pursuing any insurance providers.
+                </p>
+                <p style="page-break-after: always;"/>
+                <p>
+                    <strong>2.PERFORMANCE OF SERVICES.</strong>
+                </p>
+                <p>
+                    <strong>2.1. Services.</strong>
+                    Provider will provide services (“Services”) and works, materials, or other
+                    tangible or intangible property (“Deliverables”) to Customer in accordance with the terms
+                    and conditions of this Agreement and one or more insertion orders (each an “Insertion
+                    Order”) that may be agreed to and executed by the Parties, each of which will be made a
+                    part of this Agreement and each of which will contain the applicable rates for the Services
+                    and Deliverables set forth therein. This Agreement and any Insertion Orders entered into
+                    hereunder constitute the entire agreement between the Parties concerning the subject
+                    matter hereof and supersede any other prior or contemporaneous communications. In
+                    the event of a con ict between the terms of this Agreement and any Insertion Order, the
+                    terms of this Agreement will control unless the Insertion Order explicitly states otherwise.
+                    The terms of any purchase order or any general terms and conditions Customer may
+                    maintain will not apply. This Agreement does not obligate either Provider or Customer to
+                    enter into any speci c Insertion Order or any Insertion Orders at all.
+                </p>
+                <p>
+                    <strong>2.2. Acceptance.</strong>
+                    Except to the extent a Insertion Order contains speci c acceptance
+                    provisions, all Services and/or Deliverables provided to Customer for approval will be
+                    deemed accepted (“Accepted”) if within ten (10) days after delivery, Customer has not
+                    provided to Provider written notice identifying speci cally any basis for not approving the
+                    Services and/or Deliverables, as applicable.
+                </p>
+                <p>
+                    <strong>2.3. Correction/Re-Performance.</strong>
+                    If a Service or Deliverable contains any
+                    nonconformities, Customer shall describe to Provider in writing the issues with such
+                    Service or Deliverable. Provider shall promptly and proactively correct the nonconformity
+                    and redeliver the Service or Deliverable or re-perform the activities related to the Service
+                    or Deliverable, as the case may be, unless Customer expressly states in writing that it
+                    does not require Provider to correct a certain nonconformity that it considers, in
+                    Customer’s sole discretion, to be immaterial.
+                </p>
+                <p>
+                    <strong>2.4. Change Orders.</strong>
+                    Changes to the scope of the Services or any Deliverables shall be
+                    made only in a writing executed by authorized representatives of both Parties. Provider
+                    will not be obligated to work on a change until the Parties agree in writing upon its price
+                    and/or schedule impact. Provider will continue performing the Services in according with
+                    such Insertion Order until the Parties agree in writing to any such change or adjustment. If
+                    the Parties are unable to agree to a mutually acceptable change or adjustment, either
+                    Party may terminate the relevant Insertion Order upon ten (10) days’ written notice to the
+                    other.
+                </p>
+                <p>
+                    <strong>2.5. Personnel; Subcontractors.</strong>
+                    Provider reserves the right to determine which of its
+                    personnel shall be assigned to perform Services; provided, however, that it will, subject to
+                    scheduling and sta ng considerations, attempt to honor Customer’s request for speci c
+                    individuals. Provider may use subcontractors to perform Services, in which case it will be
+                    responsible for the performance of those subcontractors.
+                </p>
+                <p style="page-break-after: always;"/>
+                <p>
+                    <strong>3. CUSTOMER OBLIGATIONS.</strong>
+                </p>
+                <p>
+                    <strong>3.1. Cooperation.</strong>
+                    Customer acknowledges that Provider’s ability to deliver the Services
+                    depends upon full and timely cooperation by Customer and Customer’s sta , as well as
+                    the timely access to and accuracy and completeness of any information provided.
+                    Provider will have no liability for any delay in the provision of Services or other loss of any
+                    nature resulting from any failure by Customer to provide full and timely cooperation or to
+                    provide Provider accurate and complete information.
+                </p>
+                <p>
+                    <strong>3.2. Compliance with Laws.</strong>
+                    Customer shall at all times comply with all federal, state,
+                    and local laws, ordinances, regulations, and orders that are applicable to the operation of
+                    its business and to this Agreement and its performance hereunder. Without limiting the
+                    generality of the foregoing, Customer shall at all times, at its own expense, obtain and
+                    maintain all certi cations, credentials, authorizations, licenses, and permits necessary to
+                    conduct its business relating to the exercise of its rights and the performance of its
+                    obligations under this Agreement. Customer is responsible for providing complete,
+                    truthful, and legally compliant information to Provider, and Provider shall not be held
+                    responsible for any non-compliance by Customer.
+                </p>
+                <strong>4. PAYMENT; FEES; EXPENSES.</strong>
+                <p>
+                    <strong>4.1. Fees.</strong>
+                    As full and complete compensation for performing all Services speci ed in
+                    this Agreement and for assuming all duties, responsibilities, and obligations required by
+                    this Agreement, Customer will compensate Provider for all fees, compensation, and other
+                    amounts as speci ed in the applicable Insertion Order (the “Fees”) in accordance with the
+                    terms of this Agreement and in any Insertion Order entered into by the Parties. Fees are
+                    exclusive of taxes, levies, duties, governmental charges and expenses (with the exception
+                    of any Subcontractor’s income taxes), which amounts will be billed to and paid by
+                    Customer.
+                </p>
+                <p>
+                    <strong>4.2. Expenses.</strong>Customer shall pay Provider for the reasonable expenses including,
+                    but
+                    not limited to, out of pocket travel and living expenses, incurred by Provider and its
+                    personnel in connection with its performance of the Services (the “Expenses”).
+                </p>
+                <p>
+                    <strong>4.3. Billing and Payment.</strong>
+                    Provider shall prepare and submit invoices to the Customer
+                    via email for all Services and expenses incurred on a monthly basis, or as otherwise set
+                    forth in the Insertion Order. Customer will pay invoices in U.S. prior to the service start
+                    date noted on Provider’s invoice. Payments due hereunder must be made by wire
+                    transfer, certi ed check, bank check or such other method as may be agreed upon by the
+                    Provider. Customer shall have no right of o set or withholding under this Agreement. Any
+                    amounts not paid by Customer when due to Provider shall be subject to interest charges,
+                    from the date due until paid, at the rate of one and one half percent (1.5%) per month, or
+                    the highest interest rate allowable by law (whichever is less), payable monthly.
+                    If any amounts due to Provider from Customer becomes past due for any reason,
+                    Provider may at its option and without further notice withhold further Services until all
+                    invoices have been paid in full, and such withholding of Services shall not be considered a
+                    breach or default of any of Provider’s obligations under this Agreement.
+                </p>
+                <p style="page-break-after: always;"/>
+                <p>
+                    <strong>4.4. Taxes.</strong>
+                    Provider is responsible for all Provider personnel and for the payment of
+                    their compensation, including, if applicable, withholding of income taxes, and the
+                    payment and withholding of social security and other payroll taxes, unemployment
+                    insurance, workers’ compensation insurance payments, and disability bene ts. Customer
+                    shall be responsible for all sales, use, and excise taxes, and any other similar taxes, duties,
+                    and charges of any kind imposed by any federal, state, or local governmental entity on
+                    any amounts payable by Customer hereunder.Any such taxes, duties, and charges currently assessed or
+                    which may be assessed in the
+                    future, that are applicable to the Services are for the Customer’s account, and Customer
+                    hereby agrees to pay such taxes; provided, that, in no event shall Customer pay or be
+                    responsible for any taxes imposed on, or with respect to, Provider’s income, revenues,
+                    gross receipts, personnel, or real or personal property or other assets.
+                </p>
+                <p>
+                    <strong>4.5. Disputes.</strong>
+                    In the event of any good faith dispute with regard to a portion of an
+                    invoice, the undisputed portion shall be paid as provided herein. Upon resolution of the
+                    disputed portion, any amounts owed to Provider shall be paid with interest at the rate set
+                    forth below accruing from the date such amounts were originally due.
+                </p>
+                <p>
+                    <strong>5. CONFIDENTIALITY.</strong>
+                    From time to time during the Term of this Agreement, either Party
+                    (as the “Disclosing Party”) may disclose or make available to the other Party (as the
+                    “Receiving Party”) information about its business a airs, products/services, con dential
+                    intellectual property, trade secrets, third-party con dential information and other
+                    sensitive or proprietary information, whether orally or in written, electronic or other form
+                    or media, and whether or not marked, designated or otherwise identi ed as “con dential”
+                    (collectively, “Con dential Information”). Con dential Information shall not include
+                    information that, at the time of disclosure: (i) is or becomes generally available to and
+                    known by the public other than as a result of, directly or indirectly, any breach of this
+                    Section 5 by the Receiving Party or any of its representatives; (ii) is or becomes available to
+                    the Receiving Party on a non-con dential basis from a third-party source, provided that
+                    such third party is not and was not prohibited from disclosing such Con dential
+                    Information; (iii) was known by or in the possession of the Receiving Party or its
+                    representatives before being disclosed by or on behalf of the Disclosing Party; (iv) was or
+                    is independently developed by the Receiving Party without reference to or use, in whole
+                    or in part, of any of the Disclosing Party’s Con dential Information; or (v) is required to be
+                    disclosed under applicable federal, state or local law, regulation or a valid order issued by
+                    a court or governmental agency of competent jurisdiction. The Receiving Party shall: (A)
+                    protect and safeguard the con dentiality of the Disclosing Party’s Con dential
+                    Information with at least the same degree of care as the Receiving Party would protect its
+                    own Con dential Information, but in no event with less than a commercially reasonable
+                    degree of care; (B) not use the Disclosing Party’s Con dential Information, or permit it to
+                    be accessed or used, for any purpose other than to exercise its rights or perform its
+                    obligations under this Agreement; and (C) not disclose any such Con dential Information
+                    to any person or entity, except to the Receiving Party’s representatives who need to know
+                    the Con dential Information to assist the Receiving Party, or act on its behalf, to exercise
+                    its rights or perform its obligations under the Agreement.
+                    The Receiving Party shall be responsible for any breach of this Section 5 caused by any of
+                    its representatives. At any time during or after the term of this Agreement, at the
+                    Disclosing Party’s written request, the Receiving Party shall promptly return, and shall
+                    require its representatives to return to the Disclosing Party all copies, whether in written,
+                    electronic or other form or media, of the Disclosing Party’s Con dential Information, or
+                    destroy all such copies and certify in writing to the Disclosing Party that such Con dential
+                    Information has been destroyed. In addition to all other remedies available at law, the
+                    Disclosing Party may seek equitable relief (including injunctive relief) against the Receiving
+                    Party and its representatives to prevent the breach or threatened breach of this Section 5
+                    and to secure its enforcement.
+                </p>
+                <p style="page-break-after: always;"/>
 
-            <span>Length and Fees :</span>
-            <table style="width: 100%;">
-                <tbody>
-                    <tr>
-                        <td>Contract Length</td>
-                        <td>Contract Length</td>
-                    </tr>
-                    <tr>
-                        <td>Intended Launch Date::</td>
-                        <td>Intended Launch Date:</td>
-                    </tr>
-                    <tr>
-                        <td>Setup Fees:</td>
-                        <td>Fees</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <span>Payment Details :</span>
-            <table style="width: 100%;">
-                <tbody>
-                    <tr>
-                        <td>Payment Method:</td>
-                        <td>Direct Bill</td>
-                    </tr>
-                </tbody>
-            </table>
+            </t>
         </t>
     </template>
 

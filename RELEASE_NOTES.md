@@ -604,7 +604,14 @@
 #### Version 13.3.0.0.17
 - [ADD] clx_invoice_reports : added new template for the contract.
 
+## 11/10/2020
+#### Version 13.3.0.0.43
+- [FIX] clx_task_management : fix the issue related to request form when user select task changed in domain.
+- [FIX] fix the issue of the tag on parent task and subtask.removed related field and replace with normal field.
 
+## 11/10/2020
+#### Version 13.3.0.0.18
+- [ADD] clx_invoice_reports : added logo and design for the contract template.
 
 
 
