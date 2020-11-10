@@ -9,6 +9,12 @@ class SubTask(models.Model):
     _description = 'sub Task'
     _order = 'sequence'
 
+    @api.onchange('parent_id')
+    def _onchange_tag_ids(self):
+        for record in self:
+            if record.parent_id and record.parent_id.tag_ids:
+                record.tag_ids = record.parent_id.tag_ids.ids
+
     name = fields.Char(string='name')
     sub_task_name = fields.Char(string='Sub Task Name')
     team_ids = fields.Many2many('clx.team', string='Team')
@@ -20,7 +26,7 @@ class SubTask(models.Model):
     sequence = fields.Integer()
     stage_id = fields.Many2one('project.task.type', string='Stage')
     task_id = fields.Many2one('project.task', string="Task")
-    tag_ids = fields.Many2many(related='parent_id.tag_ids', string="Tags", readonly=False)
+    tag_ids = fields.Many2many('project.tags', string="Tags")
 
     def redirect_task(self):
         if self.task_id:

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_clx_contract_document">
+        <t t-call="web.html_container">
+            <!--<t t-call="web.external_layout">
+            </t>-->
+            <img t-if="doc.company_id.logo" t-att-src="image_data_uri(doc.company_id.logo)"
+                 style="display: block;margin-left: auto;margin-right: auto;width: 40%;" alt="Logo"/>
+            <br/>
+            <br/>
+            <div t-field="doc.partner_id.name"
+                 style="display: block;margin-left: auto;margin-right: auto;width: 40%;"/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <div style="display: block;margin-left: auto;margin-right: auto;width: 40%;">
+                <span>Dedicated Account Representative Information:</span>
+                <br/>
+                <span>Name:</span>
+                <span t-field="doc.partner_id.account_user_id.name"/>
+                <br/>
+                <span>Email:</span>
+                <span t-field="doc.partner_id.account_user_id.email"/>
+                <br/>
+                <span>Phone:</span>
+                <span t-field="doc.partner_id.account_user_id.phone"/>
+                <br/>
+                <div name="financial_infos">
+                    <span t-field="doc.company_id.report_footer"/>
+                </div>
+            </div>
+            <p style="page-break-after: always;"/>
+            <div style="display: block;margin-left: auto;margin-right: auto;width: 40%;">
+                <span t-field="doc.partner_id.name"/>
+                <span>- Proposal of Services</span>
+            </div>
+            <hr/>
+            <table style="width: 100%;">
+                <t t-foreach="doc.order_line" t-as="line">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <t t-esc="line.product_id.name"/>
+                            </td>
+                            <td></td>
+                            <td align="right">Monthly total :
+                                <t t-esc="line.price_unit"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td/>
+                            <td>aaaaaaaaaaaaaa</td>
+                            <td/>
+                        </tr>
+                    </tbody>
+                </t>
+            </table>
+            <span>First Month Spend :</span>
+            <br/>
+            <span>Recurring Monthly Spend :</span>
+            <p style="page-break-after: always;"/>
+            <span>Key Information :</span>
+            <table style="width: 100%;">
+                <tbody>
+                    <tr>
+                        <td>Community Name:</td>
+                        <td>Name of Community name</td>
+                    </tr>
+                    <tr>
+                        <td>Community address:</td>
+                        <td>Name of Community address</td>
+                    </tr>
+                    <tr>
+                        <td>Website:</td>
+                        <td>Website</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <span>Length and Fees :</span>
+            <table style="width: 100%;">
+                <tbody>
+                    <tr>
+                        <td>Contract Length</td>
+                        <td>Contract Length</td>
+                    </tr>
+                    <tr>
+                        <td>Intended Launch Date::</td>
+                        <td>Intended Launch Date:</td>
+                    </tr>
+                    <tr>
+                        <td>Setup Fees:</td>
+                        <td>Fees</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <span>Payment Details :</span>
+            <table style="width: 100%;">
+                <tbody>
+                    <tr>
+                        <td>Payment Method:</td>
+                        <td>Direct Bill</td>
+                    </tr>
+                </tbody>
+            </table>
+        </t>
+    </template>
+
+    <template id="report_contract_clx">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="clx_invoice_reports.report_clx_contract_document" t-lang="doc.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+</odoo>

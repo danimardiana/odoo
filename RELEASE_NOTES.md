@@ -598,7 +598,12 @@
 
 ## 11/07/2020
 #### Version 13.3.0.0.43
-- [FIX] clx_task_management : fix the issue when create sub task when dependent task is completed. 
+- [FIX] clx_task_management : fix the issue when create sub task when dependent task is completed.
+
+## 11/07/2020
+#### Version 13.3.0.0.17
+- [ADD] clx_invoice_reports : added new template for the contract.
+
 
 
 
