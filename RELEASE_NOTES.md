@@ -604,10 +604,26 @@
 #### Version 13.3.0.0.17
 - [ADD] clx_invoice_reports : added new template for the contract.
 
+## 11/10/2020
+#### Version 13.3.0.0.43
+- [FIX] clx_task_management : fix the issue related to request form when user select task changed in domain.
+- [FIX] fix the issue of the tag on parent task and subtask.removed related field and replace with normal field.
 
+## 11/10/2020
+#### Version 13.3.0.0.18
+- [ADD] clx_invoice_reports : added logo and design for the contract template.
 
+## 11/11/2020
+#### Version 13.3.0.0.44
+- [MOD] clx_task_management : changed field label and view related changes for the project and project task.
 
+## 11/11/2020
+#### Version 13.1.1.0.18
+- [MOD] contact_modification : hide account manager field.
 
+## 11/11/2020
+#### Version 13.3.0.0.19
+- [ADD] clx_invoice_reports : added report for contract with all the details(The Blake- Not Greystar).
 
 
 

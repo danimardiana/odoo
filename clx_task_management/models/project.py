@@ -18,8 +18,9 @@ class ProjectProject(models.Model):
     clx_state = fields.Selection([('new', 'NEW'), ('in_progress', 'In Progress'), ('done', 'Done')], string="State")
     clx_sale_order_ids = fields.Many2many('sale.order', string='Sale order')
     project_ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link", readonly=False)
-    clx_project_manager_id = fields.Many2one('res.users', string="Project Manager")
-    clx_project_designer_id = fields.Many2one('res.users', string="Designer")
+    clx_project_manager_id = fields.Many2one('res.users', string="CS Team Member")
+    clx_project_designer_id = fields.Many2one('res.users', string="CAT Team Member")
+    ops_team_member_id = fields.Many2one("res.users", string="OPS Team Member")
     management_company_type_id = fields.Many2one(related='partner_id.management_company_type_id')
     google_analytics_cl_account_location = fields.Selection(related='partner_id.google_analytics_cl_account_location')
     cs_notes = fields.Text(related='partner_id.cs_notes')
@@ -79,7 +80,8 @@ class ProjectTask(models.Model):
                                         )
     requirements = fields.Text(string='Requirements')
     clx_task_manager_id = fields.Many2one(related="project_id.clx_project_manager_id")
-    clx_task_designer_id = fields.Many2one("res.users", string="Designer")
+    clx_task_designer_id = fields.Many2one("res.users", string="CAT Team Member")
+    ops_team_member_id = fields.Many2one("res.users",string="OPS Team Member")
 
     management_company_type_id = fields.Many2one(related='project_id.partner_id.management_company_type_id')
     google_analytics_cl_account_location = fields.Selection(

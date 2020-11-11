@@ -211,7 +211,7 @@ class RequestForm(models.Model):
             'name': description,
             'clx_state': 'new',
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
-            'user_id': self.sale_order_id[0].user_id.id if self.sale_order_id else False
+            'user_id': self.partner_id.user_id.id if self.partner_id.user_id else False
         }
         return vals
 
