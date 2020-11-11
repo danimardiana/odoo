@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+    <record id="view_task_tree2_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.task.tree</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="arch" type="xml">
 
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="team_ids" widget="many2many_tags"/>
+                <field name="team_members_ids" widget="many2many_tags"/>
+                <field name="tag_ids" widget="many2many_tags"/>
+                <field name="date_deadline"/>
+            </xpath>
 
+        </field>
+    </record>
 
     <record id="view_project_inherit_clx_task_management" model="ir.ui.view">
         <field name="name">project.project.tree</field>
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project"/>
         <field name="arch" type="xml">
-
             <xpath expr="//field[@name='company_id']" position="after">
                 <field name="clx_state"/>
             </xpath>
-
         </field>
     </record>
 
@@ -79,6 +93,7 @@
                 <field name="clx_sale_order_ids" widget="many2many_tags"/>
                 <field name="clx_project_manager_id" domain="[('share','=',False)]"/>
                 <field name="clx_project_designer_id" domain="[('share','=',False)]"/>
+                <field name="ops_team_member_id" domain="[('share','=',False)]"/>
             </field>
             <field name="message_follower_ids" position="after">
                 <field name="message_ids" widget="mail_thread"/>
@@ -98,10 +113,13 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
+            <field name="user_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
             <field name="project_id" position="before">
                 <field name="partner_id"/>
                 <field name="vertical"/>
-                <field name="account_user_id"/>
+                <field name="account_user_id" string="Salesperson"/>
                 <field name="website" widget="url"/>
             </field>
             <field name="date_deadline" position="attributes">
@@ -127,8 +145,9 @@
                 />
                 <field name="sub_repositary_task_ids" widget="many2many_tags"
                        attrs="{'invisible' : ['|', ('parent_id', '=', False), ('id', '=', False)]}"/>
-                <field name="clx_task_manager_id"/>
+                <field name="clx_task_manager_id" string="CS Team Member"/>
                 <field name="clx_task_designer_id" domain="[('share','=',False)]"/>
+                <field name="ops_team_member_id" domain="[('share','=',False)]"/>
                 <field name="team_ids" widget="many2many_tags"/>
                 <field name="team_members_ids" widget="many2many_tags"/>
             </field>
@@ -199,8 +218,10 @@
                 <page name="ads_link" string="Ads Link">
                     <group>
                         <field name="project_ads_link_ids">
-                            <field name="product_id"/>
-                            <field name="link"/>
+                            <tree editable="bottom">
+                                <field name="product_id"/>
+                                <field name="link" widget="url"/>
+                            </tree>
                         </field>
                     </group>
                 </page>
@@ -217,19 +238,18 @@
     </record>
 
     <!--inherit search view for add group by team -->
-    <!--<record id="view_task_search_form_inherit_clx_task_management" model="ir.ui.view">
+    <record id="view_task_search_form_inherit_clx_task_management" model="ir.ui.view">
         <field name="name">project.task.search.form</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_search_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//search" position="inside">
-                <field name="team_id"/>
-            </xpath>
             <xpath expr="//group" position="inside">
-                <filter string="Team" name="team" domain="[]" context="{'group_by':'team_id'}"/>
+                <filter string="Ops Team Member" name="ops_team" domain="[]" context="{'group_by':'ops_team_member_id'}"/>
+                <filter string="CS Team Member" name="cs_team" domain="[]" context="{'group_by':'clx_task_manager_id'}"/>
+                <filter string="CAT Team Member" name="cat_team" domain="[]" context="{'group_by':'clx_task_designer_id'}"/>
             </xpath>
         </field>
-    </record>-->
+    </record>
 
     <!--override action because of  show only parent task on when action is call -->
     <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
@@ -293,6 +313,27 @@
         <field name="filter" eval="True"/>
         <field name="search_view_id" ref="project.view_task_search_form"/>
     </record>
+
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="name">Projects</field>
+        <field name="res_model">project.project</field>
+        <field name="domain">[]</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" ref="project.view_project_kanban"/>
+        <field name="search_view_id" ref="project.view_project_project_filter"/>
+        <field name="target">main</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new project
+            </p>
+            <p>
+                Or <a type="action" name="%(project.ir_actions_server_project_sample)d" tabindex="-1">activate a sample
+                project
+            </a> to play with.
+            </p>
+        </field>
+    </record>
+
     <menuitem name="All Tasks" id="menu_parent_task" parent="project.menu_main_pm"
-              action="clx_task_management.action_view_parent_task" sequence="2"/>
+              action="clx_task_management.action_view_parent_task" sequence="1"/>
 </odoo>

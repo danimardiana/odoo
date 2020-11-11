@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="contract_internal_layout">
+        <div class="header">
+        </div>
+        <div class="footer">
+            <div class="row">
+                <img alt="Logo" src="/clx_invoice_reports/static/src/images/contract_template_img.png"
+                     style="margin-left: auto;margin-right: auto;width: 20%;"
+                     class="img img-responsive"/>
+            </div>
+        </div>
+        <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id"
+             t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <t t-raw="0"/>
+        </div>
+    </template>
+</odoo>

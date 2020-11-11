@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Reports',
-    'version': '13.3.0.0.18',
+    'version': '13.3.0.0.19',
     'summary': 'CLX Reports',
     'sequence': 1,
     'description': """ CLX Reports """,
@@ -17,6 +17,7 @@
         'views/report_templates.xml',
         'views/report_invoice_document.xml',
         'views/res_company_views.xml',
+        'report/contract_layout.xml',
         'report/contract_template.xml',
         'report/contract_report.xml',
 

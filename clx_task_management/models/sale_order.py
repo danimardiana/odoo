@@ -30,6 +30,11 @@ class SaleOrder(models.Model):
             today = fields.Date.today()
             subscriptions = self.env['sale.subscription'].search(
                 [('partner_id', '=', self._context.get('req_partner_id'))])
+            if not subscriptions:
+                so_filter = [('id', '=', False)]
+                args.extend(so_filter)
+                return super(SaleOrder, self)._name_search(name, args=args, operator=operator, limit=limit,
+                                                           name_get_uid=name_get_uid)
             if subscriptions:
                 active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
                     lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
