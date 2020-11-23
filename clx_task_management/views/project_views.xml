@@ -90,6 +90,7 @@
                         string="Done" attrs="{'invisible': [('clx_state', '=', 'done')]}"/>
             </xpath>
             <field name="partner_id" position="after">
+                <field name="deadline"/>
                 <field name="clx_sale_order_ids" widget="many2many_tags"/>
                 <field name="clx_project_manager_id" domain="[('share','=',False)]"/>
                 <field name="clx_project_designer_id" domain="[('share','=',False)]"/>

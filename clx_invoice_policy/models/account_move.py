@@ -3,12 +3,30 @@
 # See LICENSE file for full copyright & licensing details.
 
 from odoo import fields, models
+from dateutil import parser
 
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
+
+    # def button_cancel(self):
+    #     res = super(AccountMove, self).button_cancel()
+    #     if self.invoice_origin:
+    #         sale_order = self.env['sale.order'].search([('name', '=', self.invoice_origin)])
+    #         if sale_order and not sale_order.is_ratio:
+    #             order_lines_list = sale_order.order_line.ids
+    #             subscription_lines = self.env['sale.subscription.line'].search([('so_line_id', 'in', order_lines_list)])
+    #             for line in self.invoice_line_ids:
+    #                 sub_lines = subscription_lines.filtered(lambda x: x.product_id.categ_id.id == line.category_id.id)
+    #                 dates_list = line.name.split(':')[-1].split('-')
+    #                 start_date = parser.parse(dates_list[0])
+    #                 end_date = parser.parse(dates_list[-1])
+    #                 for sub_line in sub_lines:
+    #                     sub_line.cancel_invoice_start_date = start_date
+    #                     sub_line.cancel_invoice_end_date = end_date
+    #     return res
 
 
 class AccountMoveLine(models.Model):

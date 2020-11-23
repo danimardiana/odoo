@@ -62,6 +62,8 @@ class SaleSubscriptionLine(models.Model):
     last_invoiced = fields.Date(string='Last Invoiced')
     invoice_start_date = fields.Date('Start Date')
     invoice_end_date = fields.Date('End Date')
+    cancel_invoice_start_date = fields.Date('Cancel Start Date')
+    cancel_invoice_end_date = fields.Date('Cancel End Date')
 
     def start_in_next(self):
         """

@@ -26,6 +26,7 @@ class ProjectProject(models.Model):
     cs_notes = fields.Text(related='partner_id.cs_notes')
     ops_notes = fields.Text(related='partner_id.ops_notes')
     cat_notes = fields.Text(related='partner_id.cat_notes')
+    deadline = fields.Date(string='Deadline')
 
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
@@ -35,15 +36,22 @@ class ProjectProject(models.Model):
                 if cs_team in task.team_ids:
                     task.clx_task_manager_id = self.clx_project_manager_id.id
             self.clx_state = 'in_progress'
+        if vals.get('ops_team_member_id', False):
+            for task in self.task_ids:
+                task.ops_team_member_id = self.ops_team_member_id.id
+        if vals.get('clx_project_manager_id', False):
+            for task in self.task_ids:
+                task.clx_project_manager_id = self.clx_project_manager_id.id
         return res
 
     def action_done_project(self):
-        tasks = self.env['project.task'].search([('project_id', '=', self.id)])
-        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-        if all(task.stage_id.id == complete_stage.id for task in tasks):
-            self.clx_state = 'done'
-        else:
-            raise UserError(_("Please Complete All the Task First!!"))
+        self.clx_state = 'done'
+        # tasks = self.env['project.task'].search([('project_id', '=', self.id)])
+        # complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        # if all(task.stage_id.id == complete_stage.id for task in tasks):
+        #     self.clx_state = 'done'
+        # else:
+        #     raise UserError(_("Please Complete All the Task First!!"))
 
 
 class ProjectTask(models.Model):
@@ -79,9 +87,9 @@ class ProjectTask(models.Model):
                                         readonly=False
                                         )
     requirements = fields.Text(string='Requirements')
-    clx_task_manager_id = fields.Many2one(related="project_id.clx_project_manager_id")
+    clx_task_manager_id = fields.Many2one("res.users", string="CS Team Member")
     clx_task_designer_id = fields.Many2one("res.users", string="CAT Team Member")
-    ops_team_member_id = fields.Many2one("res.users",string="OPS Team Member")
+    ops_team_member_id = fields.Many2one("res.users", string="OPS Team Member")
 
     management_company_type_id = fields.Many2one(related='project_id.partner_id.management_company_type_id')
     google_analytics_cl_account_location = fields.Selection(
@@ -90,7 +98,7 @@ class ProjectTask(models.Model):
     ops_notes = fields.Text(related='project_id.partner_id.ops_notes')
     cat_notes = fields.Text(related='project_id.partner_id.cat_notes')
     vertical = fields.Selection(related='project_id.partner_id.vertical')
-    account_user_id = fields.Many2one(related='project_id.partner_id.account_user_id')
+    account_user_id = fields.Many2one("res.users", string="Salesperson")
     website = fields.Char(related='project_id.partner_id.website')
     partner_id = fields.Many2one(related='project_id.partner_id', store=True)
     project_ads_link_ids = fields.One2many(related='project_id.project_ads_link_ids', string="Ads Link", readonly=False)
@@ -230,7 +238,15 @@ class ProjectTask(models.Model):
                 for sub_task in sub_tasks:
                     vals = self.create_sub_task(sub_task, self.project_id)
                     self.create(vals)
-
+        if vals.get('ops_team_member_id', False):
+            for task in self.child_ids:
+                task.ops_team_member_id = self.ops_team_member_id.id
+        if vals.get('clx_task_designer_id', False):
+            for task in self.child_ids:
+                task.clx_task_designer_id = self.clx_task_designer_id.id
+        if vals.get('clx_task_manager_id', False):
+            for task in self.child_ids:
+                task.clx_task_manager_id = self.clx_task_manager_id.id
         return res
 
     def action_view_cancel_task(self):
