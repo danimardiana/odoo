@@ -625,6 +625,16 @@
 #### Version 13.3.0.0.19
 - [ADD] clx_invoice_reports : added report for contract with all the details(The Blake- Not Greystar).
 
+## 11/23/2020
+#### Version 13.3.0.0.45
+- [MOD] clx_task_management : Prevent Projects from being marked complete until all tasks within it are done. 
+- [MOD] Add the person who submitted the request form (which may be different than the salesperson). This is the person who should receive notifications, as opposed to the Salesperson. Record this field as “Submitted by”.
+- [MOD] Added deadline on project.
+
+## 11/23/2020
+#### Version 13.3.0.0.45
+- [FIX] clx_invoice_policy : fix the issue of the invoice amount calculation.
+
 
 
         

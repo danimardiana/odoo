@@ -34,6 +34,7 @@
                             <field name="partner_id" required="1" domain="[('company_type','=','company')]"/>
                             <field name="request_date"/>
                             <field name="intended_launch_date"/>
+                            <field name="submitted_by_user_id"/>
                         </group>
                         <group>
                             <field name="description" required="1"/>

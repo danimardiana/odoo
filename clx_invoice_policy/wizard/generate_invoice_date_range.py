@@ -24,8 +24,10 @@ class GenerateInvoiceDateRange(models.TransientModel):
         if partner_id:
             lines = self.env['sale.subscription.line'].search([
                 ('so_line_id.order_id.partner_id', 'child_of', partner_id.id),
-                ('so_line_id.order_id.state', '=', 'sale'),
+                ('so_line_id.order_id.state', '=', ('sale', 'done')),
             ])
+            if not lines:
+                raise UserError(_("You need to sale order for create a invoice!!"))
             so_lines = lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= self.start_date)
             if not so_lines:
                 raise UserError(_("You can not create invoice selected date range"))
@@ -36,4 +38,3 @@ class GenerateInvoiceDateRange(models.TransientModel):
                     lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
                 partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
                                         end_date=self.end_date).generate_advance_invoice(advance_lines)
-                print(advance_lines, areas_lines)

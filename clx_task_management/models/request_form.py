@@ -30,6 +30,7 @@ class RequestForm(models.Model):
     clx_attachment_ids = fields.Many2many(
         "ir.attachment", 'att_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
+    submitted_by_user_id = fields.Many2one("res.users", string="Submitted By")
 
     def open_active_subscription_line(self):
         """

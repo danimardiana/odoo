@@ -92,6 +92,10 @@ class SaleOrderLine(models.Model):
                 date_start = date_start.replace(day=1)
                 date_end = date_start + relativedelta(
                     months=invoice_month + 1, days=-1) if not self.end_date else self.end_date
+                current_month_start_date = date.today().replace(day=1)
+                if current_month_start_date < self.start_date:
+                    date_end = current_month_start_date + relativedelta(
+                    months=invoice_month + 1, days=-1) if not self.end_date else self.end_date
             else:
                 date_end = date_start + relativedelta(
                     months=invoice_month)
