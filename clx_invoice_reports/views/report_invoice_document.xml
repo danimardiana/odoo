@@ -118,9 +118,14 @@
                         <th name="th_description">
                             <span>Description</span>
                         </th>
+                        <th name="th_taxes"
+                            t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                            <span>Taxes</span>
+                        </th>
                         <th name="th_amount" class="text-right">
                             <span>Amount</span>
                         </th>
+
                     </tr>
                 </thead>
                 <tbody class="invoice_tbody">
@@ -143,11 +148,16 @@
                                     <span t-field="line.category_id.name"/>
                                 </t>
                             </td>
+                            <td t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                                <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.tax_ids))"
+                                      id="line_tax_ids"/>
+                            </td>
                             <td>
                                 <t t-set="priceunit" t-value="line.price_total- line.management_fees"/>
                                 <span t-esc="priceunit" style="float:right;"/>
                                 <t t-set="priceunit" t-value="0"/>
                             </td>
+
                         </tr>
                         <tr>
                             <t t-set="management_fees" t-value="management_fees + line.management_fees"/>

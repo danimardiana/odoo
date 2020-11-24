@@ -127,6 +127,7 @@ class Partner(models.Model):
         ('Missing: pursue', 'Missing: pursue'),
         ('Missing: abandoned', 'Missing: abandoned')
     ], string="Google Analytics CL Account Location")
+    dni = fields.Char(string='DNI')
 
     def open_submitted_req_form(self):
         request_forms = self.env['request.form'].search([('partner_id', '=', self.id), ('state', '=', 'submitted')])
