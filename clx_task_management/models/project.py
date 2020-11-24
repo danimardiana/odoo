@@ -42,7 +42,12 @@ class ProjectProject(models.Model):
         if vals.get('clx_project_manager_id', False):
             for task in self.task_ids:
                 task.clx_project_manager_id = self.clx_project_manager_id.id
+        if vals.get('clx_project_designer_id', False):
+            self.task_ids.write({'clx_task_designer_id': self.clx_project_designer_id.id})
+            # for task in self.task_ids:
+            #     task.clx_project_designer_id = self.clx_project_designer_id.id
         return res
+
 
     def action_done_project(self):
         self.clx_state = 'done'
@@ -102,6 +107,12 @@ class ProjectTask(models.Model):
     website = fields.Char(related='project_id.partner_id.website')
     partner_id = fields.Many2one(related='project_id.partner_id', store=True)
     project_ads_link_ids = fields.One2many(related='project_id.project_ads_link_ids', string="Ads Link", readonly=False)
+    art_assets = fields.Char(related='project_id.partner_id.art_assets')
+    call_rail_destination_number = fields.Char(related='project_id.partner_id.call_rail_destination_number')
+    dni = fields.Char(related='project_id.partner_id.dni')
+    reviewer_user_id = fields.Many2one('res.users', string="Reviewer")
+    fix = fields.Selection([('not_set', 'Not Set'), ('no', 'No'), ('yes', 'Yes')], string="Fix Needed",
+                           default="not_set")
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """
@@ -120,32 +131,33 @@ class ProjectTask(models.Model):
                 'parent_id': main_task.id,
                 'sub_task_id': sub_task.id,
                 'team_ids': sub_task.team_ids.ids if sub_task.team_ids else False,
-                'team_members_ids': sub_task.team_members_ids.ids
+                'team_members_ids': sub_task.team_members_ids.ids,
+                'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False
             }
             return vals
 
-    @api.depends('stage_id', 'kanban_state')
-    def _compute_kanban_state_label(self):
-        """
-        Override this method because of when subtask is completed than
-        automatically complete parent task and if parent task is completed
-        than project is automatically done.
-        :return:
-        """
-        for task in self:
-            if task.kanban_state == 'normal':
-                task.kanban_state_label = task.legend_normal
-            elif task.kanban_state == 'blocked':
-                task.kanban_state_label = task.legend_blocked
-            else:
-                task.kanban_state_label = task.legend_done
-            complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-            tasks = task.parent_id.child_ids
-            if all(task.stage_id.id == complete_stage.id for task in tasks):
-                task.parent_id.stage_id = complete_stage.id
-                if all(task.stage_id.id == complete_stage.id for task in
-                       task.project_id.task_ids.filtered(lambda x: not x.parent_id)):
-                    task.project_id.clx_state = 'done'
+    # @api.depends('stage_id', 'kanban_state')
+    # def _compute_kanban_state_label(self):
+    #     """
+    #     Override this method because of when subtask is completed than
+    #     automatically complete parent task and if parent task is completed
+    #     than project is automatically done.
+    #     :return:
+    #     """
+    #     for task in self:
+    #         if task.kanban_state == 'normal':
+    #             task.kanban_state_label = task.legend_normal
+    #         elif task.kanban_state == 'blocked':
+    #             task.kanban_state_label = task.legend_blocked
+    #         else:
+    #             task.kanban_state_label = task.legend_done
+    #         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+    #         tasks = task.parent_id.child_ids
+    #         if all(task.stage_id.id == complete_stage.id for task in tasks):
+    #             task.parent_id.stage_id = complete_stage.id
+    #             if all(task.stage_id.id == complete_stage.id for task in
+    #                    task.project_id.task_ids.filtered(lambda x: not x.parent_id)):
+    #                 task.project_id.clx_state = 'done'
 
     def action_view_clx_so(self):
         """
@@ -198,7 +210,8 @@ class ProjectTask(models.Model):
                 'parent_id': sub_task.mapped('parent_id')[0].id,
                 'sub_task_id': task.id,
                 'team_ids': task.team_ids.ids if task.team_ids else False,
-                'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False
+                'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,
+                'tag_ids': task.tag_ids.ids if task.tag_ids else False
             }
             return vals
 

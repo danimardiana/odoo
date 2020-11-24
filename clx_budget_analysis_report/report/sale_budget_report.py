@@ -44,8 +44,8 @@ class SaleBudgetReport(models.Model):
     partner_id = fields.Many2one('res.partner', readonly=True)
     wholesale_price = fields.Float(string='Wholesale Price')
     price = fields.Float(string='Price')
-    base_price = fields.Float(string="Price")
-    upsell_down_sell_price = fields.Float(string="Price")
+    base_price = fields.Float(readonly=True)
+    upsell_down_sell_price = fields.Float(readonly=True)
 
     def _query(self):
         return """SELECT sbl.id,sbl.date as date,
@@ -83,8 +83,8 @@ class SaleBudgetReport(models.Model):
                 current_month_start_date = subscription_line.start_date
             for i in range(0, budget_month):
                 base = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(lambda
-                      x: x.line_type == 'base'
-                         and x.product_id.id == subscription_line.product_id.id)
+                                                                                                     x: x.line_type == 'base'
+                                                                                                        and x.product_id.id == subscription_line.product_id.id)
                 vals = {
                     'date': current_month_start_date,
                     'product_id': subscription_line.product_id.id,
@@ -145,7 +145,7 @@ class SaleBudgetReport(models.Model):
             budget_month = int(params.get_param('budget_month')) or False
             current_month_start_date = fields.Date.today().replace(day=1)
 
-        all_report_data = report_data_table.search([]).filtered(lambda x:x.date > end_date)
+        all_report_data = report_data_table.search([]).filtered(lambda x: x.date > end_date)
         if all_report_data:
             all_report_data.unlink()
         tools.drop_view_if_exists(self._cr, self._table)

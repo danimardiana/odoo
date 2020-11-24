@@ -19,6 +19,13 @@ class MainTask(models.Model):
     category_id = fields.Many2one('product.category', string="Product Category")
     tag_ids = fields.Many2many('project.tags', string="Tags")
 
+    @api.onchange('team_ids')
+    def _onchange_team_ids(self):
+        if self.team_ids:
+            for record in self:
+                if record.team_ids:
+                    record.team_members_ids = record.team_ids.team_members_ids.ids
+
     def _compute_sub_task_count(self):
         sub_task_obj = self.env['sub.task']
         for main_task in self:

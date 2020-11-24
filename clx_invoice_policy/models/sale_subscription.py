@@ -248,6 +248,9 @@ class SaleSubscriptionLine(models.Model):
                 })
             if self._context.get('cofirm_sale'):
                 start_date = line.start_date
+                current_month = date.today().replace(day=1)
+                if current_month < line.start_date:
+                    start_date = current_month
                 end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=1, days=-1) if not line.end_date else line.end_date
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(

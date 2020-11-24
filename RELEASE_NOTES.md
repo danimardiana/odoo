@@ -632,10 +632,27 @@
 - [MOD] Added deadline on project.
 
 ## 11/23/2020
-#### Version 13.3.0.0.45
+#### Version 13.1.0.0.25
 - [FIX] clx_invoice_policy : fix the issue of the invoice amount calculation.
 
+## 11/24/2020
+#### Version 13.3.0.0.46
+- [FIX] clx_task_management : set team members based on team.
+- [ADD] Bring the CallRail Destination Number field from the Client Setup tab of a Customer Company into the Extra Info tab of Tasks. Add this field below Google Analytics CL Account Location field.
+- [ADD] Bring the DNI String field from the Client Setup tab of a Customer Company into the Extra Info tab of Tasks. Add this field below Google Analytics CL Account Location field.
+- [ADD] added Review Assignment tab.  
 
+## 11/24/2020
+#### Version 13.1.1.0.19
+- [FIX] contact_modification : added some fields on partner.
+
+## 11/24/2020
+#### Version 13.3.0.0.20
+- [FIX] clx_invoice_reports : added taxes on pdf reports.
+
+## 11/24/2020
+#### Version 13.1.0.0.26
+- [FIX] clx_invoice_policy : fix the label printing issue on invoice 
 
         
  

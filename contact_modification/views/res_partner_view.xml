@@ -457,6 +457,7 @@
                             <field name="tap_clicks_password"/>
                             <field name="call_rail_destination_number"/>
                             <field name="google_analytics_cl_account_location"/>
+                            <field name="dni"/>
                         </group>
                         <group>
                             <field name="client_provided_tracking_email"/>
