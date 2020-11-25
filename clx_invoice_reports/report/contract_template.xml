@@ -50,7 +50,7 @@
                             </tr>
                             <tr>
                                 <td/>
-                                <td>aaaaaaaaaaaaaa</td>
+                                <td><t t-esc="line.product_id.description"/></td>
                                 <td/>
                             </tr>
                             <tr>
@@ -84,15 +84,23 @@
                         <tbody>
                             <tr>
                                 <td style="border-bottom: 1px dashed red;">Community Name:</td>
-                                <td style="border-bottom: 1px dashed red;">Name of Community name</td>
+                                <td style="border-bottom: 1px dashed red;">
+                                    <span t-field="doc.partner_id.name"/>
+                                </td>
                             </tr>
+
                             <tr>
                                 <td style="border-bottom: 1px dashed red;">Community address:</td>
-                                <td style="border-bottom: 1px dashed red;">Name of Community address</td>
+                                <td style="border-bottom: 1px dashed red;">
+                                    <span t-field="doc.partner_id"
+                                          t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;phone&quot;], &quot;no_marker&quot;: True, &quot;phone_icons&quot;: True}"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="border-bottom: 1px dashed red;">Website:</td>
-                                <td style="border-bottom: 1px dashed red;">Website</td>
+                                <td style="border-bottom: 1px dashed red;">
+                                    <span t-field="doc.partner_id.website"/>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -104,31 +112,41 @@
                         <tbody>
                             <tr>
                                 <td style="border-bottom: 1px dashed red;">Contract Length</td>
-                                <td style="border-bottom: 1px dashed red;">Contract Length</td>
+                                <td style="border-bottom: 1px dashed red;">
+                                    <span t-field="doc.contract_length"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="border-bottom: 1px dashed red;">Intended Launch Date::</td>
-                                <td style="border-bottom: 1px dashed red;">Intended Launch Date:</td>
+                                <td style="border-bottom: 1px dashed red;">
+                                    <span t-field="doc.intended_launch_date"/>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="border-bottom: 1px dashed red;">Setup Fees:</td>
-                                <td style="border-bottom: 1px dashed red;">Fees</td>
+                                <td style="border-bottom: 1px dashed red;">
+                                    <span t-field="doc.setup_fee"/>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <br/>
-                <p style="text-align:center;">Payment Details</p>
-                <div style="border-style: dotted;">
-                    <table style="width: 100%;border: 1px solid #ddd;">
-                        <tbody>
-                            <tr>
-                                <td style="border-bottom: 1px dashed red;">Payment Method:</td>
-                                <td style="border-bottom: 1px dashed red;">Direct Bill</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <t t-if="doc.payment_term_id">
+                    <p style="text-align:center;">Payment Details</p>
+                    <div style="border-style: dotted;">
+                        <table style="width: 100%;border: 1px solid #ddd;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-bottom: 1px dashed red;">Payment Method:</td>
+                                    <td style="border-bottom: 1px dashed red;">
+                                        <span t-field="doc.payment_term_id.name"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
                 <p style="page-break-after: always;"/>
                 <p style="text-align:center;">MASTER SERVICES AGREEMENT:</p>
                 <br/>
