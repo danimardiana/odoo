@@ -206,7 +206,8 @@ class SaleSubscriptionLine(models.Model):
             # if self.end_date and self.end_date > date_end:
             if not self.end_date:
                 vals.update({
-                    'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(day=1) if self.invoice_end_date else False,
+                    'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(
+                        day=1) if self.invoice_end_date else False,
                     'invoice_end_date': expire_date
                 })
             self.write(vals)
@@ -248,17 +249,20 @@ class SaleSubscriptionLine(models.Model):
                 })
             if self._context.get('cofirm_sale'):
                 start_date = line.start_date
-                current_month = date.today().replace(day=1)
-                if current_month < line.start_date:
-                    start_date = current_month
-                end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=1, days=-1) if not line.end_date else line.end_date
+                # current_month = date.today().replace(day=1)
+                # if current_month < line.start_date:
+                #     start_date = current_month
+                end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=1,
+                                                                                                days=-1) if not line.end_date else line.end_date
+                label_end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=policy_month + 1,
+                                                                                                days=-1) if not line.end_date else line.end_date
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
                 new_period_msg = _("Invoicing period: %s - %s") % (
                     format_date(fields.Date.to_string(start_date), {}),
-                    format_date(fields.Date.to_string(end_date), {}))
-                r = end_date - start_date
+                    format_date(fields.Date.to_string(label_end_date), {}))
+                r = end_date - line.start_date
                 if r.days + 1 in (30, 31):
                     return res
                 if r.days < 30 or r.days < 31:
@@ -272,6 +276,11 @@ class SaleSubscriptionLine(models.Model):
                         'wholesale': new_price - new_management_price,
                         'name': new_period_msg
                     })
+                    if not self.end_date:
+                        res.update({
+                            'price_unit': new_price + line.price_unit
+                        })
+
             if self._context.get('generate_invoice_date_range'):
                 start_date = self._context.get('start_date')
                 end_date = self._context.get('end_date')
