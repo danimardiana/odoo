@@ -3,7 +3,6 @@
 # See LICENSE file for full copyright & licensing details.
 
 from odoo import fields, models, api, _
-from itertools import groupby
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_is_zero, float_compare
 from dateutil.relativedelta import relativedelta

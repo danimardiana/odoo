@@ -254,8 +254,9 @@ class SaleSubscriptionLine(models.Model):
                 #     start_date = current_month
                 end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=1,
                                                                                                 days=-1) if not line.end_date else line.end_date
-                label_end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=policy_month + 1,
-                                                                                                days=-1) if not line.end_date else line.end_date
+                label_end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(
+                    months=policy_month + 1,
+                    days=-1) if not line.end_date else line.end_date
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
@@ -282,6 +283,8 @@ class SaleSubscriptionLine(models.Model):
                         })
 
             if self._context.get('generate_invoice_date_range'):
+                if self._context.get('regenerate_invoice', False):
+                    self.write({'cancel_invoice_start_date': False, 'cancel_invoice_end_date': False})
                 start_date = self._context.get('start_date')
                 end_date = self._context.get('end_date')
                 lang = line.order_id.partner_invoice_id.lang
@@ -299,16 +302,17 @@ class SaleSubscriptionLine(models.Model):
                     'price_unit': self.price_unit * month_diff,
                     'name': new_period_msg
                 })
-                vals = {
-                    'last_invoiced': today,
-                    'invoice_start_date': False,
-                    'invoice_end_date': False,
-                }
-                expire_date = (end_date + relativedelta(
-                    months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
-                vals.update({
-                    'invoice_start_date': (end_date + relativedelta(months=1)).replace(day=1),
-                    'invoice_end_date': expire_date
-                })
-                self.write(vals)
+                if not self._context.get('regenerate_invoice', False):
+                    vals = {
+                        'last_invoiced': today,
+                        'invoice_start_date': False,
+                        'invoice_end_date': False,
+                    }
+                    expire_date = (end_date + relativedelta(
+                        months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
+                    vals.update({
+                        'invoice_start_date': (end_date + relativedelta(months=1)).replace(day=1),
+                        'invoice_end_date': expire_date
+                    })
+                    self.write(vals)
         return res

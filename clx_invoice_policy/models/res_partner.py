@@ -152,11 +152,17 @@ class Partner(models.Model):
         elif self._context.get('generate_invoice_date_range'):
             start_date = self._context.get('start_date')
             end_date = self._context.get('end_date')
+            if self._context.get('regenerate_invoice', False):
+                print("-----------------")
+                so_lines = lines.filtered(
+                    lambda x: x.cancel_invoice_start_date >= start_date and x.cancel_invoice_end_date >= end_date)
+
             prepared_lines = [line.with_context({
                 'advance': True,
                 'start_date': start_date,
                 'end_date': end_date,
-                'generate_invoice_date_range': True
+                'generate_invoice_date_range': True,
+                'regenerate_invoice': self._context.get('regenerate_invoice', False)
             })._prepare_invoice_line() for line in so_lines]
         else:
             prepared_lines = [line.with_context({
