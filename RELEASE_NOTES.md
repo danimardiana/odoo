@@ -658,6 +658,10 @@
 #### Version 13.3.0.0.21 
 - [ADD clx_invoice_reports : added new contract report with greystar company.
 
-## 11/24/2020
+## 11/25/2020
 #### Version 13.1.0.0.27
 - [FIX] clx_invoice_policy : fix the issue of label printing and calculation of the amount when order is in days.
+
+## 11/26/2020
+#### Version 13.1.0.0.27
+- [FIX] clx_invoice_policy : fix the issue regarding cancel invoice and regenerate the cancel invoice.
