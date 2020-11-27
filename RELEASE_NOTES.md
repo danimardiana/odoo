@@ -665,3 +665,18 @@
 ## 11/26/2020
 #### Version 13.1.0.0.27
 - [FIX] clx_invoice_policy : fix the issue regarding cancel invoice and regenerate the cancel invoice.
+
+## 11/27/2020
+#### Version 13.1.1.0.20
+- [ADD] contact_modification : added Submittal Platform field in customer.
+- [ADD] added invoice template fields.
+
+## 11/27/2020
+#### Version 13.3.0.0.46
+- [FIX] clx_task_management : added activity view for all main task.
+
+## 11/27/2020
+#### Version 13.0.1.0.2
+- [ADD Initial commit for the schedule activity dashboards.
+
+ 

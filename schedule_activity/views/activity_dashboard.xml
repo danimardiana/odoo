@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Action For Menu Activity Dashboard -->
+        <record id="action_activity_dashboard" model="ir.actions.client">
+            <field name="name">Activity Dashboard</field>
+            <field name="tag">schedule_activity.dashboard</field>
+        </record>
+        <!-- Menu Activity Dashbaord -->
+        <menuitem id="menu_activity_dashboard" name="Dashboard" action="action_activity_dashboard" parent="schedule_activity_menu_root" sequence="1" />
+        <template id="assets_backend" name="activity assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/schedule_activity/static/src/js/activity_dashboard.js" />
+                <link rel="stylesheet" href="/schedule_activity/static/src/css/activity_dashboard.css" />
+            </xpath>
+        </template>
+    </data>
+</odoo>

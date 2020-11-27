@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="acitvity_dashboard.dashboard">
+        <div class="vertical-menu">
+        <div class="container ">
+            <div class="row ">
+                <div class="col-md todays">
+                    <div class="dash-box-body">
+                        <span class="dash-box-title">Todays Activities</span>
+                    </div>
+                    <div class="line"></div>
+                    <div class="dash-box-function todays_activities">
+                        <button>Show All</button>
+                    </div>
+                </div>
+                <div class="col-md upcoming">
+                    <div class="dash-box-body">
+                        <span class="dash-box-title">Upcoming Activities</span>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="line"></div>
+                    <div class="dash-box-function upcoming_activities ">
+                        <button>Show All</button>
+                    </div>
+                </div>
+                <div class="col-md overdue">
+                    <div class="dash-box-body">
+                        <span class="dash-box-title">Late Activities</span>
+                    </div>
+                    <div class="line"></div>
+                    <div class="dash-box-function late_activities">
+                        <button>Show All</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="text-center">
+                        <h1 class="activity_title" style="margin-top: 55px;">Todays Activities </h1>
+                        <table class="table today table-bordered mt16">
+                            <tr>
+                                <th>Name</th>
+                                <th>Activity</th>
+                                <th>Assigned To</th>
+                                <th>Supervisor</th>
+                                <th>Deadline Date</th>
+                                <th>Action</th>
+                            </tr>
+                            <tbody class="data_body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="text-center">
+                        <h1 class="activity_title" style="margin-top: 55px;">Upcoming Activities </h1>
+                        <table class="table activity_table table-bordered mt16">
+                            <tr class="activities">
+                                <th>Name</th>
+                                <th>Activity</th>
+                                <th>Assigned To</th>
+                                <th>Supervisor</th>
+                                <th>Deadline Date</th>
+                                <th>Action</th>
+                            </tr>
+                            <tbody class="data_body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                 <div class="text-center">
+                    <h1 class="activity_title" style="margin-top: 55px;">Overdue Activities </h1>
+                    <table class="table  overdue_activities table-bordered mt16">
+                        <tr>
+                            <th>Name</th>
+                            <th>Activity</th>
+                            <th>Assigned To</th>
+                            <th>Supervisor</th>
+                            <th>Deadline Date</th>
+                            <th>Action</th>
+                        </tr>
+                        <tbody class="data_body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</t>
+</templates>
