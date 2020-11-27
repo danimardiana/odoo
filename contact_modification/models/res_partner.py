@@ -128,6 +128,9 @@ class Partner(models.Model):
         ('Missing: abandoned', 'Missing: abandoned')
     ], string="Google Analytics CL Account Location")
     dni = fields.Char(string='DNI')
+    submittal_platform = fields.Selection([('by_email', 'By Email')], string="Submittal Platform", default="by_email")
+    invoice_template_line1 = fields.Char(string="Line1")
+    invoice_template_line2 = fields.Char(string="Line2")
 
     def open_submitted_req_form(self):
         request_forms = self.env['request.form'].search([('partner_id', '=', self.id), ('state', '=', 'submitted')])

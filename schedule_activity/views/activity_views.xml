@@ -1,0 +1,174 @@
+<odoo>
+    <data>
+        <!-- tree view schedule_activity -->
+
+        <record id="mail_schedule_activity_view_tree" model="ir.ui.view">
+            <field name="name">mail.schedule.activity.view.tree</field>
+            <field name="model">mail.activity</field>
+            <field name="arch" type="xml">
+                <tree string="Activities" decoration-danger="date_deadline &lt; current_date" decoration-success="date_deadline == current_date" default_order="date_deadline" create="false">
+                    <field name="res_name" />
+                    <field name="activity_type_id" />
+                    <field name="summary" />
+                    <field name="date_deadline" />
+                </tree>
+            </field>
+        </record>
+
+        <!-- from view schedule_activity inherit -->
+
+        <record id="mail_activity_type_view_form_inherit" model="ir.ui.view">
+            <field name="name">mail.activity.inherit</field>
+            <field name="model">mail.activity</field>
+            <field name="inherit_id" ref="mail.mail_activity_view_form_popup" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='user_id']" position="after">
+                    <field name="supervisor_id" />
+                </xpath>
+            </field>
+        </record>
+
+        <!-- calendar view schedule_activity -->
+
+        <record id="mail_schedule_activity_view_kanban" model="ir.ui.view">
+            <field name="name">mail.schedule.activity.view.kanban</field>
+            <field name="model">mail.activity</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile">
+                    <field name="res_name" />
+                    <field name="activity_type_id" />
+                    <field name="summary" />
+                    <field name="date_deadline" />
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click">
+                                <div class="row mb3">
+                                    <strong class="col-6">
+                                        <field name="res_name" />
+                                    </strong>
+                                </div>
+                                <div class="row mb3">
+                                    <div class="col-6">
+                                        <strong>
+                                            <field name="activity_type_id" />
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div class="row mb3">
+                                    <div class="col-6">
+                                        <field name="date_deadline" />
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span>
+                                            <field name="user_id" />
+                                        </span>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)" t-att-title="record.user_id.value" t-att-alt="record.user_id.value" width="24" height="24" class="oe_kanban_avatar" />
+                                    </div>
+                                </div>
+                                <div class="oe_clear" />
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- calendar view schedule_activity -->
+
+        <record id="mail_schedule_activity_view_calendar" model="ir.ui.view">
+            <field name="name">mail.schedule.activity.view.calendar</field>
+            <field name="model">mail.activity</field>
+            <field name="arch" type="xml">
+                <calendar string="Schedule Activity">
+                    <field name="res_name" />
+                    <field name="activity_type_id" />
+                    <field name="summary" />
+                    <field name="date_deadline" />
+                </calendar>
+            </field>
+        </record>
+
+        <!-- pivot view schedule_activity -->
+
+        <record id="mail_schedule_activity_view_pivot" model="ir.ui.view">
+            <field name="name">mail.schedule.activity.view.pivot</field>
+            <field name="model">mail.activity</field>
+            <field name="arch" type="xml">
+                <pivot string="Schedule Activity" disable_linking="True">
+                    <field name="res_name" />
+                    <field name="activity_type_id" type="row" />
+                    <field name="summary" />
+                    <field name="date_deadline" />
+                    <field name="user_id" type="col" />
+                </pivot>
+            </field>
+        </record>
+
+        <!-- pivot view schedule_activity -->
+
+        <record id="mail_schedule_activity_view_graph" model="ir.ui.view">
+            <field name="name">mail.schedule.activity.view.graph</field>
+            <field name="model">mail.activity</field>
+            <field name="arch" type="xml">
+                <graph string="Schedule Activity">
+                    <field name="activity_type_id" />
+                    <field name="user_id" />
+                </graph>
+            </field>
+        </record>
+
+
+        <!-- actions window -->
+
+        <record model="ir.actions.act_window" id="schedule_activity_action_window">
+            <field name="name">Schedule Activities</field>
+            <field name="res_model">mail.activity</field>
+            <field name="view_mode">tree,kanban,form,pivot,calendar,graph</field>
+        </record>
+
+        <!-- actions window reporting -->
+
+         <record model="ir.actions.act_window" id="activity_action_window_reporting">
+            <field name="name">Schedule Activities</field>
+            <field name="res_model">mail.activity</field>
+            <field name="view_mode">pivot,graph</field>
+        </record>
+
+        <!-- actions window my_activities -->
+
+        <record id="action_my_activities" model="ir.actions.act_window">
+            <field name="name">My Activities</field>
+            <field name="res_model">mail.activity</field>
+            <field name="domain">[('user_id', '=', uid)]</field>
+        </record>
+
+        <!-- actions window my_team_activities -->
+
+        <record id="action_my_team_activities" model="ir.actions.act_window">
+            <field name="name">My Team Activities</field>
+            <field name="res_model">mail.activity</field>
+            <field name="domain">[('supervisor_id', '=', uid)]</field>
+        </record>
+
+        <!-- Main Menu item -->
+        <menuitem name="Schedule Activity" id="schedule_activity_menu_root" web_icon="schedule_activity,static/description/menu.png" />
+
+        <!-- menu categories -->
+        <menuitem name="Activity" id="activity" parent="schedule_activity_menu_root" action="schedule_activity_action_window" />
+
+        <menuitem name="All Activities" id="all_activity" parent="activity" action="schedule_activity_action_window" groups="schedule_activity.group_activity_manager" />
+
+        <menuitem name="My Team Activities" id="team_activity_supervisor" parent="activity" action="action_my_team_activities" groups="schedule_activity.group_activity_supervisor" />
+        
+        <menuitem name="My Team Activities" id="team_activity_manager" parent="activity" action="action_my_team_activities" groups="schedule_activity.group_activity_manager" />
+
+        <menuitem name="My Activities" id="my_activity" parent="activity" action="action_my_activities" />
+
+        <menuitem name="Reporting" id="reporting" parent="schedule_activity_menu_root" action="activity_action_window_reporting" groups="schedule_activity.group_activity_manager" />
+
+    </data>
+</odoo>

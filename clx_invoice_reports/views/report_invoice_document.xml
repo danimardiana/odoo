@@ -64,6 +64,8 @@
                             <strong>BILL TO</strong>
                             <address t-field="o.partner_id"
                                      t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                            <!--<span t-field="o.partner_id.management_company_type_id.invoice_template_line1"/>
+                            <span t-field="o.partner_id.management_company_type_id.invoice_template_line2"/>-->
                             <div t-if="o.partner_id.vat" class="mt16">
                                 <t t-if="o.company_id.country_id.vat_label"
                                    t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
@@ -125,7 +127,6 @@
                         <th name="th_amount" class="text-right">
                             <span>Amount</span>
                         </th>
-
                     </tr>
                 </thead>
                 <tbody class="invoice_tbody">

@@ -474,12 +474,21 @@
                     <field name="cat_notes"/>
                 </group>
             </xpath>
+            <xpath expr="//page[@name='internal_notes']" position="after">
+                <page string="Invoice Template Lines" attrs="{'invisible': [('company_type', 'not in', ('management'))]}">
+                    <group>
+                        <field name="invoice_template_line1"/>
+                        <field name="invoice_template_line2"/>
+                    </group>
+                </page>
+            </xpath>
             <field name="vat" position="after">
                 <field name="vertical"/>
                 <field name="branding_name" attrs="{'invisible': [('company_type', 'not in', ('vendor'))]}"/>
                 <field name="timezone_char"/>
                 <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company','vendor'))]}"/>
                 <field name="master_id"/>
+                <field name="submittal_platform"/>
             </field>
         </field>
     </record>
