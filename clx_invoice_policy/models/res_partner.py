@@ -7,6 +7,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import UserError
 from odoo import fields, models, api, _
+from collections import Counter
 
 
 class Partner(models.Model):
@@ -46,7 +47,7 @@ class Partner(models.Model):
 
         lines = self.env['sale.subscription.line'].search([
             ('so_line_id.order_id.partner_id', 'child_of', self.id),
-            ('so_line_id.order_id.state', '=', 'sale'),
+            ('so_line_id.order_id.state', 'in', ('sale', 'done')),
         ])
         if self._context.get('create_invoice_from_wzrd'):
             lines = self.env['sale.subscription.line'].search([
@@ -153,7 +154,6 @@ class Partner(models.Model):
             start_date = self._context.get('start_date')
             end_date = self._context.get('end_date')
             if self._context.get('regenerate_invoice', False):
-                print("-----------------")
                 so_lines = lines.filtered(
                     lambda x: x.cancel_invoice_start_date >= start_date and x.cancel_invoice_end_date >= end_date)
 
@@ -226,7 +226,18 @@ class Partner(models.Model):
                         base_lines[line['category_id']]['management_fees'] += line.get('management_fees')
                         base_lines[line['category_id']]['wholesale'] += line.get('wholesale')
             order = so_lines[0].so_line_id.order_id
-            self.env['account.move'].create({
+            final_lines = {}
+            if base_lines and upsell_lines:
+                for key, val in base_lines.items():
+                    for key1, val1 in upsell_lines.items():
+                        if key == key1:
+                            final_lines.update({
+                                key: val
+                            })
+                            final_lines[key].update({
+                                'price_unit': val.get('price_unit') + val1.get('price_unit')
+                            })
+            vals = {
                 'ref': order.client_order_ref,
                 'type': 'out_invoice',
                 'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
@@ -244,15 +255,28 @@ class Partner(models.Model):
                 'campaign_id': order.campaign_id.id,
                 'medium_id': order.medium_id.id,
                 'source_id': order.source_id.id,
-                'invoice_line_ids':
-                    [
-                        (0, 0, x) for x in base_lines.values()
-                    ] + [
-                        (0, 0, x) for x in upsell_lines.values()
-                    ] + [
-                        (0, 0, x) for x in downsell_lines.values()
-                    ],
-            })
+                'invoice_line_ids': [
+                    (0, 0, x) for x in final_lines.values()
+                ],
+            }
+            if final_lines:
+                vals.update({
+                    'invoice_line_ids': [
+                        (0, 0, x) for x in final_lines.values()
+                    ]
+                })
+            else:
+                vals.update({
+                    'invoice_line_ids':
+                        [
+                            (0, 0, x) for x in base_lines.values()
+                        ] + [
+                            (0, 0, x) for x in upsell_lines.values()
+                        ] + [
+                            (0, 0, x) for x in downsell_lines.values()
+                        ],
+                })
+            self.env['account.move'].create(vals)
         else:
             order = so_lines[0].so_line_id.order_id
             for line in prepared_lines:

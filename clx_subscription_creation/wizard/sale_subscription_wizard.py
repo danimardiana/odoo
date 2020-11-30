@@ -37,10 +37,17 @@ class SaleSubscriptionWizard(models.TransientModel):
         inherit this method because of set start date from sale subscription wizard to sale order
         """
         res = super(SaleSubscriptionWizard, self).create_sale_order()
+        if self.option_lines[0].price == 0:
+            raise ValidationError(_("Please add Upsell Price!!"))
+        active_subscription = self.env['sale.subscription'].browse(self._context.get('active_id'))
+        order_id = active_subscription.recurring_invoice_line_ids[0].mapped('so_line_id').order_id
         res_id = res.get('res_id', False)
         if res_id:
             so = self.env['sale.order'].browse(res_id)
             so.onchange_partner_id()
+            if order_id:
+                so.clx_invoice_policy_id = order_id[0].clx_invoice_policy_id.id
+                so.contract_start_date = order_id[0].contract_start_date
             so.start_date = self.date_from if self.date_from else False
             sol_id = so.order_line.filtered(
                 lambda x: x.product_id.id == self.option_lines[0].product_id.id)

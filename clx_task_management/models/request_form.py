@@ -207,12 +207,23 @@ class RequestForm(models.Model):
         :Param : partner_id : browsable object of the partner
         :return : return dictionary
         """
+        today = fields.Date.today()
+        business_days_to_add = 5
+        current_date = today
+        # code for skip saturday and sunday for set deadline on task.
+        while business_days_to_add > 0:
+            current_date += datetime.timedelta(days=1)
+            weekday = current_date.weekday()
+            if weekday >= 5:  # sunday = 6, saturday = 5
+                continue
+            business_days_to_add -= 1
         vals = {
             'partner_id': partner_id.id,
             'name': description,
             'clx_state': 'new',
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
-            'user_id': self.partner_id.user_id.id if self.partner_id.user_id else False
+            'user_id': self.partner_id.user_id.id if self.partner_id.user_id else False,
+            'deadline': self.intended_launch_date if self.intended_launch_date else current_date
         }
         return vals
 
