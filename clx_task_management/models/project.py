@@ -132,7 +132,7 @@ class ProjectTask(models.Model):
                 'sub_task_id': sub_task.id,
                 'team_ids': sub_task.team_ids.ids if sub_task.team_ids else False,
                 'team_members_ids': sub_task.team_members_ids.ids,
-                'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False
+                'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
             }
             return vals
 
@@ -211,7 +211,8 @@ class ProjectTask(models.Model):
                 'sub_task_id': task.id,
                 'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,
-                'tag_ids': task.tag_ids.ids if task.tag_ids else False
+                'tag_ids': task.tag_ids.ids if task.tag_ids else False,
+                'date_deadline': project_id.deadline if project_id.deadline else False
             }
             return vals
 

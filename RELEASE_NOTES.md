@@ -677,6 +677,16 @@
 
 ## 11/27/2020
 #### Version 13.0.1.0.2
-- [ADD Initial commit for the schedule activity dashboards.
+- [ADD] schedule_activity : Initial commit for the schedule activity dashboards.
 
- 
+## 11/30/2020
+#### Version 13.3.0.0.48
+- [FIX] clx_task_management : set deadline automatically on project.and set deadline on task when completed one task.
+
+## 11/30/2020
+#### Version 13.1.1.0.9
+- [ADD] clx_subscription_creation : raised warning when doing upsell if price is 0 than raised warning.
+
+## 11/30/2020
+#### Version 13.1.0.0.29
+- [FIX] clx_invoice_policy : fix the issue of category wise line merge when invoice is generating.
