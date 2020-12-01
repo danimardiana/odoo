@@ -208,7 +208,10 @@ class RequestForm(models.Model):
         :return : return dictionary
         """
         today = fields.Date.today()
-        business_days_to_add = 5
+        if all(line.req_type == 'update' for line in self.request_line):
+            business_days_to_add = 3
+        else:
+            business_days_to_add = 5
         current_date = today
         # code for skip saturday and sunday for set deadline on task.
         while business_days_to_add > 0:
@@ -267,6 +270,7 @@ class RequestForm(models.Model):
                                         sub_task, main_task, line)
                                     project_task_obj.create(vals)
         self.state = 'submitted'
+        self.submitted_by_user_id = self.env.uid
 
     @api.onchange('sale_order_id', 'is_create_client_launch')
     def _onchange_sale_order_id(self):

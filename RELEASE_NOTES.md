@@ -690,3 +690,11 @@
 ## 11/30/2020
 #### Version 13.1.0.0.29
 - [FIX] clx_invoice_policy : fix the issue of category wise line merge when invoice is generating.
+
+## 12/01/2020
+#### Version 13.1.1.0.10
+- [ADD] clx_subscription_creation : when sale order deleted than subscription will be deleted.
+
+## 12/01/2020
+#### Version 13.3.0.0.49
+- [FIX] clx_task_management : set team members on all sub task.

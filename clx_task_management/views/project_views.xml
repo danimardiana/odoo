@@ -10,9 +10,9 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='project_id']" position="after">
-                <field name="team_ids" widget="many2many_tags"/>
-                <field name="team_members_ids" widget="many2many_tags"/>
-                <field name="tag_ids" widget="many2many_tags"/>
+                <field name="team_ids" widget="many2many_tags" optional="show"/>
+                <field name="team_members_ids" widget="many2many_tags" optional="show"/>
+                <field name="tag_ids" widget="many2many_tags" optional="show"/>
                 <field name="date_deadline"/>
             </xpath>
 
