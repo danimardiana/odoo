@@ -87,6 +87,12 @@ class SaleOrder(models.Model):
                             line.clx_subscription_ids = clx_sub_list
         return res
 
+    def unlink(self):
+        subscriptions = self.order_line.mapped('subscription_id')
+        if subscriptions:
+            subscriptions.unlink()
+        return super(SaleOrder, self).unlink()
+
 
 class SaleOrderLine(models.Model):
     """

@@ -48,7 +48,6 @@ class ProjectProject(models.Model):
             #     task.clx_project_designer_id = self.clx_project_designer_id.id
         return res
 
-
     def action_done_project(self):
         self.clx_state = 'done'
         # tasks = self.env['project.task'].search([('project_id', '=', self.id)])
@@ -65,6 +64,28 @@ class ProjectTask(models.Model):
     def _compute_sub_task(self):
         domain = [('parent_id', '=', self.repositary_task_id.id)]
         records = self.env['sub.task'].search(domain)
+        if self.ops_team_member_id:
+            sub_task = records.filtered(lambda x: x.team_ids)
+            for record in sub_task:
+                if record.team_ids.filtered(lambda x:x.team_name == 'Ops'):
+                    team_list = record.team_members_ids.ids
+                    team_list.append(self.ops_team_member_id.id)
+                    record.team_members_ids = team_list
+        if self.clx_task_designer_id:
+            sub_task = records.filtered(lambda x: x.team_ids)
+            for record in sub_task:
+                if record.team_ids.filtered(lambda x:x.team_name == 'CAT'):
+                    team_list = record.team_members_ids.ids
+                    team_list.append(self.clx_task_designer_id.id)
+                    record.team_members_ids = team_list
+        if self.clx_task_manager_id:
+            sub_task = records.filtered(lambda x: x.team_ids)
+            for record in sub_task:
+                if record.team_ids.filtered(lambda x:x.team_name == 'CS'):
+                    team_list = record.team_members_ids.ids
+                    team_list.append(self.clx_task_manager_id.id)
+                    record.team_members_ids = team_list
+
         for record in records:
             task = self.search([('sub_task_id', '=', record.id), ('parent_id', '=', self.id),
                                 ('project_id', '=', self.project_id.id)])
@@ -212,7 +233,10 @@ class ProjectTask(models.Model):
                 'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,
                 'tag_ids': task.tag_ids.ids if task.tag_ids else False,
-                'date_deadline': project_id.deadline if project_id.deadline else False
+                'date_deadline': project_id.deadline if project_id.deadline else False,
+                'ops_team_member_id': self.ops_team_member_id.id if self.ops_team_member_id else False,
+                'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,
+                'clx_task_manager_id': self.clx_task_manager_id.id if self.clx_task_manager_id else False
             }
             return vals
 
