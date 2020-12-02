@@ -698,3 +698,9 @@
 ## 12/01/2020
 #### Version 13.3.0.0.49
 - [FIX] clx_task_management : set team members on all sub task.
+
+## 12/01/2020
+#### Version 13.3.0.0.50
+- [FIX] clx_task_management : added conditions for the when task have multiple dependency
+- [FIX] Fix the issue related tags on all task tree view.
+- [ADD] Added warning when done project and parent task.
