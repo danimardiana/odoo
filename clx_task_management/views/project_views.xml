@@ -27,6 +27,9 @@
             <xpath expr="//field[@name='company_id']" position="after">
                 <field name="clx_state"/>
             </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="deadline"/>
+            </xpath>
         </field>
     </record>
 
