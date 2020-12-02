@@ -49,13 +49,11 @@ class ProjectProject(models.Model):
         return res
 
     def action_done_project(self):
-        self.clx_state = 'done'
-        # tasks = self.env['project.task'].search([('project_id', '=', self.id)])
-        # complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-        # if all(task.stage_id.id == complete_stage.id for task in tasks):
-        #     self.clx_state = 'done'
-        # else:
-        #     raise UserError(_("Please Complete All the Task First!!"))
+        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        if all(task.stage_id.id == complete_stage.id for task in self.task_ids):
+            self.clx_state = 'done'
+        else:
+            raise UserError(_("Please Complete All the Task First!!"))
 
 
 class ProjectTask(models.Model):
@@ -67,21 +65,21 @@ class ProjectTask(models.Model):
         if self.ops_team_member_id:
             sub_task = records.filtered(lambda x: x.team_ids)
             for record in sub_task:
-                if record.team_ids.filtered(lambda x:x.team_name == 'Ops'):
+                if record.team_ids.filtered(lambda x: x.team_name == 'Ops'):
                     team_list = record.team_members_ids.ids
                     team_list.append(self.ops_team_member_id.id)
                     record.team_members_ids = team_list
         if self.clx_task_designer_id:
             sub_task = records.filtered(lambda x: x.team_ids)
             for record in sub_task:
-                if record.team_ids.filtered(lambda x:x.team_name == 'CAT'):
+                if record.team_ids.filtered(lambda x: x.team_name == 'CAT'):
                     team_list = record.team_members_ids.ids
                     team_list.append(self.clx_task_designer_id.id)
                     record.team_members_ids = team_list
         if self.clx_task_manager_id:
             sub_task = records.filtered(lambda x: x.team_ids)
             for record in sub_task:
-                if record.team_ids.filtered(lambda x:x.team_name == 'CS'):
+                if record.team_ids.filtered(lambda x: x.team_name == 'CS'):
                     team_list = record.team_members_ids.ids
                     team_list.append(self.clx_task_manager_id.id)
                     record.team_members_ids = team_list
@@ -236,11 +234,16 @@ class ProjectTask(models.Model):
                 'date_deadline': project_id.deadline if project_id.deadline else False,
                 'ops_team_member_id': self.ops_team_member_id.id if self.ops_team_member_id else False,
                 'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,
-                'clx_task_manager_id': self.clx_task_manager_id.id if self.clx_task_manager_id else False
+                'clx_task_manager_id': self.clx_task_manager_id.id if self.clx_task_manager_id else False,
+                'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False
             }
             return vals
 
     def write(self, vals):
+        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        if vals.get('stage_id') == complete_stage.id and not all(
+                child.stage_id.id == complete_stage.id for child in self.child_ids):
+            raise UserError('Please complate all subtask First!!')
         res = super(ProjectTask, self).write(vals)
         sub_task_obj = self.env['sub.task']
         if vals.get('req_type', False) and vals.get('repositary_task_id', False):
@@ -254,7 +257,6 @@ class ProjectTask(models.Model):
                     self.create(vals)
 
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
-        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             if self.sub_task_id:
@@ -263,9 +265,12 @@ class ProjectTask(models.Model):
                     [('dependency_ids', 'in', self.sub_task_id.ids),
                      ('parent_id', 'in', parent_task_main_task.ids)])
                 for task in dependency_tasks:
-                    vals = self.create_sub_task(task, self.project_id)
-                    if not self.project_id.task_ids.filtered(lambda x: x.sub_task_id.id == task.id):
-                        self.create(vals)
+                    all_task = self.parent_id.child_ids
+                    all_task = all_task.filtered(lambda x:x.sub_task_id.id in task.dependency_ids.ids)
+                    if all(line.stage_id.id == complete_stage.id for line in all_task):
+                        vals = self.create_sub_task(task, self.project_id)
+                        if not self.project_id.task_ids.filtered(lambda x: x.sub_task_id.id == task.id):
+                            self.create(vals)
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
             params = self.env['ir.config_parameter'].sudo()
             auto_create_sub_task = bool(params.get_param('auto_create_sub_task')) or False
