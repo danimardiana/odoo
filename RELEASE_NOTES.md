@@ -712,3 +712,11 @@
 ## 12/02/2020
 #### Version 13.1.1.0.21
 - [FIX] contact_modification : changed field type Submittal type.
+
+## 12/03/2020
+#### Version 13.3.0.0.51
+- [FIX] clx_task_management : make readonly field on request form.
+
+## 12/03/2020
+#### Version 13.3.0.0.22
+- [FIX] clx_invoice_reports : added tax on invoice reports.
