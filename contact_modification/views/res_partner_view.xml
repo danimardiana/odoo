@@ -488,7 +488,7 @@
                 <field name="timezone_char"/>
                 <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company','vendor'))]}"/>
                 <field name="master_id"/>
-
+                <field name="submitted_platform_id"/>
             </field>
         </field>
     </record>

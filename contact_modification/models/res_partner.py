@@ -128,7 +128,7 @@ class Partner(models.Model):
         ('Missing: abandoned', 'Missing: abandoned')
     ], string="Google Analytics CL Account Location")
     dni = fields.Char(string='DNI')
-    # submitted_platform = fields.Many2one('submitted.platform', string="Submittal Platform")
+    submitted_platform_id = fields.Many2one('submitted.platform', string="Submittal Platform")
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
 
