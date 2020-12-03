@@ -720,3 +720,7 @@
 ## 12/03/2020
 #### Version 13.3.0.0.22
 - [FIX] clx_invoice_reports : added tax on invoice reports.
+
+## 12/03/2020
+#### Version 13.3.0.0.23
+- [FIX] clx_invoice_reports : removed extra space from invoice pdf reports.
