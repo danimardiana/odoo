@@ -62,10 +62,31 @@
                     <div class="col-12">
                         <div class="col-6" name="bill_to" style="float:left;">
                             <strong>BILL TO</strong>
-                            <address t-field="o.partner_id"
-                                     t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
-                            <!--<span t-field="o.partner_id.management_company_type_id.invoice_template_line1"/>
-                            <span t-field="o.partner_id.management_company_type_id.invoice_template_line2"/>-->
+                            <br/>
+                            <span t-field="o.partner_id.street"/>
+                            <br/>
+                            <span t-field="o.partner_id.street2"/>
+                            <br/>
+                            <!--<address t-field="o.partner_id"
+                                     t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>-->
+                            <span t-field="o.partner_id.management_company_type_id.invoice_template_line1"/>
+                            <br/>
+                            <span t-field="o.partner_id.management_company_type_id.invoice_template_line2"/>
+                            <br/>
+                            <span t-field="o.partner_id.city"/>
+                            <br/>
+                            <t t-if="o.partner_id.state_id">
+                                <span t-field="o.partner_id.state_id.name"/>
+                                <br/>
+                            </t>
+                            <t t-if="o.partner_id.zip">
+                                <span t-field="o.partner_id.zip"/>
+                            </t>
+                            <br/>
+                            <t t-if="o.partner_id.country_id">
+                                <span t-field="o.partner_id.country_id.name"/>
+                                <br/>
+                            </t>
                             <div t-if="o.partner_id.vat" class="mt16">
                                 <t t-if="o.company_id.country_id.vat_label"
                                    t-esc="o.company_id.country_id.vat_label" id="inv_tax_id_label"/>
@@ -120,10 +141,10 @@
                         <th name="th_description">
                             <span>Description</span>
                         </th>
-                        <th name="th_taxes"
+                        <!--<th name="th_taxes"
                             t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                             <span>Taxes</span>
-                        </th>
+                        </th>-->
                         <th name="th_amount" class="text-right">
                             <span>Amount</span>
                         </th>
@@ -149,43 +170,90 @@
                                     <span t-field="line.category_id.name"/>
                                 </t>
                             </td>
-                            <td t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                            <!--<td t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                                 <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.tax_ids))"
                                       id="line_tax_ids"/>
-                            </td>
+                            </td>-->
                             <td>
-                                <t t-set="priceunit" t-value="line.price_total- line.management_fees"/>
+                                <t t-set="priceunit" t-value="line.price_subtotal- line.management_fees"/>
                                 <span t-esc="priceunit" style="float:right;"/>
                                 <t t-set="priceunit" t-value="0"/>
                             </td>
-
                         </tr>
                         <tr>
                             <t t-set="management_fees" t-value="management_fees + line.management_fees"/>
                         </tr>
                     </t>
-                    <tr>
-                        <td>Management Fees</td>
-                        <td colspan="2" class="text-righ">
-                            <span t-esc="management_fees" style="float:right;"/>
-                        </td>
-                    </tr>
+                    <t t-if="management_fees">
+                        <tr>
+                            <td>Management Fees</td>
+                            <td colspan="2" class="text-righ">
+                                <span t-esc="management_fees" style="float:right;"/>
+                            </td>
+                        </tr>
+                    </t>
                 </tbody>
             </table>
             <hr style="border: 1px dashed black;"/>
-            <table>
-                <tbody>
-                    <tr>
-                        <td style="width: 600px;">Payment in full is required to start or
-                            continue service.
-                        </td>
-                        <td style="width: 300px;">BALANCE DUE</td>
-                        <td style="width: 80px;">
-                            <strong t-field="o.amount_untaxed"/>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="clearfix" name="so_total_summary">
+                <div id="total" class="row" name="total">
+                    <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                        <table class="table table-sm">
+                            <tr class="border-black o_subtotal" style="">
+                                <td name="td_amount_untaxed_label">
+                                    <strong>Subtotal</strong>
+                                </td>
+                                <td name="td_amount_untaxed" class="text-right">
+                                    <span t-field="o.amount_untaxed"/>
+                                </td>
+                            </tr>
+                            <tr class="border-black o_subtotal" style="">
+                                <t t-foreach="o.amount_by_group" t-as="amount_by_group">
+                                    <tr style="">
+                                        <t t-if="len(o.line_ids.filtered(lambda line: line.tax_line_id)) in [0, 1] and o.amount_untaxed == amount_by_group[2]">
+                                            <td>
+                                                <span class="text-nowrap" t-esc="amount_by_group[0]"/>
+                                            </td>
+                                            <td class="text-right o_price_total">
+                                                <span class="text-nowrap" t-esc="amount_by_group[3]"/>
+                                            </td>
+                                        </t>
+                                        <t t-else="">
+                                            <td>
+                                                <span t-esc="amount_by_group[0]"/>
+                                                <span class="text-nowrap">on
+                                                    <t t-esc="amount_by_group[4]"/>
+                                                </span>
+                                            </td>
+                                            <td class="text-right o_price_total">
+                                                <span class="text-nowrap" t-esc="amount_by_group[3]"/>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </tr>
+                            <tr class="border-black o_subtotal" style="">
+                                <td name="td_amount_untaxed_label">
+                                    <strong>Total</strong>
+                                </td>
+                                <td name="td_amount_untaxed" class="text-right">
+                                    <span t-field="o.amount_total"/>
+                                </td>
+                            </tr>
+                            <t t-if="o.amount_residual">
+                                <tr class="border-black o_subtotal" style="">
+                                    <td name="td_amount_untaxed_label">
+                                        <strong>Balance Due</strong>
+                                    </td>
+                                    <td name="td_amount_untaxed" class="text-right">
+                                        <span t-field="o.amount_residual"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </xpath>
     </template>
 </odoo>
