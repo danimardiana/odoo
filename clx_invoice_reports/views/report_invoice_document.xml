@@ -63,16 +63,28 @@
                         <div class="col-6" name="bill_to" style="float:left;">
                             <strong>BILL TO</strong>
                             <br/>
-                            <span t-field="o.partner_id.street"/>
-                            <br/>
-                            <span t-field="o.partner_id.street2"/>
-                            <br/>
+                            <t t-if="o.partner_id.street">
+                                <span t-field="o.partner_id.street"/>
+                                <br/>
+                            </t>
+
+                            <t t-if="o.partner_id.street2">
+                                <span t-field="o.partner_id.street2"/>
+                                <br/>
+                            </t>
+
                             <!--<address t-field="o.partner_id"
                                      t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>-->
-                            <span t-field="o.partner_id.management_company_type_id.invoice_template_line1"/>
-                            <br/>
-                            <span t-field="o.partner_id.management_company_type_id.invoice_template_line2"/>
-                            <br/>
+                            <t t-if="o.partner_id.management_company_type_id.invoice_template_line1">
+                                <span t-field="o.partner_id.management_company_type_id.invoice_template_line1"/>
+                                <br/>
+                            </t>
+
+                            <t t-if="o.partner_id.management_company_type_id.invoice_template_line2">
+                                <span t-field="o.partner_id.management_company_type_id.invoice_template_line2"/>
+                                <br/>
+                            </t>
+
                             <span t-field="o.partner_id.city"/>
                             <br/>
                             <t t-if="o.partner_id.state_id">
@@ -81,8 +93,9 @@
                             </t>
                             <t t-if="o.partner_id.zip">
                                 <span t-field="o.partner_id.zip"/>
+                                <br/>
                             </t>
-                            <br/>
+
                             <t t-if="o.partner_id.country_id">
                                 <span t-field="o.partner_id.country_id.name"/>
                                 <br/>
