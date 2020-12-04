@@ -32,13 +32,12 @@ class GenerateInvoiceDateRange(models.TransientModel):
             so_lines = lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= self.start_date)
             if not so_lines and not self.regenerate_cancel_invoice:
                 raise UserError(_("You can not create invoice selected date range"))
-            elif so_lines:
-                advance_lines = lines.filtered(
-                    lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
-                if self.regenerate_cancel_invoice:
-                    advance_lines = advance_lines.filtered(
-                        lambda x: x.cancel_invoice_start_date and x.cancel_invoice_end_date)
-                partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
-                                        end_date=self.end_date,
-                                        regenerate_invoice=self.regenerate_cancel_invoice).generate_advance_invoice(
-                    advance_lines)
+            advance_lines = lines.filtered(
+                lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
+            if self.regenerate_cancel_invoice:
+                advance_lines = advance_lines.filtered(
+                    lambda x: x.cancel_invoice_start_date and x.cancel_invoice_end_date)
+            partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
+                                    end_date=self.end_date,
+                                    regenerate_invoice=self.regenerate_cancel_invoice).generate_advance_invoice(
+                advance_lines)

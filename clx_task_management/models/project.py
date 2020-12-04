@@ -266,8 +266,15 @@ class ProjectTask(models.Model):
                      ('parent_id', 'in', parent_task_main_task.ids)])
                 for task in dependency_tasks:
                     all_task = self.parent_id.child_ids
-                    all_task = all_task.filtered(lambda x:x.sub_task_id.id in task.dependency_ids.ids)
-                    if all(line.stage_id.id == complete_stage.id for line in all_task):
+                    all_task = all_task.filtered(lambda x: x.sub_task_id.id in task.dependency_ids.ids)
+                    b = task.dependency_ids.ids.sort()
+                    a = all_task.mapped('sub_task_id').ids.sort()
+                    if not b:
+                        b = task.dependency_ids.ids
+                    if not a:
+                        a = all_task.mapped('sub_task_id').ids
+                    print(a,b)
+                    if all(line.stage_id.id == complete_stage.id for line in all_task) and a == b:
                         vals = self.create_sub_task(task, self.project_id)
                         if not self.project_id.task_ids.filtered(lambda x: x.sub_task_id.id == task.id):
                             self.create(vals)

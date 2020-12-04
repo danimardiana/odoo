@@ -724,3 +724,16 @@
 ## 12/03/2020
 #### Version 13.3.0.0.23
 - [FIX] clx_invoice_reports : removed extra space from invoice pdf reports.
+
+## 12/04/2020
+#### Version 13.3.0.0.24
+- [FIX] clx_invoice_reports : added condition for the when print city in invoice pdf reports.
+
+## 12/04/2020
+#### Version 13.3.0.0.53
+- [FIX] clx_task_management : added logic for the task not created untill the dependent task are not completed.
+
+## 12/04/2020
+#### Version 13.1.0.0.30
+- [FIX] clx_invoice_policy : fix the issue of re-create invoice for the cancel invoices. 
+

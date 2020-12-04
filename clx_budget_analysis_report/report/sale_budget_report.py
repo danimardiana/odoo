@@ -68,6 +68,8 @@ class SaleBudgetReport(models.Model):
         all_subscription_lines = self.env['sale.subscription.line'].search([('start_date', '!=', False)])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         for subscription_line in subscription_lines:
+            if subscription_line.analytic_account_id.code == 'SUB412':
+                print("___________")
             if subscription_line.end_date:
                 r = len(OrderedDict(((subscription_line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                     range((subscription_line.end_date - subscription_line.start_date).days)))
@@ -118,32 +120,35 @@ class SaleBudgetReport(models.Model):
 
         # if subscription start date is behind current date and end date is not set on subscription than
         # report will be generate current month to budget month
-        subscription_lines = all_subscription_lines.filtered(
-            lambda x: not x.end_date and x.start_date < current_month_start_date)
-        for subscription_line in subscription_lines:
-            if subscription_line.line_type == 'upsell':
-                current_month_start_date = subscription_line.start_date
-                budget_month = int(params.get_param('budget_month')) or False
-                budget_month -= subscription_line.start_date.month - starting_month.month
-
-            for i in range(0, budget_month):
-                vals = {
-                    'date': current_month_start_date,
-                    'product_id': subscription_line.product_id.id,
-                    'subscription_id': subscription_line.analytic_account_id.id,
-                    'partner_id': subscription_line.so_line_id.order_id.partner_id.id,
-                    'wholesale_price': subscription_line.so_line_id.wholesale_price,
-                    'base_price': subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
-                        lambda x: x.line_type == 'base')[0].price_unit,
-                }
-                if subscription_line.line_type == 'upsell':
-                    vals.update({
-                        'upsell_down_sell_price': subscription_line.price_unit
-                    })
-                report_data_table.create(vals)
-                current_month_start_date = current_month_start_date + relativedelta(months=1)
-            budget_month = int(params.get_param('budget_month')) or False
-            current_month_start_date = fields.Date.today().replace(day=1)
+        # subscription_lines = all_subscription_lines.filtered(
+        #     lambda x: not x.end_date and x.start_date < current_month_start_date)
+        # for subscription_line in subscription_lines:
+        #     if subscription_line.analytic_account_id.code == 'SUB412':
+        #         print("___________")
+        #     if subscription_line.line_type == 'upsell':
+        #         current_month_start_date = subscription_line.start_date
+        #         budget_month = int(params.get_param('budget_month')) or False
+        #         budget_month -= subscription_line.start_date.month - starting_month.month
+        #
+        #     for i in range(0, budget_month):
+        #         vals = {
+        #             'date': current_month_start_date,
+        #             'product_id': subscription_line.product_id.id,
+        #             'subscription_id': subscription_line.analytic_account_id.id,
+        #             'subscription_line_id' : subscription_line.id,
+        #             'partner_id': subscription_line.so_line_id.order_id.partner_id.id,
+        #             'wholesale_price': subscription_line.so_line_id.wholesale_price,
+        #             'base_price': subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
+        #                 lambda x: x.line_type == 'base')[0].price_unit,
+        #         }
+        #         if subscription_line.line_type == 'upsell':
+        #             vals.update({
+        #                 'upsell_down_sell_price': subscription_line.price_unit
+        #             })
+        #         report_data_table.create(vals)
+        #         current_month_start_date = current_month_start_date + relativedelta(months=1)
+        #     budget_month = int(params.get_param('budget_month')) or False
+        #     current_month_start_date = fields.Date.today().replace(day=1)
 
         all_report_data = report_data_table.search([]).filtered(lambda x: x.date > end_date)
         if all_report_data:
