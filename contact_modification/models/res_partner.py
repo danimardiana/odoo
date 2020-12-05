@@ -131,6 +131,7 @@ class Partner(models.Model):
     submitted_platform_id = fields.Many2one('submitted.platform', string="Submittal Platform")
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
+    discount_on_order_line = fields.Float(string="Discount on Sale Order Line (%)")
 
     def open_submitted_req_form(self):
         request_forms = self.env['request.form'].search([('partner_id', '=', self.id), ('state', '=', 'submitted')])

@@ -151,7 +151,14 @@
                             <tr>
                                 <td style="border-bottom: 1px dashed red;">Setup Fees:</td>
                                 <td style="border-bottom: 1px dashed red;">
-                                    <span t-field="doc.setup_fee"/>
+                                    <!--<span t-field="doc.setup_fee"/>-->
+                                    <t t-set="setup_fees" t-value="0"/>
+                                    <t t-foreach="doc.order_line" t-as="line">
+                                        <t t-if="line.product_id.setup_fees">
+                                            <t t-set="setup_fees" t-value="setup_fees + line.product_id.setup_fees"/>
+                                        </t>
+                                    </t>
+                                    <span t-esc="setup_fees"/>
                                 </td>
                             </tr>
                         </tbody>
