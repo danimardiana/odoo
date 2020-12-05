@@ -489,6 +489,10 @@
                 <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company','vendor'))]}"/>
                 <field name="master_id"/>
                 <field name="submitted_platform_id"/>
+                <field name="discount_on_order_line"
+                       attrs="{'invisible': [('company_type', 'not in', ('management'))]}"
+                       groups="product.group_discount_per_so_line"
+                />
             </field>
         </field>
     </record>

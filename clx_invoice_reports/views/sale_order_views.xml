@@ -10,7 +10,7 @@
             <xpath expr="//field[@name='date_order']" position="after">
                 <field name="contract_length"/>
                 <field name="intended_launch_date"/>
-                <field name="setup_fee"/>
+                <!--<field name="setup_fee"/>-->
             </xpath>
 
         </field>
