@@ -101,6 +101,10 @@ class SaleOrderLine(models.Model):
                     months=invoice_month)
                 date_end = date_end.replace(
                     day=monthrange(date_end.year, date_end.month)[1])
+            if self.product_id.subscription_template_id.recurring_rule_type == 'yearly':
+                date_end = date_start + relativedelta(
+                    months=12, days=-1)
+
             res[0][-1].update({
                 'invoice_start_date': date_start,
                 'invoice_end_date': date_end,
