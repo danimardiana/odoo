@@ -737,3 +737,14 @@
 #### Version 13.1.0.0.30
 - [FIX] clx_invoice_policy : fix the issue of re-create invoice for the cancel invoices. 
 
+## 12/05/2020
+#### Version 13.3.0.0.25
+- [FIX] clx_invoice_reports : added setup fees field on product and added that field on contract report.
+
+## 12/05/2020
+#### Version 13.3.0.0.25
+- [FIX] contact_modification : added discount field on management company based on that added discount on sale order line.
+
+## 12/05/2020
+#### Version 13.1.1.0.11
+- [FIX] clx_subscription_creation : added onchange for set discount on sale order line.
