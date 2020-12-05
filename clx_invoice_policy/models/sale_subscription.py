@@ -135,6 +135,7 @@ class SaleSubscriptionLine(models.Model):
         date_start = today.replace(day=1)
         date_end = date_start + relativedelta(months=1, days=-1)
         period_msg = self._format_period_msg(date_start, date_end, line)
+
         res = {
             'display_type': line.display_type,
             'sequence': line.sequence,
@@ -147,7 +148,7 @@ class SaleSubscriptionLine(models.Model):
             'category_id': self.product_id.categ_id.id,
             'product_uom_id': line.product_uom.id,
             'quantity': 1,
-            'discount': self.discount,
+            'discount': line.discount,
             'price_unit': self.price_unit * (
                 2 if self.line_type == 'upsell' and
                      not self.last_invoiced and
@@ -315,4 +316,16 @@ class SaleSubscriptionLine(models.Model):
                         'invoice_end_date': expire_date
                     })
                     self.write(vals)
+        if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
+            date_end = date_start + relativedelta(months=12, days=-1)
+            lang = line.order_id.partner_invoice_id.lang
+            format_date = self.env['ir.qweb.field.date'].with_context(
+                lang=lang).value_to_html
+            period_msg = ("Invoicing period: %s - %s") % (
+                format_date(fields.Date.to_string(date_start), {}),
+                format_date(fields.Date.to_string(date_end), {}))
+            res.update({
+                'name': period_msg,
+                'price_unit': self.price_unit
+            })
         return res

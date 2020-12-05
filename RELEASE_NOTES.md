@@ -748,3 +748,7 @@
 ## 12/05/2020
 #### Version 13.1.1.0.11
 - [FIX] clx_subscription_creation : added onchange for set discount on sale order line.
+
+## 12/05/2020
+#### Version 13.1.0.0.31
+- [FIX] clx_invoice_policy : added discount when creating invoice.

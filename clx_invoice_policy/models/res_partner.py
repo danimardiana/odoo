@@ -87,6 +87,15 @@ class Partner(models.Model):
         """
 
         today = date.today()
+        yearly_lines = lines.filtered(lambda
+                                          x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'yearly')
+        yearly_prepared_lines = [line.with_context({
+            'advance': True
+        })._prepare_invoice_line() for line in yearly_lines]
+
+        lines = lines.filtered(lambda
+                                   x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
+
         so_lines = lines.filtered(
             lambda sol: (sol.invoice_start_date and
                          sol.invoice_end_date and
