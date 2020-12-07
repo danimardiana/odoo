@@ -211,6 +211,20 @@ class SaleSubscriptionLine(models.Model):
                         day=1) if self.invoice_end_date else False,
                     'invoice_end_date': expire_date
                 })
+                if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
+                    yearly_start_date = (self.invoice_end_date + relativedelta(months=1)).replace(
+                        day=1) if self.invoice_end_date else False
+                    yearly_end_date = (yearly_start_date + relativedelta(
+                    months=12)).replace(day=1) + relativedelta(days=-1)
+                    vals.update({
+                        'invoice_end_date' : yearly_end_date
+                    })
+                    lang = line.order_id.partner_invoice_id.lang
+                    format_date = self.env['ir.qweb.field.date'].with_context(
+                        lang=lang).value_to_html
+                    period_msg = ("Invoicing period: %s - %s") % (
+                        format_date(fields.Date.to_string(self.invoice_start_date), {}),
+                        format_date(fields.Date.to_string(self.invoice_end_date), {}))
             self.write(vals)
             res.update({
                 'name': period_msg,
@@ -317,13 +331,6 @@ class SaleSubscriptionLine(models.Model):
                     })
                     self.write(vals)
         if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
-            date_end = date_start + relativedelta(months=12, days=-1)
-            lang = line.order_id.partner_invoice_id.lang
-            format_date = self.env['ir.qweb.field.date'].with_context(
-                lang=lang).value_to_html
-            period_msg = ("Invoicing period: %s - %s") % (
-                format_date(fields.Date.to_string(date_start), {}),
-                format_date(fields.Date.to_string(date_end), {}))
             res.update({
                 'name': period_msg,
                 'price_unit': self.price_unit

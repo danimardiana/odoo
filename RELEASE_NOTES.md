@@ -752,3 +752,12 @@
 ## 12/05/2020
 #### Version 13.1.0.0.31
 - [FIX] clx_invoice_policy : added discount when creating invoice.
+
+## 12/07/2020
+#### Version 13.1.0.0.32
+- [FIX] clx_invoice_policy : added logic for the yearly subscription.
+
+## 12/07/2020
+#### Version 13.3.0.0.14
+- [FIX] clx_budget_analysis_report : added logic for the show yearly price on pivot report.
+
