@@ -89,6 +89,17 @@ class Partner(models.Model):
         today = date.today()
         yearly_lines = lines.filtered(lambda
                                           x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'yearly')
+        yearly_lines = yearly_lines.filtered(
+            lambda sol: (sol.invoice_start_date and
+                         sol.invoice_end_date and
+                         sol.invoice_start_date <= today and
+                         sol.invoice_end_date >= today
+                         ) or (
+                                sol.end_date and sol.end_date < today and not sol.last_invoiced and
+                                sol.line_type != 'base'
+                        )
+        )
+
         yearly_prepared_lines = [line.with_context({
             'advance': True
         })._prepare_invoice_line() for line in yearly_lines]
@@ -119,7 +130,7 @@ class Partner(models.Model):
             )
         if self._context.get('generate_invoice_date_range'):
             so_lines = lines
-        if not so_lines:
+        if not so_lines and not yearly_lines:
             if self._context.get('from_generate_invoice'):
                 raise UserError(_("You must have a sales order to create an invoice"))
             return self
@@ -177,6 +188,11 @@ class Partner(models.Model):
             prepared_lines = [line.with_context({
                 'advance': True
             })._prepare_invoice_line() for line in so_lines]
+        if yearly_prepared_lines:
+            so_lines = yearly_lines
+            for y_line in yearly_prepared_lines:
+                prepared_lines.append(y_line)
+
         if not so_lines:
             return self
         if not self._context.get('sol'):
