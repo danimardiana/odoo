@@ -181,3 +181,13 @@ class SaleOrderLine(models.Model):
             'line_type': self.line_type
         })
         return res
+
+    def unlink(self):
+        subscription_lines = self.env['sale.subscription.line'].search([('so_line_id', '=', self.id)])
+        complete_stage = self.env.ref("sale_subscription.sale_subscription_stage_closed")
+        for sub_line in subscription_lines:
+            if sub_line.analytic_account_id.stage_id.id != complete_stage.id:
+                raise ValidationError(_("Please close {} Subscription First !!").format(sub_line.analytic_account_id.code))
+            else:
+                sub_line.unlink()
+        return super(SaleOrderLine, self).unlink()

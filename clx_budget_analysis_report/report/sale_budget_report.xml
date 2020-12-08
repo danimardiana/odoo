@@ -11,11 +11,13 @@
                 <field name="price" type="measure"/>
                 <field name="partner_id" type="row"/>
                 <field name="product_id" type="row"/>
+                <field name="base_price" invisible="1" type="measure"/>
+                <field name="upsell_down_sell_price" invisible="1" type="measure"/>
             </pivot>
         </field>
     </record>
 
-    <record id="sale_budget_report_view_search" model="ir.ui.view">
+    <!--<record id="sale_budget_report_view_search" model="ir.ui.view">
         <field name="name">sale.budget.report.search</field>
         <field name="model">sale.budget.report</field>
         <field name="arch" type="xml">
@@ -23,7 +25,7 @@
                 <filter string="Client" name="partner_id"/>
             </search>
         </field>
-    </record>
+    </record>-->
 
     <record id="sale_budget_report_action" model="ir.actions.act_window">
         <field name="name">Budget Report</field>
