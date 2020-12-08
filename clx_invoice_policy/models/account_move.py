@@ -10,6 +10,7 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
+    subscription_line_ids = fields.One2many('sale.subscription.line', 'account_id', string="Subscription Lines")
 
     def button_cancel(self):
         res = super(AccountMove, self).button_cancel()

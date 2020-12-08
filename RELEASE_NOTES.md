@@ -761,3 +761,21 @@
 #### Version 13.3.0.0.14
 - [FIX] clx_budget_analysis_report : added logic for the show yearly price on pivot report.
 
+## 12/08/2020
+#### Version 13.3.0.0.15
+- [FIX] clx_budget_analysis_report : fix the issue of yearly subscription creation.
+
+## 12/08/2020
+#### Version 13.3.0.0.9
+- [FIX] clx_budget_management : added calculation for the yearly budget line.
+
+## 12/08/2020
+#### Version 13.1.0.0.33
+- [FIX] clx_invoice_policy :  added field for the subscription lines on invoices.
+
+## 12/08/2020
+#### Version 13.1.0.0.33
+- [FIX] clx_subscription_creation : added warning when user delete any line from the sale order.
+
+
+

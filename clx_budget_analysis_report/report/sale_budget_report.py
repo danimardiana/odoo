@@ -67,6 +67,7 @@ class SaleBudgetReport(models.Model):
         end_date = current_month_start_date + relativedelta(months=budget_month)
         yearly_subscription_lines = self.env['sale.subscription.line'].search(
             [('start_date', '!=', False), ('product_id.subscription_template_id.recurring_rule_type', '=', 'yearly')])
+        yearly_subscription_lines = yearly_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         if yearly_subscription_lines:
             for sub in yearly_subscription_lines:
                 if sub.end_date:
@@ -81,9 +82,9 @@ class SaleBudgetReport(models.Model):
                     budget_month = int(params.get_param('budget_month')) or False
                     budget_month -= sub.start_date.month - starting_month.month
                 base = sub.analytic_account_id.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base'
-                                                        and x.product_id.id == sub.product_id.id)
+                                                                                             and x.product_id.id == sub.product_id.id)
                 vals = {
-                    'date': current_month_start_date,
+                    'date': sub.start_date,
                     'product_id': sub.product_id.id,
                     'subscription_id': sub.analytic_account_id.id,
                     'subscription_line_id': sub.id,
@@ -92,7 +93,7 @@ class SaleBudgetReport(models.Model):
                     'base_price': base[0].price_unit,
                 }
                 report_data = report_data_table.create(vals)
-                for i in range(0, budget_month-1):
+                for i in range(0, budget_month - 1):
                     # base = sub.analytic_account_id.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base'
                     #                                                                              and x.product_id.id == sub.product_id.id)
 
@@ -107,7 +108,8 @@ class SaleBudgetReport(models.Model):
                     }
                     report_data = report_data_table.create(vals)
 
-        all_subscription_lines = self.env['sale.subscription.line'].search([('start_date', '!=', False),('product_id.subscription_template_id.recurring_rule_type','=','monthly')])
+        all_subscription_lines = self.env['sale.subscription.line'].search(
+            [('start_date', '!=', False), ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly')])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         for subscription_line in subscription_lines:
             if subscription_line.end_date:

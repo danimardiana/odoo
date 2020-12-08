@@ -23,24 +23,24 @@ class SaleSubscription(models.Model):
                 <br/> Upsell Date : %s <br/>
              Upsell Amount : %s
                 .</p>""") % (
-                           budget_line_id.sol_id.id,
-                           budget_line_id.sol_id.display_name,
-                           budget_line_id.sol_id.order_id.id,
-                           budget_line_id.sol_id.order_id.name,
-                           budget_line_id.subscription_id.id,
-                           budget_line_id.subscription_id.code,
-                           fields.Date.today(),
-                           user.id,
-                           user.name,
-                           budget_line_id.start_date if
-                           budget_line_id.status ==
-                           'upsell' else 'NO Upsell',
-                           budget_line_id.price if
-                           budget_line_id.status ==
-                           'upsell' else 0.0
-                           ))
+                                                           budget_line_id.sol_id.id,
+                                                           budget_line_id.sol_id.display_name,
+                                                           budget_line_id.sol_id.order_id.id,
+                                                           budget_line_id.sol_id.order_id.name,
+                                                           budget_line_id.subscription_id.id,
+                                                           budget_line_id.subscription_id.code,
+                                                           fields.Date.today(),
+                                                           user.id,
+                                                           user.name,
+                                                           budget_line_id.start_date if
+                                                           budget_line_id.status ==
+                                                           'upsell' else 'NO Upsell',
+                                                           budget_line_id.price if
+                                                           budget_line_id.status ==
+                                                           'upsell' else 0.0
+                                                       ))
 
-    def prepared_vals(self, line, sale_budget_created, start_date=False):
+    def prepared_vals(self, line, sale_budget_created, start_date=False, flag=False):
         """
         prepared vals for create sale budget line
         Param1 : Line - Browsable object of sale order line
@@ -76,6 +76,19 @@ class SaleSubscription(models.Model):
             'wholesale_price': line.wholesale_price,
             'subscription_line_id': subscription_line_id.id,
         }
+        if flag:
+            vals.update({
+                'price': 0.0
+            })
+        r = end_date - line.start_date
+        if r.days + 1 in (30, 31):
+            return vals
+        if r.days < 30 or r.days < 31:
+            per_day_price = line.price_unit / end_date.day
+            new_price = per_day_price * r.days
+            vals.update({
+                'price': new_price
+            })
         return vals
 
     def create_or_update_budget_line(self, line, sale_budget):
@@ -85,6 +98,8 @@ class SaleSubscription(models.Model):
         Param 2 : sale_budget - Browsable object of sale Budget
         Return : No Return
         """
+        if not line:
+            return self
         cron_id = self.env.ref('clx_budget_management.sale_budget_creation_cron_job')
         user = cron_id.user_id
         budget_line = self.env['sale.budget.line'].search(
@@ -116,9 +131,16 @@ class SaleSubscription(models.Model):
                         # month_start_date = datetime.date(datetime.datetime.today().year,
                         #                                  month_selection, 1)
                         # r = relativedelta(month_start_date, line_start_date)
-                        for i in range(0, difference_today_end_date.months):
+                        month = difference_today_end_date.months
+                        if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
+                            month = 11
+                        for i in range(0, month):
                             temp = line_start_date + relativedelta(months=1)
-                            vals = self.prepared_vals(line, sale_budget, temp)
+                            if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
+                                flag = True
+                            else:
+                                flag = False
+                            vals = self.prepared_vals(line, sale_budget, temp, flag)
                             budget_line_id = self.env['sale.budget.line'].create(vals)
                             line_start_date = budget_line_id.start_date
                             self.create_chatter_log(budget_line_id, user)

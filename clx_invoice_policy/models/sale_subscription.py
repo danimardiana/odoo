@@ -64,6 +64,7 @@ class SaleSubscriptionLine(models.Model):
     invoice_end_date = fields.Date('End Date')
     cancel_invoice_start_date = fields.Date('Cancel Start Date')
     cancel_invoice_end_date = fields.Date('Cancel End Date')
+    account_id = fields.Many2one('account.move', string="Invoice")
 
     def start_in_next(self):
         """
@@ -215,9 +216,9 @@ class SaleSubscriptionLine(models.Model):
                     yearly_start_date = (self.invoice_end_date + relativedelta(months=1)).replace(
                         day=1) if self.invoice_end_date else False
                     yearly_end_date = (yearly_start_date + relativedelta(
-                    months=12)).replace(day=1) + relativedelta(days=-1)
+                        months=12)).replace(day=1) + relativedelta(days=-1)
                     vals.update({
-                        'invoice_end_date' : yearly_end_date
+                        'invoice_end_date': yearly_end_date
                     })
                     lang = line.order_id.partner_invoice_id.lang
                     format_date = self.env['ir.qweb.field.date'].with_context(

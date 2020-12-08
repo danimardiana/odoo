@@ -27,6 +27,22 @@
                 <field name="subscription_end_date" invisible="1"/>
                 <field name="category_id"/>
             </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Subscription Lines" name="subscription_lines" invisible="1">
+                    <field name="subscription_line_ids" invisible="1">
+                            <tree>
+                                <field name="product_id"/>
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                                <field name="name"/>
+                                <field name="quantity"/>
+                                <field name="price_unit"/>
+                                <field name="discount"/>
+                                <field name="price_subtotal"/>
+                            </tree>
+                    </field>
+                </page>
+            </xpath>
         </field>
     </record>
 
