@@ -70,6 +70,8 @@ class SaleBudgetReport(models.Model):
         yearly_subscription_lines = yearly_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         if yearly_subscription_lines:
             for sub in yearly_subscription_lines:
+                if sub.analytic_account_id.code == 'SUB387':
+                    print("----------------")
                 if sub.end_date:
                     r = len(OrderedDict(((sub.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((sub.end_date - sub.start_date).days)))
@@ -112,6 +114,8 @@ class SaleBudgetReport(models.Model):
             [('start_date', '!=', False), ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly')])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         for subscription_line in subscription_lines:
+            if subscription_line.analytic_account_id.code == 'SUB387':
+                print("+++++++++++++++++++++")
             if subscription_line.end_date:
                 r = len(OrderedDict(((subscription_line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                     range((subscription_line.end_date - subscription_line.start_date).days)))
@@ -123,8 +127,8 @@ class SaleBudgetReport(models.Model):
                 current_month_start_date = subscription_line.start_date
                 budget_month = int(params.get_param('budget_month')) or False
                 budget_month -= subscription_line.start_date.month - starting_month.month
-            elif subscription_line.line_type == 'upsell' and subscription_line.end_date:
-                current_month_start_date = subscription_line.start_date
+            # elif subscription_line.line_type == 'upsell' and subscription_line.end_date:
+            current_month_start_date = subscription_line.start_date
             for i in range(0, budget_month):
                 base = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(lambda
                                                                                                      x: x.line_type == 'base'

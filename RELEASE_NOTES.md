@@ -777,5 +777,29 @@
 #### Version 13.1.0.0.33
 - [FIX] clx_subscription_creation : added warning when user delete any line from the sale order.
 
+## 12/09/2020
+#### Version 13.1.1.0.27
+- [ADD] contact_modification : added client service team field on management company.
+
+## 12/09/2020
+#### Version 13.3.0.0.54
+- [ADD] clx_task_management : added priority field on request form and added other field on project and task.
+
+## 12/09/2020
+#### Version 13.1.1.0.13
+- [ADD] clx_subscription_creation : added product on subscription tree view.
+
+## 12/09/2020
+#### Version 13.1.0.0.13
+- [MOD] clx_retail_pricelist : change update button label on sale order.
+
+## 12/09/2020
+#### Version 13.1.0.0.34
+- [ADD] clx_invoice_policy : added new sequence for the greystar company management.
+
+## 12/09/2020
+#### Version 13.3.0.0.16
+- [FIX] clx_budget_analysis_report : fix the issue budget pivot report.
+
 
 

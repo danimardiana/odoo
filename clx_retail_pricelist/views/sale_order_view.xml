@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <button name="action_cancel" position="after">
-                <button name="update_price" type="object" string="Update"/>
+                <button name="update_price" type="object" string="Update Management Fees"/>
             </button>
             <field name="sale_order_template_id" position="after">
                 <field name="display_management_fee"/>

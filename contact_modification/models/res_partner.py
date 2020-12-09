@@ -132,6 +132,9 @@ class Partner(models.Model):
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
     discount_on_order_line = fields.Float(string="Discount on Sale Order Line (%)")
+    client_services_team = fields.Selection(
+        [('emerging_accounts', 'Emerging Accounts'), ('national_accounts', 'National Accounts')],
+        default='emerging_accounts', string="Client Services Team")
 
     def open_submitted_req_form(self):
         request_forms = self.env['request.form'].search([('partner_id', '=', self.id), ('state', '=', 'submitted')])

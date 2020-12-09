@@ -9,6 +9,12 @@
             <field name="company_id" position="after">
                 <field name="mgmt_company"/>
             </field>
+            <!--<xpath expr="//page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree//field[@name='analytic_tag_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>-->
             <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
@@ -28,8 +34,8 @@
                 <field name="category_id"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
-                <page string="Subscription Lines" name="subscription_lines" invisible="1">
-                    <field name="subscription_line_ids" invisible="1">
+                <page string="Subscription Lines" name="subscription_lines">
+                    <field name="subscription_line_ids">
                             <tree>
                                 <field name="product_id"/>
                                 <field name="start_date"/>

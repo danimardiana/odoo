@@ -13,6 +13,9 @@ class SaleOrder(models.Model):
 
     clx_invoice_policy_id = fields.Many2one(
         'clx.invoice.policy', string="Invoice Policy")
+    vertical_order = fields.Selection(related="partner_id.vertical", store=True)
+    management_company_id = fields.Many2one(related="partner_id.management_company_type_id", store=True)
+    ownership_company_id = fields.Many2one(related="partner_id.ownership_company_type_id", store=True)
 
     def _action_confirm(self):
         """

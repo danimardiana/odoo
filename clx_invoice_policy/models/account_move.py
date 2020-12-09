@@ -2,8 +2,9 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
-from odoo import fields, models
+from odoo import fields, models, _
 from dateutil import parser
+from odoo.exceptions import UserError, ValidationError
 
 
 class AccountMove(models.Model):
@@ -11,6 +12,17 @@ class AccountMove(models.Model):
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
     subscription_line_ids = fields.One2many('sale.subscription.line', 'account_id', string="Subscription Lines")
+
+    def _get_sequence(self):
+        res = super(AccountMove, self)._get_sequence()
+        sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
+        if self.partner_id.management_company_type_id and self.partner_id.management_company_type_id.name:
+            management_partner = self.env['res.partner'].search(
+                [('id', '=', self.partner_id.management_company_type_id.id),
+                 ('name', 'ilike', 'Greystar')])
+            if management_partner and sequence:
+                return sequence
+        return res
 
     def button_cancel(self):
         res = super(AccountMove, self).button_cancel()

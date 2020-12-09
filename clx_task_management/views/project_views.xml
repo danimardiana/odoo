@@ -10,10 +10,13 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='project_id']" position="after">
+                <field name="parent_id"/>
                 <field name="team_ids" widget="many2many_tags" optional="show"/>
                 <field name="team_members_ids" widget="many2many_tags" optional="show"/>
                 <!--<field name="tag_ids" widget="many2many_tags" optional="show"/>-->
                 <field name="date_deadline"/>
+                <field name="priority"/>
+                <field name="client_services_team"/>
             </xpath>
 
         </field>
@@ -29,6 +32,8 @@
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="deadline"/>
+                <field name="priority"/>
+                <field name="client_services_team"/>
             </xpath>
         </field>
     </record>
@@ -98,6 +103,8 @@
                 <field name="clx_project_manager_id" domain="[('share','=',False)]"/>
                 <field name="clx_project_designer_id" domain="[('share','=',False)]"/>
                 <field name="ops_team_member_id" domain="[('share','=',False)]"/>
+                <field name="priority"/>
+                <field name="client_services_team"/>
             </field>
             <field name="message_follower_ids" position="after">
                 <field name="message_ids" widget="mail_thread"/>
@@ -117,6 +124,10 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
+            <field name="tag_ids" position="after">
+                <field name="priority"/>
+                <field name="client_services_team"/>
+            </field>
             <field name="user_id" position="attributes">
                 <attribute name="invisible">1</attribute>
             </field>

@@ -22,7 +22,7 @@ class RequestForm(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
                              default='draft', tracking=True)
-    is_create_client_launch = fields.Boolean('Is this a brand new client launch?')
+    is_create_client_launch = fields.Boolean('Is this a brand new media campaign launch or relaunch?')
     ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
     intended_launch_date = fields.Date(string='Intended Launch Date')
     attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
@@ -31,6 +31,7 @@ class RequestForm(models.Model):
         "ir.attachment", 'att_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
     submitted_by_user_id = fields.Many2one("res.users", string="Submitted By")
+    priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
 
     def open_active_subscription_line(self):
         """
@@ -161,7 +162,8 @@ class RequestForm(models.Model):
                 'team_members_ids': sub_task.team_members_ids.ids,
                 'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
-                'account_user_id' : main_task.project_id.partner_id.user_id.id if main_task.project_id.partner_id.user_id else False
+                'account_user_id': main_task.project_id.partner_id.user_id.id if main_task.project_id.partner_id.user_id else False,
+                'priority' : main_task.project_id.priority
             }
             return vals
 
@@ -198,7 +200,8 @@ class RequestForm(models.Model):
             'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
             'requirements': line.requirements,
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
-            'account_user_id' : project_id.partner_id.user_id.id if project_id.partner_id.user_id else False
+            'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
+            'priority': self.priority
         }
         return vals
 
@@ -228,7 +231,8 @@ class RequestForm(models.Model):
             'clx_state': 'new',
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
             'user_id': self.partner_id.user_id.id if self.partner_id.user_id else False,
-            'deadline': self.intended_launch_date if self.intended_launch_date else current_date
+            'deadline': self.intended_launch_date if self.intended_launch_date else current_date,
+            'priority': self.priority
         }
         return vals
 
