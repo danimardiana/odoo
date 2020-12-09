@@ -88,6 +88,7 @@ class Partner(models.Model):
         string="Other Contacts")
     vertical = fields.Selection([('res', 'RES'), ('srl', 'SRL'), ('local', 'Local'), ('auto', 'Auto')],
                                 string="Vertical")
+
     branding_name = fields.Char(string="Branding Name")
     timezone_char = fields.Selection([('atlantic', 'Atlantic'), ('central', 'Central'),
                                       ('cst', 'CST'), ('eastern', 'Eastern'),
