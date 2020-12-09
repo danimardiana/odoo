@@ -4,7 +4,7 @@
 
 {
     'name': 'CLX Invoice Policy ',
-    'version': '13.1.0.0.33',
+    'version': '13.1.0.0.34',
     'summary': 'CLX Invoice Policy',
     'sequence': 1,
     'description': """CLX Invoice Policy""",
@@ -14,11 +14,13 @@
         'sale',
         'sale_subscription',
         'account',
-        'clx_subscription_creation'
+        'clx_subscription_creation',
+        'contact_modification'
     ],
     'data': [
         'security/ir.model.access.csv',
         'data/schedulers.xml',
+        'data/gresystar_sequence.xml',
         'views/clx_invoice_policy_views.xml',
         'views/res_partner_views.xml',
         'views/sale_order_views.xml',

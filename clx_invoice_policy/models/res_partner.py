@@ -189,7 +189,7 @@ class Partner(models.Model):
                 'advance': True
             })._prepare_invoice_line() for line in so_lines]
         if yearly_prepared_lines:
-            so_lines = yearly_lines
+            so_lines = yearly_lines + so_lines
             for y_line in yearly_prepared_lines:
                 prepared_lines.append(y_line)
 
@@ -301,12 +301,12 @@ class Partner(models.Model):
                             (0, 0, x) for x in downsell_lines.values()
                         ],
                 })
-            self.env['account.move'].create(vals)
+            account_id = self.env['account.move'].create(vals)
         else:
             order = so_lines[0].so_line_id.order_id
             for line in prepared_lines:
                 del line['line_type']
-            self.env['account.move'].create({
+            account_id = self.env['account.move'].create({
                 'ref': order.client_order_ref,
                 'type': 'out_invoice',
                 'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
@@ -326,6 +326,8 @@ class Partner(models.Model):
                 'source_id': order.source_id.id,
                 'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
             })
+        if account_id:
+            account_id.subscription_line_ids = [(6, 0, so_lines.ids)]
 
     def generate_arrears_invoice(self, lines):
         today = date.today()

@@ -13,4 +13,19 @@
             </xpath>
         </field>
     </record>
+
+    <record id="view_quotation_tree_with_onboarding_inherit" model="ir.ui.view">
+        <field name="name">sale.order.tree</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="management_company_id"/>
+                <field name="ownership_company_id"/>
+                <field name="vertical_order"/>
+            </xpath>
+
+        </field>
+    </record>
 </odoo>

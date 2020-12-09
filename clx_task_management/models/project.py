@@ -27,6 +27,9 @@ class ProjectProject(models.Model):
     ops_notes = fields.Text(related='partner_id.ops_notes')
     cat_notes = fields.Text(related='partner_id.cat_notes')
     deadline = fields.Date(string='Deadline')
+    priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    client_services_team = fields.Selection(related="partner_id.management_company_type_id.client_services_team",
+                                            store=True)
 
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
@@ -132,6 +135,9 @@ class ProjectTask(models.Model):
     reviewer_user_id = fields.Many2one('res.users', string="Reviewer")
     fix = fields.Selection([('not_set', 'Not Set'), ('no', 'No'), ('yes', 'Yes')], string="Fix Needed",
                            default="not_set")
+    priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    client_services_team = fields.Selection(related="project_id.partner_id.management_company_type_id.client_services_team",
+                                            store=True)
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """
@@ -235,7 +241,8 @@ class ProjectTask(models.Model):
                 'ops_team_member_id': self.ops_team_member_id.id if self.ops_team_member_id else False,
                 'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,
                 'clx_task_manager_id': self.clx_task_manager_id.id if self.clx_task_manager_id else False,
-                'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False
+                'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
+                'priority': project_id.priority
             }
             return vals
 
@@ -245,6 +252,9 @@ class ProjectTask(models.Model):
                 child.stage_id.id == complete_stage.id for child in self.child_ids):
             raise UserError('Please complate all subtask First!!')
         res = super(ProjectTask, self).write(vals)
+        if vals.get('date_deadline'):
+            for task in self.child_ids:
+                task.date_deadline = self.date_deadline
         sub_task_obj = self.env['sub.task']
         if vals.get('req_type', False) and vals.get('repositary_task_id', False):
             repositary_main_task = self.env['main.task'].browse(vals.get('repositary_task_id'))
@@ -273,7 +283,7 @@ class ProjectTask(models.Model):
                         b = task.dependency_ids.ids
                     if not a:
                         a = all_task.mapped('sub_task_id').ids
-                    print(a,b)
+                    print(a, b)
                     if all(line.stage_id.id == complete_stage.id for line in all_task) and a == b:
                         vals = self.create_sub_task(task, self.project_id)
                         if not self.project_id.task_ids.filtered(lambda x: x.sub_task_id.id == task.id):

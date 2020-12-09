@@ -35,6 +35,7 @@
                             <field name="request_date"/>
                             <field name="intended_launch_date"/>
                             <field name="submitted_by_user_id" readonly="1"/>
+                            <field name="priority"/>
                         </group>
                         <group>
                             <field name="description" required="1"/>
@@ -52,7 +53,7 @@
                                     <field name="request_form_id" invisible="1"/>
                                     <field name="req_type" required="1"/>
                                     <field name="task_id" required="1"
-                                           domain="['|',('req_type', '=', req_type),('category_id','=',category_id)]"/>
+                                           domain="[('req_type', '=', req_type),('category_id','=',category_id)]"/>
                                     <field name="requirements" style="width: 50% !important;"/>
                                     <field name="description" required="1" style="width: 50% !important;"/>
                                 </tree>
@@ -63,7 +64,7 @@
                                             <field name="category_id" invisible="1"/>
                                             <field name="req_type"/>
                                             <field name="task_id"
-                                                   domain="['|',('req_type', '=', req_type),('category_id','=',category_id)]"/>
+                                                   domain="[('req_type', '=', req_type),('category_id','=',category_id)]"/>
                                             <field name="requirements" widget="text"/>
                                         </group>
                                         <group>
