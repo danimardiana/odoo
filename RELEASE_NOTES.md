@@ -801,5 +801,20 @@
 #### Version 13.3.0.0.16
 - [FIX] clx_budget_analysis_report : fix the issue budget pivot report.
 
+## 12/10/2020
+#### Version 13.1.0.0.35
+- [ADD] clx_invoice_policy : added logic for apply flat discount on sale order and invoice and subscription.
+
+## 12/10/2020
+#### Version 13.1.1.0.14
+- [ADD] clx_subscription_creation : added calculation on to apply flat discount.
+
+## 12/10/2020
+#### Version 13.3.0.0.55
+- [ADD] clx_task_management : added partner_id field on tree view of all task.
+
+## 12/10/2020
+#### Version 13.1.1.0.29
+- [ADD] contact_modification : added flat discount fields on partner.
 
 

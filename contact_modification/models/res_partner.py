@@ -132,6 +132,8 @@ class Partner(models.Model):
     submitted_platform_id = fields.Many2one('submitted.platform', string="Submittal Platform")
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
+    is_flat_discount = fields.Boolean(string="Is Flat Discount")
+    flat_discount = fields.Float(string="Flat Discount")
     discount_on_order_line = fields.Float(string="Discount on Sale Order Line (%)")
     client_services_team = fields.Selection(
         [('emerging_accounts', 'Emerging Accounts'), ('national_accounts', 'National Accounts')],

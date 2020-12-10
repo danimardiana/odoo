@@ -140,8 +140,10 @@ class SaleOrderLine(models.Model):
             self.start_date = self.order_id.contract_start_date
         elif self.product_id and not self.start_date:
             raise ValidationError(_("Please select start date."))
-        if self.order_id.partner_id.management_company_type_id:
+        if self.order_id.partner_id.management_company_type_id and not self.order_id.partner_id.management_company_type_id.is_flat_discount:
             discount = self.order_id.partner_id.management_company_type_id.discount_on_order_line
+        if self.order_id.partner_id.management_company_type_id and self.order_id.partner_id.management_company_type_id.is_flat_discount:
+            discount = self.order_id.partner_id.management_company_type_id.flat_discount
         self.discount = discount
 
     @api.onchange('start_date', 'end_date')
