@@ -7,7 +7,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from datetime import timedelta
-from odoo import fields, models, _
+from odoo import fields, models, api, _
 
 
 class SaleSubscription(models.Model):
@@ -65,6 +65,19 @@ class SaleSubscriptionLine(models.Model):
     cancel_invoice_start_date = fields.Date('Cancel Start Date')
     cancel_invoice_end_date = fields.Date('Cancel End Date')
     account_id = fields.Many2one('account.move', string="Invoice")
+
+    @api.depends('price_unit', 'quantity', 'discount', 'analytic_account_id.pricelist_id')
+    def _compute_price_subtotal(self):
+        AccountTax = self.env['account.tax']
+        for line in self:
+            price = AccountTax._fix_tax_included_price(line.price_unit, line.product_id.sudo().taxes_id, AccountTax)
+            line.price_subtotal = line.quantity * price * (100.0 - line.discount) / 100.0
+            if line.analytic_account_id.partner_id.management_company_type_id.is_flat_discount:
+                line.price_subtotal = line.quantity * (
+                            price - line.analytic_account_id.partner_id.management_company_type_id.flat_discount)
+            if line.analytic_account_id.pricelist_id.sudo().currency_id:
+                line.price_subtotal = line.analytic_account_id.pricelist_id.sudo().currency_id.round(
+                    line.price_subtotal)
 
     def start_in_next(self):
         """
@@ -174,6 +187,12 @@ class SaleSubscriptionLine(models.Model):
                       self.end_date.month > today.month) else 1
             ),
         }
+        if self.analytic_account_id.partner_id.management_company_type_id.is_flat_discount:
+            flat_discount = self.analytic_account_id.partner_id.management_company_type_id.flat_discount
+            price_total = line.price_unit - flat_discount
+            res.update({
+                'price_total': price_total
+            })
 
         if line.display_type:
             res['account_id'] = False

@@ -10,6 +10,7 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='project_id']" position="after">
+                <field name="partner_id"/>
                 <field name="parent_id"/>
                 <field name="team_ids" widget="many2many_tags" optional="show"/>
                 <field name="team_members_ids" widget="many2many_tags" optional="show"/>
@@ -305,7 +306,7 @@
     </record>
 
     <record id="project.action_view_task" model="ir.actions.act_window">
-        <field name="name">Tasks</field>
+        <field name="name">All SubTasks</field>
         <field name="res_model">project.task</field>
         <field name="view_mode">kanban,tree,form,calendar,pivot,graph,activity</field>
         <field name="context">{'search_default_my_tasks': 1,'search_default_team' : 1}</field>

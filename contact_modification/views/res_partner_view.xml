@@ -490,6 +490,8 @@
                 <field name="master_id"/>
                 <field name="submitted_platform_id"/>
                 <field name="client_services_team" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
+                <field name="is_flat_discount" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
+                <field name="flat_discount" attrs="{'invisible':[('is_flat_discount','=',False)]}"/>
                 <field name="discount_on_order_line"
                        attrs="{'invisible': [('company_type', 'not in', ('management'))]}"
                        groups="product.group_discount_per_so_line"

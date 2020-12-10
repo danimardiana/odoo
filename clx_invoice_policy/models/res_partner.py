@@ -328,6 +328,13 @@ class Partner(models.Model):
             })
         if account_id:
             account_id.subscription_line_ids = [(6, 0, so_lines.ids)]
+            if account_id.partner_id.management_company_type_id.is_flat_discount:
+                for line in account_id.invoice_line_ids:
+                    for pre_line in prepared_lines:
+                        if line.category_id.id == pre_line.get('category_id'):
+                            line.price_unit = pre_line.get('price_unit')
+                        elif line.product_id and line.product_id.categ_id.id == pre_line.get('category_id'):
+                            line.price_unit = pre_line.get('price_unit')
 
     def generate_arrears_invoice(self, lines):
         today = date.today()
