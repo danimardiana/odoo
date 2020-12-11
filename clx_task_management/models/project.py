@@ -135,7 +135,7 @@ class ProjectTask(models.Model):
     reviewer_user_id = fields.Many2one('res.users', string="Reviewer")
     fix = fields.Selection([('not_set', 'Not Set'), ('no', 'No'), ('yes', 'Yes')], string="Fix Needed",
                            default="not_set")
-    priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    clx_priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     client_services_team = fields.Selection(related="project_id.partner_id.management_company_type_id.client_services_team",
                                             store=True)
 
@@ -242,7 +242,8 @@ class ProjectTask(models.Model):
                 'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,
                 'clx_task_manager_id': self.clx_task_manager_id.id if self.clx_task_manager_id else False,
                 'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
-                'priority': project_id.priority
+                'clx_priority': project_id.priority,
+                'description': project_id.description
             }
             return vals
 
@@ -283,7 +284,6 @@ class ProjectTask(models.Model):
                         b = task.dependency_ids.ids
                     if not a:
                         a = all_task.mapped('sub_task_id').ids
-                    print(a, b)
                     if all(line.stage_id.id == complete_stage.id for line in all_task) and a == b:
                         vals = self.create_sub_task(task, self.project_id)
                         if not self.project_id.task_ids.filtered(lambda x: x.sub_task_id.id == task.id):
@@ -307,6 +307,9 @@ class ProjectTask(models.Model):
         if vals.get('clx_task_manager_id', False):
             for task in self.child_ids:
                 task.clx_task_manager_id = self.clx_task_manager_id.id
+        if vals.get('description', False):
+            for task in self.child_ids:
+                task.description = self.description
         return res
 
     def action_view_cancel_task(self):
