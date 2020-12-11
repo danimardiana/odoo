@@ -163,7 +163,8 @@ class RequestForm(models.Model):
                 'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
                 'account_user_id': main_task.project_id.partner_id.user_id.id if main_task.project_id.partner_id.user_id else False,
-                'priority' : main_task.project_id.priority
+                'clx_priority' : main_task.project_id.priority,
+                'description': line.description
             }
             return vals
 
@@ -201,7 +202,7 @@ class RequestForm(models.Model):
             'requirements': line.requirements,
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
-            'priority': self.priority
+            'clx_priority': self.priority
         }
         return vals
 

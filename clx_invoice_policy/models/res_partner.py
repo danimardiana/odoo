@@ -146,18 +146,17 @@ class Partner(models.Model):
             date_order = orders.date_order.date().replace(day=1)
             date_order = date_order + relativedelta(months=1)
             end_date = date_order + relativedelta(months=orders.clx_invoice_policy_id.num_of_month + 1, days=-1)
-            invoice_lines = orders.invoice_ids.line_ids.mapped('subscription_start_date')
-            invoice_lines_months = [a.month for a in invoice_lines if a]
-            so_lines = lines.filtered(lambda x: x.start_date.month not in invoice_lines_months)
-            if not so_lines:
-                return self
-            so_lines = lines.filtered(lambda sol: ((sol.start_date and
-                                                    sol.end_date and
-                                                    sol.start_date <= end_date and sol.end_date <= end_date)
-                                                   or (sol.start_date and
-                                                       not sol.end_date and
-                                                       sol.start_date <= end_date)
-                                                   ))
+
+            so_lines = lines.filtered(
+                lambda sol: (sol.invoice_start_date and
+                             sol.invoice_end_date and
+                             sol.invoice_start_date <= today and
+                             sol.invoice_end_date >= today
+                             ) or (
+                                    sol.end_date and sol.end_date < today and not sol.last_invoiced and
+                                    sol.line_type != 'base'
+                            )
+            )
             prepared_lines = [line.with_context({
                 'advance': True,
                 'manual': True,

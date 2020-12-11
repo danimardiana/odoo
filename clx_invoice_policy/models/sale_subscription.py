@@ -262,17 +262,16 @@ class SaleSubscriptionLine(models.Model):
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
-                if self._context.get('sol'):
-                    period_msg = _("Invoicing period: %s - %s") % (
-                        format_date(fields.Date.to_string(line.start_date), {}),
-                        format_date(fields.Date.to_string(self._context.get(
-                            'end_date')), {}))
-                else:
-                    period_msg = _("Invoicing period: %s - %s") % (
-                        format_date(fields.Date.to_string(self._context.get(
-                            'start_date')), {}),
-                        format_date(fields.Date.to_string(self._context.get(
-                            'end_date')), {}))
+                # if self._context.get('sol'):
+                #     period_msg = _("Invoicing period: %s - %s") % (
+                #         format_date(fields.Date.to_string(self.invoice_start_date), {}),
+                #         format_date(fields.Date.to_string(self.invoice_end_date), {}))
+                # else:
+                #     period_msg = _("Invoicing period: %s - %s") % (
+                #         format_date(fields.Date.to_string(self._context.get(
+                #             'start_date')), {}),
+                #         format_date(fields.Date.to_string(self._context.get(
+                #             'end_date')), {}))
                 res.update({
                     'price_unit': line.price_unit * advance_num_month if (self._context.get(
                         'end_date') - line.start_date).days not in (30, 31) else line.price_unit,

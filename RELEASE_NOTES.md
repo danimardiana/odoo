@@ -817,4 +817,12 @@
 #### Version 13.1.1.0.29
 - [ADD] contact_modification : added flat discount fields on partner.
 
+## 12/11/2020
+#### Version 13.3.0.0.56
+- [ADD] clx_task_management : added description on all subtask.
+
+## 12/11/2020
+#### Version 13.1.0.0.36
+- [ADD] clx_invoice_policy : Create cancel invoice when click on generate invoice.
+
 

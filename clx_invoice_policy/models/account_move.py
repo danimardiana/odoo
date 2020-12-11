@@ -40,8 +40,8 @@ class AccountMove(models.Model):
                     start_date = parser.parse(dates_list[0])
                     end_date = parser.parse(dates_list[-1])
                     for sub_line in sub_lines:
-                        sub_line.cancel_invoice_start_date = start_date
-                        sub_line.cancel_invoice_end_date = end_date
+                        sub_line.invoice_start_date = start_date
+                        sub_line.invoice_end_date = end_date
         return res
 
 
