@@ -9,12 +9,12 @@
             <field name="company_id" position="after">
                 <field name="mgmt_company"/>
             </field>
-            <!--<xpath expr="//page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
+            <xpath expr="//field[@name='line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree//field[@name='analytic_tag_ids']" position="attributes">
+            <xpath expr="//field[@name='line_ids']/tree//field[@name='analytic_tag_ids']" position="attributes">
                 <attribute name="invisible">1</attribute>
-            </xpath>-->
+            </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>

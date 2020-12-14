@@ -9,7 +9,6 @@
                     <group>
                         <field name="start_date" required="1"/>
                         <field name="end_date" required="1"/>
-                        <field name="regenerate_cancel_invoice"/>
                     </group>
                 </sheet>
                 <footer>

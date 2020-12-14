@@ -825,4 +825,13 @@
 #### Version 13.1.0.0.36
 - [ADD] clx_invoice_policy : Create cancel invoice when click on generate invoice.
 
+## 12/14/2020
+#### Version 13.1.0.0.37
+- [ADD] clx_invoice_policy : fix the issue of the generate cancel invoice from the customer form views.
+
+## 12/14/2020
+#### Version 13.3.0.0.57
+- [ADD] clx_task_management : added new table for subtask.
+
+
 

@@ -317,8 +317,6 @@ class SaleSubscriptionLine(models.Model):
                         })
 
             if self._context.get('generate_invoice_date_range'):
-                if self._context.get('regenerate_invoice', False):
-                    self.write({'cancel_invoice_start_date': False, 'cancel_invoice_end_date': False})
                 start_date = self._context.get('start_date')
                 end_date = self._context.get('end_date')
                 lang = line.order_id.partner_invoice_id.lang
@@ -336,7 +334,7 @@ class SaleSubscriptionLine(models.Model):
                     'price_unit': self.price_unit * month_diff,
                     'name': new_period_msg
                 })
-                if not self._context.get('regenerate_invoice', False):
+                if not self._context.get('regenerate_invoice', False) and not self.end_date:
                     vals = {
                         'last_invoiced': today,
                         'invoice_start_date': False,

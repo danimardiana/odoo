@@ -62,42 +62,6 @@ class ProjectProject(models.Model):
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    def _compute_sub_task(self):
-        domain = [('parent_id', '=', self.repositary_task_id.id)]
-        records = self.env['sub.task'].search(domain)
-        if self.ops_team_member_id:
-            sub_task = records.filtered(lambda x: x.team_ids)
-            for record in sub_task:
-                if record.team_ids.filtered(lambda x: x.team_name == 'Ops'):
-                    team_list = record.team_members_ids.ids
-                    team_list.append(self.ops_team_member_id.id)
-                    record.team_members_ids = team_list
-        if self.clx_task_designer_id:
-            sub_task = records.filtered(lambda x: x.team_ids)
-            for record in sub_task:
-                if record.team_ids.filtered(lambda x: x.team_name == 'CAT'):
-                    team_list = record.team_members_ids.ids
-                    team_list.append(self.clx_task_designer_id.id)
-                    record.team_members_ids = team_list
-        if self.clx_task_manager_id:
-            sub_task = records.filtered(lambda x: x.team_ids)
-            for record in sub_task:
-                if record.team_ids.filtered(lambda x: x.team_name == 'CS'):
-                    team_list = record.team_members_ids.ids
-                    team_list.append(self.clx_task_manager_id.id)
-                    record.team_members_ids = team_list
-
-        for record in records:
-            task = self.search([('sub_task_id', '=', record.id), ('parent_id', '=', self.id),
-                                ('project_id', '=', self.project_id.id)])
-            if task:
-                record.stage_id = task[0].stage_id.id
-                record.task_id = task[0].id
-            else:
-                record.stage_id = False
-                record.task_id = False
-        self.clx_sub_task_ids = records.ids
-
     repositary_task_id = fields.Many2one('main.task', string='Repository Task')
     sub_repositary_task_ids = fields.Many2many('sub.task',
                                                string='Repository Sub Task')
@@ -108,11 +72,6 @@ class ProjectTask(models.Model):
     team_members_ids = fields.Many2many('res.users', string="Team Members")
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
     clx_sale_order_line_id = fields.Many2one('sale.order.line', string="Sale order Item")
-    clx_sub_task_ids = fields.Many2many('sub.task', 'sub_task_project_task_clx', 'sub_task_id', 'task_id',
-                                        string="Sub Task",
-                                        compute='_compute_sub_task',
-                                        readonly=False
-                                        )
     requirements = fields.Text(string='Requirements')
     clx_task_manager_id = fields.Many2one("res.users", string="CS Team Member")
     clx_task_designer_id = fields.Many2one("res.users", string="CAT Team Member")
@@ -136,8 +95,33 @@ class ProjectTask(models.Model):
     fix = fields.Selection([('not_set', 'Not Set'), ('no', 'No'), ('yes', 'Yes')], string="Fix Needed",
                            default="not_set")
     clx_priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
-    client_services_team = fields.Selection(related="project_id.partner_id.management_company_type_id.client_services_team",
-                                            store=True)
+    client_services_team = fields.Selection(
+        related="project_id.partner_id.management_company_type_id.client_services_team",
+        store=True)
+    sub_task_project_ids = fields.One2many(compute="_compute_sub_task_project_ids", comodel_name='sub.task.project',
+                                           string="Sub Task")
+
+    def _compute_sub_task_project_ids(self):
+        task_list = []
+        if not self.parent_id and self.repositary_task_id:
+            sub_tasks = self.env['sub.task'].search([('parent_id', '=', self.repositary_task_id.id)])
+            sub_task_project_obj = self.env['sub.task.project']
+            child_task = self.child_ids
+            for sub_task in sub_tasks:
+                child_task_id = child_task.filtered(
+                    lambda x: x.sub_task_id.id == sub_task.id and x.parent_id.id == self.id)
+                vals = {
+                    'sub_task_id': sub_task.id,
+                    'task_id': child_task_id.id if child_task_id else False,
+                    'sub_task_name': sub_task.sub_task_name,
+                    'team_ids': sub_task.team_ids.ids if sub_task.team_ids else False,
+                    'team_members_ids': sub_task.team_members_ids.ids if sub_task.team_members_ids else False,
+                    'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
+                    'stage_id': child_task_id.stage_id.id if child_task_id else False
+                }
+                task_id = sub_task_project_obj.create(vals)
+                task_list.append(task_id.id)
+        self.sub_task_project_ids = [(6, 0, task_list)]
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """
@@ -243,7 +227,7 @@ class ProjectTask(models.Model):
                 'clx_task_manager_id': self.clx_task_manager_id.id if self.clx_task_manager_id else False,
                 'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
                 'clx_priority': project_id.priority,
-                'description': project_id.description
+                'description': self.description
             }
             return vals
 
