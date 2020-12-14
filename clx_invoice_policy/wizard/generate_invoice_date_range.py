@@ -12,7 +12,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
 
     start_date = fields.Date('Start Date')
     end_date = fields.Date('End Date')
-    regenerate_cancel_invoice = fields.Boolean('Regenerate Cancel Invoices')
+
 
     @api.onchange('start_date', 'end_date')
     def onchange_date_validation(self):
@@ -29,15 +29,11 @@ class GenerateInvoiceDateRange(models.TransientModel):
             ])
             if not lines:
                 raise UserError(_("You need to sale order for create a invoice!!"))
-            so_lines = lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= self.start_date)
-            if not so_lines and not self.regenerate_cancel_invoice:
-                raise UserError(_("You can not create invoice selected date range"))
-            advance_lines = lines.filtered(
-                lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
-            if self.regenerate_cancel_invoice:
-                advance_lines = advance_lines.filtered(
-                    lambda x: x.cancel_invoice_start_date and x.cancel_invoice_end_date)
-            partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
-                                    end_date=self.end_date,
-                                    regenerate_invoice=self.regenerate_cancel_invoice).generate_advance_invoice(
-                advance_lines)
+        advance_lines = lines.filtered(
+            lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
+        advance_lines = advance_lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= self.start_date)
+        # advance_lines = advance_lines.filtered(lambda x: x.invoice_start_date and x.invoice_end_date <= self.end_date)
+        partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
+                                end_date=self.end_date,
+                                ).generate_advance_invoice(
+            advance_lines)

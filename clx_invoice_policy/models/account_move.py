@@ -78,7 +78,7 @@ class AccountMoveLine(models.Model):
                 res.update({
                     'price_total': price_unit_wo_discount,
                     'price_subtotal': price_unit_wo_discount,
-                    'price_unit': price_unit
+                    'price_unit': price_unit,
+                    'discount': discount
                 })
-        print(res)
         return res
