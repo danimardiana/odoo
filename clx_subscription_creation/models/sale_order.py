@@ -30,6 +30,7 @@ class SaleOrder(models.Model):
         """
         if self.subscription_management == "upsell":
             return super(SaleOrder, self).update_existing_subscriptions()
+        return super(SaleOrder, self).update_existing_subscriptions()
 
     def create_subscriptions(self):
         """

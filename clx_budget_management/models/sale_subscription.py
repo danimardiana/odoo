@@ -75,6 +75,7 @@ class SaleSubscription(models.Model):
             'active': active,
             'wholesale_price': line.wholesale_price,
             'subscription_line_id': subscription_line_id.id,
+            'product_name': line.product_id.budget_wrapping if line.product_id.budget_wrapping else line.product_id.name
         }
         if flag:
             vals.update({

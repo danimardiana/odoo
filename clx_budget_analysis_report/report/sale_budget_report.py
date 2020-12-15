@@ -150,7 +150,7 @@ class SaleBudgetReport(models.Model):
                         lambda x: x.line_type == 'base' and x.product_id.id == subscription_line.product_id.id)
                     all_report_data = report_data_table.search([]).filtered(
                         lambda x: x.date.month == current_month_start_date.month
-                                  and base_line.id == x.subscription_line_id.id
+                                  and base_line[0].id == x.subscription_line_id.id
                     )
                     if all_report_data:
                         all_report_data.update({

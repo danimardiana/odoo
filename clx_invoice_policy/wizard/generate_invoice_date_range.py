@@ -5,7 +5,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-
+from datetime import date
 
 class GenerateInvoiceDateRange(models.TransientModel):
     _name = "generate.invoice.date.range"
@@ -31,7 +31,18 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 raise UserError(_("You need to sale order for create a invoice!!"))
         advance_lines = lines.filtered(
             lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
-        advance_lines = advance_lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= self.start_date)
+        today = date.today()
+        # advance_lines = advance_lines.filtered(
+        #     lambda sol: (sol.invoice_start_date and
+        #                  sol.invoice_end_date and
+        #                  sol.invoice_start_date <= today and
+        #                  sol.invoice_end_date >= today
+        #                  ) or (
+        #                         sol.end_date and sol.end_date < today and not sol.last_invoiced and
+        #                         sol.line_type != 'base'
+        #                 )
+        # )
+        advance_lines = advance_lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= self.start_date and x.invoice_end_date >= self.end_date)
         # advance_lines = advance_lines.filtered(lambda x: x.invoice_start_date and x.invoice_end_date <= self.end_date)
         partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
                                 end_date=self.end_date,
