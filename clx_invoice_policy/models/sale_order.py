@@ -28,7 +28,7 @@ class SaleOrder(models.Model):
         if self.is_ratio:
             return res
         lines = self.env['sale.subscription.line'].search([
-            ('so_line_id', 'in', self.order_line.ids),
+            ('so_line_id.order_id', '=', self.id),
         ])
         current_month_start_day = fields.Date.today().replace(day=1)
         end_date = current_month_start_day + relativedelta(months=self.clx_invoice_policy_id.num_of_month + 1)

@@ -833,6 +833,18 @@
 #### Version 13.3.0.0.57
 - [ADD] clx_task_management : added new table for subtask.
 
+## 12/15/2020
+#### Version 13.3.0.0.17
+- [ADD] clx_budget_management : added a field for wrapping.
 
+## 12/15/2020
+#### Version 13.1.0.0.38
+- [FIX] clx_invoice_policy : fix the bug for cancel invoice.
 
+## 12/15/2020
+#### Version 13.3.0.0.26
+- [ADD] clx_invoice_reports : added new column for product is taxable or not.
 
+## 12/15/2020
+#### Version 13.3.0.0.58
+- [FIX] clx_task_management : fix the issue related to domain on request form line.
