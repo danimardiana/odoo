@@ -133,6 +133,37 @@
         </field>
     </record>
 
+    <record id="sale_budget_changes_search_view" model="ir.ui.view">
+        <field name="name">sale.budget.changes.search.view</field>
+        <field name="model">sale.budget.changes</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <group expand='0' string='Group by...'>
+                    <filter string='Customer' name="group_by_partner_id" context="{'group_by': 'partner_id'}"/>
+                    <filter string='Start Date' name="group_by_start_date" context="{'group_by': 'start_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="sale_budget_changes_tree_view" model="ir.ui.view">
+        <field name="name">sale.budget.changes.tree.view</field>
+        <field name="model">sale.budget.changes</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="sol_line_id"/>
+                <field name="line_type"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="price"/>
+                <field name="total_budget"/>
+            </tree>
+        </field>
+    </record>
+
     <!--Pivot view-->
     <record model="ir.ui.view" id="view_sale_budget_pivot">
         <field name="name">sale.budget.pivot.view</field>
@@ -182,6 +213,15 @@
         <field name="view_mode">tree,form,pivot,graph</field>
     </record>
 
+    <record id="action_sale_budget_changes" model="ir.actions.act_window">
+        <field name="name">Budget Changes</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.budget.changes</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'search_default_group_by_partner_id': 1,'search_default_group_by_start_date':1}</field>
+        <field name="search_view_id" ref="clx_budget_management.sale_budget_changes_search_view"/>
+    </record>
+
     <record id="action_bulk_of_budget_line_close" model="ir.actions.server">
             <field name="name">Close Selected Budget Lines</field>
             <field name="type">ir.actions.server</field>
@@ -203,6 +243,12 @@ records.close_budget_line()
               name="Budget"
               parent="clx_budget_management.main_menu_sale_budget"
               action="clx_budget_management.action_sale_budget"
+              sequence="2"/>
+
+    <menuitem id="menu_sale_budget_notification"
+              name="Budget Changes"
+              parent="clx_budget_management.main_menu_sale_budget"
+              action="clx_budget_management.action_sale_budget_changes"
               sequence="2"/>
 
     <menuitem id="menu_sale_budget_line"

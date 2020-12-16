@@ -15,7 +15,8 @@
         'sale_subscription',
         'account',
         'clx_subscription_creation',
-        'contact_modification'
+        'contact_modification',
+        'clx_ratio_invoice'
     ],
     'data': [
         'security/ir.model.access.csv',

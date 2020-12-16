@@ -4,7 +4,7 @@
 
 {
     'name': 'Budgets Management',
-    'version': '13.3.0.0.10',
+    'version': '13.3.0.0.11',
     'summary': 'Budgets Management',
     'sequence': 1,
     'description': """ Budgets Management """,

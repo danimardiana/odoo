@@ -848,3 +848,13 @@
 ## 12/15/2020
 #### Version 13.3.0.0.58
 - [FIX] clx_task_management : fix the issue related to domain on request form line.
+
+## 12/16/2020
+#### Version 13.3.0.0.18
+- [FIX] clx_budget_analysis_report : fix the issue related to budget pivot report.
+
+## 12/16/2020
+#### Version 13.3.0.0.11
+- [ADD] clx_budget_management : added new table for budget changes.
+
+

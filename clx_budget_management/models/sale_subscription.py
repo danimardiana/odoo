@@ -85,10 +85,15 @@ class SaleSubscription(models.Model):
         if r.days + 1 in (30, 31):
             return vals
         if r.days < 30 or r.days < 31:
+            # calculation for the calculate per day price if start date is like 15th day or 20th day of the month
             per_day_price = line.price_unit / end_date.day
             new_price = per_day_price * r.days
+            # calculation for the wholesale price in days
+            per_day_wholesale_price = line.wholesale_price / end_date.day
+            new_wholesale_price = per_day_wholesale_price * r.days
             vals.update({
-                'price': new_price
+                'price': new_price,
+                'wholesale_price': new_wholesale_price
             })
         return vals
 
@@ -136,7 +141,7 @@ class SaleSubscription(models.Model):
                         if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
                             month = 11
                         for i in range(0, month):
-                            temp = line_start_date + relativedelta(months=1)
+                            temp = line_start_date.replace(day=1) + relativedelta(months=1)
                             if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
                                 flag = True
                             else:

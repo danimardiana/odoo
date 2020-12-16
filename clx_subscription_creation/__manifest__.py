@@ -16,7 +16,8 @@
     'category': 'subscription',
     'depends': [
         'clx_budget_management',
-        'clx_retail_pricelist'
+        'clx_retail_pricelist',
+        'clx_ratio_invoice'
 
     ],
     'data': [
