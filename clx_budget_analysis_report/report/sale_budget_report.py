@@ -6,6 +6,7 @@ from odoo import fields, models, tools, api
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from datetime import timedelta
+from calendar import monthrange
 
 
 class SaleSubscriptionData(models.Model):
@@ -67,10 +68,11 @@ class SaleBudgetReport(models.Model):
         end_date = current_month_start_date + relativedelta(months=budget_month)
         yearly_subscription_lines = self.env['sale.subscription.line'].search(
             [('start_date', '!=', False), ('product_id.subscription_template_id.recurring_rule_type', '=', 'yearly')])
-        yearly_subscription_lines = yearly_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
+        yearly_subscription_lines = yearly_subscription_lines.filtered(
+            lambda x: x.start_date >= current_month_start_date)
         if yearly_subscription_lines:
             for sub in yearly_subscription_lines:
-                if sub.analytic_account_id.code == 'SUB387':
+                if sub.analytic_account_id.code == 'SUB556':
                     print("----------------")
                 if sub.end_date:
                     r = len(OrderedDict(((sub.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
@@ -114,8 +116,6 @@ class SaleBudgetReport(models.Model):
             [('start_date', '!=', False), ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly')])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         for subscription_line in subscription_lines:
-            if subscription_line.analytic_account_id.code == 'SUB387':
-                print("+++++++++++++++++++++")
             if subscription_line.end_date:
                 r = len(OrderedDict(((subscription_line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                     range((subscription_line.end_date - subscription_line.start_date).days)))
@@ -133,6 +133,8 @@ class SaleBudgetReport(models.Model):
                 base = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(lambda
                                                                                                      x: x.line_type == 'base'
                                                                                                         and x.product_id.id == subscription_line.product_id.id)
+                end_date_line = current_month_start_date.replace(
+                    day=monthrange(current_month_start_date.year, current_month_start_date.month)[1])
                 vals = {
                     'date': current_month_start_date,
                     'product_id': subscription_line.product_id.id,
@@ -142,6 +144,19 @@ class SaleBudgetReport(models.Model):
                     'wholesale_price': subscription_line.so_line_id.wholesale_price,
                     'base_price': base[0].price_unit,
                 }
+                r = end_date_line - current_month_start_date
+                if r.days + 1 in (30, 31, 28):
+                    print("_______")
+                elif r.days < 30 or r.days < 31:
+                    per_day_price = base[0].price_unit / end_date_line.day
+                    new_price = per_day_price * r.days
+                    # calculation for the wholesale price in days
+                    per_day_wholesale_price = subscription_line.so_line_id.wholesale_price / end_date_line.day
+                    new_wholesale_price = per_day_wholesale_price * r.days
+                    vals.update({
+                        'wholesale_price': new_wholesale_price,
+                        'base_price': new_price
+                    })
                 if subscription_line.line_type == 'upsell':
                     vals.update({
                         'upsell_down_sell_price': subscription_line.price_unit,
@@ -152,7 +167,7 @@ class SaleBudgetReport(models.Model):
                         lambda x: x.date.month == current_month_start_date.month
                                   and base_line[0].id == x.subscription_line_id.id
                     )
-                    if all_report_data:
+                    if all_report_data and all_report_data.subscription_line_id.line_type == subscription_line.line_type:
                         all_report_data.update({
                             'upsell_down_sell_price': subscription_line.price_unit,
                         })
@@ -161,6 +176,7 @@ class SaleBudgetReport(models.Model):
                 else:
                     report_data = report_data_table.create(vals)
                 current_month_start_date = current_month_start_date + relativedelta(months=1)
+                current_month_start_date = current_month_start_date.replace(day=1)
             budget_month = int(params.get_param('budget_month')) or False
             current_month_start_date = fields.Date.today().replace(day=1)
 

@@ -13,8 +13,7 @@
     'license': 'AGPL-3',
     'description': """Create invoice based on ratio.""",
     'depends': [
-                'sale',
-                'clx_invoice_policy'
+                'sale'
     ],
     'data': [
             'security/ir.model.access.csv',

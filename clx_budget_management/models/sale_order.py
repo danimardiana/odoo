@@ -16,6 +16,7 @@ class SaleOrder(models.Model):
             raise UserError(_("Please select customer Company to Confirm the sale order"))
         res = super(SaleOrder, self)._action_confirm()
         self.env['sale.subscription']._create_sale_budget(self)
+        self.env['sale.budget.changes']._create_sale_budget_changes(self)
         return res
 
     def open_budget_line(self):
