@@ -857,4 +857,9 @@
 #### Version 13.3.0.0.11
 - [ADD] clx_budget_management : added new table for budget changes.
 
+## 12/18/2020
+#### Version 13.3.0.0.59
+- [FIX] clx_task_management : added attachment on project and tasks and fix the issue related to client launch task.
+
+
 

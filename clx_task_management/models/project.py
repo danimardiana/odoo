@@ -30,6 +30,9 @@ class ProjectProject(models.Model):
     priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     client_services_team = fields.Selection(related="partner_id.management_company_type_id.client_services_team",
                                             store=True)
+    clx_attachment_ids = fields.Many2many(
+        "ir.attachment", 'att_project_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
+    )
 
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
@@ -100,6 +103,9 @@ class ProjectTask(models.Model):
         store=True)
     sub_task_project_ids = fields.One2many(compute="_compute_sub_task_project_ids", comodel_name='sub.task.project',
                                            string="Sub Task")
+    clx_attachment_ids = fields.Many2many(
+        "ir.attachment", 'att_task_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
+    )
 
     def _compute_sub_task_project_ids(self):
         task_list = []
@@ -142,6 +148,7 @@ class ProjectTask(models.Model):
                 'team_ids': sub_task.team_ids.ids if sub_task.team_ids else False,
                 'team_members_ids': sub_task.team_members_ids.ids,
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
+                'clx_attachment_ids': main_task.project_id.clx_attachment_ids.ids if main_task.project_id.clx_attachment_ids else False
             }
             return vals
 
@@ -227,7 +234,8 @@ class ProjectTask(models.Model):
                 'clx_task_manager_id': self.clx_task_manager_id.id if self.clx_task_manager_id else False,
                 'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
                 'clx_priority': project_id.priority,
-                'description': self.description
+                'description': self.description,
+                'clx_attachment_ids': project_id.clx_attachment_ids.ids if project_id.clx_attachment_ids else False
             }
             return vals
 
