@@ -92,6 +92,11 @@
                         <field name="cat_notes"/>
                     </group>
                 </page>
+                <page name="attachments" string="Attachments">
+                    <group>
+                        <field name="clx_attachment_ids" widget="many2many_binary"/>
+                    </group>
+                </page>
             </xpath>
             <xpath expr="//header" position="inside">
                 <field name="clx_state" widget="statusbar"/>
@@ -220,6 +225,11 @@
                             />
                         </tree>
                     </field>
+                </page>
+                <page name="attachments" string="Attachments">
+                    <group>
+                        <field name="clx_attachment_ids" widget="many2many_binary"/>
+                    </group>
                 </page>
             </xpath>
         </field>

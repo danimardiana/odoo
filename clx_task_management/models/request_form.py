@@ -164,7 +164,8 @@ class RequestForm(models.Model):
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
                 'account_user_id': main_task.project_id.partner_id.user_id.id if main_task.project_id.partner_id.user_id else False,
                 'clx_priority': main_task.project_id.priority,
-                'description': line.description
+                'description': line.description,
+                'clx_attachment_ids': self.clx_attachment_ids.ids
             }
             return vals
 
@@ -202,7 +203,8 @@ class RequestForm(models.Model):
             'requirements': line.requirements,
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
-            'clx_priority': self.priority
+            'clx_priority': self.priority,
+            'clx_attachment_ids': self.clx_attachment_ids.ids
         }
         return vals
 
@@ -233,7 +235,8 @@ class RequestForm(models.Model):
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
             'user_id': self.partner_id.user_id.id if self.partner_id.user_id else False,
             'deadline': self.intended_launch_date if self.intended_launch_date else current_date,
-            'priority': self.priority
+            'priority': self.priority,
+            'clx_attachment_ids': self.clx_attachment_ids.ids
         }
         return vals
 
@@ -344,13 +347,6 @@ class RequestFormLine(models.Model):
             if not subscriptions:
                 raise UserError(_(
                     """There is no subscription available for this customer."""))
-        client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
-        if client_launch_task:
-            for line in self:
-                if line.request_form_id.is_create_client_launch:
-                    client_launch_task.active = False
-                else:
-                    client_launch_task.active = True
         if not self.sale_line_id:
             return {'domain': {'task_id': [('req_type', '=', self.req_type)]}}
         elif self.sale_line_id and self.sale_line_id.product_id and self.sale_line_id.product_id.categ_id:
