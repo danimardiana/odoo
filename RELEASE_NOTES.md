@@ -861,5 +861,10 @@
 #### Version 13.3.0.0.59
 - [FIX] clx_task_management : added attachment on project and tasks and fix the issue related to client launch task.
 
+## 12/21/2020
+#### Version 13.3.0.0.60
+- [FIX] clx_task_management : Fix the issue related to create depedent task when task have multiple depedency from differetn parent task.
+
+
 
 
