@@ -284,13 +284,12 @@ class RequestForm(models.Model):
 
     @api.onchange('sale_order_id', 'is_create_client_launch')
     def _onchange_sale_order_id(self):
-        self.request_line = False
+        list_product = []
+        if self.request_line:
+            self.request_line = False
         req_line_obj = self.env['request.form.line']
         today = fields.Date.today()
         order_lines = False
-        list_product = []
-        if self.request_line:
-            list_product = self.request_line.ids
         if self.sale_order_id and self.sale_order_id.order_line:
             order_lines = self.sale_order_id.order_line.filtered(
                 lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
@@ -300,10 +299,10 @@ class RequestForm(models.Model):
                 order_lines += future_lines
             for line in order_lines:
                 line_id = req_line_obj.create({
-                    'sale_line_id': line._origin.id
+                    'sale_line_id': line._origin.id,
+                    'request_form_id': self._origin.id
                 })
                 list_product.append(line_id.id)
-        self.request_line = [(6, 0, list_product)]
         if self.is_create_client_launch:
             client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
             client_launch_task.active = True
@@ -311,10 +310,17 @@ class RequestForm(models.Model):
                 'req_type': client_launch_task.req_type,
                 'task_id': client_launch_task.id,
                 'requirements': client_launch_task.requirements,
+                'request_form_id': self._origin.id
             }
             form_line_id = req_line_obj.create(vals)
             list_product.append(form_line_id.id)
-            self.request_line = [(6, 0, list_product)]
+        if not self.is_create_client_launch:
+            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
+            available_line = self.request_line.filtered(lambda x: x.task_id.id == client_launch_task.id)
+            if available_line:
+                available_line.unlink()
+        print(list_product)
+        self.request_line = [(6, 0, list_product)]
 
 
 class RequestFormLine(models.Model):
