@@ -179,6 +179,7 @@ class SaleOrderLine(models.Model):
                         cat = cat.parent_id
                     if not cat:
                         continue
+                # pass the condition when user do the upsell and downsell
                 subscription_lines = subscription_lines_obj.search([('so_line_id', '=', self.id)], limit=1)
                 if 0 < self.price_unit < rule.min_price and subscription_lines and subscription_lines.line_type == 'base':
                     raise ValidationError(_(
