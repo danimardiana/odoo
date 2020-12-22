@@ -255,7 +255,7 @@
             </xpath> -->
 
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
-                <field name="account_user_id" invisible="1"/>
+                <field name="account_user_id" invisible="0"/>
                 <field name="secondary_user_id"
                        attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
                 <field name="national_user_id"

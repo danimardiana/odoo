@@ -319,7 +319,6 @@ class RequestForm(models.Model):
             available_line = self.request_line.filtered(lambda x: x.task_id.id == client_launch_task.id)
             if available_line:
                 available_line.unlink()
-        print(list_product)
         self.request_line = [(6, 0, list_product)]
 
 

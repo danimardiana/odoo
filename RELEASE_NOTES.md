@@ -890,5 +890,17 @@
 - [ADD] clx_retail_pricelist : added depedency of the sale_subscription.
 
 ## 12/22/2020
-#### Version 13.1.0.0.38
+#### Version 13.1.0.0.39
 - [MOD] clx_invoice_policy : Changed invoice creation flow per month.
+
+## 12/22/2020
+#### Version 13.1.0.0.40
+- [MOD] clx_invoice_policy : generate separate invoice from the generate invoices button on the sale order.
+
+## 12/22/2020
+#### Version 13.3.0.0.27
+- [ADD] clx_invoice_reports : changes related to designing for pdf report.
+
+## 12/22/2020
+#### Version 13.1.1.0.30
+- [ADD] contact_modification : visible account manager field.
