@@ -77,12 +77,8 @@ class SaleSubscription(models.Model):
             'subscription_line_id': subscription_line_id.id,
             'product_name': line.product_id.budget_wrapping if line.product_id.budget_wrapping else line.product_id.name
         }
-        if flag:
-            vals.update({
-                'price': 0.0
-            })
         r = end_date - line.start_date
-        if r.days + 1 in (30, 31):
+        if r.days + 1 in (30, 31, 28):
             return vals
         if r.days < 30 or r.days < 31:
             # calculation for the calculate per day price if start date is like 15th day or 20th day of the month
@@ -151,7 +147,6 @@ class SaleSubscription(models.Model):
                             line_start_date = budget_line_id.start_date
                             self.create_chatter_log(budget_line_id, user)
                     elif line.start_date and line.end_date:
-                        difference_start_end_date = relativedelta(line.end_date, line.start_date)
                         r = len(
                             OrderedDict(((line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((line.end_date - line.start_date).days)))

@@ -63,6 +63,7 @@ class SaleSubscriptionWizard(models.TransientModel):
                 })
                 sol_id.price_unit_change()
             so.update_price()
+            so.action_confirm()
         return res
 
 
