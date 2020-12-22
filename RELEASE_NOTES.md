@@ -881,5 +881,7 @@
 #### Version 13.3.0.0.19
 - [ADD] clx_budget_analysis_report : added price unit for yearly subscription product.
 
-
+## 12/22/2020
+#### Version 13.1.0.0.15
+- [ADD] clx_retail_pricelist : added comment on code 
 
