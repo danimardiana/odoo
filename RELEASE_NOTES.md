@@ -883,5 +883,9 @@
 
 ## 12/22/2020
 #### Version 13.1.0.0.15
-- [ADD] clx_retail_pricelist : added comment on code 
+- [ADD] clx_retail_pricelist : added comment on code.
+
+## 12/22/2020
+#### Version 13.1.0.0.16
+- [ADD] clx_retail_pricelist : added depedency of the sale_subscription.
 
