@@ -72,8 +72,6 @@ class SaleBudgetReport(models.Model):
             lambda x: x.start_date >= current_month_start_date)
         if yearly_subscription_lines:
             for sub in yearly_subscription_lines:
-                if sub.analytic_account_id.code == 'SUB556':
-                    print("----------------")
                 if sub.end_date:
                     r = len(OrderedDict(((sub.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((sub.end_date - sub.start_date).days)))
@@ -87,8 +85,9 @@ class SaleBudgetReport(models.Model):
                     budget_month -= sub.start_date.month - starting_month.month
                 base = sub.analytic_account_id.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base'
                                                                                              and x.product_id.id == sub.product_id.id)
+                current_month_start_date = sub.start_date
                 vals = {
-                    'date': sub.start_date,
+                    'date': current_month_start_date,
                     'product_id': sub.product_id.id,
                     'subscription_id': sub.analytic_account_id.id,
                     'subscription_line_id': sub.id,
@@ -101,6 +100,7 @@ class SaleBudgetReport(models.Model):
                     # base = sub.analytic_account_id.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base'
                     #                                                                              and x.product_id.id == sub.product_id.id)
 
+                    current_month_start_date = current_month_start_date + relativedelta(months=1)
                     vals = {
                         'date': current_month_start_date,
                         'product_id': sub.product_id.id,
@@ -108,10 +108,11 @@ class SaleBudgetReport(models.Model):
                         'subscription_line_id': sub.id,
                         'partner_id': sub.so_line_id.order_id.partner_id.id,
                         'wholesale_price': sub.so_line_id.wholesale_price,
-                        'base_price': 0.0,
+                        'base_price': sub.price_unit,
                     }
                     report_data = report_data_table.create(vals)
-
+                current_month_start_date = fields.Date.today().replace(day=1)
+        current_month_start_date = fields.Date.today().replace(day=1)
         all_subscription_lines = self.env['sale.subscription.line'].search(
             [('start_date', '!=', False), ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly')])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)

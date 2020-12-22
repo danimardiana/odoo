@@ -8,7 +8,7 @@
     'summary': 'To manage pricelist',
     'author': 'CLx Media',
     'website': 'https://conversionlogix.com/',
-    'version': '13.1.0.0.13',
+    'version': '13.1.0.0.14',
     'sequence': 1,
     'license': 'AGPL-3',
     'description': """""",

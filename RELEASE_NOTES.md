@@ -865,6 +865,21 @@
 #### Version 13.3.0.0.60
 - [FIX] clx_task_management : Fix the issue related to create depedent task when task have multiple depedency from differetn parent task.
 
+## 12/22/2020
+#### Version 13.1.1.0.15
+- [ADD] clx_subscription_creation : confirm upsell sale order automatic when user do upsell.
+
+## 12/22/2020
+#### Version 13.1.0.0.14
+- [ADD] clx_retail_pricelist : skip the warning minimum price when user doing upsell and downsell.
+
+## 12/22/2020
+#### Version 13.3.0.0.12
+- [ADD] clx_budget_management : added price in all budget line when product have yearly subscription.
+
+## 12/22/2020
+#### Version 13.3.0.0.19
+- [ADD] clx_budget_analysis_report : added price unit for yearly subscription product.
 
 
 
