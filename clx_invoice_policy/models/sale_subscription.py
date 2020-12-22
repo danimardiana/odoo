@@ -74,7 +74,7 @@ class SaleSubscriptionLine(models.Model):
             line.price_subtotal = line.quantity * price * (100.0 - line.discount) / 100.0
             if line.analytic_account_id.partner_id.management_company_type_id.is_flat_discount:
                 line.price_subtotal = line.quantity * (
-                            price - line.analytic_account_id.partner_id.management_company_type_id.flat_discount)
+                        price - line.analytic_account_id.partner_id.management_company_type_id.flat_discount)
             if line.analytic_account_id.pricelist_id.sudo().currency_id:
                 line.price_subtotal = line.analytic_account_id.pricelist_id.sudo().currency_id.round(
                     line.price_subtotal)
@@ -137,6 +137,11 @@ class SaleSubscriptionLine(models.Model):
                 _("Invoicing period"),
                 format_date(fields.Date.to_string(inv_start), {}),
                 format_date(fields.Date.to_string(inv_end), {}))
+        else:
+            return '%s: %s - %s' % (
+                _("Invoicing period"),
+                format_date(fields.Date.to_string(date_start), {}),
+                format_date(fields.Date.to_string(date_end), {}))
 
     def _prepare_invoice_line(self):
         """
@@ -146,10 +151,14 @@ class SaleSubscriptionLine(models.Model):
         self.ensure_one()
         line = self.so_line_id
         today = date.today()
-        date_start = today.replace(day=1)
+        date_start = line.start_date
         date_end = date_start + relativedelta(months=1, days=-1)
-        period_msg = self._format_period_msg(date_start, date_end, line)
-
+        period_msg = self._format_period_msg(date_start, date_end, line, self.invoice_start_date, self.invoice_end_date)
+        discount = line.discount
+        policy_month = self.so_line_id.order_id.clx_invoice_policy_id.num_of_month + 1
+        if line.order_id.partner_id.management_company_type_id.is_flat_discount:
+            flat_discount = line.order_id.partner_id.management_company_type_id.flat_discount
+            discount = (flat_discount / line.price_unit) * 100
         res = {
             'display_type': line.display_type,
             'sequence': line.sequence,
@@ -162,7 +171,7 @@ class SaleSubscriptionLine(models.Model):
             'category_id': self.product_id.categ_id.id,
             'product_uom_id': line.product_uom.id,
             'quantity': 1,
-            'discount': line.discount,
+            'discount': discount,
             'price_unit': self.price_unit * (
                 2 if self.line_type == 'upsell' and
                      not self.last_invoiced and
@@ -187,34 +196,15 @@ class SaleSubscriptionLine(models.Model):
                       self.end_date.month > today.month) else 1
             ),
         }
-        if self.analytic_account_id.partner_id.management_company_type_id.is_flat_discount:
-            flat_discount = self.analytic_account_id.partner_id.management_company_type_id.flat_discount
-            price_total = line.price_unit - flat_discount
-            res.update({
-                'price_total': price_total
-            })
-
         if line.display_type:
             res['account_id'] = False
         if self._context.get('advance', False):
             product_qty = 1
-            policy_month = self.so_line_id.order_id.clx_invoice_policy_id.num_of_month
-            if self.line_type == 'base':
-                date_start = today.replace(day=1)
-                date_end = date_start + relativedelta(
-                    months=policy_month + 1, days=-1)
-            else:
-                date_start = self.start_date
-                date_end = date_start + relativedelta(
-                    months=policy_month)
-                date_end = date_end.replace(
-                    day=monthrange(date_end.year, date_end.month)[1])
-            if self.invoice_end_date and self.invoice_start_date:
-                product_qty = self.get_date_month(
-                    self.invoice_end_date, self.invoice_start_date)
+            end_date = self.invoice_end_date
+            if self.so_line_id.order_id.partner_id.invoice_creation_type == 'separate':
+                policy_month = 1
             period_msg = self._format_period_msg(
-                date_start, date_end, line,
-                self.invoice_start_date, self.invoice_end_date)
+                date_start, date_end, line, self.invoice_start_date, self.invoice_end_date)
             vals = {
                 'last_invoiced': today,
                 'invoice_start_date': False,
@@ -223,8 +213,7 @@ class SaleSubscriptionLine(models.Model):
             expire_date = False
             if self.invoice_end_date:
                 expire_date = (self.invoice_end_date + relativedelta(
-                    months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
-            # if self.end_date and self.end_date > date_end:
+                    months=policy_month + 1)).replace(day=1) + relativedelta(days=-1)
             if not self.end_date:
                 vals.update({
                     'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(
@@ -257,99 +246,24 @@ class SaleSubscriptionLine(models.Model):
                          ) else 1
                 ) * product_qty,
             })
-            if self._context.get('manual'):
-                advance_num_month = line.order_id.clx_invoice_policy_id.num_of_month + 1
-                lang = line.order_id.partner_invoice_id.lang
-                format_date = self.env['ir.qweb.field.date'].with_context(
-                    lang=lang).value_to_html
-                # if self._context.get('sol'):
-                #     period_msg = _("Invoicing period: %s - %s") % (
-                #         format_date(fields.Date.to_string(self.invoice_start_date), {}),
-                #         format_date(fields.Date.to_string(self.invoice_end_date), {}))
-                # else:
-                #     period_msg = _("Invoicing period: %s - %s") % (
-                #         format_date(fields.Date.to_string(self._context.get(
-                #             'start_date')), {}),
-                #         format_date(fields.Date.to_string(self._context.get(
-                #             'end_date')), {}))
-                res.update({
-                    'price_unit': line.price_unit * advance_num_month if (self._context.get(
-                        'end_date') - line.start_date).days not in (30, 31) else line.price_unit,
-                    'name': period_msg,
-                    'management_fees': line.management_price * advance_num_month if (self._context.get(
-                        'end_date') - line.start_date).days not in (30, 31) else line.management_price,
-                    'wholesale': line.wholesale_price * advance_num_month if (self._context.get(
-                        'end_date') - line.start_date).days not in (30, 31) else line.wholesale_price,
-                })
-            if self._context.get('cofirm_sale'):
-                start_date = line.start_date
-                # current_month = date.today().replace(day=1)
-                # if current_month < line.start_date:
-                #     start_date = current_month
-                end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(months=1,
-                                                                                                days=-1) if not line.end_date else line.end_date
-                label_end_date = date(line.start_date.year, line.start_date.month, 1) + relativedelta(
-                    months=policy_month + 1,
-                    days=-1) if not line.end_date else line.end_date
-                lang = line.order_id.partner_invoice_id.lang
-                format_date = self.env['ir.qweb.field.date'].with_context(
-                    lang=lang).value_to_html
-                new_period_msg = _("Invoicing period: %s - %s") % (
-                    format_date(fields.Date.to_string(start_date), {}),
-                    format_date(fields.Date.to_string(label_end_date), {}))
-                r = end_date - line.start_date
-                if r.days + 1 in (30, 31):
-                    return res
-                if r.days < 30 or r.days < 31:
-                    per_day_price = line.price_unit / end_date.day
-                    new_price = per_day_price * r.days
-                    per_day_management_price = line.management_price / end_date.day
-                    new_management_price = per_day_management_price * r.days
-                    res.update({
-                        'price_unit': new_price,
-                        'management_fees': new_management_price,
-                        'wholesale': new_price - new_management_price,
-                        'name': new_period_msg
-                    })
-                    if not self.end_date:
-                        res.update({
-                            'price_unit': new_price + line.price_unit
-                        })
 
-            if self._context.get('generate_invoice_date_range'):
-                start_date = self._context.get('start_date')
-                end_date = self._context.get('end_date')
-                lang = line.order_id.partner_invoice_id.lang
-                format_date = self.env['ir.qweb.field.date'].with_context(
-                    lang=lang).value_to_html
-                new_period_msg = _("Invoicing period: %s - %s") % (
-                    format_date(fields.Date.to_string(start_date), {}),
-                    format_date(fields.Date.to_string(end_date), {}))
-                if self.end_date:
-                    end_date = self.end_date
-                month_diff = len(
-                    OrderedDict(((start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-                                range((end_date - start_date).days)))
+            r = end_date - line.start_date
+            if r.days + 1 in (30, 31, 28):
+                return res
+            if r.days < 30 or r.days < 31:
+                per_day_price = line.price_unit / end_date.day
+                new_price = per_day_price * r.days
+                per_day_management_price = line.management_price / end_date.day
+                new_management_price = per_day_management_price * r.days
                 res.update({
-                    'price_unit': self.price_unit * month_diff,
-                    'name': new_period_msg
+                    'price_unit': new_price,
+                    'management_fees': new_management_price,
+                    'wholesale': new_price - new_management_price,
                 })
-                if not self._context.get('regenerate_invoice', False) and not self.end_date:
-                    vals = {
-                        'last_invoiced': today,
-                        'invoice_start_date': False,
-                        'invoice_end_date': False,
-                    }
-                    expire_date = (end_date + relativedelta(
-                        months=policy_month + 2)).replace(day=1) + relativedelta(days=-1)
-                    vals.update({
-                        'invoice_start_date': (end_date + relativedelta(months=1)).replace(day=1),
-                        'invoice_end_date': expire_date
-                    })
-                    self.write(vals)
+
         if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
             res.update({
                 'name': period_msg,
-                'price_unit': self.price_unit
+                'price_unit': self.price_unit * 12
             })
         return res

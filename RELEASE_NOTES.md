@@ -889,3 +889,6 @@
 #### Version 13.1.0.0.16
 - [ADD] clx_retail_pricelist : added depedency of the sale_subscription.
 
+## 12/22/2020
+#### Version 13.1.0.0.38
+- [MOD] clx_invoice_policy : Changed invoice creation flow per month.
