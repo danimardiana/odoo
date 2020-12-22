@@ -27,24 +27,31 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self)._action_confirm()
         if self.is_ratio:
             return res
-        lines = self.env['sale.subscription.line'].search([
+        so_lines = self.env['sale.subscription.line'].search([
             ('so_line_id.order_id', '=', self.id),
         ])
-        current_month_start_day = fields.Date.today().replace(day=1)
-        end_date = current_month_start_day + relativedelta(months=self.clx_invoice_policy_id.num_of_month + 1)
-        end_date = end_date - relativedelta(days=1)
-        so_lines = lines.filtered(lambda x: x.start_date and x.start_date < end_date)
-        if lines:
-            if self.partner_id.child_invoice_selection:
-                if self.partner_id.child_invoice_selection == 'sol':
-                    self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
-                else:
-                    self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
-            if not self.partner_id.child_invoice_selection and self.partner_id.invoice_selection:
-                if self.partner_id.invoice_selection == 'sol':
-                    self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
-                else:
-                    self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
+        current_month_start_day = fields.Date.today()
+        so_lines = so_lines.filtered(lambda x: x.invoice_start_date.month == current_month_start_day.month)
+        # end_date = current_month_start_day + relativedelta(months=self.clx_invoice_policy_id.num_of_month + 1)
+        # end_date = end_date - relativedelta(days=1)
+        # so_lines = lines.filtered(lambda x: x.start_date and x.start_date < end_date)
+        count = 1
+        if current_month_start_day.day >= 23:
+            count = 2
+        # elif current_month_start_day.day <= 23:
+        #     return res
+        if so_lines:
+            for i in range(0, count):
+                if self.partner_id.child_invoice_selection:
+                    if self.partner_id.child_invoice_selection == 'sol':
+                        self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
+                    else:
+                        self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
+                if not self.partner_id.child_invoice_selection and self.partner_id.invoice_selection:
+                    if self.partner_id.invoice_selection == 'sol':
+                        self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
+                    else:
+                        self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
         return res
 
     @api.onchange('partner_id')

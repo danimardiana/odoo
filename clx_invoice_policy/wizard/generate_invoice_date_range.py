@@ -5,14 +5,15 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from datetime import date
+from datetime import timedelta
+from collections import OrderedDict
+
 
 class GenerateInvoiceDateRange(models.TransientModel):
     _name = "generate.invoice.date.range"
 
     start_date = fields.Date('Start Date')
     end_date = fields.Date('End Date')
-
 
     @api.onchange('start_date', 'end_date')
     def onchange_date_validation(self):
@@ -31,20 +32,17 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 raise UserError(_("You need to sale order for create a invoice!!"))
         advance_lines = lines.filtered(
             lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
-        today = date.today()
-        # advance_lines = advance_lines.filtered(
-        #     lambda sol: (sol.invoice_start_date and
-        #                  sol.invoice_end_date and
-        #                  sol.invoice_start_date <= today and
-        #                  sol.invoice_end_date >= today
-        #                  ) or (
-        #                         sol.end_date and sol.end_date < today and not sol.last_invoiced and
-        #                         sol.line_type != 'base'
-        #                 )
-        # )
-        advance_lines = advance_lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= self.start_date and x.invoice_end_date >= self.end_date)
-        # advance_lines = advance_lines.filtered(lambda x: x.invoice_start_date and x.invoice_end_date <= self.end_date)
-        partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
-                                end_date=self.end_date,
-                                ).generate_advance_invoice(
-            advance_lines)
+        advance_lines = advance_lines.filtered(lambda
+                                                   x: x.invoice_start_date and x.invoice_start_date <= self.start_date)
+        if not advance_lines:
+            raise UserError(_("Invoice is created or posted Please check all invoices of this Customer"))
+        if advance_lines:
+            count = 1
+            if partner_id.invoice_creation_type == 'separate':
+                count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                        range((self.end_date - self.start_date).days)))
+            for i in range(0, count):
+                partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
+                                        end_date=self.end_date,
+                                        ).generate_advance_invoice(
+                    advance_lines)

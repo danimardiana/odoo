@@ -42,9 +42,10 @@
                                     <t t-esc="line.product_id.name"/>
                                 </td>
                                 <td/>
-                                <td align="right" style="border: 1px solid black;padding: 20px;">Monthly total :
+                                <td align="right" style="border: 1px solid black;padding: 20px;">Monthly total
                                     <br/>
-                                    <t t-esc="line.price_unit"/>
+                                    <t t-esc="doc.currency_id.symbol"/>
+                                    <t t-esc="line.price_total"/>
                                 </td>
                             </tr>
                             <tr>
@@ -84,45 +85,45 @@
                     <table style="width: 100%;border: 1px solid #ddd;">
                         <tbody>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Community Name:</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Community Name:</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.partner_id.name"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Community Phone:</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Community Phone:</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.partner_id.phone"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Community address:</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Community address:</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.partner_id"
                                           t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;phone&quot;], &quot;no_marker&quot;: True, &quot;phone_icons&quot;: True}"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Website:</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Website:</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.partner_id.website"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Master ID:</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Master ID:</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.partner_id.master_id"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Yardi ID:</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Yardi ID:</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.partner_id.yardi_code"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Ownership Group:</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Ownership Group:</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.partner_id.ownership_company_type_id.name"/>
                                 </td>
                             </tr>
@@ -137,20 +138,20 @@
                     <table style="width: 100%;border: 1px solid #ddd;">
                         <tbody>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Contract Length</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Contract Length</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.contract_length"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Intended Launch Date::</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Intended Launch Date::</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <span t-field="doc.intended_launch_date"/>
                                 </td>
                             </tr>
                             <tr>
-                                <td style="border-bottom: 1px dashed red;">Setup Fees:</td>
-                                <td style="border-bottom: 1px dashed red;">
+                                <td style="border-bottom: 1px dashed black;">Setup Fees:</td>
+                                <td style="border-bottom: 1px dashed black;">
                                     <!--<span t-field="doc.setup_fee"/>-->
                                     <t t-set="setup_fees" t-value="0"/>
                                     <t t-foreach="doc.order_line" t-as="line">
@@ -158,6 +159,7 @@
                                             <t t-set="setup_fees" t-value="setup_fees + line.product_id.setup_fees"/>
                                         </t>
                                     </t>
+                                    <t t-esc="doc.currency_id.symbol"/>
                                     <span t-esc="setup_fees"/>
                                 </td>
                             </tr>

@@ -24,6 +24,11 @@ class Partner(models.Model):
         ('sol', 'Sale Order Line')
     ], string="Display on", default="prod_categ")
 
+    invoice_creation_type = fields.Selection([
+        ('combined', 'Combined'),
+        ('separate', 'Separate')
+    ], string="Invoice Creation Type", default="separate")
+
     child_invoice_selection = fields.Selection(
         related="management_company_type_id.invoice_selection", string="Display on")
 
@@ -104,81 +109,38 @@ class Partner(models.Model):
             'advance': True
         })._prepare_invoice_line() for line in yearly_lines]
 
-        lines = lines.filtered(lambda
-                                   x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
-
-        so_lines = lines.filtered(
-            lambda sol: (sol.invoice_start_date and
-                         sol.invoice_end_date and
-                         sol.invoice_start_date <= today and
-                         sol.invoice_end_date >= today
-                         ) or (
-                                sol.end_date and sol.end_date < today and not sol.last_invoiced and
-                                sol.line_type != 'base'
-                        )
-        )
-        if self._context.get('from_generate_invoice') and not so_lines:
-            so_lines = lines.filtered(
-                lambda sol: (sol.invoice_start_date and
-                             sol.invoice_end_date and
-                             sol.invoice_start_date >= today and
-                             sol.invoice_end_date >= today
-                             ) or (
-                                    sol.end_date and sol.end_date < today and not sol.last_invoiced and
-                                    sol.line_type != 'base'
-                            )
-            )
+        so_lines = lines.filtered(lambda
+                                      x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
+        next_month_date = today + relativedelta(months=1)
+        so_lines = so_lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= next_month_date)
+        if not so_lines:
+            so_lines = lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date >= next_month_date)
         if self._context.get('generate_invoice_date_range'):
             so_lines = lines
         if not so_lines and not yearly_lines:
             if self._context.get('from_generate_invoice'):
                 raise UserError(_("You must have a sales order to create an invoice"))
             return self
+        if not so_lines:
+            return self
         so_lines |= self.get_advanced_sub_lines(
             lines.filtered(lambda l: l not in so_lines))
         base_lines = {}
         upsell_lines = {}
         downsell_lines = {}
+        so_lines = so_lines.filtered(lambda
+                                      x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
         if self._context.get('create_invoice_from_wzrd'):
             orders = so_lines.mapped('so_line_id').mapped('order_id')
             if not orders:
                 return self
-            date_order = orders.date_order.date().replace(day=1)
-            date_order = date_order + relativedelta(months=1)
-            end_date = date_order + relativedelta(months=orders.clx_invoice_policy_id.num_of_month + 1, days=-1)
-
-            so_lines = lines.filtered(
-                lambda sol: (sol.invoice_start_date and
-                             sol.invoice_end_date and
-                             sol.invoice_start_date <= today and
-                             sol.invoice_end_date >= today
-                             ) or (
-                                    sol.end_date and sol.end_date < today and not sol.last_invoiced and
-                                    sol.line_type != 'base'
-                            )
-            )
             prepared_lines = [line.with_context({
                 'advance': True,
-                'manual': True,
-                'end_date': end_date,
-                'start_date': date_order,
-                'sol': self._context.get('sol')
             })._prepare_invoice_line() for line in so_lines]
         elif self._context.get('cofirm_sale'):
             prepared_lines = [line.with_context({
                 'advance': True,
                 'cofirm_sale': True
-            })._prepare_invoice_line() for line in so_lines]
-        elif self._context.get('generate_invoice_date_range'):
-            start_date = self._context.get('start_date')
-            end_date = self._context.get('end_date')
-
-            prepared_lines = [line.with_context({
-                'advance': True,
-                'start_date': start_date,
-                'end_date': end_date,
-                'generate_invoice_date_range': True,
-                'regenerate_invoice': self._context.get('regenerate_invoice', False)
             })._prepare_invoice_line() for line in so_lines]
         else:
             prepared_lines = [line.with_context({
@@ -188,9 +150,6 @@ class Partner(models.Model):
             so_lines = yearly_lines + so_lines
             for y_line in yearly_prepared_lines:
                 prepared_lines.append(y_line)
-
-        if not so_lines:
-            return self
         if not self._context.get('sol'):
             for line in prepared_lines:
                 line_type = line['line_type']
@@ -322,15 +281,7 @@ class Partner(models.Model):
                 'source_id': order.source_id.id,
                 'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
             })
-        if account_id:
-            account_id.subscription_line_ids = [(6, 0, so_lines.ids)]
-            if account_id.partner_id.management_company_type_id.is_flat_discount:
-                for line in account_id.invoice_line_ids:
-                    for pre_line in prepared_lines:
-                        if line.category_id.id == pre_line.get('category_id'):
-                            line.price_unit = pre_line.get('price_unit')
-                        elif line.product_id and line.product_id.categ_id.id == pre_line.get('category_id'):
-                            line.price_unit = pre_line.get('price_unit')
+        print(account_id)
 
     def generate_arrears_invoice(self, lines):
         today = date.today()

@@ -104,26 +104,27 @@ class SaleOrderLine(models.Model):
                 self.order_id.clx_invoice_policy_id.policy_type == 'advance':
             date_start = self.start_date
             invoice_month = self.order_id.clx_invoice_policy_id and \
-                            self.order_id.clx_invoice_policy_id.num_of_month
+                            self.order_id.clx_invoice_policy_id.num_of_month + 1
+            if self.order_id.partner_id.invoice_creation_type == 'separate':
+                invoice_month = 1
             if self.line_type == 'base':
                 date_start = date_start.replace(day=1)
                 date_end = date_start + relativedelta(
-                    months=invoice_month + 1, days=-1) if not self.end_date else self.end_date
-                current_month_start_date = date.today().replace(day=1)
-                if current_month_start_date < self.start_date:
-                    date_end = current_month_start_date + relativedelta(
-                    months=invoice_month + 1, days=-1) if not self.end_date else self.end_date
+                    months=invoice_month, days=-1) if not self.end_date else self.end_date
+                # current_month_start_date = date.today().replace(day=1)
+                # if current_month_start_date < self.start_date:
+                #     date_end = current_month_start_date + relativedelta(
+                #     months=invoice_month, days=-1) if not self.end_date else self.end_date
             else:
                 date_end = date_start + relativedelta(
-                    months=invoice_month)
-                date_end = date_end.replace(
-                    day=monthrange(date_end.year, date_end.month)[1])
+                    months=invoice_month,days=-1)
+                # date_end = date_end.replace(
+                #     day=monthrange(date_end.year, date_end.month)[1])
             if self.product_id.subscription_template_id.recurring_rule_type == 'yearly':
                 date_end = date_start + relativedelta(
                     months=12, days=-1)
-
             res[0][-1].update({
-                'invoice_start_date': date_start,
+                'invoice_start_date': self.start_date,
                 'invoice_end_date': date_end,
             })
         return res

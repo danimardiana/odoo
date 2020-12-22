@@ -55,30 +55,3 @@ class AccountMoveLine(models.Model):
     management_fees = fields.Float(string="Management Fees")
     retail_price = fields.Float(string="Retails Price")
     wholesale = fields.Float(string="Wholsesale")
-
-    @api.model
-    def _get_price_total_and_subtotal_model(self, price_unit, quantity, discount, currency, product, partner, taxes,
-                                            move_type):
-
-        res = {}
-        res = super(AccountMoveLine, self)._get_price_total_and_subtotal_model(price_unit, quantity, discount, currency,
-                                                                               product, partner, taxes,
-                                                                               move_type)
-        # Compute 'price_subtotal'.
-        if self.partner_id.management_company_type_id.is_flat_discount and res:
-            if self.name and 'Invoicing period' in self.name:
-                name = self.name.split(':')
-                name = name[-1].split('-')
-                start_date = parser.parse(name[0])
-                end_date = parser.parse(name[-1])
-                months = OrderedDict(((start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-                                     range((end_date - start_date).days))
-                discount = self.partner_id.management_company_type_id.flat_discount * len(months)
-                price_unit_wo_discount = price_unit - discount
-                res.update({
-                    'price_total': price_unit_wo_discount,
-                    'price_subtotal': price_unit_wo_discount,
-                    'price_unit': price_unit,
-                    'discount': discount
-                })
-        return res
