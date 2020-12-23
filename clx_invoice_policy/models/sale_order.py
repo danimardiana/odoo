@@ -30,8 +30,13 @@ class SaleOrder(models.Model):
         so_lines = self.env['sale.subscription.line'].search([
             ('so_line_id.order_id', '=', self.id),
         ])
+        mont_list = []
         current_month_start_day = fields.Date.today()
-        so_lines = so_lines.filtered(lambda x: x.invoice_start_date.month == current_month_start_day.month)
+        next_month_date = current_month_start_day + relativedelta(months=1)
+        mont_list.append(current_month_start_day.month)
+        if current_month_start_day.day >= 23:
+            mont_list.append(next_month_date.month)
+        so_lines = so_lines.filtered(lambda x: x.invoice_start_date.month in mont_list)
         # end_date = current_month_start_day + relativedelta(months=self.clx_invoice_policy_id.num_of_month + 1)
         # end_date = end_date - relativedelta(days=1)
         # so_lines = lines.filtered(lambda x: x.start_date and x.start_date < end_date)

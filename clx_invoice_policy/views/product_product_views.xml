@@ -9,6 +9,7 @@
 
             <xpath expr="//field[@name='barcode']" position="after">
                 <field name="budget_wrapping"/>
+                <field name="budget_wrapping_auto_local"/>
             </xpath>
 
         </field>
