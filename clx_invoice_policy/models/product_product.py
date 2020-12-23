@@ -8,3 +8,4 @@ class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     budget_wrapping = fields.Char(string="Budget Wrapping for RES/SRL")
+    budget_wrapping_auto_local = fields.Char(string="Budget Wrapping for AUTO/LOCAL")

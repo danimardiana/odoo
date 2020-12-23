@@ -4,8 +4,6 @@
 
 from odoo import fields, models, api, _
 from dateutil import parser
-from collections import OrderedDict
-from datetime import timedelta
 
 
 class AccountMove(models.Model):

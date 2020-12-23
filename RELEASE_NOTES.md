@@ -904,3 +904,19 @@
 ## 12/22/2020
 #### Version 13.1.1.0.30
 - [ADD] contact_modification : visible account manager field.
+
+## 12/23/2020
+#### Version 13.1.0.0.41
+- [MOD] clx_invoice_policy : Manage the case for handling the duplicate invoices
+
+## 12/23/2020
+#### Version 13.3.0.0.27
+- [ADD] clx_invoice_reports : added new field on the invoice report for budget wrapping.
+
+## 12/23/2020
+#### Version 13.1.0.0.17
+- [FIX] clx_retail_pricelist : Fix the minimum value price warning for base.
+
+## 12/23/2020
+#### Version 13.1.1.0.16
+- [ADD] clx_subscription_creation : added context on the field.

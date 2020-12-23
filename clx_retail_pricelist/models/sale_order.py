@@ -112,7 +112,6 @@ class SaleOrderLine(models.Model):
                 pricelist=self.order_id.pricelist_id.id,
                 uom=self.product_uom.id
             )
-            subscription_lines_obj = self.env['sale.subscription.line']
             products_items = [(product, self.product_uom_qty, self.order_id.partner_id)]
             products = [item[0] for item in products_items]
             categ_ids = {}
@@ -180,8 +179,7 @@ class SaleOrderLine(models.Model):
                     if not cat:
                         continue
                 # pass the condition when user do the upsell and downsell
-                subscription_lines = subscription_lines_obj.search([('so_line_id', '=', self.id)], limit=1)
-                if 0 < self.price_unit < rule.min_price and subscription_lines and subscription_lines.line_type == 'base':
+                if 0 < self.price_unit < rule.min_price and self._context.get('active_model') != 'sale.subscription':
                     raise ValidationError(_(
                         'Price amount less than Minimum Price. '
                         'It should be greater or equal to %s'
