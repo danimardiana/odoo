@@ -106,6 +106,7 @@ class ProjectTask(models.Model):
     clx_attachment_ids = fields.Many2many(
         "ir.attachment", 'att_task_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
+    clx_description = fields.Html(related="parent_id.description", readonly=False)
 
     def _compute_sub_task_project_ids(self):
         task_list = []
@@ -118,7 +119,7 @@ class ProjectTask(models.Model):
                     lambda x: x.sub_task_id.id == sub_task.id and x.parent_id.id == self.id)
                 vals = {
                     'sub_task_id': sub_task.id,
-                    'task_id': child_task_id.id if child_task_id else False,
+                    'task_id': child_task_id[0].id if child_task_id else False,
                     'sub_task_name': sub_task.sub_task_name,
                     'team_ids': sub_task.team_ids.ids if sub_task.team_ids else False,
                     'team_members_ids': sub_task.team_members_ids.ids if sub_task.team_members_ids else False,
@@ -152,28 +153,17 @@ class ProjectTask(models.Model):
             }
             return vals
 
-    # @api.depends('stage_id', 'kanban_state')
-    # def _compute_kanban_state_label(self):
-    #     """
-    #     Override this method because of when subtask is completed than
-    #     automatically complete parent task and if parent task is completed
-    #     than project is automatically done.
-    #     :return:
-    #     """
-    #     for task in self:
-    #         if task.kanban_state == 'normal':
-    #             task.kanban_state_label = task.legend_normal
-    #         elif task.kanban_state == 'blocked':
-    #             task.kanban_state_label = task.legend_blocked
-    #         else:
-    #             task.kanban_state_label = task.legend_done
-    #         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-    #         tasks = task.parent_id.child_ids
-    #         if all(task.stage_id.id == complete_stage.id for task in tasks):
-    #             task.parent_id.stage_id = complete_stage.id
-    #             if all(task.stage_id.id == complete_stage.id for task in
-    #                    task.project_id.task_ids.filtered(lambda x: not x.parent_id)):
-    #                 task.project_id.clx_state = 'done'
+    # @api.onchange('stage_id')
+    # def _update_task_status(self):
+    #     sub_task_obj = self.env['sub.task']
+    #     complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+    #     for record in self:
+    #         repositary_task = record._origin.parent_id.repositary_task_id
+    #         sub_tasks = sub_task_obj.search([('parent_id', '=', repositary_task.id)])
+    #         child_ids = record._origin.parent_id.child_ids.mapped('sub_task_id')
+    #         if len(sub_tasks) == len(child_ids) and all(
+    #                 line.stage_id.id == complete_stage.id for line in record._origin.parent_id.child_ids):
+    #             print("-------")
 
     def action_view_clx_so(self):
         """
@@ -223,7 +213,7 @@ class ProjectTask(models.Model):
                 'project_id': project_id.id,
                 'stage_id': stage_id.id,
                 'sub_repositary_task_ids': task.dependency_ids.ids,
-                'parent_id': sub_task.mapped('parent_id')[0].id,
+                'parent_id': self.parent_id.id,
                 'sub_task_id': task.id,
                 'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,
@@ -258,6 +248,10 @@ class ProjectTask(models.Model):
                     vals = self.prepared_sub_task_vals(
                         sub_task, self)
                     self.create(vals)
+                self.tag_ids = self.repositary_task_id.tag_ids.ids if self.repositary_task_id.tag_ids else False
+                self.team_ids = self.repositary_task_id.team_ids.ids if self.repositary_task_id.team_ids else False
+                self.team_members_ids = self.repositary_task_id.team_members_ids.ids if self.repositary_task_id.team_members_ids else False
+                self.account_user_id = self.project_id.partner_id.user_id.id if self.project_id.partner_id.user_id else False
 
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
@@ -269,16 +263,26 @@ class ProjectTask(models.Model):
                      ('parent_id', 'in', parent_task_main_task.ids)])
                 for task in dependency_tasks:
                     count = 0
-                    all_task = self.project_id.task_ids.filtered(lambda x: x.sub_task_id.id in task.dependency_ids.ids)
+                    parent_task = task.dependency_ids.mapped('parent_id')
+                    if len(parent_task) > 1:
+                        all_task = self.project_id.task_ids.filtered(
+                            lambda x: x.sub_task_id.id in task.dependency_ids.ids)
+                    elif len(parent_task) == 1:
+                        all_task = self.parent_id.child_ids.filtered(
+                            lambda x: x.sub_task_id.id in task.dependency_ids.ids)
                     depedent_task_list = task.dependency_ids.ids
                     for depedent_task in task.dependency_ids:
                         task_found = all_task.filtered(lambda x: x.name == depedent_task.sub_task_name)
                         if task_found:
                             count += 1
-                    if all(line.stage_id.id == complete_stage.id for line in all_task) and count == len(depedent_task_list):
+                    if all(line.stage_id.id == complete_stage.id for line in all_task) and count == len(
+                            depedent_task_list):
                         vals = self.create_sub_task(task, self.project_id)
-                        if not self.project_id.task_ids.filtered(lambda x: x.sub_task_id.id == task.id):
-                            self.create(vals)
+                        self.create(vals)
+            # if self.parent_id and self.parent_id.child_ids:
+            #     if all(line.stage_id.id == complete_stage.id for line in self.partner_id.child_ids):
+            #         self.parent_id.stage_id = complete_stage.id
+
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
             params = self.env['ir.config_parameter'].sudo()
             auto_create_sub_task = bool(params.get_param('auto_create_sub_task')) or False
@@ -298,9 +302,6 @@ class ProjectTask(models.Model):
         if vals.get('clx_task_manager_id', False):
             for task in self.child_ids:
                 task.clx_task_manager_id = self.clx_task_manager_id.id
-        if vals.get('description', False):
-            for task in self.child_ids:
-                task.description = self.description
         return res
 
     def action_view_cancel_task(self):

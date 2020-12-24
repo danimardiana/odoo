@@ -920,3 +920,7 @@
 ## 12/23/2020
 #### Version 13.1.1.0.16
 - [ADD] clx_subscription_creation : added context on the field.
+
+## 12/24/2020
+#### Version 13.3.0.0.61
+- [FIX] clx_task_management : fix the issue related to description on the subtask and parent task.
