@@ -232,6 +232,12 @@
                     </group>
                 </page>
             </xpath>
+            <field name="description" position="attributes">
+                <attribute name="attrs">{'invisible': [('parent_id', '!=', False)]}</attribute>
+            </field>
+            <field name="description" position="after">
+                <field name="clx_description" attrs="{'invisible' : [('parent_id', '=', False)]}"/>
+            </field>
         </field>
     </record>
 
