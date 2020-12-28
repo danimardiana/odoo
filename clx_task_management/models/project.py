@@ -280,7 +280,7 @@ class ProjectTask(models.Model):
                         vals = self.create_sub_task(task, self.project_id)
                         self.create(vals)
         if vals.get('stage_id', False) and self.parent_id and self.parent_id.child_ids:
-            if all(line.stage_id.id == complete_stage.id for line in self.partner_id.child_ids):
+            if all(line.stage_id.id == complete_stage.id for line in self.parent_id.child_ids):
                 self.parent_id.stage_id = complete_stage.id
 
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
