@@ -231,9 +231,9 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-        if vals.get('stage_id') == complete_stage.id and not all(
-                child.stage_id.id == complete_stage.id for child in self.child_ids):
-            raise UserError('Please complate all subtask First!!')
+        # if vals.get('stage_id') == complete_stage.id and not all(
+        #         child.stage_id.id == complete_stage.id for child in self.child_ids):
+        #     raise UserError('Please complate all subtask First!!')
         res = super(ProjectTask, self).write(vals)
         if vals.get('date_deadline'):
             for task in self.child_ids:
@@ -279,9 +279,9 @@ class ProjectTask(models.Model):
                             depedent_task_list):
                         vals = self.create_sub_task(task, self.project_id)
                         self.create(vals)
-            # if self.parent_id and self.parent_id.child_ids:
-            #     if all(line.stage_id.id == complete_stage.id for line in self.partner_id.child_ids):
-            #         self.parent_id.stage_id = complete_stage.id
+        if vals.get('stage_id', False) and self.parent_id and self.parent_id.child_ids:
+            if all(line.stage_id.id == complete_stage.id for line in self.partner_id.child_ids):
+                self.parent_id.stage_id = complete_stage.id
 
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
             params = self.env['ir.config_parameter'].sudo()

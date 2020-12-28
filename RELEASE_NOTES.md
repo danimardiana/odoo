@@ -924,3 +924,15 @@
 ## 12/24/2020
 #### Version 13.3.0.0.61
 - [FIX] clx_task_management : fix the issue related to description on the subtask and parent task.
+
+## 12/28/2020
+#### Version 13.3.0.0.63
+- [FIX] clx_task_management : added automation for the complate parent task automatically.
+
+## 12/28/2020
+#### Version 13.3.0.0.13
+- [ADD] clx_budget_management : added fetures for the send mail to the user.
+
+## 12/24/2020
+#### Version 13.3.0.0.20
+- [ADD] clx_budget_analysis_report : added start date and end date on pivot report.

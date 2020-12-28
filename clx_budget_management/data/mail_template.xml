@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="mail_template_budget_email" model="mail.template">
+            <field name="name">Budget Management: Send by email</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="subject">${'Budget for the ' + object.name}</field>
+            <field name="email_from">${(object.create_uid.email_formatted or user.email_formatted) | safe}</field>
+            <field name="body_html" type="xml">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px;font-size: 13px;">
+                        Hello,
+                        <br/>
+                        Here is the Details for the Budget Changes of ${object.name})
+                        <div style="margin: 0px; padding: 0px;">
+                            <table width="100%" style="color: #454748; font-size: 12px; border-collapse: collapse;">
+                                <tr style="border-bottom: 2px solid #dee2e6;">
+                                    <td width="18%">
+                                        <strong>Products</strong>
+                                    </td>
+                                    <td width="18%">
+                                        <strong>Start Date</strong>
+                                    </td>
+                                    <td width="18%">
+                                        <strong>End Date</strong>
+                                    </td>
+                                    <td width="10%" align="center">
+                                        <strong>Price</strong>
+                                    </td>
+                                </tr>
+                            </table>
+                            % set subscriptions = object.get_subscriptions()
+                            % for line in subscriptions:
+                            <table width="100%" style="color: #454748; font-size: 12px; border-collapse: collapse;">
+                                <tr style="${loop.cycle('background-color: #f2f2f2', 'background-color: #ffffff')}">
+                                    <td width="18%">${line.product_id.name}</td>
+                                    <td width="18%">${line.start_date}</td>
+                                    <td width="18%">${line.end_date}</td>
+                                    <td width="10%" align="center">${line.price_unit}</td>
+                                </tr>
+                            </table>
+                            % endfor
+                        </div>
+                    </p>
+                </div>
+            </field>
+            <field name="lang">${object.lang}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="user_signature" eval="True"/>
+        </record>
+    </data>
+</odoo>
