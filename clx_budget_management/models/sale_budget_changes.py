@@ -81,6 +81,6 @@ class SaleBudgetChanges(models.Model):
                                       and x.product_id.id == line.product_id.id and x.start_date == line.start_date
                             )
                         if available_line:
-                            available_line.write(vals)
+                            available_line[0].write(vals)
                         if not available_line:
                             self.create(vals)

@@ -22,6 +22,21 @@
                         </div>
                     </div>
                 </div>
+                <h2 class="mt32">Notification Teams</h2>
+                <div class="row mt16 o_settings_container">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"/>
+                        <div class="o_setting_right_pane">
+                            <label for="team_ids"/>
+                            <div class="text-muted">
+                                Select teams for sending for the Budget changes.
+                            </div>
+                            <div class="text-muted">
+                                <field name="team_ids" widget="many2many_tags"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </xpath>
         </field>
     </record>

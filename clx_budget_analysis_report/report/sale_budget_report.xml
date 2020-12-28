@@ -9,6 +9,8 @@
                 <field name="date" type="col"/>
                 <field name="wholesale_price" type="measure"/>
                 <field name="price" type="measure"/>
+                <field name="date" interval="day" type="col"/>
+                <field name="end_date" interval="day" type="col"/>
                 <field name="partner_id" type="row"/>
                 <field name="product_id" type="row"/>
                 <field name="base_price" invisible="1" type="measure"/>
