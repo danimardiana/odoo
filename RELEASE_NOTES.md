@@ -933,6 +933,10 @@
 #### Version 13.3.0.0.13
 - [ADD] clx_budget_management : added fetures for the send mail to the user.
 
-## 12/24/2020
+## 12/28/2020
 #### Version 13.3.0.0.20
 - [ADD] clx_budget_analysis_report : added start date and end date on pivot report.
+
+## 12/28/2020
+#### Version 13.3.0.0.64
+- [FIX] clx_task_management : fix the issue related to complete task.
