@@ -234,6 +234,12 @@ class SaleSubscriptionLine(models.Model):
                     period_msg = ("Invoicing period: %s - %s") % (
                         format_date(fields.Date.to_string(self.invoice_start_date), {}),
                         format_date(fields.Date.to_string(self.invoice_end_date), {}))
+            elif self.end_date and self.invoice_end_date <= self.end_date:
+                vals.update({
+                    'invoice_end_date': self.end_date,
+                    'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(
+                        day=1) if self.invoice_end_date else False
+                })
             self.write(vals)
             res.update({
                 'name': period_msg,
@@ -246,21 +252,14 @@ class SaleSubscriptionLine(models.Model):
                          ) else 1
                 ) * product_qty,
             })
-
-            r = end_date - line.start_date
-            if r.days + 1 in (30, 31, 28):
-                return res
-            if r.days < 30 or r.days < 31:
-                per_day_price = line.price_unit / end_date.day
-                new_price = per_day_price * r.days
-                per_day_management_price = line.management_price / end_date.day
-                new_management_price = per_day_management_price * r.days
+            if end_date.day < 15:
+                new_price = self.price_unit / 2
+                new_management_price = line.management_price / 2
                 res.update({
                     'price_unit': new_price,
                     'management_fees': new_management_price,
                     'wholesale': new_price - new_management_price,
                 })
-
         if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
             res.update({
                 'name': period_msg,
