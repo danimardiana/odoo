@@ -266,12 +266,13 @@ class SaleSubscriptionLine(models.Model):
                             'invoice_end_date': self.end_date
                         }
                     )
-                else:
-                    if self.end_date.year == self.invoice_end_date.year and self.end_date < self.invoice_start_date and self.end_date < self.invoice_end_date:
-                        self.with_context(skip=True).write({
-                            'invoice_start_date': False,
-                            'invoice_end_date': False
-                        })
+                elif self.invoice_start_date > self.end_date:
+                    self.with_context(skip=True).write(
+                        {
+                            'invoice_end_date': False,
+                            'invoice_start_date': False
+                        }
+                    )
             res.update({
                 'name': period_msg,
                 'subscription_end_date': self.end_date if self.end_date and self.end_date > date_end else expire_date,
