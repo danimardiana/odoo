@@ -961,5 +961,7 @@
 #### Version 13.3.0.0.65
 - [MOD] clx_task_management : set salespersion in sub task.
 
-
+## 12/30/2020
+#### Version 13.1.0.0.43
+- [FIX] clx_invoice_policy : Fixed the issue related to invoice creation for specific current month. 
 
