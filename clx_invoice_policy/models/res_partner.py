@@ -75,7 +75,7 @@ class Partner(models.Model):
                 lambda x: x.invoice_start_date and x.invoice_end_date and x.line_type != 'base')
             new_advance_lines = []
             invoice_lines = self.invoice_ids.invoice_line_ids
-            if invoice_lines:
+            if invoice_lines and any(line.move_id.state == 'cancel' for line in invoice_lines):
                 a = advance_lines.ids
                 for invoice_line in invoice_lines:
                     start_date = invoice_line.name.split(':')[-1].split('-')[0]
@@ -83,12 +83,12 @@ class Partner(models.Model):
                     new_line = advance_lines.filtered(lambda x: x.product_id.categ_id.id == invoice_line.category_id.id
                                                                 and x.invoice_start_date == start_date.date()
                                                                 and invoice_line.move_id.state == 'draft')
-                    if new_line and new_line.id in a:
-                        a.remove(new_line.id)
-                        start = new_line.invoice_start_date + relativedelta(months=1)
+                    if new_line and new_line[0].id in a:
+                        a.remove(new_line[0].id)
+                        start = new_line[0].invoice_start_date + relativedelta(months=1)
                         end = start.replace(day=monthrange(start.year, start.month)[1])
-                        new_line.invoice_start_date = start
-                        new_line.invoice_end_date = end
+                        new_line[0].invoice_start_date = start
+                        new_line[0].invoice_end_date = end
                 if a:
                     advance_lines = self.env['sale.subscription.line'].browse(a)
             advance_lines = advance_lines + not_base_lines
@@ -431,7 +431,6 @@ class Partner(models.Model):
             ('is_subscribed', '=', True),
             ('clx_invoice_policy_id', '!=', False)
         ])
-        customers = self.browse(41253)
         if not customers:
             return True
         try:
