@@ -10,6 +10,7 @@ from odoo import fields, models, api, _
 from dateutil import parser
 from calendar import monthrange
 
+
 class Partner(models.Model):
     _inherit = 'res.partner'
 
@@ -68,25 +69,30 @@ class Partner(models.Model):
         if areas_lines:
             self.generate_arrears_invoice(areas_lines)
         if advance_lines:
+            advance_lines = lines.filtered(
+                lambda x: x.invoice_start_date and x.invoice_end_date and x.line_type == 'base')
+            not_base_lines = lines.filtered(
+                lambda x: x.invoice_start_date and x.invoice_end_date and x.line_type != 'base')
             new_advance_lines = []
             invoice_lines = self.invoice_ids.invoice_line_ids
-            a = advance_lines.ids
-            for invoice_line in invoice_lines:
-                start_date = invoice_line.name.split(':')[-1].split('-')[0]
-                start_date = parser.parse(start_date)
-                new_line = advance_lines.filtered(lambda x: x.product_id.categ_id.id == invoice_line.category_id.id
-                                                            and x.invoice_start_date == start_date.date()
-                                                            and invoice_line.move_id.state == 'draft')
-                if new_line and new_line.id in a:
-                    a.remove(new_line.id)
-                    start = new_line.invoice_start_date + relativedelta(months=1)
-                    end = start.replace(day=monthrange(start.year, start.month)[1])
-                    new_line.invoice_start_date = start
-                    new_line.invoice_end_date = end
-            if a:
-                advance_lines = self.env['sale.subscription.line'].browse(a)
-                if advance_lines:
-                    self.generate_advance_invoice(advance_lines)
+            if invoice_lines and any(line.move_id.state == 'cancel' for line in invoice_lines):
+                a = advance_lines.ids
+                for invoice_line in invoice_lines:
+                    start_date = invoice_line.name.split(':')[-1].split('-')[0]
+                    start_date = parser.parse(start_date)
+                    new_line = advance_lines.filtered(lambda x: x.product_id.categ_id.id == invoice_line.category_id.id
+                                                                and x.invoice_start_date == start_date.date()
+                                                                and invoice_line.move_id.state == 'draft')
+                    if new_line and new_line[0].id in a:
+                        a.remove(new_line[0].id)
+                        start = new_line[0].invoice_start_date + relativedelta(months=1)
+                        end = start.replace(day=monthrange(start.year, start.month)[1])
+                        new_line[0].invoice_start_date = start
+                        new_line[0].invoice_end_date = end
+                if a:
+                    advance_lines = self.env['sale.subscription.line'].browse(a)
+            advance_lines = advance_lines + not_base_lines
+            self.generate_advance_invoice(advance_lines)
 
     def get_advanced_sub_lines(self, lines):
         """
@@ -128,10 +134,10 @@ class Partner(models.Model):
 
         so_lines = lines.filtered(lambda
                                       x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
-        next_month_date = today + relativedelta(months=1)
-        so_lines = so_lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= next_month_date)
-        if not so_lines:
-            so_lines = lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date >= next_month_date)
+        # next_month_date = today + relativedelta(months=1)
+        # so_lines = so_lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date <= next_month_date)
+        # if not so_lines:
+        #     so_lines = lines.filtered(lambda x: x.invoice_start_date and x.invoice_start_date >= next_month_date)
         if self._context.get('generate_invoice_date_range'):
             so_lines = lines
         if not so_lines and not yearly_lines:
@@ -140,13 +146,11 @@ class Partner(models.Model):
             return self
         if not so_lines:
             return self
-        so_lines |= self.get_advanced_sub_lines(
-            lines.filtered(lambda l: l not in so_lines))
+        # so_lines |= self.get_advanced_sub_lines(
+        #     lines.filtered(lambda l: l not in so_lines))
         base_lines = {}
         upsell_lines = {}
         downsell_lines = {}
-        so_lines = so_lines.filtered(lambda
-                                         x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
         if self._context.get('create_invoice_from_wzrd'):
             orders = so_lines.mapped('so_line_id').mapped('order_id')
             if not orders:

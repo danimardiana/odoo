@@ -124,7 +124,7 @@ class ProjectTask(models.Model):
                     'team_ids': sub_task.team_ids.ids if sub_task.team_ids else False,
                     'team_members_ids': sub_task.team_members_ids.ids if sub_task.team_members_ids else False,
                     'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
-                    'stage_id': child_task_id.stage_id.id if child_task_id else False
+                    'stage_id': child_task_id[0].stage_id.id if child_task_id else False
                 }
                 task_id = sub_task_project_obj.create(vals)
                 task_list.append(task_id.id)
@@ -149,7 +149,8 @@ class ProjectTask(models.Model):
                 'team_ids': sub_task.team_ids.ids if sub_task.team_ids else False,
                 'team_members_ids': sub_task.team_members_ids.ids,
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
-                'clx_attachment_ids': main_task.project_id.clx_attachment_ids.ids if main_task.project_id.clx_attachment_ids else False
+                'clx_attachment_ids': main_task.project_id.clx_attachment_ids.ids if main_task.project_id.clx_attachment_ids else False,
+                'account_user_id': main_task.partner_id.user_id.id if main_task.partner_id.user_id else False
             }
             return vals
 
@@ -231,9 +232,6 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-        # if vals.get('stage_id') == complete_stage.id and not all(
-        #         child.stage_id.id == complete_stage.id for child in self.child_ids):
-        #     raise UserError('Please complate all subtask First!!')
         res = super(ProjectTask, self).write(vals)
         if vals.get('date_deadline'):
             for task in self.child_ids:
@@ -282,6 +280,8 @@ class ProjectTask(models.Model):
         if vals.get('stage_id', False) and self.parent_id and self.parent_id.child_ids:
             if all(line.stage_id.id == complete_stage.id for line in self.parent_id.child_ids):
                 self.parent_id.stage_id = complete_stage.id
+            if all(task.stage_id.id == complete_stage.id for task in self.project_id.task_ids):
+                self.project_id.clx_state = 'done'
 
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
             params = self.env['ir.config_parameter'].sudo()

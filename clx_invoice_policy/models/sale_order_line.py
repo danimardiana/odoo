@@ -2,11 +2,10 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
-from calendar import monthrange
 from datetime import date
-
+from collections import OrderedDict
+from datetime import timedelta
 from dateutil.relativedelta import relativedelta
-
 from odoo import fields, models, api, _
 
 
@@ -117,12 +116,18 @@ class SaleOrderLine(models.Model):
                 #     months=invoice_month, days=-1) if not self.end_date else self.end_date
             else:
                 date_end = date_start + relativedelta(
-                    months=invoice_month,days=-1)
+                    months=invoice_month, days=-1)
                 # date_end = date_end.replace(
                 #     day=monthrange(date_end.year, date_end.month)[1])
             if self.product_id.subscription_template_id.recurring_rule_type == 'yearly':
                 date_end = date_start + relativedelta(
                     months=12, days=-1)
+            month_count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                          range((date_end - self.start_date).days)))
+            if month_count > 1:
+                date_end = date_start + relativedelta(
+                    months=invoice_month, days=-1)
+
             res[0][-1].update({
                 'invoice_start_date': self.start_date,
                 'invoice_end_date': date_end,

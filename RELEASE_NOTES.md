@@ -940,3 +940,26 @@
 ## 12/28/2020
 #### Version 13.3.0.0.64
 - [FIX] clx_task_management : fix the issue related to complete task.
+
+## 12/30/2020
+#### Version 13.3.0.0.21
+- [FIX] clx_budget_analysis_report : changed field label.
+
+## 12/30/2020
+#### Version 13.3.0.0.14
+- [FIX] clx_budget_management : Send mail only that line which line is changed.
+
+## 12/30/2020
+#### Version 13.1.0.0.42
+- [MOD] clx_invoice_policy : Changed invoice flow as per the new flow.
+
+## 12/30/2020
+#### Version 13.1.1.0.17
+- [MOD] clx_subscription_creation : changed field label.
+
+## 12/30/2020
+#### Version 13.3.0.0.65
+- [MOD] clx_task_management : set salespersion in sub task.
+
+
+

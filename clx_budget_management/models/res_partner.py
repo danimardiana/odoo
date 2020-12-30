@@ -8,8 +8,10 @@ class ResPartner(models.Model):
     _inherit = 'res.partner'
 
     def get_subscriptions(self):
-        lines = self.env['sale.subscription.line'].search([
-            ('so_line_id.order_id.partner_id', 'child_of', self.id),
-            ('so_line_id.order_id.state', 'in', ('sale', 'done')),
-        ])
-        return lines
+        if self._context.get('se_order_id', False):
+            sale_order_id = self._context.get('se_order_id', False)
+            lines = self.env['sale.subscription.line'].search([
+                ('so_line_id.order_id.partner_id', 'child_of', self.id),
+                ('so_line_id.order_id', '=', sale_order_id),
+            ])
+            return lines

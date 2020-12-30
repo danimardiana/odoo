@@ -9,6 +9,9 @@
             <field name="partner_id" position="attributes">
                 <attribute name="domain">[('company_type','=','company')]</attribute>
             </field>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="attributes">
+                <attribute name="string">Monthly Price</attribute>
+            </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>

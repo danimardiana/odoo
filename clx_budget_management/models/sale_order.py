@@ -28,7 +28,7 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self)._action_confirm()
         self.env['sale.subscription']._create_sale_budget(self)
         self.env['sale.budget.changes']._create_sale_budget_changes(self)
-        self._send_mail_budget_changes()
+        self.with_context(se_order_id=self.id)._send_mail_budget_changes()
         return res
 
     def open_budget_line(self):
