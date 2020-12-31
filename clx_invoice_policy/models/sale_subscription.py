@@ -2,11 +2,12 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
-from calendar import monthrange
+from dateutil import parser
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from datetime import timedelta
+from odoo.exceptions import ValidationError
 from odoo import fields, models, api, _
 
 
@@ -67,28 +68,43 @@ class SaleSubscriptionLine(models.Model):
     account_id = fields.Many2one('account.move', string="Invoice")
 
     def write(self, vals):
-        res = super(SaleSubscriptionLine, self).write(vals)
-        if vals.get('end_date') and not self._context.get('skip'):
-            if self.invoice_end_date == self.end_date:
-                self.write(
-                    {
-                        'invoice_end_date': False,
-                        'invoice_start_date': False,
-                    }
-                )
-            elif self.invoice_start_date and self.invoice_end_date and self.invoice_start_date <= self.end_date <= self.invoice_end_date:
-                self.write(
-                    {
-                        'invoice_end_date': self.end_date
-                    }
-                )
-            else:
-                if self.end_date.year == self.invoice_end_date.year and self.end_date < self.invoice_start_date and self.end_date < self.invoice_end_date:
+        if vals.get('end_date', False):
+            end_date = vals.get('end_date')
+            end_date = parser.parse(end_date)
+            if end_date.date() > self.end_date and not self._context.get(
+                    'skip') and not self.invoice_end_date and not self.invoice_start_date:
+                raise ValidationError(_(
+                    "You Can not set date of the Next Month You have to create new Subscription for that month!!"
+                ))
+            res = super(SaleSubscriptionLine, self).write(vals)
+            if vals.get('end_date') and not self._context.get('skip', False):
+                if self.invoice_end_date == self.end_date:
+                    self.write(
+                        {
+                            'invoice_end_date': False,
+                            'invoice_start_date': False,
+                        }
+                    )
+                elif self.invoice_start_date and self.invoice_end_date and self.invoice_start_date <= self.end_date <= self.invoice_end_date:
+                    self.write(
+                        {
+                            'invoice_end_date': self.end_date
+                        }
+                    )
+                elif self.end_date and self.invoice_end_date and self.invoice_end_date > self.end_date:
                     self.write({
                         'invoice_start_date': False,
                         'invoice_end_date': False
                     })
-        return res
+                else:
+                    if self.invoice_end_date and self.invoice_start_date and self.end_date.year == self.invoice_end_date.year and self.end_date < self.invoice_start_date and self.end_date < self.invoice_end_date:
+                        self.write({
+                            'invoice_start_date': False,
+                            'invoice_end_date': False
+                        })
+            return res
+        else:
+            return super(SaleSubscriptionLine, self).write(vals)
 
     @api.depends('price_unit', 'quantity', 'discount', 'analytic_account_id.pricelist_id')
     def _compute_price_subtotal(self):

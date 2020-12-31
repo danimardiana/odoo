@@ -2,6 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
+import datetime
 from dateutil.relativedelta import relativedelta
 from odoo import fields, models
 
@@ -42,18 +43,25 @@ class SaleBudgetChanges(models.Model):
                             price = base_line[0].price_unit + line.price_unit
                     elif line.line_type == 'downsell':
                         price = line.price_unit
+                    start_date = line.start_date
+                    end_date = datetime.date(start_date.year, start_date.month, 1) + relativedelta(months=1,
+                                                                                                   days=-1)
                     vals = {
                         'partner_id': line.analytic_account_id.partner_id.id,
                         'product_id': line.product_id.id,
                         'start_date': line.start_date,
-                        'end_date': line.end_date,
+                        'end_date': end_date,
                         'sol_line_id': line.so_line_id.id,
                         'price': price,
                         'line_type': line.line_type,
                         'total_budget': total_budget
                     }
+                    if line.end_date and start_date <= line.end_date <= end_date and line.end_date.day < 15:
+                        price = price / 2
+                        vals.update({
+                            'price': price
+                        })
                     self.create(vals)
-                    start_date = line.start_date
                     for month_count in range(1, budget_month):
                         total_budget = line.analytic_account_id.recurring_total
                         if line.line_type == 'base':
@@ -66,20 +74,29 @@ class SaleBudgetChanges(models.Model):
                         elif line.line_type == 'downsell':
                             price = line.price_unit
                         start_date = start_date + relativedelta(months=1)
+                        if line.end_date and start_date > line.end_date:
+                            price = 0
+                        end_date = datetime.date(start_date.year, start_date.month, 1) + relativedelta(months=1,
+                                                                                                       days=-1)
                         vals = {
                             'partner_id': line.analytic_account_id.partner_id.id,
                             'product_id': line.product_id.id,
                             'start_date': start_date,
-                            'end_date': line.end_date,
+                            'end_date': end_date,
                             'sol_line_id': line.so_line_id.id,
                             'price': price,
                             'line_type': line.line_type,
                             'total_budget': total_budget
                         }
+                        if line.end_date and start_date <= line.end_date <= end_date and line.end_date.day < 15:
+                            price = price / 2
+                            vals.update({
+                                'price': price
+                            })
                         available_line = budget_line.filtered(
                             lambda x: x.partner_id.id == line.analytic_account_id.partner_id.id
                                       and x.product_id.id == line.product_id.id and x.start_date == line.start_date
-                            )
+                        )
                         if available_line:
                             available_line[0].write(vals)
                         if not available_line:
