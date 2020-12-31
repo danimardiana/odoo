@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError
 from collections import OrderedDict
@@ -50,6 +49,7 @@ class SaleSubscription(models.Model):
         state = "draft"
         active = False
         today = fields.date.today()
+
         end_date = datetime.date(start_date.year, start_date.month, 1) + relativedelta(months=1,
                                                                                        days=-1)
 
@@ -77,19 +77,17 @@ class SaleSubscription(models.Model):
             'subscription_line_id': subscription_line_id.id,
             'product_name': line.product_id.budget_wrapping if line.product_id.budget_wrapping else line.product_id.name
         }
-        r = end_date - line.start_date
-        if r.days + 1 in (30, 31, 28):
-            return vals
-        if r.days < 30 or r.days < 31:
-            # calculation for the calculate per day price if start date is like 15th day or 20th day of the month
-            per_day_price = line.price_unit / end_date.day
-            new_price = per_day_price * r.days
-            # calculation for the wholesale price in days
-            per_day_wholesale_price = line.wholesale_price / end_date.day
-            new_wholesale_price = per_day_wholesale_price * r.days
+        if line.end_date and start_date <= line.end_date <= end_date and line.end_date.day < 15:
+            new_price = line.price_unit / 2
+            new_wholesale_price = line.wholesale_price / 2
             vals.update({
                 'price': new_price,
                 'wholesale_price': new_wholesale_price
+            })
+        elif line.end_date and start_date > line.end_date:
+            vals.update({
+                'price': 0.0,
+                'wholesale_price': 0.0
             })
         return vals
 
@@ -150,12 +148,13 @@ class SaleSubscription(models.Model):
                         r = len(
                             OrderedDict(((line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((line.end_date - line.start_date).days)))
-                        for i in range(0, r):
-                            temp = line_start_date + relativedelta(months=1)
-                            vals = self.prepared_vals(line, sale_budget, temp)
-                            budget_line_id = self.env['sale.budget.line'].create(vals)
-                            line_start_date = budget_line_id.start_date
-                            self.create_chatter_log(budget_line_id, user)
+                        if r > 1:
+                            for i in range(0, r):
+                                temp = line_start_date + relativedelta(months=1)
+                                vals = self.prepared_vals(line, sale_budget, temp)
+                                budget_line_id = self.env['sale.budget.line'].create(vals)
+                                line_start_date = budget_line_id.start_date
+                                self.create_chatter_log(budget_line_id, user)
 
     @api.model
     def _create_sale_budget(self, sale_order=False):

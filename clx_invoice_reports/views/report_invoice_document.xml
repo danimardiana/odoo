@@ -67,20 +67,16 @@
                                 <span t-field="o.partner_id.street"/>
                                 <br/>
                             </t>
-
                             <t t-if="o.partner_id.street2">
                                 <span t-field="o.partner_id.street2"/>
                                 <br/>
                             </t>
                             <!--<address t-field="o.partner_id"
                                      t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>-->
-                            <t t-if="o.partner_id.management_company_type_id.invoice_template_line1">
-                                <span t-field="o.partner_id.management_company_type_id.invoice_template_line1"/>
-                                <br/>
-                            </t>
-
-                            <t t-if="o.partner_id.management_company_type_id.invoice_template_line2">
-                                <span t-field="o.partner_id.management_company_type_id.invoice_template_line2"/>
+                            <span>"Attention" Client "PM"</span>
+                            <br/>
+                            <t t-if="o.partner_id.management_company_type_id">
+                                <span t-field="o.partner_id.management_company_type_id.name"/>
                                 <br/>
                             </t>
                             <t t-if="o.partner_id.city">
@@ -95,7 +91,6 @@
                                 <span t-field="o.partner_id.zip"/>
                                 <br/>
                             </t>
-
                             <t t-if="o.partner_id.country_id">
                                 <span t-field="o.partner_id.country_id.name"/>
                                 <br/>

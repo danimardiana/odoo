@@ -123,10 +123,12 @@ class SaleBudgetReport(models.Model):
                 current_month_start_date = fields.Date.today().replace(day=1)
         current_month_start_date = fields.Date.today().replace(day=1)
         all_subscription_lines = self.env['sale.subscription.line'].search(
-            [('start_date', '!=', False), ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly')])
+            [('start_date', '!=', False),
+             ('line_type', 'in', ('upsell', 'downsell')),
+             ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly')])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         for subscription_line in subscription_lines:
-            if subscription_line.analytic_account_id.code == 'SUB276':
+            if subscription_line.analytic_account_id.code == 'SUB719':
                 print("-------------------")
             if subscription_line.end_date:
                 r = len(OrderedDict(((subscription_line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
@@ -154,26 +156,19 @@ class SaleBudgetReport(models.Model):
                     'subscription_line_id': subscription_line.id,
                     'partner_id': subscription_line.so_line_id.order_id.partner_id.id,
                     'wholesale_price': subscription_line.so_line_id.wholesale_price,
-                    'base_price': base[0].price_unit,
+                    'base_price': 0.0 if base[0].end_date and current_month_start_date > base[0].end_date else base[
+                        0].price_unit,
                     'end_date': subscription_line.end_date if subscription_line.end_date and subscription_line.end_date <= end_date_line else end_date_line
                 }
-                r = end_date_line - current_month_start_date
-                if r.days + 1 in (30, 31, 28):
-                    print("_______")
-                elif r.days < 30 or r.days < 31:
-                    per_day_price = base[0].price_unit / end_date_line.day
-                    new_price = per_day_price * r.days
-                    # calculation for the wholesale price in days
-                    per_day_wholesale_price = subscription_line.so_line_id.wholesale_price / end_date_line.day
-                    new_wholesale_price = per_day_wholesale_price * r.days
-                    vals.update({
-                        'wholesale_price': new_wholesale_price,
-                        'base_price': new_price
-                    })
+
                 if subscription_line.line_type in ('upsell', 'downsell'):
                     vals.update({
                         'upsell_down_sell_price': subscription_line.price_unit,
                     })
+                    if subscription_line.end_date and current_month_start_date <= subscription_line.end_date <= end_date_line and subscription_line.end_date.day < 15:
+                        vals.update({
+                            'upsell_down_sell_price': subscription_line.price_unit / 2,
+                        })
                     base_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
                         lambda x: x.line_type == 'base' and x.product_id.id == subscription_line.product_id.id)
                     all_report_data = report_data_table.search([]).filtered(

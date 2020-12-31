@@ -78,17 +78,18 @@ class Partner(models.Model):
             if invoice_lines and any(line.move_id.state == 'cancel' for line in invoice_lines):
                 a = advance_lines.ids
                 for invoice_line in invoice_lines:
-                    start_date = invoice_line.name.split(':')[-1].split('-')[0]
-                    start_date = parser.parse(start_date)
-                    new_line = advance_lines.filtered(lambda x: x.product_id.categ_id.id == invoice_line.category_id.id
-                                                                and x.invoice_start_date == start_date.date()
-                                                                and invoice_line.move_id.state == 'draft')
-                    if new_line and new_line[0].id in a:
-                        a.remove(new_line[0].id)
-                        start = new_line[0].invoice_start_date + relativedelta(months=1)
-                        end = start.replace(day=monthrange(start.year, start.month)[1])
-                        new_line[0].invoice_start_date = start
-                        new_line[0].invoice_end_date = end
+                    if "Invoicing period" in invoice_line.name:
+                        start_date = invoice_line.name.split(':')[-1].split('-')[0]
+                        start_date = parser.parse(start_date)
+                        new_line = advance_lines.filtered(lambda x: x.product_id.categ_id.id == invoice_line.category_id.id
+                                                                    and x.invoice_start_date == start_date.date()
+                                                                    and invoice_line.move_id.state == 'draft')
+                        if new_line and new_line[0].id in a:
+                            a.remove(new_line[0].id)
+                            start = new_line[0].invoice_start_date + relativedelta(months=1)
+                            end = start.replace(day=monthrange(start.year, start.month)[1])
+                            new_line[0].invoice_start_date = start
+                            new_line[0].invoice_end_date = end
                 if a:
                     advance_lines = self.env['sale.subscription.line'].browse(a)
             advance_lines = advance_lines + not_base_lines

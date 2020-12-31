@@ -959,9 +959,24 @@
 
 ## 12/30/2020
 #### Version 13.3.0.0.65
-- [MOD] clx_task_management : set salespersion in sub task.
+- [MOD] clx_task_management : set salesperson in sub task.
 
 ## 12/30/2020
 #### Version 13.1.0.0.43
 - [FIX] clx_invoice_policy : Fixed the issue related to invoice creation for specific current month. 
 
+## 12/31/2020
+#### Version 13.3.0.0.29
+- [FIX] clx_invoice_reports : added 3rd and 4th line as per the document on invoice reports.
+
+## 12/31/2020
+#### Version 13.1.0.0.44
+- [MOD] clx_invoice_policy : added warning user update end date on subscriptions.
+
+## 12/31/2020
+#### Version 13.3.0.0.15
+- [MOD] clx_budget_management : added prorate calculation on budget changes and budget records.
+
+## 12/31/2020
+#### Version 13.3.0.0.22
+- [MOD] clx_budget_analysis_report : Show only upsell and downsell lines on the pivot report added calculation for the prorate budget.
