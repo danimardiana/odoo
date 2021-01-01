@@ -266,6 +266,7 @@ class SaleSubscriptionLine(models.Model):
                 yearly_end_date = (yearly_start_date + relativedelta(
                     months=12)).replace(day=1) + relativedelta(days=-1)
                 vals.update({
+                    'invoice_start_date':yearly_start_date,
                     'invoice_end_date': yearly_end_date
                 })
                 lang = line.order_id.partner_invoice_id.lang
@@ -274,6 +275,12 @@ class SaleSubscriptionLine(models.Model):
                 period_msg = ("Invoicing period: %s - %s") % (
                     format_date(fields.Date.to_string(self.invoice_start_date), {}),
                     format_date(fields.Date.to_string(self.invoice_end_date), {}))
+                res.update({
+                    'name': period_msg,
+                    'price_unit': self.price_unit * 12
+                })
+                self.with_context(skip=True).write(vals)
+                return res
             self.with_context(skip=True).write(vals)
             if self.end_date:
                 if self.invoice_start_date and self.invoice_end_date and self.invoice_start_date <= self.end_date <= self.invoice_end_date:
@@ -308,9 +315,4 @@ class SaleSubscriptionLine(models.Model):
                     'management_fees': new_management_price,
                     'wholesale': new_price - new_management_price,
                 })
-        if line.product_id.subscription_template_id.recurring_rule_type == 'yearly':
-            res.update({
-                'name': period_msg,
-                'price_unit': self.price_unit * 12
-            })
         return res

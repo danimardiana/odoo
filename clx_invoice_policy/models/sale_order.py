@@ -37,7 +37,7 @@ class SaleOrder(models.Model):
         end_date = end_date - relativedelta(days=1)
         lines = so_lines.filtered(lambda x: x.start_date and x.start_date < end_date)
         count = self.clx_invoice_policy_id.num_of_month + 1
-        if so_lines:
+        if lines:
             so_lines = lines.filtered(lambda x: x.invoice_start_date.month == current_month_start_day.month)
             for i in range(0, count):
                 if self.partner_id.child_invoice_selection:

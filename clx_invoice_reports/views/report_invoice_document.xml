@@ -73,7 +73,7 @@
                             </t>
                             <!--<address t-field="o.partner_id"
                                      t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>-->
-                            <span>"Attention" Client "PM"</span>
+                            <span>"Attention" <span t-field="o.partner_id.name"/> "PM"</span>
                             <br/>
                             <t t-if="o.partner_id.management_company_type_id">
                                 <span t-field="o.partner_id.management_company_type_id.name"/>

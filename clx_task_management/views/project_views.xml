@@ -72,6 +72,9 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
+            <field name="user_id" position="after">
+                <field name="implementation_specialist_id"/>
+            </field>
             <xpath expr="//notebook" position="inside">
                 <page string="Ads Link" name="ads_link">
                     <group>
@@ -140,6 +143,7 @@
             <field name="project_id" position="before">
                 <field name="partner_id"/>
                 <field name="vertical"/>
+                <field name="implementation_specialist_id"/>
                 <field name="account_user_id" string="Salesperson"/>
                 <field name="website" widget="url"/>
             </field>

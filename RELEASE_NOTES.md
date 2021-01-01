@@ -980,3 +980,20 @@
 ## 12/31/2020
 #### Version 13.3.0.0.22
 - [MOD] clx_budget_analysis_report : Show only upsell and downsell lines on the pivot report added calculation for the prorate budget.
+
+## 12/01/2021
+#### Version 13.1.0.0.45
+- [MOD] clx_invoice_policy : Create invoice for the yearly subscription.
+
+## 12/01/2021
+#### Version 13.3.0.0.30
+- [MOD] clx_invoice_reports : changed design for the contract related reports for the sale order.
+
+## 12/01/2021
+#### Version 13.3.0.0.66
+- [MOD] clx_task_management : added new field on project and task.
+
+## 12/01/2021
+#### Version 13.1.1.0.31
+- [MOD] contact_modification : added new field on customers.
+
