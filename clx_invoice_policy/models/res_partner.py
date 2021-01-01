@@ -145,8 +145,8 @@ class Partner(models.Model):
             if self._context.get('from_generate_invoice'):
                 raise UserError(_("You must have a sales order to create an invoice"))
             return self
-        if not so_lines:
-            return self
+        # if not so_lines:
+        #     return self
         # so_lines |= self.get_advanced_sub_lines(
         #     lines.filtered(lambda l: l not in so_lines))
         base_lines = {}
@@ -232,6 +232,16 @@ class Partner(models.Model):
             if base_lines and upsell_lines:
                 for key, val in base_lines.items():
                     for key1, val1 in upsell_lines.items():
+                        if key == key1:
+                            final_lines.update({
+                                key: val
+                            })
+                            final_lines[key].update({
+                                'price_unit': val.get('price_unit') + val1.get('price_unit')
+                            })
+            if base_lines and downsell_lines:
+                for key, val in base_lines.items():
+                    for key1, val1 in downsell_lines.items():
                         if key == key1:
                             final_lines.update({
                                 key: val

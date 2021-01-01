@@ -33,6 +33,7 @@ class ProjectProject(models.Model):
     clx_attachment_ids = fields.Many2many(
         "ir.attachment", 'att_project_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
+    implementation_specialist_id = fields.Many2one(related="partner_id.implementation_specialist_id")
 
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
@@ -107,6 +108,7 @@ class ProjectTask(models.Model):
         "ir.attachment", 'att_task_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
     clx_description = fields.Html(related="parent_id.description", readonly=False)
+    implementation_specialist_id = fields.Many2one(related="project_id.partner_id.implementation_specialist_id")
 
     def _compute_sub_task_project_ids(self):
         task_list = []
@@ -153,18 +155,6 @@ class ProjectTask(models.Model):
                 'account_user_id': main_task.partner_id.user_id.id if main_task.partner_id.user_id else False
             }
             return vals
-
-    # @api.onchange('stage_id')
-    # def _update_task_status(self):
-    #     sub_task_obj = self.env['sub.task']
-    #     complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-    #     for record in self:
-    #         repositary_task = record._origin.parent_id.repositary_task_id
-    #         sub_tasks = sub_task_obj.search([('parent_id', '=', repositary_task.id)])
-    #         child_ids = record._origin.parent_id.child_ids.mapped('sub_task_id')
-    #         if len(sub_tasks) == len(child_ids) and all(
-    #                 line.stage_id.id == complete_stage.id for line in record._origin.parent_id.child_ids):
-    #             print("-------")
 
     def action_view_clx_so(self):
         """

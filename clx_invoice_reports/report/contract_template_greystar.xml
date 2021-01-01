@@ -16,7 +16,7 @@
                 <br/>
                 <br/>
                 <div>
-                    <span style="margin-left: 290px;color:#c02023">Dedicated Account Representative Information:</span>
+                    <span style="margin-left: 290px;color:#c02023;font-size: 20px;">Dedicated Account Representative Information:</span>
                     <br/>
                     <span style="margin-left: 350px;color:#c02023">Name:</span>
                     <span style="color:#c02023" t-field="doc.partner_id.account_user_id.name"/>
@@ -45,14 +45,12 @@
                                 <td align="right" style="border: 1px solid black;padding: 20px;">Monthly total
                                     <br/>
                                     <t t-esc="doc.currency_id.symbol"/>
-                                    <t t-esc="line.price_total"/>
+                                    <t t-esc="'%.0f'% line.price_total"/>
                                 </td>
                             </tr>
                             <tr>
+                                <td><t t-esc="line.product_id.description"/></td>
                                 <td/>
-                                <td>
-                                    <t t-esc="line.product_id.description"/>
-                                </td>
                                 <td/>
                             </tr>
                             <tr>
@@ -160,7 +158,7 @@
                                         </t>
                                     </t>
                                     <t t-esc="doc.currency_id.symbol"/>
-                                    <span t-esc="setup_fees"/>
+                                    <span t-esc="'%.2f'% setup_fees"/>
                                 </td>
                             </tr>
                         </tbody>

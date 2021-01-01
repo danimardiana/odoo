@@ -121,7 +121,6 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="account.view_partner_property_form"/>
         <field name="arch" type="xml">
-
             <xpath expr="//page[@name='accounting']" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))]}</attribute>
             </xpath>
@@ -255,6 +254,7 @@
             </xpath> -->
 
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
+                <field name="implementation_specialist_id" attrs="{'invisible':[('company_type','not in','company')]}"/>
                 <field name="account_user_id" invisible="0"/>
                 <field name="secondary_user_id"
                        attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
