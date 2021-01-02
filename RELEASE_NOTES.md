@@ -997,3 +997,10 @@
 #### Version 13.1.1.0.31
 - [MOD] contact_modification : added new field on customers.
 
+## 12/01/2021
+#### Version 13.1.0.0.46
+- [Add] clx_invoice_policy : added start date and end date on create invoices for multiple sale orders.
+
+## 12/01/2021
+#### Version 13.3.0.0.66
+- [FIX] clx_task_management : fix the issue related to cancel task flow.

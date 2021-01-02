@@ -27,7 +27,7 @@ class TaskCancelWarningWizard(models.TransientModel):
                 'sub_repositary_task_ids': task.dependency_ids.ids,
                 'parent_id': sub_task.mapped('parent_id')[0].id,
                 'sub_task_id': task.id,
-                'team_id': task.team_id.id if task.team_id else False,
+                'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False
             }
             return vals

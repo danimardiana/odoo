@@ -5,12 +5,27 @@
 from odoo import fields, models, api, _
 from dateutil import parser
 
-
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
     subscription_line_ids = fields.One2many('sale.subscription.line', 'account_id', string="Subscription Lines")
+    invoices_month_year = fields.Char(string="Invoicing Period", compute="set_invoices_month", store=False)
+
+    def set_invoices_month(self):
+        start_date = False
+        for record in self:
+            if record.invoice_line_ids:
+                for line in record.invoice_line_ids:
+                    if "Invoicing period" in line.name:
+                        name = line.name.split(':')[-1]
+                        name = name.split('-')
+                        start_date = parser.parse(name[0])
+                        end_date = parser.parse(name[-1])
+                if start_date:
+                    record.invoices_month_year = start_date.strftime("%b, %Y")
+                else:
+                    record.invoices_month_year = " "
 
     def _get_sequence(self):
         res = super(AccountMove, self)._get_sequence()
