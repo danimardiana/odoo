@@ -282,7 +282,7 @@ class RequestForm(models.Model):
         self.state = 'submitted'
         self.submitted_by_user_id = self.env.uid
 
-    @api.onchange('sale_order_id', 'is_create_client_launch')
+    @api.onchange('partner_id', 'is_create_client_launch')
     def _onchange_sale_order_id(self):
         list_product = []
         req_line_obj = self.env['request.form.line']
@@ -298,36 +298,24 @@ class RequestForm(models.Model):
                 'req_type': client_launch_task.req_type,
                 'task_id': client_launch_task.id,
                 'requirements': client_launch_task.requirements,
-                # 'request_form_id': self._origin.id
             }
             form_line_id = req_line_obj.create(vals)
             list_product.append(form_line_id.id)
-        # if self.request_line:
-        #     self._origin.request_line = False
-
         today = fields.Date.today()
-        order_lines = False
-        if self.sale_order_id and self.sale_order_id.order_line:
-            order_lines = self.sale_order_id.order_line.filtered(
+        order_lines = self.env['sale.order.line'].search([('order_partner_id', '=', self.partner_id.id)])
+        if order_lines:
+            order_lines = order_lines.filtered(
                 lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
                           or (x.start_date and not x.end_date and x.start_date <= today))
-            future_lines = self.sale_order_id.order_line.filtered(lambda x: x.start_date and x.start_date >= today)
+            future_lines = order_lines.filtered(lambda x: x.start_date and x.start_date >= today)
             if future_lines:
                 order_lines += future_lines
-            for line in order_lines:
+            for line in order_lines.mapped('product_id'):
                 line_id = req_line_obj.create({
                     'sale_line_id': line._origin.id,
-                    # 'request_form_id': self._origin.id
                 })
                 list_product.append(line_id.id)
         self.update({'request_line': [(6, 0, list_product)]})
-
-    def write(self,vals):
-        # print(vals)
-        res = super(RequestForm, self).write(vals)
-        # print("PPPPPPPPPPPPPPPPPPPPPPPPP", self.is_create_client_launch)
-        return res
-
 
 
 class RequestFormLine(models.Model):

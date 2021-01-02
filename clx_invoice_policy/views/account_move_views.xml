@@ -64,8 +64,18 @@
             <xpath expr="//group" position="inside">
                 <filter name="mgmt_company" string="Management Company" context="{'group_by': 'mgmt_company'}"/>
             </xpath>
-
         </field>
     </record>
 
+    <record id="view_invoice_tree_inherit_clx_invoice_policy" model="ir.ui.view">
+        <field name="name">account.invoice.tree</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='invoice_date_due']" position="after">
+                <field name="invoices_month_year"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>
