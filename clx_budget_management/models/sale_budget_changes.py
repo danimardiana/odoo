@@ -86,7 +86,7 @@ class SaleBudgetChanges(models.Model):
                             'sol_line_id': line.so_line_id.id,
                             'price': price,
                             'line_type': line.line_type,
-                            'total_budget': total_budget
+                            'total_budget': 0.0 if not price else total_budget
                         }
                         if line.end_date and start_date <= line.end_date <= end_date and line.end_date.day < 15:
                             price = price / 2
