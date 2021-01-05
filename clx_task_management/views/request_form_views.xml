@@ -40,7 +40,7 @@
                         <group>
                             <field name="description" required="1"/>
                             <field name="is_create_client_launch"/>
-                            <field name="sale_order_id" widget="many2many_tags"
+                            <field name="sale_order_id" widget="many2many_tags" invisible="1"
                                    context="{'active_sale_order': True,'req_partner_id': partner_id}"/>
                         </group>
                     </group>

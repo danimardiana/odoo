@@ -981,26 +981,42 @@
 #### Version 13.3.0.0.22
 - [MOD] clx_budget_analysis_report : Show only upsell and downsell lines on the pivot report added calculation for the prorate budget.
 
-## 12/01/2021
+## 01/01/2021
 #### Version 13.1.0.0.45
 - [MOD] clx_invoice_policy : Create invoice for the yearly subscription.
 
-## 12/01/2021
+## 01/01/2021
 #### Version 13.3.0.0.30
 - [MOD] clx_invoice_reports : changed design for the contract related reports for the sale order.
 
-## 12/01/2021
+## 01/01/2021
 #### Version 13.3.0.0.66
 - [MOD] clx_task_management : added new field on project and task.
 
-## 12/02/2021
+## 01/02/2021
 #### Version 13.1.1.0.31
 - [MOD] contact_modification : added new field on customers.
 
-## 12/02/2021
+## 01/02/2021
 #### Version 13.1.0.0.46
 - [Add] clx_invoice_policy : added start date and end date on create invoices for multiple sale orders.
 
-## 12/02/2021
-#### Version 13.3.0.0.66
+## 01/02/2021
+#### Version 13.3.0.0.67
 - [FIX] clx_task_management : fix the issue related to cancel task flow.
+
+## 01/04/2021
+#### Version 13.3.0.0.68
+- [MOD] clx_task_management : Modification of the request form line view.
+
+## 01/04/2021
+#### Version 13.3.0.0.69
+- [MOD] clx_task_management : Modification of the set total budget 0 if subscription is done.
+
+## 01/05/2021
+#### Version 13.3.0.0.70
+- [FIX] clx_task_management : fix the issue related to onchange.
+
+## 01/05/2021
+#### Version 13.1.0.0.47
+- [FIX] clx_invoice_policy : Fix the issue related end date was set wrong while doing upsell Fixed that issue.

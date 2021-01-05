@@ -9,6 +9,7 @@ from collections import OrderedDict
 from datetime import timedelta
 from odoo.exceptions import ValidationError
 from odoo import fields, models, api, _
+from calendar import monthrange
 
 
 class SaleSubscription(models.Model):
@@ -67,16 +68,55 @@ class SaleSubscriptionLine(models.Model):
     cancel_invoice_end_date = fields.Date('Cancel End Date')
     account_id = fields.Many2one('account.move', string="Invoice")
 
+    def _creation_next_budgets(self):
+        print("CRON CRON CRON")
+
     def write(self, vals):
+        res = super(SaleSubscriptionLine, self).write(vals)
+        if not self._context.get('skip'):
+            sale_budget_line_obj = self.env['sale.budget.line']
+            budget_lines = self.env['sale.budget.line'].search(
+                [('end_date', '>', self.end_date),
+                 ('subscription_line_id', '=', self.id), '|', ('active', '=', False), ('active', '=', True)])
+            if budget_lines:
+                budget_lines.write({
+                    'wholesale_price': 0.0,
+                    'price': 0.0
+                })
+            else:
+                budget_lines = self.env['sale.budget.line'].search(
+                    [('end_date', '<', self.end_date),
+                     ('subscription_line_id', '=', self.id), '|', ('active', '=', False), ('active', '=', True)])
+                month_diff = len(OrderedDict(((budget_lines[0].end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                             range((self.end_date - budget_lines[0].end_date).days)))
+                if month_diff:
+                    start_date = budget_lines[0].end_date + relativedelta(days=1)
+                    start_date.replace(day=monthrange(start_date.year, start_date.month)[1])
+                    for i in range(0, month_diff):
+                        end_date = (start_date + relativedelta(months=1)).replace(day=1) + relativedelta(days=-1)
+                        vals = {
+                            'partner_id': self.analytic_account_id.partner_id.id,
+                            'start_date': start_date,
+                            'end_date': end_date,
+                            'sol_id': self.so_line_id.id,
+                            'subscription_line_id': self.id,
+                            'subscription_id': self.analytic_account_id.id,
+                            'product_id': self.product_id.id,
+                            'price': self.price_unit,
+                            'wholesale_price': self.so_line_id.wholesale_price,
+                            'status': self.so_line_id.order_id.subscription_management,
+                            'budget_id': budget_lines[0].budget_id.id
+                        }
+                        start_date = start_date + relativedelta(months=1)
+                        sale_budget_line_obj.create(vals)
         if vals.get('end_date', False):
             end_date = vals.get('end_date')
-            end_date = parser.parse(end_date)
-            if end_date.date() > self.end_date and not self._context.get(
+            # end_date = parser.parse(end_date)
+            if end_date > self.end_date and not self._context.get(
                     'skip') and not self.invoice_end_date and not self.invoice_start_date:
                 raise ValidationError(_(
                     "You Can not set date of the Next Month You have to create new Subscription for that month!!"
                 ))
-            res = super(SaleSubscriptionLine, self).write(vals)
             if vals.get('end_date') and not self._context.get('skip', False):
                 if self.invoice_end_date == self.end_date:
                     self.write(
@@ -266,7 +306,7 @@ class SaleSubscriptionLine(models.Model):
                 yearly_end_date = (yearly_start_date + relativedelta(
                     months=12)).replace(day=1) + relativedelta(days=-1)
                 vals.update({
-                    'invoice_start_date':yearly_start_date,
+                    'invoice_start_date': yearly_start_date,
                     'invoice_end_date': yearly_end_date
                 })
                 lang = line.order_id.partner_invoice_id.lang
@@ -307,7 +347,7 @@ class SaleSubscriptionLine(models.Model):
                          ) else 1
                 ) * product_qty,
             })
-            if end_date.day < 15:
+            if end_date and end_date.day < 15:
                 new_price = self.price_unit / 2
                 new_management_price = line.management_price / 2
                 res.update({
