@@ -112,13 +112,14 @@ class SaleOrderLine(models.Model):
                     months=invoice_month, days=-1) if not self.end_date else self.end_date
             else:
                 date_end = date_start + relativedelta(
-                    months=invoice_month, days=-1)
+                    months=invoice_month, days=-1) if not self.end_date else self.end_date
             month_count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                           range((date_end - self.start_date).days)))
             if month_count > 1:
                 date_end = date_start + relativedelta(
                     months=invoice_month, days=-1)
-
+            elif month_count == 1 and self.line_type != 'base':
+                date_end = self.end_date
             if self.product_id.subscription_template_id.recurring_rule_type == 'yearly':
                 date_end = date_start + relativedelta(
                     months=12, days=-1)

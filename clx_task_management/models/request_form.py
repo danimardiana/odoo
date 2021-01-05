@@ -310,9 +310,10 @@ class RequestForm(models.Model):
             future_lines = order_lines.filtered(lambda x: x.start_date and x.start_date >= today)
             if future_lines:
                 order_lines += future_lines
-            for line in order_lines.mapped('product_id'):
+            for product in order_lines.mapped('product_id'):
+                line = order_lines.filtered(lambda x: x.product_id.id == product.id)
                 line_id = req_line_obj.create({
-                    'sale_line_id': line._origin.id,
+                    'sale_line_id': line[0].id,
                 })
                 list_product.append(line_id.id)
         self.update({'request_line': [(6, 0, list_product)]})
