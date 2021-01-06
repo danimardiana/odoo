@@ -1028,3 +1028,7 @@
 ## 01/06/2021
 #### Version 13.3.0.0.71
 - [FIX] clx_task_management : Fix the cross task depedency issue.
+
+## 01/06/2021
+#### Version 13.3.0.0.72
+- [FIX] clx_task_management : removed sale order line field from the request form line instead of this added a product.

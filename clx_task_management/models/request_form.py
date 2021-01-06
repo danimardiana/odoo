@@ -311,9 +311,8 @@ class RequestForm(models.Model):
             if future_lines:
                 order_lines += future_lines
             for product in order_lines.mapped('product_id'):
-                line = order_lines.filtered(lambda x: x.product_id.id == product.id)
                 line_id = req_line_obj.create({
-                    'sale_line_id': line[0].id,
+                    'product_id': product.id,
                 })
                 list_product.append(line_id.id)
         self.update({'request_line': [(6, 0, list_product)]})
@@ -332,8 +331,8 @@ class RequestFormLine(models.Model):
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
-    sale_line_id = fields.Many2one('sale.order.line', string="Sale line")
-    category_id = fields.Many2one(related="sale_line_id.product_id.categ_id")
+    product_id = fields.Many2one('product.product', string="Products")
+    category_id = fields.Many2one(related="product_id.categ_id")
 
     @api.onchange('task_id')
     def _onchange_task_id(self):
@@ -349,8 +348,8 @@ class RequestFormLine(models.Model):
             if not subscriptions:
                 raise UserError(_(
                     """There is no subscription available for this customer."""))
-        if not self.sale_line_id:
+        if not self.product_id:
             return {'domain': {'task_id': [('req_type', '=', self.req_type)]}}
-        elif self.sale_line_id and self.sale_line_id.product_id and self.sale_line_id.product_id.categ_id:
+        elif self.product_id and self.product_id and self.product_id.categ_id:
             return {'domain': {'task_id': [('req_type', '=', self.req_type),
-                                           ('category_id', '=', self.sale_line_id.product_id.categ_id.id)]}}
+                                           ('category_id', '=', self.product_id.categ_id.id)]}}
