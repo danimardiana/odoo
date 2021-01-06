@@ -199,12 +199,13 @@ class ProjectTask(models.Model):
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         sub_task = self.project_id.task_ids.filtered(lambda x: x.sub_task_id.parent_id.id == task.parent_id.id)
         if stage_id:
+            parent_id = self.project_id.task_ids.filtered(lambda x: x.name == task.parent_id.name)
             vals = {
                 'name': task.sub_task_name,
                 'project_id': project_id.id,
                 'stage_id': stage_id.id,
                 'sub_repositary_task_ids': task.dependency_ids.ids,
-                'parent_id': self.parent_id.id,
+                'parent_id': parent_id[0].id if parent_id else False,
                 'sub_task_id': task.id,
                 'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,

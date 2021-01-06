@@ -1020,3 +1020,11 @@
 ## 01/05/2021
 #### Version 13.1.0.0.47
 - [FIX] clx_invoice_policy : Fix the issue related end date was set wrong while doing upsell Fixed that issue.
+
+## 01/06/2021
+#### Version 13.1.0.0.48
+- [FIX] clx_invoice_policy : Fix the issue related when user add end date on subscription.
+
+## 01/06/2021
+#### Version 13.3.0.0.71
+- [FIX] clx_task_management : Fix the cross task depedency issue.

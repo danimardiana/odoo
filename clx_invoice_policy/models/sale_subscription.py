@@ -111,7 +111,8 @@ class SaleSubscriptionLine(models.Model):
                         sale_budget_line_obj.create(vals)
         if vals.get('end_date', False):
             end_date = vals.get('end_date')
-            # end_date = parser.parse(end_date)
+            if type(end_date) == str:
+                end_date = parser.parse(end_date).date()
             if end_date > self.end_date and not self._context.get(
                     'skip') and not self.invoice_end_date and not self.invoice_start_date:
                 raise ValidationError(_(
@@ -263,18 +264,6 @@ class SaleSubscriptionLine(models.Model):
             'analytic_tag_ids': [(6, 0, line.analytic_tag_ids.ids)],
             'line_type': self.line_type,
             'sale_line_ids': line.ids,
-            'management_fees': line.management_price * (
-                2 if self.line_type == 'upsell' and
-                     not self.last_invoiced and
-                     (not self.end_date or
-                      self.end_date.month > today.month) else 1
-            ),
-            'wholesale': line.wholesale_price * (
-                2 if self.line_type == 'upsell' and
-                     not self.last_invoiced and
-                     (not self.end_date or
-                      self.end_date.month > today.month) else 1
-            ),
         }
         if line.display_type:
             res['account_id'] = False
@@ -321,7 +310,8 @@ class SaleSubscriptionLine(models.Model):
                 })
                 self.with_context(skip=True).write(vals)
                 return res
-            self.with_context(skip=True).write(vals)
+            if not self._context.get('generate_invoice_date_range'):
+                self.with_context(skip=True).write(vals)
             if self.end_date:
                 if self.invoice_start_date and self.invoice_end_date and self.invoice_start_date <= self.end_date <= self.invoice_end_date:
                     self.with_context(skip=True).write(
@@ -347,6 +337,18 @@ class SaleSubscriptionLine(models.Model):
                          ) else 1
                 ) * product_qty,
             })
+            if self._context.get('generate_invoice_date_range', False):
+                start_date = self._context.get('start_date', False)
+                end_date = self._context.get('end_date', False)
+                lang = line.order_id.partner_invoice_id.lang
+                format_date = self.env['ir.qweb.field.date'].with_context(
+                    lang=lang).value_to_html
+                period_msg = ("Invoicing period: %s - %s") % (
+                    format_date(fields.Date.to_string(start_date), {}),
+                    format_date(fields.Date.to_string(end_date), {}))
+                res.update({
+                    'name': period_msg
+                })
             if end_date and end_date.day < 15:
                 new_price = self.price_unit / 2
                 new_management_price = line.management_price / 2

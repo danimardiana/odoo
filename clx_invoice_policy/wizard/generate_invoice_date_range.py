@@ -32,8 +32,8 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 raise UserError(_("You need to sale order for create a invoice!!"))
         advance_lines = lines.filtered(
             lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
-        advance_lines = advance_lines.filtered(lambda
-                                                   x: x.invoice_start_date and x.invoice_start_date <= self.start_date)
+        advance_lines = advance_lines.filtered(
+            lambda x: x.start_date and x.start_date <= self.start_date and x.invoice_start_date and x.invoice_end_date)
         if not advance_lines:
             raise UserError(_("Invoice is created or posted Please check all invoices of this Customer"))
         if advance_lines:
