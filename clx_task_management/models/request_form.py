@@ -302,12 +302,12 @@ class RequestForm(models.Model):
             form_line_id = req_line_obj.create(vals)
             list_product.append(form_line_id.id)
         today = fields.Date.today()
-        order_lines = self.env['sale.order.line'].search([('order_partner_id', '=', self.partner_id.id)])
-        if order_lines:
-            order_lines = order_lines.filtered(
+        lines = self.env['sale.order.line'].search([('order_partner_id', '=', self.partner_id.id)])
+        if lines:
+            order_lines = lines.filtered(
                 lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
                           or (x.start_date and not x.end_date and x.start_date <= today))
-            future_lines = order_lines.filtered(lambda x: x.start_date and x.start_date >= today)
+            future_lines = lines.filtered(lambda x: x.start_date and x.start_date >= today)
             if future_lines:
                 order_lines += future_lines
             for product in order_lines.mapped('product_id'):
