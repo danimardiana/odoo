@@ -73,6 +73,7 @@ class SaleSubscriptionLine(models.Model):
 
     def write(self, vals):
         res = super(SaleSubscriptionLine, self).write(vals)
+        month_diff = False
         if not self._context.get('skip'):
             sale_budget_line_obj = self.env['sale.budget.line']
             budget_lines = self.env['sale.budget.line'].search(
@@ -87,9 +88,10 @@ class SaleSubscriptionLine(models.Model):
                 budget_lines = self.env['sale.budget.line'].search(
                     [('end_date', '<', self.end_date),
                      ('subscription_line_id', '=', self.id), '|', ('active', '=', False), ('active', '=', True)])
-                month_diff = len(OrderedDict(((budget_lines[0].end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                if budget_lines:
+                    month_diff = len(OrderedDict(((budget_lines[0].end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                              range((self.end_date - budget_lines[0].end_date).days)))
-                if month_diff:
+                if month_diff and budget_lines:
                     start_date = budget_lines[0].end_date + relativedelta(days=1)
                     start_date.replace(day=monthrange(start_date.year, start_date.month)[1])
                     for i in range(0, month_diff):

@@ -1032,3 +1032,7 @@
 ## 01/06/2021
 #### Version 13.3.0.0.72
 - [FIX] clx_task_management : removed sale order line field from the request form line instead of this added a product.
+
+## 01/07/2021
+#### Version 13.1.0.0.48
+- [FIX] clx_invoice_policy : fix the issue related to upsell.
