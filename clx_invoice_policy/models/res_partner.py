@@ -161,7 +161,7 @@ class Partner(models.Model):
             prepared_lines = [line.with_context({
                 'advance': True,
                 'generate_invoice_date_range': True,
-                'start_date':self._context.get('start_date'),
+                'start_date': self._context.get('start_date'),
                 'end_date': self._context.get('end_date'),
             })._prepare_invoice_line() for line in so_lines]
         else:
@@ -172,6 +172,10 @@ class Partner(models.Model):
             so_lines = yearly_lines + so_lines
             for y_line in yearly_prepared_lines:
                 prepared_lines.append(y_line)
+        for pre_line in prepared_lines:
+            pre_line.update({
+                'subscription_lines_ids': so_lines.ids
+            })
         if not self._context.get('sol'):
             for line in prepared_lines:
                 line_type = line['line_type']
@@ -232,7 +236,8 @@ class Partner(models.Model):
                             })
                             final_lines[key].update({
                                 'price_unit': val.get('price_unit') + val1.get('price_unit'),
-                                'sale_line_ids': so_lines.mapped('so_line_id')
+                                'sale_line_ids': so_lines.mapped('so_line_id'),
+                                'subscription_lines_ids': so_lines.ids
                             })
             if base_lines and downsell_lines:
                 for key, val in base_lines.items():
@@ -243,7 +248,8 @@ class Partner(models.Model):
                             })
                             final_lines[key].update({
                                 'price_unit': val.get('price_unit') + val1.get('price_unit'),
-                                'sale_line_ids': so_lines.mapped('so_line_id')
+                                'sale_line_ids': so_lines.mapped('so_line_id'),
+                                'subscription_lines_ids': so_lines.ids
                             })
             vals = {
                 'ref': order.client_order_ref,

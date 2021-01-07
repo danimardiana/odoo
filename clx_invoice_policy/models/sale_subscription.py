@@ -255,12 +255,7 @@ class SaleSubscriptionLine(models.Model):
             'product_uom_id': line.product_uom.id,
             'quantity': 1,
             'discount': discount,
-            'price_unit': self.price_unit * (
-                2 if self.line_type == 'upsell' and
-                     not self.last_invoiced and
-                     (not self.end_date or
-                      self.end_date.month > today.month) else 1
-            ),
+            'price_unit': self.price_unit,
             'tax_ids': [(6, 0, line.tax_id.ids)],
             'analytic_account_id': line.order_id.analytic_account_id.id,
             'analytic_tag_ids': [(6, 0, line.analytic_tag_ids.ids)],
@@ -312,8 +307,7 @@ class SaleSubscriptionLine(models.Model):
                 })
                 self.with_context(skip=True).write(vals)
                 return res
-            if not self._context.get('generate_invoice_date_range'):
-                self.with_context(skip=True).write(vals)
+            self.with_context(skip=True).write(vals)
             if self.end_date:
                 if self.invoice_start_date and self.invoice_end_date and self.invoice_start_date <= self.end_date <= self.invoice_end_date:
                     self.with_context(skip=True).write(
@@ -321,7 +315,7 @@ class SaleSubscriptionLine(models.Model):
                             'invoice_end_date': self.end_date
                         }
                     )
-                elif self.invoice_start_date > self.end_date:
+                elif self.invoice_start_date and self.invoice_start_date > self.end_date:
                     self.with_context(skip=True).write(
                         {
                             'invoice_end_date': False,
@@ -331,13 +325,7 @@ class SaleSubscriptionLine(models.Model):
             res.update({
                 'name': period_msg,
                 'subscription_end_date': self.end_date if self.end_date and self.end_date > date_end else expire_date,
-                'price_unit': self.price_unit * (
-                    2 if self.line_type == 'upsell' and
-                         not self.last_invoiced and (
-                                 not self.end_date or
-                                 self.end_date.month > today.month
-                         ) else 1
-                ) * product_qty,
+                'price_unit': self.price_unit,
             })
             if self._context.get('generate_invoice_date_range', False):
                 start_date = self._context.get('start_date', False)
