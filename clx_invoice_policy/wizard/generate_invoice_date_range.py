@@ -7,7 +7,6 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from datetime import timedelta
 from collections import OrderedDict
-from dateutil import parser
 
 
 class GenerateInvoiceDateRange(models.TransientModel):
@@ -34,9 +33,6 @@ class GenerateInvoiceDateRange(models.TransientModel):
         advance_lines = lines.filtered(
             lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
         end_date_adv_lines = advance_lines.filtered(lambda x: x.end_date and self.end_date <= x.end_date)
-        # end_date_not_adv_lines = advance_lines.filtered(lambda x: not x.end_date)
-        # print(end_date_not_adv_lines)
-        # print(end_date_adv_lines)
         advance_lines = advance_lines.filtered(
             lambda x: x.start_date and x.invoice_start_date and x.invoice_start_date <= self.start_date)
         advance_lines += end_date_adv_lines
