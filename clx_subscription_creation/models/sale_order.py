@@ -134,19 +134,6 @@ class SaleOrderLine(models.Model):
                 [budget_line.write({'end_date': values.get('end_date')}) for budget_line in budget_lines]
         return res
 
-    @api.onchange('product_id')
-    def onchange_start_date(self):
-        discount = 0.0
-        if self.product_id and self.order_id.contract_start_date:
-            self.start_date = self.order_id.contract_start_date
-        elif self.product_id and not self.start_date:
-            raise ValidationError(_("Please select start date."))
-        if self.order_id.partner_id.management_company_type_id and not self.order_id.partner_id.management_company_type_id.is_flat_discount:
-            discount = self.order_id.partner_id.management_company_type_id.discount_on_order_line
-        if self.order_id.partner_id.management_company_type_id and self.order_id.partner_id.management_company_type_id.is_flat_discount:
-            discount = self.order_id.partner_id.management_company_type_id.flat_discount
-        self.discount = discount
-
     @api.onchange('start_date', 'end_date')
     def onchange_date_validation(self):
         if self.start_date and self.end_date and \
@@ -191,7 +178,8 @@ class SaleOrderLine(models.Model):
             complete_stage = self.env.ref("sale_subscription.sale_subscription_stage_closed")
             for sub_line in subscription_lines:
                 if sub_line.analytic_account_id.stage_id.id != complete_stage.id:
-                    raise ValidationError(_("Please close {} Subscription First !!").format(sub_line.analytic_account_id.code))
+                    raise ValidationError(
+                        _("Please close {} Subscription First !!").format(sub_line.analytic_account_id.code))
                 else:
                     sub_line.unlink()
         return super(SaleOrderLine, self).unlink()

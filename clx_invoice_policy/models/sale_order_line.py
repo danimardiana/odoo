@@ -7,6 +7,7 @@ from collections import OrderedDict
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from odoo import fields, models, api, _
+from odoo.exceptions import ValidationError
 
 
 class SaleOrderLine(models.Model):
@@ -18,7 +19,7 @@ class SaleOrderLine(models.Model):
     def _compute_amount(self):
         for line in self:
             price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-            if line.order_id.partner_id.management_company_type_id and line.order_id.partner_id.management_company_type_id.is_flat_discount:
+            if line.order_id.partner_id.management_company_type_id.clx_category_id and line.order_id.partner_id.management_company_type_id and line.order_id.partner_id.management_company_type_id.is_flat_discount and line.product_id.categ_id.id == line.order_id.partner_id.management_company_type_id.clx_category_id.id:
                 price = line.price_unit - line.order_id.partner_id.management_company_type_id.flat_discount
             taxes = line.tax_id.compute_all(price, line.order_id.currency_id, line.product_uom_qty,
                                             product=line.product_id, partner=line.order_id.partner_shipping_id)
@@ -30,6 +31,19 @@ class SaleOrderLine(models.Model):
             if self.env.context.get('import_file', False) and not self.env.user.user_has_groups(
                     'account.group_account_manager'):
                 line.tax_id.invalidate_cache(['invoice_repartition_line_ids'], [line.tax_id.id])
+
+    @api.onchange('product_id')
+    def onchange_start_date(self):
+        discount = 0.0
+        if self.product_id and self.order_id.contract_start_date:
+            self.start_date = self.order_id.contract_start_date
+        elif self.product_id and not self.start_date:
+            raise ValidationError(_("Please select start date."))
+        discount = self.order_id.partner_id.management_company_type_id.discount_on_order_line
+        if self.order_id.partner_id.management_company_type_id and self.order_id.partner_id.management_company_type_id.is_flat_discount:
+            if self.order_id.partner_id.management_company_type_id.clx_category_id.id == self.product_id.categ_id.id:
+                discount = self.order_id.partner_id.management_company_type_id.flat_discount
+        self.discount = discount
 
     def calculate_qty(self, today, num_of_month):
         qty = 0

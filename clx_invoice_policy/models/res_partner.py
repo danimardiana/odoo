@@ -161,7 +161,7 @@ class Partner(models.Model):
             prepared_lines = [line.with_context({
                 'advance': True,
                 'generate_invoice_date_range': True,
-                'start_date':self._context.get('start_date'),
+                'start_date': self._context.get('start_date'),
                 'end_date': self._context.get('end_date'),
             })._prepare_invoice_line() for line in so_lines]
         else:
@@ -172,6 +172,11 @@ class Partner(models.Model):
             so_lines = yearly_lines + so_lines
             for y_line in yearly_prepared_lines:
                 prepared_lines.append(y_line)
+        for pre_line in prepared_lines:
+            sub_lines = so_lines.filtered(lambda x: x.product_id.id == pre_line['product_id'])
+            pre_line.update({
+                'subscription_lines_ids': sub_lines.ids if sub_lines else False
+            })
         if not self._context.get('sol'):
             for line in prepared_lines:
                 line_type = line['line_type']
@@ -190,7 +195,7 @@ class Partner(models.Model):
                         base_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
                         base_lines[line['category_id']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
                         base_lines[line['category_id']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
-
+                        base_lines[line['category_id']]['subscription_lines_ids'].extend(line['subscription_lines_ids'])
                 elif line_type == 'upsell':
                     if line['category_id'] not in upsell_lines:
                         upsell_lines.update({line['category_id']: line})
@@ -206,6 +211,7 @@ class Partner(models.Model):
                             line['analytic_tag_ids'][0][2])
                         upsell_lines[line['category_id']]['subscription_ids'][0][2].extend(
                             line['subscription_ids'][0][2])
+                        upsell_lines[line['category_id']]['subscription_lines_ids'].extend(line['subscription_lines_ids'])
                 elif line_type == 'downsell':
                     if line['category_id'] not in downsell_lines:
                         downsell_lines.update({line['category_id']: line})
@@ -221,6 +227,8 @@ class Partner(models.Model):
                             line['analytic_tag_ids'][0][2])
                         downsell_lines[line['category_id']]['subscription_ids'][0][2].extend(
                             line['subscription_ids'][0][2])
+                        downsell_lines[line['category_id']]['subscription_lines_ids'].extend(
+                            line['subscription_lines_ids'])
             order = so_lines[0].so_line_id.order_id
             final_lines = {}
             if base_lines and upsell_lines:
@@ -232,7 +240,11 @@ class Partner(models.Model):
                             })
                             final_lines[key].update({
                                 'price_unit': val.get('price_unit') + val1.get('price_unit'),
-                                'sale_line_ids': so_lines.mapped('so_line_id')
+                                'sale_line_ids': so_lines.mapped('so_line_id'),
+                            })
+                        else:
+                            final_lines.update({
+                                key: val
                             })
             if base_lines and downsell_lines:
                 for key, val in base_lines.items():
@@ -243,7 +255,7 @@ class Partner(models.Model):
                             })
                             final_lines[key].update({
                                 'price_unit': val.get('price_unit') + val1.get('price_unit'),
-                                'sale_line_ids': so_lines.mapped('so_line_id')
+                                'sale_line_ids': so_lines.mapped('so_line_id'),
                             })
             vals = {
                 'ref': order.client_order_ref,
@@ -289,7 +301,7 @@ class Partner(models.Model):
                 for inv_line in account_id.invoice_line_ids:
                     price_list = inv_line.mapped('sale_line_ids').mapped('order_id').mapped('pricelist_id')
                     if price_list:
-                        rule = price_list.item_ids.filtered(lambda x: x.categ_id.id == inv_line.category_id.id)
+                        rule = price_list[0].item_ids.filtered(lambda x: x.categ_id.id == inv_line.category_id.id)
                         if rule:
                             percentage_management_price = custom_management_price = 0.0
                             if rule.is_percentage:
@@ -332,6 +344,8 @@ class Partner(models.Model):
                 'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
             })
         print(account_id)
+        if account_id:
+            account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
 
     def generate_arrears_invoice(self, lines):
         today = date.today()

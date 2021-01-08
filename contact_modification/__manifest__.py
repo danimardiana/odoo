@@ -8,7 +8,7 @@
     'summary': 'To manage Contacts with classification',
     'author': 'CLx Media',
     'website': 'https://conversionlogix.com/',
-    'version': '13.1.1.0.31',
+    'version': '13.1.1.0.32',
     'sequence': 1,
     'license': 'AGPL-3',
     'depends': [
@@ -17,6 +17,7 @@
         'purchase',
         'project',
         'website',
+        'product'
     ],
     'data': [
         'security/ir.model.access.csv',

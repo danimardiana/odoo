@@ -142,6 +142,7 @@
             </field>
             <field name="project_id" position="before">
                 <field name="partner_id"/>
+                <field name="product_id"/>
                 <field name="vertical"/>
                 <field name="implementation_specialist_id"/>
                 <field name="account_user_id" string="Salesperson"/>

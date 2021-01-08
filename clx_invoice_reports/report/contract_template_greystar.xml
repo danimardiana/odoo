@@ -49,7 +49,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><t t-esc="line.product_id.description"/></td>
+                                <td><t t-esc="line.product_id.report_description"/></td>
                                 <td/>
                                 <td/>
                             </tr>
