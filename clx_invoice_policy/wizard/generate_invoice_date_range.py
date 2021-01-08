@@ -49,6 +49,8 @@ class GenerateInvoiceDateRange(models.TransientModel):
         if not advance_lines:
             raise UserError(_("Invoice is created or posted Please check all invoices of this Customer"))
         if advance_lines:
+            advance_lines_list = list(set(advance_lines.ids))
+            advance_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
             count = 1
             if partner_id.invoice_creation_type == 'separate':
                 count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in

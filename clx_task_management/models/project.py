@@ -109,6 +109,7 @@ class ProjectTask(models.Model):
     )
     clx_description = fields.Html(related="parent_id.description", readonly=False)
     implementation_specialist_id = fields.Many2one(related="project_id.partner_id.implementation_specialist_id")
+    product_id = fields.Many2one('product.product', string="Product")
 
     def _compute_sub_task_project_ids(self):
         task_list = []
@@ -217,7 +218,8 @@ class ProjectTask(models.Model):
                 'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
                 'clx_priority': project_id.priority,
                 'description': self.description,
-                'clx_attachment_ids': project_id.clx_attachment_ids.ids if project_id.clx_attachment_ids else False
+                'clx_attachment_ids': project_id.clx_attachment_ids.ids if project_id.clx_attachment_ids else False,
+                'product_id': self.parent_id.product_id.id if self.parent_id.product_id else False
             }
             return vals
 

@@ -165,7 +165,8 @@ class RequestForm(models.Model):
                 'account_user_id': main_task.project_id.partner_id.user_id.id if main_task.project_id.partner_id.user_id else False,
                 'clx_priority': main_task.project_id.priority,
                 'description': line.description,
-                'clx_attachment_ids': self.clx_attachment_ids.ids
+                'clx_attachment_ids': self.clx_attachment_ids.ids,
+                'product_id': line.product_id.id if line.product_id else False
             }
             return vals
 
@@ -204,7 +205,8 @@ class RequestForm(models.Model):
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
             'clx_priority': self.priority,
-            'clx_attachment_ids': self.clx_attachment_ids.ids
+            'clx_attachment_ids': self.clx_attachment_ids.ids,
+            'product_id': line.product_id.id if line.product_id else False
         }
         return vals
 
@@ -253,6 +255,9 @@ class RequestForm(models.Model):
         cl_task = self.env.ref('clx_task_management.clx_client_launch_sub_task_1')
         if not self.request_line:
             raise UserError('There is no Request Line, Please add some line')
+        if self.request_line and any(not line.requirements or not line.description for line in self.request_line):
+            raise UserError(
+                'Please add some Instruction on every line If do not have description Please delete that line.')
         subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
         if not subscriptions:
             raise UserError('You can not submit request form there is no active sale for this customer!!')

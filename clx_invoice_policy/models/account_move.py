@@ -12,7 +12,7 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
-    subscription_line_ids = fields.One2many('sale.subscription.line', 'account_id', string="Subscription Lines")
+    subscription_line_ids = fields.Many2many('sale.subscription.line', 'account_id', string="Subscription Lines")
     invoices_month_year = fields.Char(string="Invoicing Period", compute="set_invoices_month", store=False)
 
     def post(self):
@@ -47,8 +47,19 @@ class AccountMove(models.Model):
                         end_date = parser.parse(name[-1])
                         if start_date and end_date:
                             for sub in inv_line.subscription_lines_ids:
-                                sub.invoice_start_date = start_date.date()
-                                sub.invoice_end_date = end_date.date()
+                                if not sub.end_date:
+                                    sub.invoice_start_date = start_date.date()
+                                    sub.invoice_end_date = end_date.date()
+                                elif sub.end_date:
+                                    month_count = len(
+                                        OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                                    range((start_date.date() - sub.end_date).days)))
+                                    if month_count == 1 and start_date.date() > sub.end_date:
+                                        sub.invoice_start_date = False
+                                        sub.invoice_end_date = False
+                                    else:
+                                        sub.invoice_start_date = start_date.date()
+                                        sub.invoice_end_date = end_date.date()
         return super(AccountMove, self).unlink()
 
     def button_cancel(self):
@@ -66,7 +77,8 @@ class AccountMove(models.Model):
                                 sub.invoice_start_date = start_date.date()
                                 sub.invoice_end_date = end_date.date()
                             elif sub.end_date:
-                                month_count = len(OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                month_count = len(
+                                    OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                                 range((start_date.date() - sub.end_date).days)))
                                 if month_count == 1 and start_date.date() > sub.end_date:
                                     sub.invoice_start_date = False
@@ -74,7 +86,6 @@ class AccountMove(models.Model):
                                 else:
                                     sub.invoice_start_date = start_date.date()
                                     sub.invoice_end_date = end_date.date()
-
         return res
 
 

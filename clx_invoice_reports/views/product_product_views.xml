@@ -10,7 +10,9 @@
             <xpath expr="//field[@name='barcode']" position="after">
                 <field name="setup_fees"/>
             </xpath>
-
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <field name="report_description"/>
+            </xpath>
         </field>
     </record>
 </odoo>

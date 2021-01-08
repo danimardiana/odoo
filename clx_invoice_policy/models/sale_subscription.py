@@ -156,8 +156,9 @@ class SaleSubscriptionLine(models.Model):
             price = AccountTax._fix_tax_included_price(line.price_unit, line.product_id.sudo().taxes_id, AccountTax)
             line.price_subtotal = line.quantity * price * (100.0 - line.discount) / 100.0
             if line.analytic_account_id.partner_id.management_company_type_id.is_flat_discount:
-                line.price_subtotal = line.quantity * (
-                        price - line.analytic_account_id.partner_id.management_company_type_id.flat_discount)
+                if line.analytic_account_id.partner_id.management_company_type_id.clx_category_id.id == line.product_id.categ_id.id:
+                    line.price_subtotal = line.quantity * (
+                            price - line.analytic_account_id.partner_id.management_company_type_id.flat_discount)
             if line.analytic_account_id.pricelist_id.sudo().currency_id:
                 line.price_subtotal = line.analytic_account_id.pricelist_id.sudo().currency_id.round(
                     line.price_subtotal)
@@ -239,7 +240,8 @@ class SaleSubscriptionLine(models.Model):
         period_msg = self._format_period_msg(date_start, date_end, line, self.invoice_start_date, self.invoice_end_date)
         discount = line.discount
         policy_month = self.so_line_id.order_id.clx_invoice_policy_id.num_of_month + 1
-        if line.order_id.partner_id.management_company_type_id.is_flat_discount:
+        discount = self.discount
+        if line.order_id.partner_id.management_company_type_id.is_flat_discount and line.order_id.partner_id.management_company_type_id.clx_category_id.id == self.product_id.categ_id.id:
             flat_discount = line.order_id.partner_id.management_company_type_id.flat_discount
             discount = (flat_discount / line.price_unit) * 100
         res = {

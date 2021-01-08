@@ -8,3 +8,4 @@ class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     setup_fees = fields.Float(string="Setup Fees")
+    report_description = fields.Text(string='Description')

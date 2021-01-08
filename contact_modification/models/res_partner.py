@@ -133,12 +133,13 @@ class Partner(models.Model):
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
     is_flat_discount = fields.Boolean(string="Is Flat Discount")
+    clx_category_id = fields.Many2one('product.category', string="Category")
     flat_discount = fields.Float(string="Flat Discount")
     discount_on_order_line = fields.Float(string="Discount on Sale Order Line (%)")
     client_services_team = fields.Selection(
         [('emerging_accounts', 'Emerging Accounts'), ('national_accounts', 'National Accounts')],
         default='emerging_accounts', string="Client Services Team")
-    implementation_specialist_id = fields.Many2one('res.users',string="Implementation Specialist - Customer Success")
+    implementation_specialist_id = fields.Many2one('res.users', string="Implementation Specialist - Customer Success")
 
     def open_submitted_req_form(self):
         request_forms = self.env['request.form'].search([('partner_id', '=', self.id), ('state', '=', 'submitted')])

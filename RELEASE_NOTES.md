@@ -1036,3 +1036,26 @@
 ## 01/07/2021
 #### Version 13.1.0.0.48
 - [FIX] clx_invoice_policy : fix the issue related to upsell.
+
+## 01/08/2021
+#### Version 13.1.1.0.32
+- [FIX] contact_modification : added category field on management company.
+
+## 01/08/2021
+#### Version 13.3.0.0.73
+- [ADD] clx_task_management : Added some validation on request form validation and pass product from the request to task.
+
+## 01/08/2021
+#### Version 13.1.1.0.18
+- [ADD] clx_subscription_creation : changed discount logic for the subscription.
+
+## 01/08/2021
+#### Version 13.3.0.0.31
+- [ADD] clx_invoice_reports: changed description on contract reports.
+
+## 01/08/2021
+#### Version 13.1.0.0.50
+- [FIX] clx_invoice_policy : invoice creation flow as per the month for upsell and downsell.
+
+
+
