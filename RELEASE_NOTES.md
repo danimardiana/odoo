@@ -1057,5 +1057,7 @@
 #### Version 13.1.0.0.50
 - [FIX] clx_invoice_policy : invoice creation flow as per the month for upsell and downsell.
 
-
+## 01/09/2021
+#### Version 13.3.0.0.74
+- [ADD] clx_task_management : fix the external id error and task duplicate error.
 

@@ -252,7 +252,9 @@ class RequestForm(models.Model):
         project_obj = self.env['project.project']
         project_task_obj = self.env['project.task']
         sub_task_obj = self.env['sub.task']
-        cl_task = self.env.ref('clx_task_management.clx_client_launch_sub_task_1')
+        cl_task = self.env.ref('clx_task_management.clx_client_launch_sub_task_1', raise_if_not_found=False)
+        if not self.description:
+            raise UserError('Please add Project Title!!')
         if not self.request_line:
             raise UserError('There is no Request Line, Please add some line')
         if self.request_line and any(not line.requirements or not line.description for line in self.request_line):
@@ -279,7 +281,7 @@ class RequestForm(models.Model):
                                 dependency_sub_tasks = sub_task_obj. \
                                     search(
                                     [('parent_id', '=', line.task_id.id),
-                                     '|', ('dependency_ids', '=', False), ('dependency_ids', '=', cl_task.id)])
+                                     '|', ('dependency_ids', '=', False), ('dependency_ids', '=', cl_task and cl_task.id)])
                                 for sub_task in dependency_sub_tasks:
                                     vals = self.prepared_sub_task_vals(
                                         sub_task, main_task, line)
