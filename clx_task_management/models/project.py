@@ -268,8 +268,9 @@ class ProjectTask(models.Model):
                             count += 1
                     if all(line.stage_id.id == complete_stage.id for line in all_task) and count == len(
                             depedent_task_list):
-                        vals = self.create_sub_task(task, self.project_id)
-                        self.create(vals)
+                        if task.id not in self.project_id.task_ids.mapped('sub_task_id').ids:
+                            vals = self.create_sub_task(task, self.project_id)
+                            self.create(vals)
         if vals.get('stage_id', False) and self.parent_id and self.parent_id.child_ids:
             if all(line.stage_id.id == complete_stage.id for line in self.parent_id.child_ids):
                 self.parent_id.stage_id = complete_stage.id
