@@ -1061,3 +1061,6 @@
 #### Version 13.3.0.0.74
 - [ADD] clx_task_management : fix the external id error and task duplicate error.
 
+## 01/10/2021
+#### Version 13.1.0.0.50
+- [FIX] clx_invoice_policy : removed the validation of the invoice creation.
