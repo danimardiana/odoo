@@ -1064,3 +1064,15 @@
 ## 01/10/2021
 #### Version 13.1.0.0.50
 - [FIX] clx_invoice_policy : removed the validation of the invoice creation.
+
+## 01/12/2021
+#### Version 13.1.1.0.33
+- [ADD] contact_modification : added id field on view.
+
+## 01/12/2021
+#### Version 13.1.0.0.52
+- [FIX] clx_invoice_policy : Fix the issue related to yearly subscription.
+
+## 01/12/2021
+#### Version 13.3.0.0.23
+- [FIX] clx_budget_analysis_report : added calculation for the wholesale price.
