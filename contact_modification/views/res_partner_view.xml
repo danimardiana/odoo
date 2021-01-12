@@ -203,6 +203,7 @@
             </xpath>
 
             <xpath expr="//field[@name='type']" position="before">
+                <field name="id"/>
                 <field name="company_type_rel"/>
             </xpath>
 

@@ -31,7 +31,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
             if not lines:
                 raise UserError(_("You need to sale order for create a invoice!!"))
         advance_lines = lines.filtered(
-            lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
+            lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance' and sl.product_id.subscription_template_id.recurring_rule_type == "monthly"))
         end_date_adv_lines = advance_lines.filtered(
             lambda x: x.end_date and self.end_date <= x.end_date and x.start_date and self.start_date >= x.start_date)
         final_adv_line = self.env['sale.subscription.line']

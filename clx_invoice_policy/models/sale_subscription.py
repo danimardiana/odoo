@@ -89,8 +89,9 @@ class SaleSubscriptionLine(models.Model):
                     [('end_date', '<', self.end_date),
                      ('subscription_line_id', '=', self.id), '|', ('active', '=', False), ('active', '=', True)])
                 if budget_lines:
-                    month_diff = len(OrderedDict(((budget_lines[0].end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-                                             range((self.end_date - budget_lines[0].end_date).days)))
+                    month_diff = len(
+                        OrderedDict(((budget_lines[0].end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                    range((self.end_date - budget_lines[0].end_date).days)))
                 if month_diff and budget_lines:
                     start_date = budget_lines[0].end_date + relativedelta(days=1)
                     start_date.replace(day=monthrange(start_date.year, start_date.month)[1])
@@ -149,19 +150,23 @@ class SaleSubscriptionLine(models.Model):
         else:
             return super(SaleSubscriptionLine, self).write(vals)
 
-    @api.depends('price_unit', 'quantity', 'discount', 'analytic_account_id.pricelist_id')
-    def _compute_price_subtotal(self):
-        AccountTax = self.env['account.tax']
-        for line in self:
-            price = AccountTax._fix_tax_included_price(line.price_unit, line.product_id.sudo().taxes_id, AccountTax)
-            line.price_subtotal = line.quantity * price * (100.0 - line.discount) / 100.0
-            if line.analytic_account_id.partner_id.management_company_type_id.is_flat_discount:
-                if line.analytic_account_id.partner_id.management_company_type_id.clx_category_id.id == line.product_id.categ_id.id:
-                    line.price_subtotal = line.quantity * (
-                            price - line.analytic_account_id.partner_id.management_company_type_id.flat_discount)
-            if line.analytic_account_id.pricelist_id.sudo().currency_id:
-                line.price_subtotal = line.analytic_account_id.pricelist_id.sudo().currency_id.round(
-                    line.price_subtotal)
+    # @api.depends('price_unit', 'quantity', 'discount', 'analytic_account_id.pricelist_id')
+    # def _compute_price_subtotal(self):
+    #     AccountTax = self.env['account.tax']
+    #     for line in self:
+    #         discount = line.discount
+    #         if line.line_type in ('upsell', 'downsell'):
+    #             discount = 0.0
+    #         price = AccountTax._fix_tax_included_price(line.price_unit, line.product_id.sudo().taxes_id, AccountTax)
+    #         line.price_subtotal = line.quantity * price * (100.0 - discount) / 100.0
+    #         if line.analytic_account_id.partner_id.management_company_type_id.is_flat_discount and line.line_type not in (
+    #                 'upsell', 'downsell'):
+    #             if line.analytic_account_id.partner_id.management_company_type_id.clx_category_id.id == line.product_id.categ_id.id:
+    #                 line.price_subtotal = line.quantity * (
+    #                         price - line.analytic_account_id.partner_id.management_company_type_id.flat_discount)
+    #         if line.analytic_account_id.pricelist_id.sudo().currency_id:
+    #             line.price_subtotal = line.analytic_account_id.pricelist_id.sudo().currency_id.round(
+    #                 line.price_subtotal)
 
     def start_in_next(self):
         """
@@ -238,12 +243,7 @@ class SaleSubscriptionLine(models.Model):
         date_start = line.start_date
         date_end = date_start + relativedelta(months=1, days=-1)
         period_msg = self._format_period_msg(date_start, date_end, line, self.invoice_start_date, self.invoice_end_date)
-        discount = line.discount
         policy_month = self.so_line_id.order_id.clx_invoice_policy_id.num_of_month + 1
-        discount = self.discount
-        if line.order_id.partner_id.management_company_type_id.is_flat_discount and line.order_id.partner_id.management_company_type_id.clx_category_id.id == self.product_id.categ_id.id:
-            flat_discount = line.order_id.partner_id.management_company_type_id.flat_discount
-            discount = (flat_discount / line.price_unit) * 100
         res = {
             'display_type': line.display_type,
             'sequence': line.sequence,
@@ -256,7 +256,7 @@ class SaleSubscriptionLine(models.Model):
             'category_id': self.product_id.categ_id.id,
             'product_uom_id': line.product_uom.id,
             'quantity': 1,
-            'discount': discount,
+            'discount': 0.0,
             'price_unit': self.price_unit,
             'tax_ids': [(6, 0, line.tax_id.ids)],
             'analytic_account_id': line.order_id.analytic_account_id.id,

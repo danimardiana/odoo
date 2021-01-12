@@ -189,7 +189,6 @@ class Partner(models.Model):
                         # if line_type != 'base':
                         #     base_lines[line['category_id']]['name'] += "\n%s" % line['name']
                         base_lines[line['category_id']]['quantity'] = 1
-                        base_lines[line['category_id']]['discount'] = line['discount']
                         base_lines[line['category_id']]['price_unit'] += line['price_unit']
                         base_lines[line['category_id']]['tax_ids'][0][2].extend(line['tax_ids'][0][2])
                         base_lines[line['category_id']]['analytic_account_id'] = line['analytic_account_id']
@@ -211,7 +210,8 @@ class Partner(models.Model):
                             line['analytic_tag_ids'][0][2])
                         upsell_lines[line['category_id']]['subscription_ids'][0][2].extend(
                             line['subscription_ids'][0][2])
-                        upsell_lines[line['category_id']]['subscription_lines_ids'].extend(line['subscription_lines_ids'])
+                        upsell_lines[line['category_id']]['subscription_lines_ids'].extend(
+                            line['subscription_lines_ids'])
                 elif line_type == 'downsell':
                     if line['category_id'] not in downsell_lines:
                         downsell_lines.update({line['category_id']: line})
@@ -231,6 +231,7 @@ class Partner(models.Model):
                             line['subscription_lines_ids'])
             order = so_lines[0].so_line_id.order_id
             final_lines = {}
+            print(upsell_lines, base_lines, downsell_lines)
             if base_lines and upsell_lines:
                 for key, val in base_lines.items():
                     for key1, val1 in upsell_lines.items():
@@ -256,6 +257,10 @@ class Partner(models.Model):
                             final_lines[key].update({
                                 'price_unit': val.get('price_unit') + val1.get('price_unit'),
                                 'sale_line_ids': so_lines.mapped('so_line_id'),
+                            })
+                        else:
+                            final_lines.update({
+                                key: val
                             })
             vals = {
                 'ref': order.client_order_ref,
@@ -296,6 +301,30 @@ class Partner(models.Model):
                             (0, 0, x) for x in downsell_lines.values()
                         ],
                 })
+            total_discount = 0.0
+            discount_line = vals['invoice_line_ids'][0][-1].copy()
+            for inv_val in vals['invoice_line_ids']:
+                if self.management_company_type_id:
+                    flat_discount = self.management_company_type_id.flat_discount
+                    if self.management_company_type_id.clx_category_id and inv_val[-1][
+                        'category_id'] == self.management_company_type_id.clx_category_id.id:
+                        total_discount += flat_discount
+                    else:
+                        total_discount += (inv_val[-1][
+                                               'price_unit'] * self.management_company_type_id.discount_on_order_line) / 100
+            discount_line.update({'price_unit': -abs(total_discount),
+                                  'category_id': False,
+                                  'product_uom_id': False,
+                                  'subscription_id': False,
+                                  'subscription_ids': False,
+                                  'sale_line_ids': False,
+                                  'subscription_lines_ids': False,
+                                  'name': "Rebate Discount",
+                                  'subscription_start_date': False,
+                                  'subscription_end_date': False,
+                                  'tax_ids': False
+                                  })
+            vals['invoice_line_ids'].append((0, 0, discount_line))
             account_id = self.env['account.move'].create(vals)
             if account_id and account_id.invoice_line_ids:
                 for inv_line in account_id.invoice_line_ids:
@@ -318,7 +347,6 @@ class Partner(models.Model):
                                         (rule.percent_wholesale_price or 0.0) / 100.0)
                             if rule.is_wholesale_formula:
                                 inv_line.wholesale = inv_line.price_unit - inv_line.management_fees
-
         else:
             order = so_lines[0].so_line_id.order_id
             for line in prepared_lines:
