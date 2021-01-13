@@ -90,6 +90,9 @@ class SaleOrder(models.Model):
 
     def unlink(self):
         subscriptions = self.order_line.mapped('subscription_id')
+        budget_lines = self.env['sale.budget.line'].search([('sol_id', 'in', self.order_line.ids)])
+        if budget_lines:
+            budget_lines.unlink()
         if subscriptions:
             subscriptions.unlink()
         return super(SaleOrder, self).unlink()
@@ -175,11 +178,6 @@ class SaleOrderLine(models.Model):
     def unlink(self):
         for record in self:
             subscription_lines = self.env['sale.subscription.line'].search([('so_line_id', '=', record.id)])
-            complete_stage = self.env.ref("sale_subscription.sale_subscription_stage_closed")
             for sub_line in subscription_lines:
-                if sub_line.analytic_account_id.stage_id.id != complete_stage.id:
-                    raise ValidationError(
-                        _("Please close {} Subscription First !!").format(sub_line.analytic_account_id.code))
-                else:
-                    sub_line.unlink()
+                sub_line.unlink()
         return super(SaleOrderLine, self).unlink()

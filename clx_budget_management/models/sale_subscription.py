@@ -55,6 +55,7 @@ class SaleSubscription(models.Model):
 
         subscription_line_id = line.subscription_id.recurring_invoice_line_ids. \
             filtered(lambda x: x.so_line_id.id == line.id)
+        base_line = line.subscription_id.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base')
         if start_date and end_date and start_date <= today <= end_date:
             state = "active"
             active = True
@@ -64,6 +65,30 @@ class SaleSubscription(models.Model):
         elif start_date and not end_date and start_date <= today:
             state = "active"
             active = True
+        wholesale_price = line.wholesale_price
+        price_unit = line.price_unit
+        if line.order_id.subscription_management in ('upsell', 'downsell') and base_line:
+            price_unit = base_line[0].price_unit + price_unit
+        price_list = line.order_id.pricelist_id
+        if price_list:
+            rule = price_list[0].item_ids.filtered(
+                lambda x: x.categ_id.id == line.product_id.categ_id.id)
+            if rule:
+                percentage_management_price = custom_management_price = 0.0
+                if rule.is_percentage:
+                    percentage_management_price = price_unit * (
+                            (rule.percent_mgmt_price or 0.0) / 100.0)
+                if rule.is_custom and price_unit > rule.min_retail_amount:
+                    custom_management_price = price_unit * (
+                            (rule.percent_mgmt_price or 0.0) / 100.0)
+                management_fees = max(percentage_management_price,
+                                      custom_management_price,
+                                      rule.fixed_mgmt_price)
+                if rule.is_wholesale_percentage:
+                    wholesale_price = price_unit * (
+                            (rule.percent_wholesale_price or 0.0) / 100.0)
+                if rule.is_wholesale_formula:
+                    wholesale_price = price_unit - management_fees
         vals = {
             'start_date': start_date,
             'end_date': end_date,
@@ -73,7 +98,7 @@ class SaleSubscription(models.Model):
             'sol_id': line.id,
             'state': state,
             'active': active,
-            'wholesale_price': line.wholesale_price,
+            'wholesale_price': wholesale_price,
             'subscription_line_id': subscription_line_id.id,
             'product_name': line.product_id.budget_wrapping if line.product_id.budget_wrapping else line.product_id.name
         }

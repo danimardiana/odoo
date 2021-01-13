@@ -31,7 +31,8 @@ class GenerateInvoiceDateRange(models.TransientModel):
             if not lines:
                 raise UserError(_("You need to sale order for create a invoice!!"))
         advance_lines = lines.filtered(
-            lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance' and sl.product_id.subscription_template_id.recurring_rule_type == "monthly"))
+            lambda sl: (
+                        sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance' and sl.product_id.subscription_template_id.recurring_rule_type == "monthly"))
         end_date_adv_lines = advance_lines.filtered(
             lambda x: x.end_date and self.end_date <= x.end_date and x.start_date and self.start_date >= x.start_date)
         final_adv_line = self.env['sale.subscription.line']
@@ -51,7 +52,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
             format_date(fields.Date.to_string(self.start_date), {}),
             format_date(fields.Date.to_string(self.end_date), {}))
         account_move_lines = self.env['account.move.line'].search(
-            [('partner_id', '=', partner_id.id), ('name', '=', period_msg), ('parent_state', '=', 'draft'),
+            [('partner_id', '=', partner_id.id), ('name', '=', period_msg), ('parent_state', 'in', ('draft', 'posted')),
              ('subscription_lines_ids', 'in', advance_lines.ids)])
         if account_move_lines:
             raise UserError(_("Invoice of This period {} is Already created").format(period_msg))

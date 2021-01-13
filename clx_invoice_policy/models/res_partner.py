@@ -324,7 +324,8 @@ class Partner(models.Model):
                                   'subscription_end_date': False,
                                   'tax_ids': False
                                   })
-            vals['invoice_line_ids'].append((0, 0, discount_line))
+            if total_discount:
+                vals['invoice_line_ids'].append((0, 0, discount_line))
             account_id = self.env['account.move'].create(vals)
             if account_id and account_id.invoice_line_ids:
                 for inv_line in account_id.invoice_line_ids:

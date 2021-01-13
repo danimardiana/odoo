@@ -8,6 +8,26 @@ from odoo import fields, models
 class SaleSubscription(models.Model):
     _inherit = "sale.subscription"
 
+    def partial_invoice_line(self, sale_order, option_line, refund=False, date_from=False):
+        """ Add an invoice line on the sales order for the specified option and add a discount
+        to take the partial recurring period into account """
+        order_line_obj = self.env['sale.order.line']
+        ratio, message = self._partial_recurring_invoice_ratio(date_from=date_from)
+        if message != "":
+            sale_order.message_post(body=message)
+        _discount = (1 - ratio) * 100
+        values = {
+            'order_id': sale_order.id,
+            'product_id': option_line.product_id.id,
+            'subscription_id': self.id,
+            'product_uom_qty': option_line.quantity,
+            'product_uom': option_line.uom_id.id,
+            'discount': _discount,
+            'price_unit': option_line[0].price,
+            'name': option_line.name,
+        }
+        return order_line_obj.create(values)
+
     def _get_product_from_line(self):
         """
         set product_id from the recurring invoice line field.
@@ -70,4 +90,3 @@ class SaleSubscriptionLine(models.Model):
         ('upsell', 'Upsell'),
         ('downsell', 'Downsell')
     ], string='Origin', default='base')
-
