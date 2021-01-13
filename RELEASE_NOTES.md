@@ -1076,3 +1076,23 @@
 ## 01/12/2021
 #### Version 13.3.0.0.23
 - [FIX] clx_budget_analysis_report : added calculation for the wholesale price.
+
+## 01/13/2021
+#### Version 13.3.0.0.24
+- [FIX] clx_budget_analysis_report : fix the wholesale price calculation.
+
+## 01/13/2021
+#### Version 13.3.0.0.17
+- [FIX] clx_budget_management : added wholesale price calculation on budget records.
+
+## 01/13/2021
+#### Version 13.1.0.0.53
+- [FIX] clx_invoice_policy : changed prorate logic for the invoice creation.
+
+## 01/13/2021
+#### Version 13.1.1.0.19
+- [FIX] clx_subscription_creation : Delete subscriptions when user delete sale order also delete budget line as well.
+
+## 01/13/2021
+#### Version 13.3.0.0.75
+- [ADD] clx_task_management : added project creation date on project

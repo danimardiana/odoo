@@ -264,6 +264,14 @@ class SaleSubscriptionLine(models.Model):
             'line_type': self.line_type,
             'sale_line_ids': line.ids,
         }
+        if (self.invoice_end_date and self.invoice_end_date.day < 15) or (self.invoice_start_date and self.invoice_start_date.day > 15):
+            new_price = self.price_unit / 2
+            new_management_price = line.management_price / 2
+            res.update({
+                'price_unit': new_price,
+                'management_fees': new_management_price,
+                'wholesale': new_price - new_management_price,
+            })
         if line.display_type:
             res['account_id'] = False
         if self._context.get('advance', False):
@@ -327,7 +335,7 @@ class SaleSubscriptionLine(models.Model):
             res.update({
                 'name': period_msg,
                 'subscription_end_date': self.end_date if self.end_date and self.end_date > date_end else expire_date,
-                'price_unit': self.price_unit,
+                # 'price_unit': self.price_unit,
             })
             if self._context.get('generate_invoice_date_range', False):
                 start_date = self._context.get('start_date', False)
@@ -341,12 +349,12 @@ class SaleSubscriptionLine(models.Model):
                 res.update({
                     'name': period_msg
                 })
-            if end_date and end_date.day < 15:
-                new_price = self.price_unit / 2
-                new_management_price = line.management_price / 2
-                res.update({
-                    'price_unit': new_price,
-                    'management_fees': new_management_price,
-                    'wholesale': new_price - new_management_price,
-                })
+                if (end_date and end_date.day < 15) or (start_date and start_date.day > 15):
+                    new_price = self.price_unit / 2
+                    new_management_price = line.management_price / 2
+                    res.update({
+                        'price_unit': new_price,
+                        'management_fees': new_management_price,
+                        'wholesale': new_price - new_management_price,
+                    })
         return res

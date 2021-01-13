@@ -33,6 +33,7 @@
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="deadline"/>
+                <field name="create_date"/>
                 <field name="priority"/>
                 <field name="client_services_team"/>
             </xpath>

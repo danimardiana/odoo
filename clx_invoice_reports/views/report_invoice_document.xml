@@ -194,6 +194,9 @@
                                 <t t-if="line.category_id.name">
                                     <span t-field="line.category_id.name"/>
                                 </t>
+                                <t t-if="not line.category_id and not line.product_id">
+                                    <span t-field="line.name"/>
+                                </t>
                             </td>
                             <td name="th_amount" class="text-right">
                                 <t t-if="line.tax_ids">
@@ -208,13 +211,17 @@
                                       id="line_tax_ids"/>
                             </td>-->
                             <td>
-                                <t t-set="priceunit" t-value="line.price_subtotal- line.management_fees"/>
-                                <span t-esc="priceunit" style="float:right;"/>
-                                <t t-set="priceunit" t-value="0"/>
+                                <!--<t t-set="priceunit" t-value="line.price_subtotal- line.management_fees"/>
+                                <t t-if="not line.category_id and not line.product_id">
+                                    <t t-set="priceunit" t-value="line.price_total"/>
+                                </t>-->
+                                <span t-field="line.price_total" style="float:right;"/>
+                                <!--<span t-esc="priceunit" style="float:right;"/>-->
+                                <!--<t t-set="priceunit" t-value="0"/>-->
                             </td>
                         </tr>
                         <tr>
-                            <t t-set="management_fees" t-value="management_fees + line.management_fees"/>
+                            <t t-set="management_fees" t-value="line.management_fees"/>
                         </tr>
                     </t>
                     <t t-if="management_fees">
