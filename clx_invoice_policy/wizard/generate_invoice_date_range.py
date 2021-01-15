@@ -39,7 +39,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
         for adv_line in advance_lines:
             if not adv_line.end_date and adv_line.start_date <= self.start_date:
                 final_adv_line += adv_line
-            elif adv_line.end_date and adv_line.end_date >= self.end_date:
+            elif adv_line.end_date and adv_line.start_date <= self.start_date and adv_line.end_date >= self.end_date:
                 final_adv_line += adv_line
         # advance_lines = advance_lines.filtered(
         #     lambda x: x.start_date and x.start_date <= self.start_date)
@@ -54,6 +54,19 @@ class GenerateInvoiceDateRange(models.TransientModel):
         account_move_lines = self.env['account.move.line'].search(
             [('partner_id', '=', partner_id.id), ('name', '=', period_msg), ('parent_state', 'in', ('draft', 'posted')),
              ('subscription_lines_ids', 'in', advance_lines.ids)])
+        yearly_advance_lines = lines.filtered(
+            lambda sl: (
+                    sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance' and sl.product_id.subscription_template_id.recurring_rule_type == "yearly"))
+        if yearly_advance_lines:
+            all_account_move_lines = self.env['account.move.line'].search(
+                [('partner_id', '=', partner_id.id),
+                 ('parent_state', 'in', ('draft', 'posted')),
+                 ])
+            for y_line in yearly_advance_lines:
+                if y_line.id not in all_account_move_lines.mapped('subscription_lines_ids').ids:
+                    advance_lines += y_line
+            # if yearly_advance_lines.ids not in all_account_move_lines.mapped('subscription_lines_ids'):
+            #     advance_lines += yearly_advance_lines
         if account_move_lines:
             raise UserError(_("Invoice of This period {} is Already created").format(period_msg))
         if advance_lines:

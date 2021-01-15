@@ -1096,3 +1096,7 @@
 ## 01/13/2021
 #### Version 13.3.0.0.75
 - [ADD] clx_task_management : added project creation date on project
+
+## 01/15/2021
+#### Version 13.1.0.0.54
+- [FIX] clx_invoice_policy : Fixed the yearly subscription issue when creation next months invoices.
