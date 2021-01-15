@@ -161,8 +161,7 @@ class SaleBudgetReport(models.Model):
                 }
                 if subscription_line.line_type in ('upsell', 'downsell'):
                     wholesale = subscription_line.so_line_id.wholesale_price
-                    price_unit = subscription_line.price_unit + base[
-                        0].price_unit
+                    price_unit = subscription_line.analytic_account_id.recurring_total
                     price_list = subscription_line.so_line_id.order_id.pricelist_id
                     if price_list:
                         rule = price_list[0].item_ids.filtered(
