@@ -1100,3 +1100,7 @@
 ## 01/15/2021
 #### Version 13.1.0.0.54
 - [FIX] clx_invoice_policy : Fixed the yearly subscription issue when creation next months invoices.
+
+## 01/15/2021
+#### Version 13.3.0.0.25
+- [FIX] clx_budget_analysis_report : fix the wholesale price calculation issue.
