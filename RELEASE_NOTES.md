@@ -1108,3 +1108,11 @@
 ## 01/16/2021
 #### Version 13.3.0.0.26
 - [FIX] clx_budget_analysis_report : fix the calucation of the wholesale price when there is downsell.
+
+## 01/16/2021
+#### Version 13.1.0.0.55
+- [FIX] clx_invoice_policy : added prorated line while creating manually invoices.
+
+## 01/16/2021
+#### Version 13.3.0.0.27
+- [FIX] clx_budget_analysis_report : added calulation for the prorate budget.

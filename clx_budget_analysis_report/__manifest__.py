@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'Budget Analysis Report',
-    'version': '13.3.0.0.26',
+    'version': '13.3.0.0.27',
     'summary': 'Budget Analysis Report',
     'sequence': 1,
     'description': """ Budget Analysis Report """,
