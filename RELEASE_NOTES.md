@@ -1104,3 +1104,7 @@
 ## 01/15/2021
 #### Version 13.3.0.0.25
 - [FIX] clx_budget_analysis_report : fix the wholesale price calculation issue.
+
+## 01/16/2021
+#### Version 13.3.0.0.26
+- [FIX] clx_budget_analysis_report : fix the calucation of the wholesale price when there is downsell.

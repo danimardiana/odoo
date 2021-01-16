@@ -21,7 +21,7 @@ class SaleSubscriptionData(models.Model):
     wholesale_price = fields.Float(string='Wholesale Price', readonly=True)
     price = fields.Float(string='Price', readonly=True)
     base_price = fields.Float(string="Price")
-    upsell_down_sell_price = fields.Float(string="Price", default=0.0)
+    upsell_down_sell_price = fields.Float(string="Upsell Downsell Price", default=0.0)
 
 
 class SaleBudgetReport(models.Model):
@@ -127,7 +127,7 @@ class SaleBudgetReport(models.Model):
              ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly')])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         for subscription_line in subscription_lines:
-            if subscription_line.analytic_account_id.code == 'SUB850':
+            if subscription_line.analytic_account_id.code == 'SUB933':
                 print("-------------------")
             if subscription_line.end_date:
                 r = len(OrderedDict(((subscription_line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
@@ -154,15 +154,40 @@ class SaleBudgetReport(models.Model):
                     'subscription_id': subscription_line.analytic_account_id.id,
                     'subscription_line_id': subscription_line.id,
                     'partner_id': subscription_line.so_line_id.order_id.partner_id.id,
-                    'wholesale_price': subscription_line.so_line_id.wholesale_price,
+                    # 'wholesale_price': subscription_line.so_line_id.wholesale_price,
                     'base_price': 0.0 if base[0].end_date and current_month_start_date > base[0].end_date else base[
                         0].price_unit,
                     'end_date': subscription_line.end_date if subscription_line.end_date and subscription_line.end_date <= end_date_line else end_date_line
                 }
+                price_list = subscription_line.so_line_id.order_id.pricelist_id
                 if subscription_line.line_type in ('upsell', 'downsell'):
                     wholesale = subscription_line.so_line_id.wholesale_price
                     price_unit = subscription_line.analytic_account_id.recurring_total
-                    price_list = subscription_line.so_line_id.order_id.pricelist_id
+                    vals.update({
+                        'upsell_down_sell_price': subscription_line.price_unit,
+                        # 'wholesale_price': wholesale
+                    })
+                    if subscription_line.end_date and current_month_start_date <= subscription_line.end_date <= end_date_line and subscription_line.end_date.day < 15:
+                        vals.update({
+                            'upsell_down_sell_price': subscription_line.price_unit / 2,
+                        })
+                base_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
+                    lambda x: x.line_type == 'base' and x.product_id.id == subscription_line.product_id.id)
+                all_report_data = report_data_table.search([]).filtered(
+                    lambda x: x.date.month == current_month_start_date.month
+                              and base_line[0].id == x.subscription_line_id.id
+                )
+                available_line = report_data_table.search([('date', '=', current_month_start_date),
+                                                           ('product_id', '=', subscription_line.product_id.id),
+                                                           ('subscription_id', '=',
+                                                            subscription_line.analytic_account_id.id),
+                                                           ('partner_id', '=',
+                                                            subscription_line.so_line_id.order_id.partner_id.id)
+                                                           ], limit=1)
+                if available_line:
+                    vals.update({'upsell_down_sell_price': subscription_line.price_unit})
+                    available_line.write(vals)
+                    price_unit = available_line.base_price + available_line.upsell_down_sell_price
                     if price_list:
                         rule = price_list[0].item_ids.filtered(
                             lambda x: x.categ_id.id == subscription_line.product_id.categ_id.id)
@@ -182,34 +207,33 @@ class SaleBudgetReport(models.Model):
                                         (rule.percent_wholesale_price or 0.0) / 100.0)
                             if rule.is_wholesale_formula:
                                 wholesale = price_unit - management_fees
-                    vals.update({
-                        'upsell_down_sell_price': subscription_line.price_unit,
-                        'wholesale_price': wholesale
-                    })
-                    if subscription_line.end_date and current_month_start_date <= subscription_line.end_date <= end_date_line and subscription_line.end_date.day < 15:
-                        vals.update({
-                            'upsell_down_sell_price': subscription_line.price_unit / 2,
-                        })
-                base_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
-                    lambda x: x.line_type == 'base' and x.product_id.id == subscription_line.product_id.id)
-                all_report_data = report_data_table.search([]).filtered(
-                    lambda x: x.date.month == current_month_start_date.month
-                              and base_line[0].id == x.subscription_line_id.id
-                )
-                available_line = report_data_table.search([('date', '=', current_month_start_date),
-                                                                   ('product_id', '=', subscription_line.product_id.id),
-                                                                   ('subscription_id', '=',
-                                                                    subscription_line.analytic_account_id.id),
-                                                                   ('partner_id', '=',
-                                                                    subscription_line.so_line_id.order_id.partner_id.id)
-                                                                   ],limit=1)
-                if available_line:
-                    vals.update({'upsell_down_sell_price': available_line.upsell_down_sell_price + subscription_line.price_unit})
-                    available_line.write(vals)
+                        available_line.write({'wholesale_price': wholesale})
                 # if not all_report_data:
                 #     report_data_table.create(vals)
                 else:
                     report_data = report_data_table.create(vals)
+                    if report_data:
+                        price_unit = report_data.base_price + report_data.upsell_down_sell_price
+                        if price_list:
+                            rule = price_list[0].item_ids.filtered(
+                                lambda x: x.categ_id.id == subscription_line.product_id.categ_id.id)
+                            if rule:
+                                percentage_management_price = custom_management_price = 0.0
+                                if rule.is_percentage:
+                                    percentage_management_price = price_unit * (
+                                            (rule.percent_mgmt_price or 0.0) / 100.0)
+                                if rule.is_custom and price_unit > rule.min_retail_amount:
+                                    custom_management_price = price_unit * (
+                                            (rule.percent_mgmt_price or 0.0) / 100.0)
+                                management_fees = max(percentage_management_price,
+                                                      custom_management_price,
+                                                      rule.fixed_mgmt_price)
+                                if rule.is_wholesale_percentage:
+                                    wholesale = price_unit * (
+                                            (rule.percent_wholesale_price or 0.0) / 100.0)
+                                if rule.is_wholesale_formula:
+                                    wholesale = price_unit - management_fees
+                        report_data.write({'wholesale_price': wholesale})
                 current_month_start_date = current_month_start_date + relativedelta(months=1)
                 current_month_start_date = current_month_start_date.replace(day=1)
             budget_month = int(params.get_param('budget_month')) or False
