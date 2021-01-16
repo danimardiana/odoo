@@ -1128,3 +1128,7 @@
 ## 01/16/2021
 #### Version 13.3.0.0.76
 - [ADD] clx_task_management : added configuration for add auto task on request form.
+
+## 01/17/2021
+#### Version 13.3.0.0.77
+- [ADD] clx_task_management : inactive all subtask when inactive parent task and inactive all task when inactive project.

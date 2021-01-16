@@ -37,6 +37,8 @@ class ProjectProject(models.Model):
 
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
+        if not vals.get('active', False):
+            self.task_ids.write({'active': vals.get('active', False)})
         if vals.get('clx_project_manager_id', False):
             cs_team = self.env['clx.team'].search([('team_name', '=', 'CS')])
             for task in self.task_ids:
@@ -226,6 +228,9 @@ class ProjectTask(models.Model):
     def write(self, vals):
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         res = super(ProjectTask, self).write(vals)
+        if not vals.get('active') or vals.get('active'):
+            for task in self.child_ids:
+                self._cr.execute("UPDATE project_task SET active = %s WHERE id = %s", [vals.get('active'), task.id])
         if vals.get('date_deadline'):
             for task in self.child_ids:
                 task.date_deadline = self.date_deadline
@@ -317,3 +322,8 @@ class ProjectTask(models.Model):
                 'views': [[view_id, 'form']],
                 'context': context
                 }
+
+    def unlink(self):
+        for record in self:
+            record.child_ids.unlink()
+        return super(ProjectTask, self).unlink()
