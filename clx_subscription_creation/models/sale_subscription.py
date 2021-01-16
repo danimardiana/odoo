@@ -42,7 +42,7 @@ class SaleSubscription(models.Model):
 
     product_id = fields.Many2one('product.product', string="Product",
                                  compute='_get_product_from_line')
-    product_des = fields.Char(string="Description",compute='_get_description_from_line')
+    product_des = fields.Char(string="Description", compute='_get_description_from_line')
 
     def _compute_invoice_count(self):
         invoice = self.env['account.move']
@@ -95,3 +95,6 @@ class SaleSubscriptionLine(models.Model):
         ('upsell', 'Upsell'),
         ('downsell', 'Downsell')
     ], string='Origin', default='base')
+
+    management_price = fields.Float(related="so_line_id.management_price", string='Management Price')
+    wholesale_price = fields.Float(related="so_line_id.wholesale_price",string='Wholesale Price')

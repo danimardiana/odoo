@@ -9,6 +9,11 @@
             <field name='team_id' position="after">
                 <field name="product_id"/>
             </field>
+            <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='price_unit']"
+                   position="after">
+                <field name="management_price"/>
+                <field name="wholesale_price"/>
+            </xpath>
             <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='product_id']"
                    position="after">
                 <field name="start_date" readonly="1"/>

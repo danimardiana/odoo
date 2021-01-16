@@ -1135,4 +1135,12 @@
 
 ## 01/17/2021
 #### Version 13.1.1.0.21
-- [FIX] clx_subscription : Fix the issue related to delete upsell and downsell sale orders.
+- [FIX] clx_subscription_creation : Fix the issue related to delete upsell and downsell sale orders.
+
+## 01/17/2021
+#### Version 13.1.0.0.18
+- [FIX] clx_retail_pricelist : visible wholesale price and management price on sale order line.
+
+## 01/17/2021
+#### Version 13.1.1.0.22
+- [FIX] clx_subscription_creation : added field on sale subscription line wholesale price and management price.
