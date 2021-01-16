@@ -89,12 +89,13 @@ class SaleOrder(models.Model):
         return res
 
     def unlink(self):
-        subscriptions = self.order_line.mapped('subscription_id')
         budget_lines = self.env['sale.budget.line'].search([('sol_id', 'in', self.order_line.ids)])
         if budget_lines:
             budget_lines.unlink()
-        if subscriptions:
-            subscriptions.unlink()
+        for record in self:
+            sub_lines = self.env['sale.subscription.line'].search([('so_line_id', 'in', record.order_line.ids)])
+            if sub_lines:
+                sub_lines.unlink()
         return super(SaleOrder, self).unlink()
 
 
