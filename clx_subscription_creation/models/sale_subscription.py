@@ -36,8 +36,13 @@ class SaleSubscription(models.Model):
             product_id = subscription.recurring_invoice_line_ids.mapped('product_id')
             subscription.product_id = product_id[0].id if product_id else False
 
+    def _get_description_from_line(self):
+        for subscription in self:
+            subscription.product_des = subscription.recurring_invoice_line_ids[0].name
+
     product_id = fields.Many2one('product.product', string="Product",
                                  compute='_get_product_from_line')
+    product_des = fields.Char(string="Description",compute='_get_description_from_line')
 
     def _compute_invoice_count(self):
         invoice = self.env['account.move']

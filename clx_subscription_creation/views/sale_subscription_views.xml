@@ -47,7 +47,8 @@
         <field name="arch" type="xml">
             <xpath expr="//kanban/templates//field[@name='code']" position="after">
                 <strong>
-                    <field name="product_id"/>
+                    <!--<field name="product_id"/>-->
+                    <field name="product_des"/>
                 </strong>
             </xpath>
         </field>

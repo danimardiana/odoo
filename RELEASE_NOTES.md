@@ -1116,3 +1116,11 @@
 ## 01/16/2021
 #### Version 13.3.0.0.27
 - [FIX] clx_budget_analysis_report : added calulation for the prorate budget.
+
+## 01/16/2021
+#### Version 13.1.1.0.20
+- [FIX] clx_subscription_creation : added description on subscriptions kanban view
+
+## 01/16/2021
+#### Version 13.1.0.0.56
+- [FIX] clx_invoice_policy : set description on subscription line when doing upsell and downsell.
