@@ -281,7 +281,8 @@ class RequestForm(models.Model):
                                 dependency_sub_tasks = sub_task_obj. \
                                     search(
                                     [('parent_id', '=', line.task_id.id),
-                                     '|', ('dependency_ids', '=', False), ('dependency_ids', '=', cl_task and cl_task.id)])
+                                     '|', ('dependency_ids', '=', False),
+                                     ('dependency_ids', '=', cl_task and cl_task.id)])
                                 for sub_task in dependency_sub_tasks:
                                     vals = self.prepared_sub_task_vals(
                                         sub_task, main_task, line)
@@ -290,24 +291,25 @@ class RequestForm(models.Model):
         self.submitted_by_user_id = self.env.uid
 
     @api.onchange('partner_id', 'is_create_client_launch')
-    def _onchange_sale_order_id(self):
+    def _onchange_partner_id(self):
         list_product = []
         req_line_obj = self.env['request.form.line']
         if not self.is_create_client_launch:
-            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
-            available_line = self.request_line.filtered(lambda x: x.task_id.id == client_launch_task.id)
+            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task', raise_if_not_found=False)
+            available_line = self.request_line.filtered(lambda x: client_launch_task and x.task_id.id == client_launch_task.id)
             if available_line:
                 available_line.unlink()
         else:
             client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
-            client_launch_task.active = True
-            vals = {
-                'req_type': client_launch_task.req_type,
-                'task_id': client_launch_task.id,
-                'requirements': client_launch_task.requirements,
-            }
-            form_line_id = req_line_obj.create(vals)
-            list_product.append(form_line_id.id)
+            auto_tasks = self.env.user.company_id.auto_add_main_task_ids if self.env.user.company_id and self.env.user.company_id.auto_add_main_task_ids else False
+            for a_task in auto_tasks:
+                vals = {
+                    'req_type': a_task.req_type,
+                    'task_id': a_task.id,
+                    'requirements': a_task.requirements,
+                }
+                form_line_id = req_line_obj.create(vals)
+                list_product.append(form_line_id.id)
         today = fields.Date.today()
         lines = self.env['sale.order.line'].search([('order_partner_id', '=', self.partner_id.id)])
         if lines:

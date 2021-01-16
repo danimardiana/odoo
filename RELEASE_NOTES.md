@@ -1124,3 +1124,7 @@
 ## 01/16/2021
 #### Version 13.1.0.0.56
 - [FIX] clx_invoice_policy : set description on subscription line when doing upsell and downsell.
+
+## 01/16/2021
+#### Version 13.3.0.0.76
+- [ADD] clx_task_management : added configuration for add auto task on request form.
