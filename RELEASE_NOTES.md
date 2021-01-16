@@ -1132,3 +1132,7 @@
 ## 01/17/2021
 #### Version 13.3.0.0.77
 - [ADD] clx_task_management : inactive all subtask when inactive parent task and inactive all task when inactive project.
+
+## 01/17/2021
+#### Version 13.1.1.0.21
+- [FIX] clx_subscription : Fix the issue related to delete upsell and downsell sale orders.
