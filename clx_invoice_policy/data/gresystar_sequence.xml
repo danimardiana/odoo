@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<odoo>
+<odoo noupdate="1">
     <record id="sequence_greystar_sequence" model="ir.sequence">
         <field name="name">Greystar Sequence</field>
         <field name="code">greystar.sequence</field>
