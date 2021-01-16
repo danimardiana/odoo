@@ -120,6 +120,7 @@ class SaleOrderLine(models.Model):
         inherited method because set interval date on subscription line
         """
         res = super(SaleOrderLine, self)._prepare_subscription_line_data()
+        base_line = self.subscription_id.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base')
         if self.order_id and self.order_id.clx_invoice_policy_id and \
                 self.order_id.clx_invoice_policy_id.policy_type == 'advance':
             date_start = self.start_date
@@ -148,5 +149,6 @@ class SaleOrderLine(models.Model):
             res[0][-1].update({
                 'invoice_start_date': self.start_date,
                 'invoice_end_date': date_end,
+                'name': base_line[0].name if base_line else self.product_id.name
             })
         return res

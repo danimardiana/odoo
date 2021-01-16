@@ -4,7 +4,7 @@
 
 {
     'name': 'Subscription Creation',
-    'version': '13.1.1.0.19',
+    'version': '13.1.1.0.20',
     'sequence': 1,
     'description': """ Subscription Creation
      - Subscription is created From sale order line
