@@ -12,3 +12,4 @@ from . import res_config_settings
 from . import product_category
 from . import request_form_attachments
 from . import sub_task_project
+from . import res_company
