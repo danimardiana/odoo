@@ -1144,3 +1144,7 @@
 ## 01/17/2021
 #### Version 13.1.1.0.22
 - [FIX] clx_subscription_creation : added field on sale subscription line wholesale price and management price.
+
+## 01/17/2021
+#### Version 13.1.0.0.57
+- [FIX] clx_invoice_policy : added no update on greystar sequence.
