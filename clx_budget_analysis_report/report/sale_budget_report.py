@@ -127,7 +127,7 @@ class SaleBudgetReport(models.Model):
              ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly')])
         subscription_lines = all_subscription_lines.filtered(lambda x: x.start_date >= current_month_start_date)
         for subscription_line in subscription_lines:
-            if subscription_line.analytic_account_id.code == 'SUB933':
+            if subscription_line.analytic_account_id.code == 'SUB912':
                 print("-------------------")
             if subscription_line.end_date:
                 r = len(OrderedDict(((subscription_line.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
@@ -148,6 +148,8 @@ class SaleBudgetReport(models.Model):
                                                                                                         and x.product_id.id == subscription_line.product_id.id)
                 end_date_line = current_month_start_date.replace(
                     day=monthrange(current_month_start_date.year, current_month_start_date.month)[1])
+                end_date_x = subscription_line.end_date if subscription_line.end_date and subscription_line.end_date <= end_date_line else end_date_line
+                base_price = base[0].price_unit/2 if (current_month_start_date.day > 15) or (end_date_x.day < 15) else base[0].price_unit
                 vals = {
                     'date': current_month_start_date,
                     'product_id': subscription_line.product_id.id,
@@ -155,22 +157,19 @@ class SaleBudgetReport(models.Model):
                     'subscription_line_id': subscription_line.id,
                     'partner_id': subscription_line.so_line_id.order_id.partner_id.id,
                     # 'wholesale_price': subscription_line.so_line_id.wholesale_price,
-                    'base_price': 0.0 if base[0].end_date and current_month_start_date > base[0].end_date else base[
-                        0].price_unit,
+                    'base_price': base_price,
                     'end_date': subscription_line.end_date if subscription_line.end_date and subscription_line.end_date <= end_date_line else end_date_line
                 }
                 price_list = subscription_line.so_line_id.order_id.pricelist_id
                 if subscription_line.line_type in ('upsell', 'downsell'):
                     wholesale = subscription_line.so_line_id.wholesale_price
-                    price_unit = subscription_line.analytic_account_id.recurring_total
                     vals.update({
                         'upsell_down_sell_price': subscription_line.price_unit,
-                        # 'wholesale_price': wholesale
                     })
-                    if subscription_line.end_date and current_month_start_date <= subscription_line.end_date <= end_date_line and subscription_line.end_date.day < 15:
-                        vals.update({
-                            'upsell_down_sell_price': subscription_line.price_unit / 2,
-                        })
+                    # if subscription_line.end_date and current_month_start_date <= subscription_line.end_date <= end_date_line and subscription_line.end_date.day < 15:
+                    #     vals.update({
+                    #         'upsell_down_sell_price': subscription_line.price_unit / 2,
+                    #     })
                 base_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
                     lambda x: x.line_type == 'base' and x.product_id.id == subscription_line.product_id.id)
                 all_report_data = report_data_table.search([]).filtered(

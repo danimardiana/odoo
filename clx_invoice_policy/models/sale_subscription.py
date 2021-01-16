@@ -264,7 +264,8 @@ class SaleSubscriptionLine(models.Model):
             'line_type': self.line_type,
             'sale_line_ids': line.ids,
         }
-        if (self.invoice_end_date and self.invoice_end_date.day < 15) or (self.invoice_start_date and self.invoice_start_date.day > 15):
+        if (self.invoice_end_date and self.invoice_end_date.day < 15) or (
+                self.invoice_start_date and self.invoice_start_date.day > 15):
             new_price = self.price_unit / 2
             new_management_price = line.management_price / 2
             res.update({
@@ -338,16 +339,18 @@ class SaleSubscriptionLine(models.Model):
                 # 'price_unit': self.price_unit,
             })
             if self._context.get('generate_invoice_date_range', False):
-                start_date = self._context.get('start_date', False)
-                end_date = self._context.get('end_date', False)
+                start_date = self.start_date
+                end_date = self.end_date
+                count_dict = self._context.get('count_dict', False)
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
                 period_msg = ("Invoicing period: %s - %s") % (
-                    format_date(fields.Date.to_string(start_date), {}),
-                    format_date(fields.Date.to_string(end_date), {}))
+                    format_date(fields.Date.to_string(self._context.get('start_date')), {}),
+                    format_date(fields.Date.to_string(self._context.get('end_date')), {}))
                 res.update({
-                    'name': period_msg
+                    'name': period_msg,
+                    # 'price_unit': self.price_unit * count_dict.get(self.id, 1)
                 })
                 if (end_date and end_date.day < 15) or (start_date and start_date.day > 15):
                     new_price = self.price_unit / 2
