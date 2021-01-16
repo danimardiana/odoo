@@ -52,6 +52,28 @@ class SaleSubscriptionWizard(models.TransientModel):
             sol_id = so.order_line.filtered(
                 lambda x: x.product_id.id == self.option_lines[0].product_id.id)
             if sol_id:
+                price_list = so.pricelist_id
+                base_line = active_subscription.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base')
+                price_unit = base_line[0].price_unit + self.option_lines[0].price
+                if price_list:
+                    rule = price_list[0].item_ids.filtered(
+                        lambda x: x.categ_id.id == sol_id.product_id.categ_id.id)
+                    if rule:
+                        percentage_management_price = custom_management_price = 0.0
+                        if rule.is_percentage:
+                            percentage_management_price = price_unit * (
+                                    (rule.percent_mgmt_price or 0.0) / 100.0)
+                        if rule.is_custom and price_unit > rule.min_retail_amount:
+                            custom_management_price = price_unit * (
+                                    (rule.percent_mgmt_price or 0.0) / 100.0)
+                        management_fees = max(percentage_management_price,
+                                              custom_management_price,
+                                              rule.fixed_mgmt_price)
+                        if rule.is_wholesale_percentage:
+                            wholesale = price_unit * (
+                                    (rule.percent_wholesale_price or 0.0) / 100.0)
+                        if rule.is_wholesale_formula:
+                            wholesale = price_unit - management_fees
                 price = self.option_lines[0].price
                 sol_id.write({
                     'price_unit': price,
@@ -59,10 +81,12 @@ class SaleSubscriptionWizard(models.TransientModel):
                     'start_date': self.date_from,
                     'end_date': self.end_date,
                     'discount': 0.0,
-                    'line_type': 'downsell' if price < 0 else 'upsell'
+                    'line_type': 'downsell' if price < 0 else 'upsell',
+                    'management_price': management_fees,
+                    'wholesale_price': wholesale
                 })
-                sol_id.price_unit_change()
-            so.update_price()
+                # sol_id.price_unit_change()
+            # so.update_price()
             so.action_confirm()
         return res
 
