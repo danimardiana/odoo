@@ -35,7 +35,7 @@
         'views/request_form_views.xml',
         'views/project_views.xml',
         'views/sale_order_views.xml',
-        'views/product_category_views.xml',
+        # 'views/product_category_views.xml',
         'views/sale_subscription_line_views.xml',
         'wizard/task_cancel_warning_wizard_views.xml'
     ],
