@@ -15,7 +15,7 @@
     'depends': [
         'sale_management',
         'contact_modification',
-        'sale_product_configurator',
+        # 'sale_product_configurator',
         'sale_subscription'
     ],
     'data': [
@@ -23,7 +23,7 @@
         'views/product_category_view.xml',
         'views/product_pricelist_view.xml',
         'views/sale_order_view.xml',
-        'views/sale_product_configurator_views.xml',
+        # 'views/sale_product_configurator_views.xml',
         'report/sale_report_templates.xml',
 
     ],
