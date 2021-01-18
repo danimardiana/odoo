@@ -80,9 +80,14 @@ class SaleSubscriptionWizard(models.TransientModel):
                     'product_uom_qty': 1,
                     'start_date': self.date_from,
                     'end_date': self.end_date,
+                    'name': base_line and base_line[0].name,
                     'discount': 0.0,
                     'line_type': 'downsell' if price < 0 else 'upsell',
-                    'management_price': management_fees - sum(active_subscription.recurring_invoice_line_ids.mapped('management_price')) if management_fees < sum(active_subscription.recurring_invoice_line_ids.mapped('management_price')) else abs(management_fees - sum(active_subscription.recurring_invoice_line_ids.mapped('management_price'))),
+                    'management_price': management_fees - sum(active_subscription.recurring_invoice_line_ids.mapped(
+                        'management_price')) if management_fees < sum(
+                        active_subscription.recurring_invoice_line_ids.mapped('management_price')) else abs(
+                        management_fees - sum(
+                            active_subscription.recurring_invoice_line_ids.mapped('management_price'))),
                     'wholesale_price': abs(
                         wholesale - sum(active_subscription.recurring_invoice_line_ids.mapped(
                             'wholesale_price'))) if price > 0 else wholesale - sum(

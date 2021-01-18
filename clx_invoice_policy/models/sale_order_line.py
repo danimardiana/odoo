@@ -149,6 +149,6 @@ class SaleOrderLine(models.Model):
             res[0][-1].update({
                 'invoice_start_date': self.start_date,
                 'invoice_end_date': date_end,
-                'name': base_line[0].name if base_line else self.product_id.name
+                'name': base_line[0].name if base_line else self.name
             })
         return res

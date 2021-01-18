@@ -1161,3 +1161,14 @@
 #### Version 13.3.0.0.78
 - [ADD] clx_task_management : added task complete wizard.
 
+## 01/18/2021
+#### Version 13.3.0.0.79
+- [ADD] clx_task_management : fix the issue related to task inactive.
+
+## 01/18/2021
+#### Version 13.1.0.0.59
+- [FIX] clx_invoice_policy : set description on subscription kanban view.
+
+## 01/18/2021
+#### Version 13.1.1.0.24
+- [FIX] clx_subscription_creation : set description on upsell.
