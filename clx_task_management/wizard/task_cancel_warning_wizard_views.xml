@@ -37,10 +37,44 @@
         </field>
     </record>
 
+    <record id="task_popup_warning_wizard_form_view" model="ir.ui.view">
+        <field name="name">task.popup.warning.wizard.form.view</field>
+        <field name="model">task.popup.warning.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="sub_task_ids" readonly="1" nolabel="1">
+                            <tree>
+                                <field name="name"/>
+                                <field name="sub_task_name"/>
+                                <field name="dependency_ids" widget="many2many_tags"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <footer>
+                        <p>Please confirm the conditions of the subtask above are completed and select "Yes".
+                            Otherwise, select "No".
+                        </p>
+                        <button string="Yes" name="create_dependent_task" type="object" class="btn-primary"/>
+                        <button string="No" class="btn btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="action_cancel_task" model="ir.actions.act_window">
         <field name="name">action.cancel.task</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">task.cancel.warning.wizard</field>
+        <field name="view_mode">form</field>
+    </record>
+
+    <record id="action_task_popup" model="ir.actions.act_window">
+        <field name="name">action.popup.task</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">task.popup.warning.wizard</field>
         <field name="view_mode">form</field>
     </record>
 </odoo>

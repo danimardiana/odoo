@@ -130,6 +130,9 @@ class Partner(models.Model):
                                 sol.line_type != 'base'
                         )
         )
+        if self._context.get('cofirm_sale', False):
+            yearly_lines = lines.filtered(lambda
+                                              x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'yearly')
         yearly_prepared_lines = [line.with_context({
             'advance': True
         })._prepare_invoice_line() for line in yearly_lines]

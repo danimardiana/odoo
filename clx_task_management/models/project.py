@@ -303,6 +303,24 @@ class ProjectTask(models.Model):
                 task.clx_task_manager_id = self.clx_task_manager_id.id
         return res
 
+    def action_view_popup_task(self):
+        sub_tasks = self.sub_repositary_task_ids
+        context = dict(self._context) or {}
+        context.update({
+            'project_id': self.project_id.id,
+            'current_task': self.id,
+            'default_sub_task_ids': sub_tasks.ids,
+        })
+        view_id = self.env.ref('clx_task_management.task_popup_warning_wizard_form_view').id
+        return {'type': 'ir.actions.act_window',
+                'name': _('Sub Task'),
+                'res_model': 'task.popup.warning.wizard',
+                'target': 'new',
+                'view_mode': 'form',
+                'views': [[view_id, 'form']],
+                'context': context
+                }
+
     def action_view_cancel_task(self):
         main_task = self.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
         sub_tasks = self.env['sub.task'].search(
@@ -315,7 +333,7 @@ class ProjectTask(models.Model):
         })
         view_id = self.env.ref('clx_task_management.task_cancel_warning_wizard_form_view').id
         return {'type': 'ir.actions.act_window',
-                'name': _('Cancel Task'),
+                'name': _('Sub Task'),
                 'res_model': 'task.cancel.warning.wizard',
                 'target': 'new',
                 'view_mode': 'form',

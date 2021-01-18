@@ -156,6 +156,8 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//header" position="inside">
+                <button type="object" name="action_view_popup_task" class="oe_stat_button"
+                        string="Complete" context="{'complete':'complete'}"/>
                 <button type="object" name="action_view_cancel_task" class="oe_stat_button"
                         string="Cancel"/>
             </xpath>

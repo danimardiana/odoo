@@ -1148,3 +1148,16 @@
 ## 01/17/2021
 #### Version 13.1.0.0.57
 - [FIX] clx_invoice_policy : added no update on greystar sequence.
+
+## 01/18/2021
+#### Version 13.1.1.0.22
+- [FIX] clx_subscription_creation : added calculation for the upsell and downsell as per the pricelist rule.
+
+## 01/18/2021
+#### Version 13.1.0.0.58
+- [FIX] clx_invoice_policy : added filter while confirm the sale order for yearly subscription line.
+
+## 01/18/2021
+#### Version 13.3.0.0.78
+- [ADD] clx_task_management : added task complete wizard.
+

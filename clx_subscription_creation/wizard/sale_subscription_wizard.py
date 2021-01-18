@@ -54,7 +54,7 @@ class SaleSubscriptionWizard(models.TransientModel):
             if sol_id:
                 price_list = so.pricelist_id
                 base_line = active_subscription.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base')
-                price_unit = base_line[0].price_unit + self.option_lines[0].price
+                price_unit = active_subscription.recurring_total + self.option_lines[0].price
                 if price_list:
                     rule = price_list[0].item_ids.filtered(
                         lambda x: x.categ_id.id == sol_id.product_id.categ_id.id)
@@ -82,12 +82,16 @@ class SaleSubscriptionWizard(models.TransientModel):
                     'end_date': self.end_date,
                     'discount': 0.0,
                     'line_type': 'downsell' if price < 0 else 'upsell',
-                    'management_price': management_fees,
-                    'wholesale_price': wholesale
+                    'management_price': management_fees - sum(active_subscription.recurring_invoice_line_ids.mapped('management_price')) if management_fees < sum(active_subscription.recurring_invoice_line_ids.mapped('management_price')) else abs(management_fees - sum(active_subscription.recurring_invoice_line_ids.mapped('management_price'))),
+                    'wholesale_price': abs(
+                        wholesale - sum(active_subscription.recurring_invoice_line_ids.mapped(
+                            'wholesale_price'))) if price > 0 else wholesale - sum(
+                        active_subscription.recurring_invoice_line_ids.mapped(
+                            'wholesale_price'))
                 })
                 # sol_id.price_unit_change()
-            # so.update_price()
-            so.action_confirm()
+                # so.update_price()
+                so.action_confirm()
         return res
 
 
