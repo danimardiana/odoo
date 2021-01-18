@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!--Scheduler sync Receive Request-->
+    <record id="clx_subscription_invoice_scheduler" model="ir.cron">
+        <field name="name">CLX: Subscription Invoice Scheduler</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">model._generate_subscription_invoices()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">months</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="nextcall"
+               eval="((datetime.now().replace(day=1) + relativedelta(months=1)) + relativedelta(days=-1)).strftime('%Y-%m-%d 00:00:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="clx_creation_next_budgets" model="ir.cron">
+        <field name="name">CLX: Creation Next Budgets</field>
+        <field name="model_id" ref="sale_subscription.model_sale_subscription_line"/>
+        <field name="state">code</field>
+        <field name="code">model._creation_next_budgets()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">months</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>

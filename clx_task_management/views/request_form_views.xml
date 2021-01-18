@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!--Form View-->
+    <record id="request_form_form_view" model="ir.ui.view">
+        <field name="name">request.form.view</field>
+        <field name="model">request.form</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit_form" states="draft" string="Submit"
+                            type="object"
+                            class="oe_highlight"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" class="oe_stat_button"
+                                icon="fa-pencil-square-o" name="open_active_subscription_line"
+                                string="Active Subscription">
+                        </button>
+                        <button type="object" class="oe_stat_button"
+                                icon="fa-pencil-square-o" name="open_project_main_task_kanban_view"
+                                string="Project">
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" required="1" domain="[('company_type','=','company')]"/>
+                            <field name="request_date"/>
+                            <field name="intended_launch_date"/>
+                            <field name="submitted_by_user_id" readonly="1"/>
+                            <field name="priority"/>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                            <field name="is_create_client_launch"/>
+                            <field name="sale_order_id" widget="many2many_tags" invisible="1"
+                                   context="{'active_sale_order': True,'req_partner_id': partner_id}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Line Item Details" name="line_item_details">
+                            <field name="request_line" widget="section_and_note_one2many">
+                                <tree editable="bottom">
+                                    <field name="product_id" readonly="1" style="width: 96px !important;"/>
+                                    <field name="category_id" invisible="1"/>
+                                    <field name="request_form_id" invisible="1"/>
+                                    <field name="req_type"/>
+                                    <field name="task_id" options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"/>
+                                    <field name="requirements" style="width: 243px !important;"/>
+                                    <field name="description" style="max-width:711px;width: 569px !important;" widget="html"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="product_id" readonly="1"/>
+                                            <field name="category_id" invisible="1"/>
+                                            <field name="req_type"/>
+                                            <field name="task_id" options="{'no_create_edit': True, 'no_open': True}"/>
+                                            <field name="requirements" widget="text"/>
+                                        </group>
+                                        <group>
+                                            <field name="description"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Ads Link">
+                            <field name="ads_link_ids">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="link" widget="url"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Attachments">
+                            <group>
+                                <field name="clx_attachment_ids" widget="many2many_binary"/>
+                                <field name="attachment_ids" invisible="1">
+                                    <tree editable="bottom">
+                                        <field name="name"/>
+                                        <field name="attachment" widget="binary"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <!--Tree View-->
+    <record id="request_form_tree_view" model="ir.ui.view">
+        <field name="name">request.tree.view</field>
+        <field name="model">request.form</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="description"/>
+                <field name="request_date"/>
+                <field name="intended_launch_date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <!--Draft Request Form-->
+    <record id="action_request_form_draft" model="ir.actions.act_window">
+        <field name="name">Request Form</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">request.form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state','=', 'draft')]</field>
+    </record>
+    <!--submitted Request Form-->
+    <record id="action_request_form_submitted" model="ir.actions.act_window">
+        <field name="name">Request Form</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">request.form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state','=', 'submitted')]</field>
+    </record>
+
+    <!-- Parent Menu -->
+    <menuitem id="menu_request_form"
+              name="Request Form"
+              web_icon="clx_task_management,static/description/request_form_icon.png"
+              sequence="5"/>
+    <!--SUB MENU-->
+    <menuitem id="menu_request_form_draft"
+              name="Draft Request Form"
+              parent="menu_request_form" action="action_request_form_draft"
+              sequence="1"/>
+
+    <menuitem id="menu_request_form_submitted"
+              name="Submitted Request Form"
+              parent="menu_request_form" action="action_request_form_submitted"
+              sequence="2"/>
+</odoo>

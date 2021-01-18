@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_main_task_manager,main_task,model_main_task,clx_task_management.group_clx_task_manager,1,1,1,1
+access_main_task_user,main_task,model_main_task,clx_task_management.group_clx_task_user,1,0,0,0
+access_clx_team,clx_team,model_clx_team,base.group_user,1,1,1,1
+access_sub_task_manager,sub_task,model_sub_task,clx_task_management.group_clx_task_manager,1,1,1,1
+access_sub_task_user,sub_task,model_sub_task,clx_task_management.group_clx_task_user,1,0,0,0
+access_request_form,request_form,model_request_form,base.group_user,1,1,1,1
+access_request_form_line,request_form_line,model_request_form_line,base.group_user,1,1,1,1
+access_request_form_attachments,request_form_attachments,model_request_form_attachments,base.group_user,1,1,1,1
+access_sub_task_project,sub_task_project,model_sub_task_project,base.group_user,1,1,1,1

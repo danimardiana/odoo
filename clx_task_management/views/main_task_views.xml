@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--Form View-->
+    <record id="form_view_main_task" model="ir.ui.view">
+        <field name="name">task.management.form.view</field>
+        <field name="model">main.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="open_subtask" type="object" icon="fa-tasks"
+                                class="oe_stat_button">
+                            <field name="sub_task_count" string="Sub Task" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="team_ids" widget="many2many_tags"/>
+                            <field name="team_members_ids" widget="many2many_tags"/>
+                            <field name="tag_ids" widget="many2many_tags"/>
+                            <field name="display_to_customer"/>
+                            <field name="req_type"/>
+                            <field name="requirements"/>
+                            <field name="category_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_main_task_filter" model="ir.ui.view">
+        <field name="name">main.task.search.view</field>
+        <field name="model">main.task</field>
+        <field name="arch" type="xml">
+            <search string="Search Task">
+                <field name="name"/>
+                <filter string="Archived" name="inactive" domain="[('active','=',False)]"/>
+                <group expand='0' string='Group by...'>
+                    <filter string='Request Type' name="rew_type" context="{'group_by': 'req_type'}"/>
+                    <filter string='Product Category'
+                            name="groupby_category"
+                            context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!--Tree View -->
+    <record id="tree_view_main_task" model="ir.ui.view">
+        <field name="name">task.management.tree.view</field>
+        <field name="model">main.task</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="team_ids" widget="many2many_tags"/>
+                <field name="team_members_ids" widget="many2many_tags"/>
+                <field name="tag_ids" widget="many2many_tags"/>
+                <field name="display_to_customer"/>
+                <field name="category_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!--View Action-->
+    <record id="action_main_task" model="ir.actions.act_window">
+        <field name="name">Task Management</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">main.task</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create new Task.
+            </p>
+        </field>
+    </record>
+
+    <!-- Parent Menu -->
+    <menuitem id="parent_menu_main_task"
+              name="Task Management"
+              groups="group_clx_task_user,group_clx_task_manager"
+              web_icon="clx_task_management,static/description/icon.png"
+              sequence="1"/>
+
+    <!--Sub Menu-->
+    <menuitem id="menu_main_task"
+              name="Tasks"
+              parent="clx_task_management.parent_menu_main_task"
+              action="clx_task_management.action_main_task"
+              sequence="1"/>
+</odoo>

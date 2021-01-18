@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_task_tree2_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.task.tree</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="partner_id"/>
+                <field name="parent_id"/>
+                <field name="team_ids" widget="many2many_tags" optional="show"/>
+                <field name="team_members_ids" widget="many2many_tags" optional="show"/>
+                <!--<field name="tag_ids" widget="many2many_tags" optional="show"/>-->
+                <field name="date_deadline"/>
+                <field name="clx_priority"/>
+                <field name="client_services_team"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="view_project_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.project.tree</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="clx_state"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="deadline"/>
+                <field name="create_date"/>
+                <field name="priority"/>
+                <field name="client_services_team"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_project_kanban_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">view_project_inherit_kanban</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban//templates//t//div//div[hasclass('o_primary')]" position="after">
+                <div>
+                    <strong>
+                        <span>Salesperson :</span>
+                    </strong>
+                    <field name="user_id"/>
+                    <br/>
+                    <strong>
+                        <span>Project Manager :</span>
+                    </strong>
+                    <field name="clx_project_manager_id"/>
+                    <br/>
+                    <strong>
+                        <span>Designer :</span>
+                    </strong>
+                    <field name="clx_project_designer_id"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+
+    <!-- Inherit Form View to add state for the project it -->
+    <record id="edit_project_inherit_clx_project_management" model="ir.ui.view">
+        <field name="name">project.project.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <field name="user_id" position="after">
+                <field name="implementation_specialist_id"/>
+            </field>
+            <xpath expr="//notebook" position="inside">
+                <page string="Ads Link" name="ads_link">
+                    <group>
+                        <field name="project_ads_link_ids">
+                            <tree editable="bottom">
+                                <field name="product_id"/>
+                                <field name="link"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+                <page name="extra_details" string="Extra Info">
+                    <group>
+                        <field name="management_company_type_id"/>
+                        <field name="google_analytics_cl_account_location"/>
+                        <field name="cs_notes"/>
+                        <field name="ops_notes"/>
+                        <field name="cat_notes"/>
+                    </group>
+                </page>
+                <page name="attachments" string="Attachments">
+                    <group>
+                        <field name="clx_attachment_ids" widget="many2many_binary"/>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <field name="clx_state" widget="statusbar"/>
+                <button type="object" name="action_done_project" class="oe_stat_button"
+                        string="Done" attrs="{'invisible': [('clx_state', '=', 'done')]}"/>
+            </xpath>
+            <field name="partner_id" position="after">
+                <field name="deadline"/>
+                <field name="clx_sale_order_ids" widget="many2many_tags"/>
+                <field name="clx_project_manager_id" domain="[('share','=',False)]"/>
+                <field name="clx_project_designer_id" domain="[('share','=',False)]"/>
+                <field name="ops_team_member_id" domain="[('share','=',False)]"/>
+                <field name="priority"/>
+                <field name="client_services_team"/>
+            </field>
+            <field name="message_follower_ids" position="after">
+                <field name="message_ids" widget="mail_thread"/>
+            </field>
+            <xpath expr="//group[@name='misc']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <field name="user_id" position="attributes">
+                <attribute name="string">Salesperson</attribute>
+            </field>
+        </field>
+    </record>
+
+    <!-- Inherit Form View to added custom fields it -->
+    <record id="view_task_form2_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.task.form</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <field name="tag_ids" position="after">
+                <field name="clx_priority"/>
+                <field name="client_services_team"/>
+            </field>
+            <field name="user_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="project_id" position="before">
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="vertical"/>
+                <field name="implementation_specialist_id"/>
+                <field name="account_user_id" string="Salesperson"/>
+                <field name="website" widget="url"/>
+            </field>
+            <field name="date_deadline" position="attributes">
+                <attribute name="string">Launch Date</attribute>
+            </field>
+            <xpath expr="//page[@name='extra_info']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button type="object" name="action_view_popup_task" class="oe_stat_button"
+                        string="Complete" context="{'complete':'complete'}"/>
+                <button type="object" name="action_view_cancel_task" class="oe_stat_button"
+                        string="Cancel"/>
+            </xpath>
+            <xpath expr="//button[@name='action_open_parent_task']" position="after">
+                <field name="clx_sale_order_id" invisible="1"/>
+                <button type="object" name="action_view_clx_so" class="oe_stat_button" icon="fa-dollar"
+                        string="Sales Order" attrs="{'invisible': [('clx_sale_order_id', '=', False)]}"/>
+            </xpath>
+            <field name="user_id" position="after">
+                <field name="req_type" widget="radio" attrs="{'invisible' : [('parent_id', '!=', False)]}"/>
+                <field name="repositary_task_id"
+                       attrs="{'invisible' : ['|', ('parent_id', '!=', False), ('id', '=', False)]}"
+                       domain="[('req_type','=',req_type)]"
+                />
+                <field name="sub_repositary_task_ids" widget="many2many_tags"
+                       attrs="{'invisible' : ['|', ('parent_id', '=', False), ('id', '=', False)]}"/>
+                <field name="clx_task_manager_id" string="CS Team Member"/>
+                <field name="clx_task_designer_id" domain="[('share','=',False)]"/>
+                <field name="ops_team_member_id" domain="[('share','=',False)]"/>
+                <field name="team_ids" widget="many2many_tags"/>
+                <field name="team_members_ids" widget="many2many_tags"/>
+            </field>
+            <xpath expr="//page[@name='description_page']" position="after">
+                <page name="requirements" string="Requirements">
+                    <group>
+                        <field name="requirements"/>
+                    </group>
+                </page>
+                <page name="extra_details" string="Extra Info">
+                    <group>
+                        <field name="management_company_type_id"/>
+                        <field name="google_analytics_cl_account_location"/>
+                        <field name="call_rail_destination_number"/>
+                        <field name="dni"/>
+                        <field name="cs_notes"/>
+                        <field name="ops_notes"/>
+                        <field name="cat_notes"/>
+                        <field name="art_assets"/>
+                    </group>
+                </page>
+                <page name="ads_link" string="Ads Link">
+                    <group>
+                        <field name="project_ads_link_ids">
+                            <tree editable="bottom">
+                                <field name="product_id"/>
+                                <field name="link" widget="url"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+                <page name="review_assignment" string="Review Assignment"
+                      attrs="{'invisible': [('parent_id', '=', False)]}">
+                    <group>
+                        <field name="reviewer_user_id"/>
+                        <field name="fix"/>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//page[@name='description_page']" position="after">
+                <page name="sub_task" string="Sub Tasks">
+                    <field name="sub_task_project_ids">
+                        <tree>
+                            <field name="task_id" invisible="1"/>
+                            <field name="sub_task_id"/>
+                            <field name="sub_task_name"/>
+                            <field name="team_ids" widget="many2many_tags"/>
+                            <field name="team_members_ids" widget="many2many_tags"/>
+                            <field name="tag_ids" widget="many2many_tags"/>
+                            <field name="stage_id"/>
+                            <button string='Open' name="redirect_task"
+                                    type="object"
+                                    attrs="{'invisible': [('task_id', '=', False)]}"
+                            />
+                        </tree>
+                    </field>
+                </page>
+                <page name="attachments" string="Attachments">
+                    <group>
+                        <field name="clx_attachment_ids" widget="many2many_binary"/>
+                    </group>
+                </page>
+            </xpath>
+            <field name="description" position="attributes">
+                <attribute name="attrs">{'invisible': [('parent_id', '!=', False)]}</attribute>
+            </field>
+            <field name="description" position="after">
+                <field name="clx_description" attrs="{'invisible' : [('parent_id', '=', False)]}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="project.project_task_action_from_partner" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="domain">[('parent_id','!=',False)]</field>
+    </record>
+
+    <!--inherit search view for add group by team -->
+    <record id="view_task_search_form_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.task.search.form</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="inside">
+                <filter string="Ops Team Member" name="ops_team" domain="[]"
+                        context="{'group_by':'ops_team_member_id'}"/>
+                <filter string="CS Team Member" name="cs_team" domain="[]"
+                        context="{'group_by':'clx_task_manager_id'}"/>
+                <filter string="CAT Team Member" name="cat_team" domain="[]"
+                        context="{'group_by':'clx_task_designer_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--override action because of  show only parent task on when action is call -->
+    <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">kanban,tree,form,calendar,pivot,graph,activity</field>
+        <field name="context">{
+            'pivot_row_groupby': ['user_id'],
+            'search_default_project_id': [active_id],
+            'default_project_id': active_id,
+            }
+        </field>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click <i>Create</i> to start a new task.
+            </p>
+            <p>
+                To get things done, use activities and status on tasks.
+                <br/>
+                Chat in real time or by email to collaborate efficiently.
+            </p>
+        </field>
+        <field name="domain">[('parent_id','=',False)]</field>
+    </record>
+
+    <record id="project.action_view_task" model="ir.actions.act_window">
+        <field name="name">All SubTasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">kanban,tree,form,calendar,pivot,graph,activity</field>
+        <field name="context">{'search_default_my_tasks': 1,'search_default_team' : 1}</field>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new task
+            </p>
+            <p>
+                Odoo's project management allows you to manage the pipeline of your tasks efficiently.
+                <br/>
+                You can track progress, discuss on tasks, attach documents, etc.
+            </p>
+        </field>
+        <field name="domain">[('parent_id','!=',False)]</field>
+    </record>
+    <record model="ir.ui.menu" id="project.menu_project_management">
+        <field name="name">All Subtasks</field>
+    </record>
+
+    <record id="action_view_parent_task" model="ir.actions.act_window">
+        <field name="name">All Tasks</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_view_parent_task" model="ir.actions.act_window">
+        <field name="name">All Tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">kanban,tree,form,calendar,graph,activity</field>
+        <field name="domain">[('parent_id','=',False)]</field>
+        <field name="filter" eval="True"/>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+    </record>
+
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="name">Projects</field>
+        <field name="res_model">project.project</field>
+        <field name="domain">[]</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" ref="project.view_project_kanban"/>
+        <field name="search_view_id" ref="project.view_project_project_filter"/>
+        <field name="target">main</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new project
+            </p>
+            <p>
+                Or <a type="action" name="%(project.ir_actions_server_project_sample)d" tabindex="-1">activate a sample
+                project
+            </a> to play with.
+            </p>
+        </field>
+    </record>
+
+    <menuitem name="All Tasks" id="menu_parent_task" parent="project.menu_main_pm"
+              action="clx_task_management.action_view_parent_task" sequence="1"/>
+</odoo>

@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_clx_invoice_policy_user,clx.invoice.policy,model_clx_invoice_policy,base.group_user,1,1,1,1
+access_policy_history,access_policy_history,model_policy_history,,1,1,1,1
+

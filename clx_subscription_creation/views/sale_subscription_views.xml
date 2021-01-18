@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to add start date field -->
+    <record id="sale_subscription_view_form_inherited_subscription_creation" model="ir.ui.view">
+        <field name="name">sale.subscription.form.inherited.subscription.creation</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="sale_subscription.sale_subscription_view_form"/>
+        <field name="arch" type="xml">
+            <field name='team_id' position="after">
+                <field name="product_id"/>
+            </field>
+            <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='price_unit']"
+                   position="after">
+                <field name="management_price"/>
+                <field name="wholesale_price"/>
+            </xpath>
+            <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='product_id']"
+                   position="after">
+                <field name="start_date" readonly="1"/>
+                <field name="end_date"/>
+                <field name="line_type" invisible="True"/>
+            </xpath>
+            <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='product_id']"
+                   position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='quantity']"
+                   position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='price_unit']"
+                   position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='name']"
+                   position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='discount']"
+                   position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!--inherit Kanban View to add product name -->
+    <record model="ir.ui.view" id="sale_subscription_view_kanban_inherit_subscription_creation">
+        <field name="name">sale.subscription.kanban.inherited.subscription.creation</field>
+        <field name="inherit_id" ref="sale_subscription.sale_subscription_view_kanban"/>
+        <field name="model">sale.subscription</field>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/templates//field[@name='code']" position="after">
+                <strong>
+                    <!--<field name="product_id"/>-->
+                    <field name="product_des"/>
+                </strong>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_subscription_view_list_inherit_clx_subscription_creation" model="ir.ui.view">
+        <field name="name">sale.subscription.list</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="sale_subscription.sale_subscription_view_list"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="product_id"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

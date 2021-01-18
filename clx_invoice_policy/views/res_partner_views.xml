@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to Modify it -->
+    <record id="res_partner_inh_form_view_add_policy_field" model="ir.ui.view">
+        <field name="name">res.partner.add.policy.field.form.view</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="clx_invoice_policy_id"
+                       attrs="{'invisible': [('company_type', 'in', ('person','owner','management'))]}"/>
+                <field name="is_subscribed" invisible="True"/>
+                <field name="invoice_creation_type"/>
+            </xpath>
+            <sheet position="before">
+                <header>
+                    <button string="Generate Invoice"
+                            type="object"
+                            name="generate_invoice"
+                            context="{'from_generate_invoice': True}"
+                            class="btn-primary"/>
+                    <button string="Generate Invoice With Date Range"
+                            type="object"
+                            name="generate_invoice_with_date_range"
+                            class="btn-primary"/>
+
+                    <button string="Subscribe"
+                            type="object"
+                            name="subscription"
+                            class="btn btn-success"
+                            attrs="{'invisible': [('is_subscribed', '=', True)]}"
+                            context="{'subscribe': True}"/>
+                    <button string="Unsubscribe"
+                            type="object"
+                            name="subscription"
+                            class="btn btn-danger"
+                            attrs="{'invisible': [('is_subscribed', '=', False)]}"
+                            context="{'subscribe': False}"/>
+                </header>
+            </sheet>
+            <notebook position="inside">
+                <page name="clx_policy_history" string="Policy"
+                      attrs="{'invisible': [('company_type', 'in', ('person'))]}">
+                    <field name="policy_hst_ids" readonly="True">
+                        <tree>
+                            <field name="create_date"/>
+                            <field name="create_uid"/>
+                            <field name="policy_type"/>
+                            <field name="is_subscribed"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name="clx_invoice_policy_creation" string="Invoice Policy Selection"
+                attrs="{'invisible': [('company_type_rel', '!=', 'management')]}">
+                    <group>
+                        <field name="invoice_selection" widget="radio"
+                               attrs="{'invisible': [('company_type_rel', '!=', 'management')]}"/>
+                        <field name="child_invoice_selection" attrs="{'invisible': [('company_type_rel', '!=', 'company')]}"/>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo>

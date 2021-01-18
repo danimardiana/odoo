@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!--form view-->
+    <record id="clx_team_form_view" model="ir.ui.view">
+        <field name="name">clx.team.form.view</field>
+        <field name="model">clx.team</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="team_name"/>
+                        <field name="team_members_ids" widget="many2many_tags"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!--tree View-->
+    <record id="clx_team_tree_view" model="ir.ui.view">
+        <field name="name">clx.tree.view</field>
+        <field name="model">clx.team</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="team_name"/>
+                <field name="team_members_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+    <!--action-->
+    <record id="action_clx_team" model="ir.actions.act_window">
+        <field name="name">Team</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">clx.team</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create new Team.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu -->
+    <menuitem id="menu_clx_tema"
+              name="Team"
+              parent="clx_task_management.parent_menu_main_task"
+              action="clx_task_management.action_clx_team"
+              sequence="2"/>
+
+</odoo>

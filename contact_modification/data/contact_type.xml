@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="contact1" model="contact.type">
+        <field name="name">Normal</field>
+        <field name="nik">Normal</field>
+    </record>
+
+    <record forcecreate="True" id="contact2" model="contact.type">
+        <field name="name">Proofing Contact</field>
+        <field name="nik">Proofing</field>
+    </record>
+
+    <record forcecreate="True" id="contact3" model="contact.type">
+        <field name="name">Reporting Contact</field>
+        <field name="nik">Reporting</field>
+    </record>
+
+    <record forcecreate="True" id="contact4" model="contact.type">
+        <field name="name">Billing Contact</field>
+        <field name="nik">Billing</field>
+    </record>
+</odoo>

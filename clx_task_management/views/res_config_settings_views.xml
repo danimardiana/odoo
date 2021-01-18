@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.project</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="50"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='tasks_management']" position="after">
+                <h2>Auto Create Sub Task</h2>
+                <div class="row mt16 o_settings_container" id="auto_create_sub_task">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="is_create_auto_task"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="is_create_auto_task"/>
+                            <div class="text-muted">
+                                <p>Enable to Cancel/Delete any subtask without changing the dependency subtasks
+                                    creation.
+                                </p>
+                                <p>Disable to Cancel/Delete any Subtask and its subsequent subtask.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h2>Auto Add Parent Task</h2>
+                <div class="row mt16 o_settings_container" id="auto_create_sub_task">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="auto_add_main_task_ids"/>
+                            <div class="text-muted">
+                                <p>Select Task which you want to add on request form</p>
+                            </div>
+                            <div class="row mt16">
+                                <label for="auto_add_main_task_ids" string="Parent Task"
+                                       class="col-lg-4 o_light_label"/>
+                                <field name="auto_add_main_task_ids" class="oe_inline" widget="many2many_tags"/>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <record id="clx_project_stage_1" model="project.task.type">
+            <field name="sequence">1</field>
+            <field name="name">New</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
+        <record id="clx_project_stage_2" model="project.task.type">
+            <field name="sequence">2</field>
+            <field name="name">In Progress</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
+        <record id="clx_project_stage_3" model="project.task.type">
+            <field name="sequence">3</field>
+            <field name="name">Out to Proof Internal</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
+        <record id="clx_project_stage_4" model="project.task.type">
+            <field name="sequence">4</field>
+            <field name="name">Out to Proof Internal</field>
+            <field name="fold" eval="False"/>
+        </record>
+        <record id="clx_project_stage_5" model="project.task.type">
+            <field name="sequence">5</field>
+            <field name="name">Out to Proof External</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
+        <record id="clx_project_stage_6" model="project.task.type">
+            <field name="sequence">6</field>
+            <field name="name">Proof Returned</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
+        <record id="clx_project_stage_7" model="project.task.type">
+            <field name="sequence">7</field>
+            <field name="name">Approved</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
+        <record id="clx_project_stage_8" model="project.task.type">
+            <field name="sequence">8</field>
+            <field name="name">Completed</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
+
+        <record id="clx_project_stage_9" model="project.task.type">
+            <field name="sequence">9</field>
+            <field name="name">Cancelled</field>
+            <field name="fold" eval="False"/>
+            <field name="demo_data" eval="True"/>
+        </record>
+    </data>
+</odoo>

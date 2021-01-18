@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <report
+                id="action_report_contract_clx"
+                string="Contract not Greystar"
+                model="sale.order"
+                report_type="qweb-pdf"
+                file="clx_invoice_reports.report_contract_clx"
+                name="clx_invoice_reports.report_contract_clx"
+                print_report_name="(object.state in ('draft', 'sent') and 'Quotation - %s' % (object.name)) or 'Order - %s' % (object.name)"
+        />
+        <report
+                id="action_report_contract_clx_greystar"
+                string="Contract Greystar"
+                model="sale.order"
+                report_type="qweb-pdf"
+                file="clx_invoice_reports.report_contract_clx_greystar"
+                name="clx_invoice_reports.report_contract_clx_greystar"
+                print_report_name="(object.state in ('draft', 'sent') and 'Quotation - %s' % (object.name)) or 'Order - %s' % (object.name)"
+        />
+    </data>
+</odoo>

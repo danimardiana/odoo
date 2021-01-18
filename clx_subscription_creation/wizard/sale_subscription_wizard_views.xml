@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to Modify it -->
+    <record id="wizard_form_view_inherit_clx_budget_management" model="ir.ui.view">
+        <field name="name">wizard.form.view.inherit.clx_budget_management</field>
+        <field name="model">sale.subscription.wizard</field>
+        <field name="inherit_id" ref="sale_subscription.wizard_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_from']" position="replace">
+                <field name="date_from" required="1"/>
+                <field name="end_date"/>
+            </xpath>
+            <xpath expr="//field[@name='option_lines']/tree" position="inside">
+                <field name="price" required="1" context="{'skip_condition':True}"/>
+            </xpath>
+            <xpath expr="//field[@name='option_lines']/tree/field[@name='quantity']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='option_lines']/tree/field[@name='product_id']" position="attributes">
+                <attribute name="force_save">1</attribute>
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='option_lines']/tree" position="attributes">
+                <attribute name="create">false</attribute>
+                <attribute name="delete">false</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

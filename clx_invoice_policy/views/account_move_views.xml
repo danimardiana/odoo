@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to add start date and end date fields -->
+    <record id="view_move_form_inherit_add_fields" model="ir.ui.view">
+        <field name="name">view.move.form.inhetir.add.fields</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="after">
+                <field name="mgmt_company"/>
+            </field>
+            <xpath expr="//field[@name='line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/tree//field[@name='analytic_tag_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='analytic_tag_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='account_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='quantity']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='product_id']"
+                   position="after">
+                <field name="subscription_start_date" invisible="1"/>
+                <field name="subscription_end_date" invisible="1"/>
+                <field name="category_id"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Subscription Lines" name="subscription_lines">
+                    <field name="subscription_line_ids">
+                            <tree>
+                                <field name="product_id"/>
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                                <field name="name"/>
+                                <field name="quantity"/>
+                                <field name="price_unit"/>
+                                <field name="discount"/>
+                                <field name="price_subtotal"/>
+                            </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_invoice_filter_inherit_clx_invoice_policy" model="ir.ui.view">
+        <field name="name">mgmt.company.account.invoice.search</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='myinvoices']" position="after">
+                <separator/>
+                <filter name="mgmt_company" string="Management Company" domain="[('mgmt_company','!=',False)]"/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter name="mgmt_company" string="Management Company" context="{'group_by': 'mgmt_company'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_invoice_tree_inherit_clx_invoice_policy" model="ir.ui.view">
+        <field name="name">account.invoice.tree</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='invoice_date_due']" position="after">
+                <field name="invoices_month_year"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
