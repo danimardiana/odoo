@@ -15,7 +15,7 @@ class SubTask(models.Model):
             if record.parent_id and record.parent_id.tag_ids:
                 record.tag_ids = record.parent_id.tag_ids.ids
 
-    name = fields.Char(string='name')
+    name = fields.Char(string='Name')
     sub_task_name = fields.Char(string='Sub Task Name')
     team_ids = fields.Many2many('clx.team', string='Team')
     parent_id = fields.Many2one('main.task', string='Parent Task', ondelete='cascade')

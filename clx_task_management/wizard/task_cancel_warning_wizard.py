@@ -5,6 +5,25 @@
 from odoo import models, fields
 
 
+class TaskpopupWarningWizard(models.TransientModel):
+    _name = 'task.popup.warning.wizard'
+
+    sub_task_ids = fields.Many2many('sub.task')
+
+    def create_dependent_task(self):
+        """
+        create dependent task when user click on yes button on the wizard form.
+        :return:
+        """
+        project_id = self._context.get('project_id', False)
+        task_id = self._context.get('current_task', False)
+        project_id = self.env['project.project'].browse(project_id)
+        sub_task_id = self.env['project.task'].browse(task_id)
+        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8', raise_if_not_found=False)
+        if complete_stage and sub_task_id:
+            sub_task_id.write({'stage_id': complete_stage.id})
+
+
 class TaskCancelWarningWizard(models.TransientModel):
     _name = 'task.cancel.warning.wizard'
 
