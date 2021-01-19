@@ -1172,3 +1172,7 @@
 ## 01/18/2021
 #### Version 13.1.1.0.24
 - [FIX] clx_subscription_creation : set description on upsell.
+
+## 01/18/2021
+#### Version 13.3.0.0.28
+- [FIX] clx_budget_analysis_report : fix the issue related to wholesale price now taken total of all subscription lines.

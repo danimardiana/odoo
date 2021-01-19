@@ -234,7 +234,6 @@ class Partner(models.Model):
                             line['subscription_lines_ids'])
             order = so_lines[0].so_line_id.order_id
             final_lines = {}
-            print(upsell_lines, base_lines, downsell_lines)
             if base_lines and upsell_lines:
                 for key, val in base_lines.items():
                     for key1, val1 in upsell_lines.items():
@@ -375,7 +374,6 @@ class Partner(models.Model):
                 'source_id': order.source_id.id,
                 'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
             })
-        print(account_id)
         if account_id:
             account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
 
