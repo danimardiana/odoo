@@ -42,6 +42,7 @@ class SaleSubscriptionWizard(models.TransientModel):
         active_subscription = self.env['sale.subscription'].browse(self._context.get('active_id'))
         order_id = active_subscription.recurring_invoice_line_ids[0].mapped('so_line_id').order_id
         res_id = res.get('res_id', False)
+        wholesale = 0.0
         if res_id:
             so = self.env['sale.order'].browse(res_id)
             so.onchange_partner_id()
