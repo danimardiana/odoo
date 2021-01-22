@@ -24,8 +24,8 @@
                 </page>
             </notebook>
             <xpath expr="//field[@name='order_line']/tree" position="inside">
-                <field name="management_price" invisible="0"/>
-                <field name="wholesale_price" invisible="0"/>
+                <field name="management_price" invisible="1"/>
+                <field name="wholesale_price" invisible="1"/>
             </xpath>
         </field>
     </record>
