@@ -1181,4 +1181,12 @@
 #### Version 13.1.0.0.19
 - [FIX] clx_retail_pricelist : hide the management fees and wholesale price on sale order.
 
+## 01/22/2021
+#### Version 13.1.0.0.60
+- [ADD] clx_invoice_policy : added code for the not create invoice for imported data for the past.
+
+## 01/22/2021
+#### Version 13.1.1.0.24
+- [FIX] clx_subscription_creation : Fix the issue related to description on subscription kanban view.
+
 
