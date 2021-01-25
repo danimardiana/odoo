@@ -66,6 +66,9 @@ class Partner(models.Model):
             lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'arrears'))
         advance_lines = lines.filtered(
             lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
+        if self._context.get('check_invoice_start_date', False):
+            advance_lines = advance_lines.filtered(
+                lambda sl: (sl.invoice_start_date and sl.invoice_end_date))
         if areas_lines:
             self.generate_arrears_invoice(areas_lines)
         if advance_lines:
@@ -508,7 +511,7 @@ class Partner(models.Model):
             return True
         try:
             for customer in customers:
-                customer.generate_invoice()
+                customer.with_context(check_invoice_start_date=True).generate_invoice()
             return True
         except Exception as e:
             return False

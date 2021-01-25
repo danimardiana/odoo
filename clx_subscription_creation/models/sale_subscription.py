@@ -38,7 +38,10 @@ class SaleSubscription(models.Model):
 
     def _get_description_from_line(self):
         for subscription in self:
-            subscription.product_des = subscription.recurring_invoice_line_ids[0].name
+            if subscription.recurring_invoice_line_ids:
+                subscription.product_des = subscription.recurring_invoice_line_ids[0].name
+            else:
+                subscription.product_des = False
 
     product_id = fields.Many2one('product.product', string="Product",
                                  compute='_get_product_from_line')

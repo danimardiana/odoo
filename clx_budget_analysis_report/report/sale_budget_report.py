@@ -217,6 +217,7 @@ class SaleBudgetReport(models.Model):
                 #     report_data_table.create(vals)
                 else:
                     report_data = report_data_table.create(vals)
+                    wholesale = 0.0
                     if report_data:
                         price_unit = 0.0
                         starting_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
