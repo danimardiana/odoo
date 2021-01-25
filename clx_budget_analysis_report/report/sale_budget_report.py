@@ -147,9 +147,14 @@ class SaleBudgetReport(models.Model):
                 end_date_line = current_month_start_date.replace(
                     day=monthrange(current_month_start_date.year, current_month_start_date.month)[1])
                 end_date_x = subscription_line.end_date if subscription_line.end_date and subscription_line.end_date <= end_date_line else end_date_line
-                base_price = base[0].price_unit/2 if (current_month_start_date.day > 15) or (end_date_x.day < 15) else base[0].price_unit
+                base_price = base[0].price_unit / 2 if (current_month_start_date.day > 15) or (end_date_x.day < 15) else \
+                    base[0].price_unit
                 starting_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
                     lambda x: x.start_date <= subscription_line.start_date)
+                for sub_line in starting_line:
+                    if sub_line.end_date and subscription_line.start_date >= sub_line.end_date:
+                        starting_line -= sub_line
+                print("TTTTTTTTTTTTTTTTTTTTTTTtt", starting_line)
                 s_sum = 0.0
                 for s_line in starting_line:
                     if current_month_start_date.day > 15 or end_date_x.day < 15:
@@ -184,7 +189,8 @@ class SaleBudgetReport(models.Model):
                     price_unit = 0.0
                     vals.update({'upsell_down_sell_price': subscription_line.price_unit})
                     available_line.write(vals)
-                    starting_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(lambda x:x.start_date <= subscription_line.start_date)
+                    starting_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
+                        lambda x: x.start_date <= subscription_line.start_date)
                     if starting_line:
                         s_sum = 0.0
                         for s_line in starting_line:
