@@ -1193,4 +1193,8 @@
 #### Version 13.3.0.0.29
 - [FIX] clx_budget_analysis_report : fix the issue system interpret upsell/downsell in strange way. https://www.loom.com/share/223acd0d56e34220abb2578a061980a2
 
+## 01/25/2021
+#### Version 13.3.0.0.30
+- [FIX] clx_budget_analysis_report : Fix the same issue version 29 fixed on when update the record.
+
 

@@ -154,7 +154,6 @@ class SaleBudgetReport(models.Model):
                 for sub_line in starting_line:
                     if sub_line.end_date and subscription_line.start_date >= sub_line.end_date:
                         starting_line -= sub_line
-                print("TTTTTTTTTTTTTTTTTTTTTTTtt", starting_line)
                 s_sum = 0.0
                 for s_line in starting_line:
                     if current_month_start_date.day > 15 or end_date_x.day < 15:
@@ -191,6 +190,9 @@ class SaleBudgetReport(models.Model):
                     available_line.write(vals)
                     starting_line = subscription_line.analytic_account_id.recurring_invoice_line_ids.filtered(
                         lambda x: x.start_date <= subscription_line.start_date)
+                    for sub_line in starting_line:
+                        if sub_line.end_date and subscription_line.start_date >= sub_line.end_date:
+                            starting_line -= sub_line
                     if starting_line:
                         s_sum = 0.0
                         for s_line in starting_line:
