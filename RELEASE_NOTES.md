@@ -1205,4 +1205,3 @@
 #### Version 13.3.0.0.32
 - [FIX] clx_budget_analysis_report : added init for execute query.
 
-
