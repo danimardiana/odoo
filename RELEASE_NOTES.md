@@ -1201,3 +1201,7 @@
 #### Version 13.3.0.0.31
 - [FIX] clx_budget_analysis_report : changed the process of the pivot report for the budget.
 
+## 01/27/2021
+#### Version 13.3.0.0.32
+- [FIX] clx_budget_analysis_report : added init for execute query.
+
