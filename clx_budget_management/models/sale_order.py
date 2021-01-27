@@ -23,13 +23,13 @@ class SaleOrder(models.Model):
         """
         inherited method for create budget line when confirm the sale order
         """
-        if self.partner_id.company_type_rel != 'company':
-            raise UserError(_("Please select customer Company to Confirm the sale order"))
-        res = super(SaleOrder, self)._action_confirm()
-        self.env['sale.subscription']._create_sale_budget(self)
-        self.env['sale.budget.changes']._create_sale_budget_changes(self)
-        self.with_context(se_order_id=self.id)._send_mail_budget_changes()
-        return res
+        for order in self:
+            if order.partner_id.company_type_rel != 'company':
+                raise UserError(_("Please select customer Company to Confirm the sale order"))
+            self.env['sale.subscription']._create_sale_budget(order)
+            self.env['sale.budget.changes']._create_sale_budget_changes(order)
+            self.with_context(se_order_id=order.id)._send_mail_budget_changes()
+        return super(SaleOrder, self)._action_confirm()
 
     def open_budget_line(self):
         budget_lines = self.env['sale.budget.line'].search([('sol_id.order_id', '=', self.id)])

@@ -1189,4 +1189,15 @@
 #### Version 13.1.1.0.24
 - [FIX] clx_subscription_creation : Fix the issue related to description on subscription kanban view.
 
+## 01/25/2021
+#### Version 13.3.0.0.29
+- [FIX] clx_budget_analysis_report : fix the issue system interpret upsell/downsell in strange way. https://www.loom.com/share/223acd0d56e34220abb2578a061980a2
+
+## 01/25/2021
+#### Version 13.3.0.0.30
+- [FIX] clx_budget_analysis_report : Fix the same issue version 29 fixed on when update the record.
+
+## 01/27/2021
+#### Version 13.3.0.0.31
+- [FIX] clx_budget_analysis_report : changed the process of the pivot report for the budget.
 
