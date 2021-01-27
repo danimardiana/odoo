@@ -1201,4 +1201,3 @@
 #### Version 13.3.0.0.31
 - [FIX] clx_budget_analysis_report : changed the process of the pivot report for the budget.
 
-

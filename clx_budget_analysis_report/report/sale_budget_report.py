@@ -49,3 +49,4 @@ class SaleBudgetReport(models.Model):
          sbl.base_price as price,
          sbl.end_date as end_date
         from sale_subscription_report_data AS sbl group by sbl.partner_id,sbl.id"""
+      
