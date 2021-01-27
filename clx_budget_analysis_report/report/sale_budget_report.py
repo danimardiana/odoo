@@ -49,3 +49,11 @@ class SaleBudgetReport(models.Model):
          sbl.base_price as price,
          sbl.end_date as end_date
         from sale_subscription_report_data AS sbl group by sbl.partner_id,sbl.id"""
+
+    def init(self):
+        tools.drop_view_if_exists(self._cr, self._table)
+        self._cr.execute("""
+                    CREATE OR REPLACE VIEW %s AS (
+                        %s
+                    )
+                """ % (self._table, self._query()))
