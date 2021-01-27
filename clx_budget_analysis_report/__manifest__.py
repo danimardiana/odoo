@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'Budget Analysis Report',
-    'version': '13.3.0.0.30',
+    'version': '13.3.0.0.31',
     'summary': 'Budget Analysis Report',
     'sequence': 1,
     'description': """ Budget Analysis Report """,
@@ -12,6 +12,7 @@
     'website': 'https://conversionlogix.com/',
     'depends': ['clx_budget_management','clx_subscription_creation'],
     'data': [
+        "data/schedulers.xml",
         "security/ir.model.access.csv",
         "report/sale_budget_report.xml",
 

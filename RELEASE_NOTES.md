@@ -1197,4 +1197,8 @@
 #### Version 13.3.0.0.30
 - [FIX] clx_budget_analysis_report : Fix the same issue version 29 fixed on when update the record.
 
+## 01/27/2021
+#### Version 13.3.0.0.31
+- [FIX] clx_budget_analysis_report : changed the process of the pivot report for the budget.
+
 
