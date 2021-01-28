@@ -116,11 +116,11 @@ class SaleSubscriptionLine(models.Model):
             end_date = vals.get('end_date')
             if type(end_date) == str:
                 end_date = parser.parse(end_date).date()
-            if end_date > self.end_date and not self._context.get(
-                    'skip') and not self.invoice_end_date and not self.invoice_start_date:
-                raise ValidationError(_(
-                    "You Can not set date of the Next Month You have to create new Subscription for that month!!"
-                ))
+            # if end_date > self.end_date and not self._context.get(
+            #         'skip') and not self.invoice_end_date and not self.invoice_start_date:
+            #     raise ValidationError(_(
+            #         "You Can not set date of the Next Month You have to create new Subscription for that month!!"
+            #     ))
             if vals.get('end_date') and not self._context.get('skip', False):
                 if self.invoice_end_date == self.end_date:
                     self.write(

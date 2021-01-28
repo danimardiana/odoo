@@ -1205,3 +1205,7 @@
 #### Version 13.3.0.0.32
 - [FIX] clx_budget_analysis_report : added init for execute query.
 
+## 01/28/2021
+#### Version 13.1.0.0.61
+- [ADD] clx_invoice_policy : removed User warning when set end date.
+
