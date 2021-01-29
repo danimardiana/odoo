@@ -3,10 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 
 from odoo import fields, models, tools, api
-from dateutil.relativedelta import relativedelta
-from collections import OrderedDict
-from datetime import timedelta
-from calendar import monthrange
+
 
 
 class SaleSubscriptionData(models.Model):

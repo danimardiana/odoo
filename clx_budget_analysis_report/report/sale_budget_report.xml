@@ -37,7 +37,7 @@
         <field name="domain">[]</field>
     </record>
 
-    <menuitem
+    <!--<menuitem
             id="budget_reporting"
             name="Reporting"
             parent="clx_budget_management.main_menu_sale_budget"
@@ -48,5 +48,5 @@
             name="Budget Report"
             parent="clx_budget_analysis_report.budget_reporting"
             action="clx_budget_analysis_report.sale_budget_report_action"
-            sequence="1"/>
+            sequence="1"/>-->
 </odoo>
