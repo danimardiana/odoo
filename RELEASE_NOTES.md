@@ -1213,11 +1213,15 @@
 #### Version 13.3.0.0.32
 - [FIX] clx_budget_analysis_report : set previous code for budget report.
 
-## 01/28/2021
+## 01/29/2021
 #### Version 13.3.0.0.34
 - [ADD] clx_budget_analysis_report : added wizard for budget pivot report. now show only selected customer budgets.
 
 ## 01/29/2021
 #### Version 13.3.0.0.35
-- [ADD] clx_budget_analysis_report : for now skip the yearly subscription. 
+- [ADD] clx_budget_analysis_report : for now skip the yearly subscription.
+
+## 01/29/2021
+#### Version 13.3.0.0.35
+- [FIX] clx_budget_analysis_report : Fix the issue related to start date.
 
