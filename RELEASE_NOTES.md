@@ -1213,3 +1213,7 @@
 #### Version 13.3.0.0.32
 - [FIX] clx_budget_analysis_report : set previous code for budget report.
 
+## 01/28/2021
+#### Version 13.3.0.0.34
+- [ADD] clx_budget_analysis_report : added wizard for budget pivot report. now show only selected customer budgets.
+

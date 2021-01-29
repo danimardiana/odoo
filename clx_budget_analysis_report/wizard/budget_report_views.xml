@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="budget_report_form_view" model="ir.ui.view">
+        <field name="name">budget.report.form.view</field>
+        <field name="model">budget.report.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="partner_ids" widget="many2many_tags" required="1"/>
+                        <field name="start_date" required="1"/>
+                        <field name="end_date" required="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="get_budget_report" string="Apply" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_report" model="ir.actions.act_window">
+        <field name="name">Budget Report</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">budget.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_budget_report"
+              name="Budget Report"
+              parent="clx_budget_management.main_menu_sale_budget"
+              action="clx_budget_analysis_report.action_budget_report"
+    />
+</odoo>
