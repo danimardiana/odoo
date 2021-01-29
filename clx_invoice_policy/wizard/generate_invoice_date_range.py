@@ -32,10 +32,11 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 raise UserError(_("You need to sale order for create a invoice!!"))
         advance_lines = lines.filtered(
             lambda sl: (
-                        sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance' and sl.product_id.subscription_template_id.recurring_rule_type == "monthly"))
+                    sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance' and sl.product_id.subscription_template_id.recurring_rule_type == "monthly"))
         final_adv_line = self.env['sale.subscription.line']
         for adv_line in advance_lines:
-            if not adv_line.end_date and adv_line.start_date <= self.start_date or (adv_line.start_date >= self.start_date):
+            if not adv_line.end_date and adv_line.start_date <= self.start_date or (
+                    adv_line.start_date >= self.start_date):
                 final_adv_line += adv_line
             elif adv_line.end_date and adv_line.start_date <= self.start_date and adv_line.end_date >= self.end_date:
                 final_adv_line += adv_line
@@ -61,8 +62,12 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 if y_line.id not in all_account_move_lines.mapped('subscription_lines_ids').ids:
                     advance_lines += y_line
         if account_move_lines:
-            raise UserError(_("Invoice of This period {} is Already created").format(period_msg))
+            for ad_line in advance_lines:
+                if ad_line.id in account_move_lines.mapped('subscription_lines_ids').ids:
+                    advance_lines -= ad_line
+            # raise UserError(_("Invoice of This period {} is Already created").format(period_msg))
         if advance_lines:
+            advance_lines = advance_lines.filtered(lambda x: x.price_unit > 0)
             advance_lines_list = list(set(advance_lines.ids))
             advance_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
             count = 1

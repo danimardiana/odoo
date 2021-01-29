@@ -1225,3 +1225,6 @@
 #### Version 13.3.0.0.35
 - [FIX] clx_budget_analysis_report : Fix the issue related to start date.
 
+## 01/29/2021
+#### Version 13.1.0.0.62
+- [ADD] clx_invoice_policy : Created invoice for the upsell subscription lines.
