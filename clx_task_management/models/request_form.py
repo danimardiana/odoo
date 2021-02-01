@@ -194,7 +194,7 @@ class RequestForm(models.Model):
         vals = {
             'name': line.task_id.name,
             'project_id': project_id.id,
-            'description': line.description,
+            'description': line.description.replace('\n', '<br/>'),
             'stage_id': stage_id.id,
             'repositary_task_id': line.task_id.id,
             'req_type': line.task_id.req_type,
@@ -296,7 +296,8 @@ class RequestForm(models.Model):
         req_line_obj = self.env['request.form.line']
         if not self.is_create_client_launch:
             client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task', raise_if_not_found=False)
-            available_line = self.request_line.filtered(lambda x: client_launch_task and x.task_id.id == client_launch_task.id)
+            available_line = self.request_line.filtered(
+                lambda x: client_launch_task and x.task_id.id == client_launch_task.id)
             if available_line:
                 available_line.unlink()
         else:
