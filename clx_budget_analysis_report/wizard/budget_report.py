@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
-from odoo import fields, models
+from odoo import fields, models, api
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from datetime import timedelta
@@ -15,6 +15,17 @@ class BudgetReportWizard(models.TransientModel):
     partner_ids = fields.Many2many('res.partner', string="Customers")
     start_date = fields.Date(string="Start Date", default=datetime.datetime(fields.Date.today().year, 1, 1).date())
     end_date = fields.Date(string="End Date")
+
+    @api.model
+    def default_get(self, fields):
+        result = super(BudgetReportWizard, self).default_get(fields)
+        wizard_records = self.search([], order='id DESC')
+        if wizard_records:
+            result.update({'partner_ids': wizard_records[0].partner_ids.ids,
+                           'start_date': wizard_records[0].start_date,
+                           'end_date': wizard_records[0].end_date
+                           })
+        return result
 
     def _calculate_wholesale_price(self, subscription_line, price_unit, price_list):
         wholesale = 0.0

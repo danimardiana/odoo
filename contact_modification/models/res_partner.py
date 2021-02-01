@@ -185,6 +185,11 @@ class Partner(models.Model):
             self.mobile = self.contact_company_type_id.mobile or False
             self.name = self.contact_company_type_id.display_name
 
+    @api.onchange('management_company_type_id')
+    def onchange_management_company_type_id(self):
+        if self.management_company_type_id and self.management_company_type_id.property_product_pricelist:
+            self.property_product_pricelist = self.management_company_type_id.property_product_pricelist.id
+
     @api.onchange('contact_type_ids')
     def onchange_contact_display_name(self):
         for rec in self:

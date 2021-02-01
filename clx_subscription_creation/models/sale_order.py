@@ -92,10 +92,15 @@ class SaleOrder(models.Model):
         budget_lines = self.env['sale.budget.line'].search([('sol_id', 'in', self.order_line.ids)])
         if budget_lines:
             budget_lines.unlink()
+        subscriptions = False
         for record in self:
             sub_lines = self.env['sale.subscription.line'].search([('so_line_id', 'in', record.order_line.ids)])
             if sub_lines:
+                subscriptions = sub_lines.mapped('analytic_account_id')
                 sub_lines.unlink()
+                subscriptions = subscriptions.filtered(lambda x: not x.recurring_invoice_line_ids)
+            if subscriptions:
+                subscriptions.unlink()
         return super(SaleOrder, self).unlink()
 
 
