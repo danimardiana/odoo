@@ -1244,3 +1244,7 @@
 ## 02/01/2021
 #### Version 13.3.0.0.37
 - [FIX] clx_budget_analysis_report : set default value on budget pivot report wizard of the lasr record.
+
+## 02/01/2021
+#### Version 13.1.1.0.34
+- [FIX] contact_modification : added onchange for set customer company pricelist from the management company recors.
