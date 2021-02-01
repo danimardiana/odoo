@@ -1236,3 +1236,7 @@
 ## 02/01/2021
 #### Version 13.1.0.0.20
 - [ADD] clx_retail_pricelist : set management company price list on sale order.
+
+## 02/01/2021
+#### Version 13.1.1.0.27
+- [FIX] clx_subscription_creation : deleted subscription when subscription have only when line and user delete that sale orders.
