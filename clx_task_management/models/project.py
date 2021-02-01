@@ -225,6 +225,12 @@ class ProjectTask(models.Model):
             }
             return vals
 
+    @api.onchange('stage_id')
+    def onchange_stage_id(self):
+        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        if not self.parent_id and self.stage_id.id == complete_stage.id:
+            raise UserError(_("You Can not Complete the Task until the all Sub Task are completed"))
+
     def write(self, vals):
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         res = super(ProjectTask, self).write(vals)

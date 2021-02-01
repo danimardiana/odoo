@@ -47,15 +47,17 @@ class SaleOrder(models.Model):
         pricelist_id = self.partner_id.property_product_pricelist
         public_plist = self.env.ref('product.list0')
         if pricelist_id == public_plist and self.partner_id.contact_child_ids:
-            contact = self.partner_id.contact_child_ids.filtered(
-                lambda ch: 'Billing Contact' in ch.mapped(
-                    'contact_type_ids'
-                ).mapped('name') and ch.child_id.parent_id and
-                           ch.child_id.parent_id.property_product_pricelist
-            )
+            # contact = self.partner_id.contact_child_ids.filtered(
+            #     lambda ch: 'Billing Contact' in ch.mapped(
+            #         'contact_type_ids'
+            #     ).mapped('name') and ch.child_id.parent_id and
+            #                ch.child_id.parent_id.property_product_pricelist
+            # )
+            contact = self.partner_id.management_company_type_id
             if contact:
-                self.pricelist_id = contact.child_id.parent_id. \
-                    property_product_pricelist.id
+                # self.pricelist_id = contact.child_id.parent_id. \
+                #     property_product_pricelist.id
+                self.pricelist_id = contact.property_product_pricelist.id
 
     def update_price(self):
         """ Add Update Price Method to Calculate

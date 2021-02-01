@@ -1225,3 +1225,14 @@
 #### Version 13.3.0.0.35
 - [FIX] clx_budget_analysis_report : Fix the issue related to start date.
 
+## 01/29/2021
+#### Version 13.1.0.0.62
+- [ADD] clx_invoice_policy : A created invoice for the upsell subscription lines.
+
+## 02/01/2021
+#### Version 13.3.0.0.80
+- [ADD] clx_task_management : added warning when user complete task manually.
+
+## 02/01/2021
+#### Version 13.1.0.0.20
+- [ADD] clx_retail_pricelist : set management company price list on sale order.
