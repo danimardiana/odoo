@@ -32,6 +32,8 @@ class RequestForm(models.Model):
     )
     submitted_by_user_id = fields.Many2one("res.users", string="Submitted By")
     priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    update_all_products = fields.Boolean(string="Update All Products")
+    update_products_des = fields.Text(string="Update Products Description")
 
     def open_active_subscription_line(self):
         """
@@ -194,7 +196,7 @@ class RequestForm(models.Model):
         vals = {
             'name': line.task_id.name,
             'project_id': project_id.id,
-            'description': line.description,
+            'description': line.description.replace('\n', '<br/>'),
             'stage_id': stage_id.id,
             'repositary_task_id': line.task_id.id,
             'req_type': line.task_id.req_type,
@@ -296,7 +298,8 @@ class RequestForm(models.Model):
         req_line_obj = self.env['request.form.line']
         if not self.is_create_client_launch:
             client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task', raise_if_not_found=False)
-            available_line = self.request_line.filtered(lambda x: client_launch_task and x.task_id.id == client_launch_task.id)
+            available_line = self.request_line.filtered(
+                lambda x: client_launch_task and x.task_id.id == client_launch_task.id)
             if available_line:
                 available_line.unlink()
         else:
@@ -326,6 +329,12 @@ class RequestForm(models.Model):
                 list_product.append(line_id.id)
         self.update({'request_line': [(6, 0, list_product)]})
 
+    def update_description(self):
+        for line in self.request_line:
+            if line.description and self.update_products_des and self.update_all_products:
+                line.description += self.update_products_des
+                line.req_type = 'update'
+
 
 class RequestFormLine(models.Model):
     _name = 'request.form.line'
@@ -347,6 +356,7 @@ class RequestFormLine(models.Model):
     def _onchange_task_id(self):
         if self.task_id:
             self.requirements = self.task_id.requirements
+            self.description = self.task_id.requirements
 
     @api.onchange('req_type')
     def _onchange_main_task(self):

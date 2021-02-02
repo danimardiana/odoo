@@ -42,6 +42,11 @@
                             <field name="is_create_client_launch"/>
                             <field name="sale_order_id" widget="many2many_tags" invisible="1"
                                    context="{'active_sale_order': True,'req_partner_id': partner_id}"/>
+                            <field name="update_all_products"/>
+                            <field name="update_products_des" attrs="{'invisible': [('update_all_products', '=', False)]}"/>
+                            <div attrs="{'invisible': [('update_all_products', '=', False)]}">
+                                <button name="update_description" string="Update Descriptions" icon="fa-long-arrow-right" type="object"/>
+                            </div>
                         </group>
                     </group>
                     <notebook>
@@ -53,8 +58,8 @@
                                     <field name="request_form_id" invisible="1"/>
                                     <field name="req_type"/>
                                     <field name="task_id" options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"/>
-                                    <field name="requirements" style="width: 243px !important;"/>
-                                    <field name="description" style="max-width:711px;width: 569px !important;" widget="html"/>
+                                    <field name="requirements" style="width: 243px !important;" invisible="1"/>
+                                    <field name="description" style="max-width:711px;width: 569px !important;"/>
                                 </tree>
                                 <form>
                                     <group>
