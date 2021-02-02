@@ -32,6 +32,8 @@ class RequestForm(models.Model):
     )
     submitted_by_user_id = fields.Many2one("res.users", string="Submitted By")
     priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    update_all_products = fields.Boolean(string="Update All Products")
+    update_products_des = fields.Text(string="Update Products Description")
 
     def open_active_subscription_line(self):
         """
@@ -327,6 +329,11 @@ class RequestForm(models.Model):
                 list_product.append(line_id.id)
         self.update({'request_line': [(6, 0, list_product)]})
 
+    def update_description(self):
+        for line in self.request_line:
+            if line.req_type == 'update' and line.description and self.update_products_des and self.update_all_products:
+                line.description += self.update_products_des
+
 
 class RequestFormLine(models.Model):
     _name = 'request.form.line'
@@ -348,6 +355,7 @@ class RequestFormLine(models.Model):
     def _onchange_task_id(self):
         if self.task_id:
             self.requirements = self.task_id.requirements
+            self.description = self.task_id.requirements
 
     @api.onchange('req_type')
     def _onchange_main_task(self):
