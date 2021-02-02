@@ -1252,3 +1252,7 @@
 ## 02/01/2021
 #### Version 13.3.0.0.81
 - [ADD] clx_task_management : added code for the set new line in task description.
+
+## 02/02/2021
+#### Version 13.3.0.0.82
+- [FIX] clx_task_management : fix the issue of the depedency when task has been created from manaully.
