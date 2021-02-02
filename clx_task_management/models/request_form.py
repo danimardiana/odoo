@@ -331,8 +331,9 @@ class RequestForm(models.Model):
 
     def update_description(self):
         for line in self.request_line:
-            if line.req_type == 'update' and line.description and self.update_products_des and self.update_all_products:
+            if line.description and self.update_products_des and self.update_all_products:
                 line.description += self.update_products_des
+                line.req_type = 'update'
 
 
 class RequestFormLine(models.Model):

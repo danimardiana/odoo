@@ -1260,3 +1260,7 @@
 ## 02/02/2021
 #### Version 13.3.0.0.83
 - [FIX] clx_task_management : added button od the update all description
+
+## 02/02/2021
+#### Version 13.3.0.0.84
+- [FIX] clx_task_management : hide the requirements fields on request form line.

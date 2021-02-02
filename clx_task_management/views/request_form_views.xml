@@ -58,7 +58,7 @@
                                     <field name="request_form_id" invisible="1"/>
                                     <field name="req_type"/>
                                     <field name="task_id" options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"/>
-                                    <field name="requirements" style="width: 243px !important;"/>
+                                    <field name="requirements" style="width: 243px !important;" invisible="1"/>
                                     <field name="description" style="max-width:711px;width: 569px !important;"/>
                                 </tree>
                                 <form>
