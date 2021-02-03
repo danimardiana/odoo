@@ -1,0 +1,4 @@
+.custom-textarea textarea{
+    height: 100px !important;
+    overflow-y:scroll !important;
+}

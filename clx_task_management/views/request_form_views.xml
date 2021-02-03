@@ -56,10 +56,10 @@
                                     <field name="product_id" readonly="1" style="width: 96px !important;"/>
                                     <field name="category_id" invisible="1"/>
                                     <field name="request_form_id" invisible="1"/>
-                                    <field name="req_type"/>
-                                    <field name="task_id" options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"/>
-                                    <field name="requirements" style="width: 243px !important;" invisible="1"/>
-                                    <field name="description" style="max-width:711px;width: 569px !important;"/>
+                                    <field name="req_type" style="width: 80px !important;"/>
+                                    <field name="task_id" options="{'no_create_edit': True, 'no_open': True, 'no_create': True}" style="width: 320px !important;"/>
+                                    <field name="requirements"  invisible="1" />
+                                    <field name="description" class="custom-textarea" style="width: 578px !important;"/>
                                 </tree>
                                 <form>
                                     <group>

@@ -325,14 +325,18 @@ class RequestForm(models.Model):
             for product in order_lines.mapped('product_id'):
                 line_id = req_line_obj.create({
                     'product_id': product.id,
+                    'req_type': 'update'
                 })
                 list_product.append(line_id.id)
         self.update({'request_line': [(6, 0, list_product)]})
 
     def update_description(self):
         for line in self.request_line:
-            if line.description and self.update_products_des and self.update_all_products:
-                line.description += self.update_products_des
+            if self.update_products_des and self.update_all_products:
+                if line.description and self.update_products_des not in line.description:
+                    line.description += "\n \n" + self.update_products_des
+                else:
+                    line.description = self.update_products_des
                 line.req_type = 'update'
 
 
