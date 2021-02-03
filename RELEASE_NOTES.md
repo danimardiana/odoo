@@ -1276,3 +1276,11 @@
 ## 02/03/2021
 #### Version 13.3.0.0.87
 - [ADD] clx_task_management : added features of the set default task from the task table.
+
+## 02/03/2021
+#### Version 13.3.0.0.88
+- [ADD] clx_task_management : removed sheet from the form view.
+
+## 02/03/2021
+#### Version 13.3.0.0.38
+- [ADD] clx_budget_analysis_report : added domain on partner_ids field.

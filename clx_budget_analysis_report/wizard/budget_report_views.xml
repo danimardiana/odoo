@@ -7,7 +7,7 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="partner_ids" widget="many2many_tags" required="1"/>
+                        <field name="partner_ids" widget="many2many_tags" required="1" domain="[('company_type','=','company')]"/>
                         <field name="start_date" required="1"/>
                         <field name="end_date" required="1"/>
                     </group>

@@ -12,93 +12,93 @@
                             class="oe_highlight"/>
                     <field name="state" widget="statusbar"/>
                 </header>
-                <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button type="object" class="oe_stat_button"
-                                icon="fa-pencil-square-o" name="open_active_subscription_line"
-                                string="Active Subscription">
-                        </button>
-                        <button type="object" class="oe_stat_button"
-                                icon="fa-pencil-square-o" name="open_project_main_task_kanban_view"
-                                string="Project">
-                        </button>
-                    </div>
+                <div class="oe_button_box" name="button_box">
+                    <button type="object" class="oe_stat_button"
+                            icon="fa-pencil-square-o" name="open_active_subscription_line"
+                            string="Active Subscription">
+                    </button>
+                    <button type="object" class="oe_stat_button"
+                            icon="fa-pencil-square-o" name="open_project_main_task_kanban_view"
+                            string="Project">
+                    </button>
+                </div>
 
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
-                    </div>
+                <div class="oe_title">
+                    <h1>
+                        <field name="name" readonly="1"/>
+                    </h1>
+                </div>
+                <group>
                     <group>
-                        <group>
-                            <field name="partner_id" required="1" domain="[('company_type','=','company')]"/>
-                            <field name="request_date"/>
-                            <field name="intended_launch_date"/>
-                            <field name="submitted_by_user_id" readonly="1"/>
-                            <field name="priority"/>
-                        </group>
-                        <group>
-                            <field name="description"/>
-                            <field name="is_create_client_launch"/>
-                            <field name="sale_order_id" widget="many2many_tags" invisible="1"
-                                   context="{'active_sale_order': True,'req_partner_id': partner_id}"/>
-                            <field name="update_all_products"/>
-                            <field name="update_products_des" attrs="{'invisible': [('update_all_products', '=', False)]}"/>
-                            <div attrs="{'invisible': [('update_all_products', '=', False)]}">
-                                <button name="update_description" string="Update Descriptions" icon="fa-long-arrow-right" type="object"/>
-                            </div>
-                        </group>
+                        <field name="partner_id" required="1" domain="[('company_type','=','company')]"/>
+                        <field name="request_date"/>
+                        <field name="intended_launch_date"/>
+                        <field name="submitted_by_user_id" readonly="1"/>
+                        <field name="priority"/>
                     </group>
-                    <notebook>
-                        <page string="Line Item Details" name="line_item_details">
-                            <field name="request_line" widget="section_and_note_one2many">
-                                <tree editable="bottom">
-                                    <field name="product_id" readonly="1" style="width: 96px !important;"/>
-                                    <field name="category_id" invisible="1"/>
-                                    <field name="request_form_id" invisible="1"/>
-                                    <field name="req_type"/>
-                                    <field name="task_id" options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"
-                                           domain="[('req_type', '=', req_type)]"/>
-                                    <field name="requirements"  invisible="1" />
-                                    <field name="description" class="custom-textarea"/>
-                                </tree>
-                                <form>
+                    <group>
+                        <field name="description"/>
+                        <field name="is_create_client_launch"/>
+                        <field name="sale_order_id" widget="many2many_tags" invisible="1"
+                               context="{'active_sale_order': True,'req_partner_id': partner_id}"/>
+                        <field name="update_all_products"/>
+                        <field name="update_products_des" attrs="{'invisible': [('update_all_products', '=', False)]}"/>
+                        <div attrs="{'invisible': [('update_all_products', '=', False)]}">
+                            <button name="update_description" string="Update Descriptions" icon="fa-long-arrow-right"
+                                    type="object"/>
+                        </div>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Line Item Details" name="line_item_details">
+                        <field name="request_line" widget="section_and_note_one2many">
+                            <tree editable="bottom">
+                                <field name="product_id" readonly="1"/>
+                                <field name="category_id" invisible="1"/>
+                                <field name="request_form_id" invisible="1"/>
+                                <field name="req_type"/>
+                                <field name="task_id"
+                                       options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"
+                                       domain="[('req_type', '=', req_type)]"/>
+                                <field name="requirements" invisible="1"/>
+                                <field name="description" class="custom-textarea"/>
+                            </tree>
+                            <form>
+                                <group>
                                     <group>
-                                        <group>
-                                            <field name="product_id" readonly="1"/>
-                                            <field name="category_id" invisible="1"/>
-                                            <field name="req_type"/>
-                                            <field name="task_id" options="{'no_create_edit': True, 'no_open': True}"/>
-                                            <field name="requirements" widget="text"/>
-                                        </group>
-                                        <group>
-                                            <field name="description"/>
-                                        </group>
+                                        <field name="product_id" readonly="1"/>
+                                        <field name="category_id" invisible="1"/>
+                                        <field name="req_type"/>
+                                        <field name="task_id" options="{'no_create_edit': True, 'no_open': True}"/>
+                                        <field name="requirements" widget="text"/>
                                     </group>
-                                </form>
-                            </field>
-                        </page>
-                        <page string="Ads Link">
-                            <field name="ads_link_ids">
+                                    <group>
+                                        <field name="description"/>
+                                    </group>
+                                </group>
+                            </form>
+                        </field>
+                    </page>
+                    <page string="Ads Link">
+                        <field name="ads_link_ids">
+                            <tree editable="bottom">
+                                <field name="product_id"/>
+                                <field name="link" widget="url"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Attachments">
+                        <group>
+                            <field name="clx_attachment_ids" widget="many2many_binary"/>
+                            <field name="attachment_ids" invisible="1">
                                 <tree editable="bottom">
-                                    <field name="product_id"/>
-                                    <field name="link" widget="url"/>
+                                    <field name="name"/>
+                                    <field name="attachment" widget="binary"/>
                                 </tree>
                             </field>
-                        </page>
-                        <page string="Attachments">
-                            <group>
-                                <field name="clx_attachment_ids" widget="many2many_binary"/>
-                                <field name="attachment_ids" invisible="1">
-                                    <tree editable="bottom">
-                                        <field name="name"/>
-                                        <field name="attachment" widget="binary"/>
-                                    </tree>
-                                </field>
-                            </group>
-                        </page>
-                    </notebook>
-                </sheet>
+                        </group>
+                    </page>
+                </notebook>
                 <div class="oe_chatter">
                     <field name="message_follower_ids" widget="mail_followers"/>
                     <field name="activity_ids" widget="mail_activity"/>
