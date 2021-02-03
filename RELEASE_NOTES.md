@@ -1288,3 +1288,7 @@
 ## 02/03/2021
 #### Version 13.3.0.0.89
 - [FIX] clx_task_management : Fix the issue related to set description default task.
+
+## 02/03/2021
+#### Version 13.3.0.0.90
+- [FIX] clx_task_management : FIX the domain on task in the request line.
