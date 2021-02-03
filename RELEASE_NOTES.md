@@ -1292,3 +1292,7 @@
 ## 02/03/2021
 #### Version 13.3.0.0.90
 - [FIX] clx_task_management : FIX the domain on task in the request line.
+
+## 02/03/2021
+#### Version 13.3.0.0.38
+- [ADD] clx_budget_analysis_report : added reset button in budget report wizard.

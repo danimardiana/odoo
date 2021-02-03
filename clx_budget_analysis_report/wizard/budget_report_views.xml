@@ -14,6 +14,7 @@
                 </sheet>
                 <footer>
                     <button name="get_budget_report" string="Apply" type="object" class="btn-primary"/>
+                    <button name="reset" string="Reset" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
