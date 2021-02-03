@@ -296,6 +296,7 @@ class RequestForm(models.Model):
     def _onchange_partner_id(self):
         list_product = []
         req_line_obj = self.env['request.form.line']
+        main_task_obj = self.env['main.task']
         if not self.is_create_client_launch:
             client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task', raise_if_not_found=False)
             available_line = self.request_line.filtered(
@@ -310,6 +311,7 @@ class RequestForm(models.Model):
                     'req_type': a_task.req_type,
                     'task_id': a_task.id,
                     'requirements': a_task.requirements,
+                    'description': a_task.requirements
                 }
                 form_line_id = req_line_obj.create(vals)
                 list_product.append(form_line_id.id)
@@ -323,16 +325,22 @@ class RequestForm(models.Model):
             if future_lines:
                 order_lines += future_lines
             for product in order_lines.mapped('product_id'):
+                task_id = main_task_obj.search([('product_ids', 'in', product.id), ('req_type', '=', 'update')])
                 line_id = req_line_obj.create({
                     'product_id': product.id,
+                    'req_type': 'update',
+                    'task_id': task_id[0].id if task_id else False
                 })
                 list_product.append(line_id.id)
         self.update({'request_line': [(6, 0, list_product)]})
 
     def update_description(self):
         for line in self.request_line:
-            if line.description and self.update_products_des and self.update_all_products:
-                line.description += self.update_products_des
+            if self.update_products_des and self.update_all_products:
+                if line.description and self.update_products_des not in line.description:
+                    line.description += "\n \n" + self.update_products_des
+                else:
+                    line.description = self.update_products_des
                 line.req_type = 'update'
 
 
@@ -361,7 +369,6 @@ class RequestFormLine(models.Model):
     @api.onchange('req_type')
     def _onchange_main_task(self):
         if self.req_type and self.req_type == 'update':
-            today = fields.Date.today()
             subscriptions = self.env['sale.subscription'].search(
                 [('partner_id', '=', self.request_form_id.partner_id.id)])
             if not subscriptions:

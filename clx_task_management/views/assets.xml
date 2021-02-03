@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<odoo>
+    <template id="assets_backend" name="request line assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/css" href="/clx_task_management/static/src/css/custom_text.css"/>
+        </xpath>
+    </template>
+</odoo>

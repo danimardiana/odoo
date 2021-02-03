@@ -16,6 +16,11 @@ class BudgetReportWizard(models.TransientModel):
     start_date = fields.Date(string="Start Date", default=datetime.datetime(fields.Date.today().year, 1, 1).date())
     end_date = fields.Date(string="End Date")
 
+    def reset(self):
+        self.partner_ids = False
+        action = self.env.ref('clx_budget_analysis_report.action_budget_report').read()[0]
+        return action
+
     @api.model
     def default_get(self, fields):
         result = super(BudgetReportWizard, self).default_get(fields)

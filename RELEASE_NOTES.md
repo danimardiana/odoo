@@ -1264,3 +1264,35 @@
 ## 02/02/2021
 #### Version 13.3.0.0.84
 - [FIX] clx_task_management : hide the requirements fields on request form line.
+
+## 02/03/2021
+#### Version 13.3.0.0.85
+- [FIX] clx_task_management : added scroll bar no text field in request form line.
+
+## 02/03/2021
+#### Version 13.3.0.0.86
+- [FIX] clx_task_management : Fix the scroll bar related issue.
+
+## 02/03/2021
+#### Version 13.3.0.0.87
+- [ADD] clx_task_management : added features of the set default task from the task table.
+
+## 02/03/2021
+#### Version 13.3.0.0.88
+- [ADD] clx_task_management : removed sheet from the form view.
+
+## 02/03/2021
+#### Version 13.3.0.0.38
+- [ADD] clx_budget_analysis_report : added domain on partner_ids field.
+
+## 02/03/2021
+#### Version 13.3.0.0.89
+- [FIX] clx_task_management : Fix the issue related to set description default task.
+
+## 02/03/2021
+#### Version 13.3.0.0.90
+- [FIX] clx_task_management : FIX the domain on task in the request line.
+
+## 02/03/2021
+#### Version 13.3.0.0.38
+- [ADD] clx_budget_analysis_report : added reset button in budget report wizard.

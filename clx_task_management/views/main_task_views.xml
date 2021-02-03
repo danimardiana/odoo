@@ -24,9 +24,12 @@
                             <field name="team_members_ids" widget="many2many_tags"/>
                             <field name="tag_ids" widget="many2many_tags"/>
                             <field name="display_to_customer"/>
+                        </group>
+                        <group>
                             <field name="req_type"/>
                             <field name="requirements"/>
                             <field name="category_id"/>
+                            <field name="product_ids" widget="many2many_tags" domain="[('categ_id', '=', category_id)]"/>
                         </group>
                     </group>
                 </sheet>

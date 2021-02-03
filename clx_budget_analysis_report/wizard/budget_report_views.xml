@@ -7,13 +7,14 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="partner_ids" widget="many2many_tags" required="1"/>
+                        <field name="partner_ids" widget="many2many_tags" required="1" domain="[('company_type','=','company')]"/>
                         <field name="start_date" required="1"/>
                         <field name="end_date" required="1"/>
                     </group>
                 </sheet>
                 <footer>
                     <button name="get_budget_report" string="Apply" type="object" class="btn-primary"/>
+                    <button name="reset" string="Reset" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
