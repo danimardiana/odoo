@@ -18,6 +18,7 @@ class MainTask(models.Model):
     requirements = fields.Text(string="Requirements")
     category_id = fields.Many2one('product.category', string="Product Category")
     tag_ids = fields.Many2many('project.tags', string="Tags")
+    product_ids = fields.Many2many('product.product', string="Products")
 
     # @api.onchange('team_ids')
     # def _onchange_team_ids(self):

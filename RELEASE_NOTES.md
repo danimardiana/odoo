@@ -1272,3 +1272,7 @@
 ## 02/03/2021
 #### Version 13.3.0.0.86
 - [FIX] clx_task_management : Fix the scroll bar related issue.
+
+## 02/03/2021
+#### Version 13.3.0.0.87
+- [ADD] clx_task_management : added features of the set default task from the task table.

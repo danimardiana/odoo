@@ -57,7 +57,8 @@
                                     <field name="category_id" invisible="1"/>
                                     <field name="request_form_id" invisible="1"/>
                                     <field name="req_type"/>
-                                    <field name="task_id" options="{'no_create_edit': True, 'no_open': True, 'no_create': True}" style="width: 320px !important;"/>
+                                    <field name="task_id" options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"
+                                           domain="[('req_type', '=', req_type)]"/>
                                     <field name="requirements"  invisible="1" />
                                     <field name="description" class="custom-textarea"/>
                                 </tree>
