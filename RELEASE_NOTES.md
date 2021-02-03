@@ -1284,3 +1284,7 @@
 ## 02/03/2021
 #### Version 13.3.0.0.38
 - [ADD] clx_budget_analysis_report : added domain on partner_ids field.
+
+## 02/03/2021
+#### Version 13.3.0.0.89
+- [FIX] clx_task_management : Fix the issue related to set description default task.

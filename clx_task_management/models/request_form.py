@@ -311,6 +311,7 @@ class RequestForm(models.Model):
                     'req_type': a_task.req_type,
                     'task_id': a_task.id,
                     'requirements': a_task.requirements,
+                    'description': a_task.requirements
                 }
                 form_line_id = req_line_obj.create(vals)
                 list_product.append(form_line_id.id)
