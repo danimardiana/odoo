@@ -1268,3 +1268,7 @@
 ## 02/03/2021
 #### Version 13.3.0.0.85
 - [FIX] clx_task_management : added scroll bar no text field in request form line.
+
+## 02/03/2021
+#### Version 13.3.0.0.86
+- [FIX] clx_task_management : Fix the scroll bar related issue.
