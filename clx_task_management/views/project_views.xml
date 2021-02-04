@@ -123,7 +123,7 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <field name="user_id" position="attributes">
-                <attribute name="string">Salesperson</attribute>
+                <attribute name="string">Account Manager</attribute>
             </field>
         </field>
     </record>
