@@ -151,16 +151,15 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
-
+            <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <xpath expr="//div[hasclass('o_address_format')]" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))]}</attribute>
             </xpath>
             <field name="industry_id" position="attributes">
                 <attribute name="invisible">1</attribute>
             </field>
-            <!--<field name="website_id" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </field>-->
             <field name="vat" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'not in', ('vendor'))]}</attribute>
             </field>
@@ -476,7 +475,8 @@
                 </group>
             </xpath>
             <xpath expr="//page[@name='internal_notes']" position="after">
-                <page string="Invoice Template Lines" attrs="{'invisible': [('company_type', 'not in', ('management'))]}">
+                <page string="Invoice Template Lines"
+                      attrs="{'invisible': [('company_type', 'not in', ('management'))]}">
                     <group>
                         <field name="invoice_template_line1"/>
                         <field name="invoice_template_line2"/>

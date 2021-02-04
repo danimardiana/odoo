@@ -50,10 +50,11 @@ class SaleOrder(models.Model):
                         self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
                     else:
                         self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
-                so_lines = lines.filtered(lambda x: (not x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
-                                                    or
-                                                    (x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
-                                          )
+                so_lines = lines.filtered(
+                    lambda x: (not x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
+                              or
+                              (x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
+                )
         return res
 
     @api.onchange('partner_id')
@@ -62,6 +63,7 @@ class SaleOrder(models.Model):
         if self.partner_id:
             self.clx_invoice_policy_id = self.partner_id.clx_invoice_policy_id.id if \
                 self.partner_id.clx_invoice_policy_id else False
+            self.user_id = self.partner_id.account_user_id.id if self.partner_id.account_user_id else False
 
     @api.model
     def create(self, vals):

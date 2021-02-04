@@ -11,6 +11,9 @@
                        attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"
                        required="True"/>
             </xpath>
+            <xpath expr="//group[@name='sales_person']//field[@name='user_id']" position="attributes">
+                <attribute name="string">Account Manager</attribute>
+            </xpath>
         </field>
     </record>
 

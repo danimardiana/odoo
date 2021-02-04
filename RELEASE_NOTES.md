@@ -1294,5 +1294,18 @@
 - [FIX] clx_task_management : FIX the domain on task in the request line.
 
 ## 02/03/2021
-#### Version 13.3.0.0.38
+#### Version 13.3.0.0.39
 - [ADD] clx_budget_analysis_report : added reset button in budget report wizard.
+
+## 02/04/2021
+#### Version 13.3.0.0.40
+- [ADD] clx_budget_analysis_report : fix the budget report issue when subscription line have end date.
+
+## 02/04/2021
+#### Version 13.1.0.0.63
+- [ADD] clx_invoice_policy : set account manager from contacts to sale order.
+
+## 02/04/2021
+#### Version 13.1.1.0.35
+- [ADD] contact_modification : changed field relation with users.
+

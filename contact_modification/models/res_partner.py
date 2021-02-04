@@ -63,11 +63,11 @@ class Partner(models.Model):
     is_vendor = fields.Boolean(
         string='Is a Vendore', default=False,
         help="Check if the contact is a Vendor")
-    account_user_id = fields.Many2one('res.partner',
+    account_user_id = fields.Many2one('res.users',
                                       string='Account Manager')
-    secondary_user_id = fields.Many2one('res.partner',
+    secondary_user_id = fields.Many2one('res.users',
                                         string='Secondary Acct. Manager')
-    national_user_id = fields.Many2one('res.partner',
+    national_user_id = fields.Many2one('res.users',
                                        string='National Acct. Manager')
     mangement_company_type = fields.Selection(
         string='Mgmt. Company Type',
