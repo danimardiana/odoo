@@ -237,7 +237,7 @@ class RequestForm(models.Model):
             'name': description,
             'clx_state': 'new',
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
-            'user_id': self.partner_id.user_id.id if self.partner_id.user_id else False,
+            'user_id': self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
             'deadline': self.intended_launch_date if self.intended_launch_date else current_date,
             'priority': self.priority,
             'clx_attachment_ids': self.clx_attachment_ids.ids

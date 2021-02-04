@@ -1309,3 +1309,6 @@
 #### Version 13.1.1.0.35
 - [ADD] contact_modification : changed field relation with users.
 
+## 02/03/2021
+#### Version 13.3.0.0.91
+- [FIX] clx_task_management : fix the salesperson issue on project.
