@@ -34,6 +34,7 @@ class RequestForm(models.Model):
     priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     update_all_products = fields.Boolean(string="Update All Products")
     update_products_des = fields.Text(string="Update Products Description")
+    project_id = fields.Many2one('project.project', string="Project")
 
     def open_active_subscription_line(self):
         """
@@ -164,7 +165,7 @@ class RequestForm(models.Model):
                 'team_members_ids': sub_task.team_members_ids.ids,
                 'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
-                'account_user_id': main_task.project_id.partner_id.user_id.id if main_task.project_id.partner_id.user_id else False,
+                'account_user_id': main_task.project_id.partner_id.account_user_id.id if main_task.project_id.partner_id.account_user_id else False,
                 'clx_priority': main_task.project_id.priority,
                 'description': line.description,
                 'clx_attachment_ids': self.clx_attachment_ids.ids,
@@ -205,7 +206,7 @@ class RequestForm(models.Model):
             'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
             'requirements': line.requirements,
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
-            'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
+            'account_user_id': project_id.partner_id.account_user_id.id if project_id.partner_id.account_user_id else False,
             'clx_priority': self.priority,
             'clx_attachment_ids': self.clx_attachment_ids.ids,
             'product_id': line.product_id.id if line.product_id else False
@@ -244,6 +245,18 @@ class RequestForm(models.Model):
         }
         return vals
 
+    def _send_request_form_mail(self):
+        web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        action_id = self.env.ref('project.open_view_project_all', raise_if_not_found=False)
+        link = """{}/web#id={}&view_type=form&model=project.project&action={}""".format(web_base_url,
+                                                                                               self.project_id.id,
+                                                                                               action_id.id)
+        context = self._context.copy() or {}
+        context.update({'link': link})
+        email_template = self.env.ref('clx_task_management.mail_template_request_form', raise_if_not_found=False)
+        if email_template:
+            email_template.with_context(context).send_mail(self.id, force_send=True)
+
     def action_submit_form(self):
         """
         when request form is submitted create project and task and subtask from the Master table.
@@ -272,6 +285,7 @@ class RequestForm(models.Model):
                 project_id = project_obj.create(vals)
                 if project_id:
                     project_id.req_form_id = self.id
+                    self.project_id = project_id.id
                     self.assign_stage_project(project_id)
                     # if self.is_create_client_launch:
                     #     self.create_client_launch_task(project_id)
@@ -291,6 +305,7 @@ class RequestForm(models.Model):
                                     project_task_obj.create(vals)
         self.state = 'submitted'
         self.submitted_by_user_id = self.env.uid
+        self._send_request_form_mail()
 
     @api.onchange('partner_id', 'is_create_client_launch')
     def _onchange_partner_id(self):

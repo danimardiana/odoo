@@ -1313,6 +1313,14 @@
 #### Version 13.3.0.0.91
 - [FIX] clx_task_management : fix the salesperson issue on project.
 
-## 02/04/2021
+## 02/05/2021
 #### Version 13.3.0.0.92
-- [FIX] clx_task_management : set account manager on project.
+- [FIX] clx_task_management : send email when user submit request form.
+
+## 02/05/2021
+#### Version 13.1.1.0.28
+- [ADD] clx_subscription_creation : make readonly field when sale order is in sale state.
+
+## 02/05/2021
+#### Version 13.1.0.0.21
+- [ADD] clx_retail_pricelist : removed qty on product configurator wizard.

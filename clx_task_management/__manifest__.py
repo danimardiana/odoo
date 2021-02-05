@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Task Management',
-    'version': '13.3.0.0.92',
+    'version': '13.3.0.0.93',
     'summary': 'CLX Task Management',
     'sequence': 1,
     'description': """ CLX Task Management """,
@@ -26,6 +26,7 @@
         'data/team_data.xml',
         'data/main_task.xml',
         'data/client_launch_task.xml',
+        'data/mail_template.xml',
         'views/request_form_template.xml',
         'views/request_form_portal_views.xml',
         'views/res_config_settings_views.xml',

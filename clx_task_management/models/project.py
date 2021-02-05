@@ -155,7 +155,7 @@ class ProjectTask(models.Model):
                 'team_members_ids': sub_task.team_members_ids.ids,
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
                 'clx_attachment_ids': main_task.project_id.clx_attachment_ids.ids if main_task.project_id.clx_attachment_ids else False,
-                'account_user_id': main_task.partner_id.user_id.id if main_task.partner_id.user_id else False
+                'account_user_id': main_task.partner_id.account_user_id.id if main_task.partner_id.account_user_id else False
             }
             return vals
 
@@ -217,7 +217,7 @@ class ProjectTask(models.Model):
                 'ops_team_member_id': self.ops_team_member_id.id if self.ops_team_member_id else False,
                 'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,
                 'clx_task_manager_id': self.clx_task_manager_id.id if self.clx_task_manager_id else False,
-                'account_user_id': project_id.partner_id.user_id.id if project_id.partner_id.user_id else False,
+                'account_user_id': project_id.partner_id.account_user_id.id if project_id.partner_id.account_user_id else False,
                 'clx_priority': project_id.priority,
                 'description': self.description,
                 'clx_attachment_ids': project_id.clx_attachment_ids.ids if project_id.clx_attachment_ids else False,
