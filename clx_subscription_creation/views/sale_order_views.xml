@@ -6,6 +6,9 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=', 'sale')]}</attribute>
+            </xpath>
             <field name="partner_id" position="attributes">
                 <attribute name="domain">[('company_type','=','company')]</attribute>
             </field>

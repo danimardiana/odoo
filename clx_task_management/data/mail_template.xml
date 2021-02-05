@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="mail_template_request_form" model="mail.template">
+            <field name="name">Request Form: Send by email</field>
+            <field name="model_id" ref="clx_task_management.model_request_form"/>
+            <field name="subject">${object.partner_id.name + ' ' + object.description}</field>
+            <field name ="email_from">${(object.create_uid.email_formatted or user.email_formatted) | safe}</field>
+            <field name="email_to">${(object.submitted_by_user_id.email_formatted) | safe}</field>
+            <field name="body_html" type="xml">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px;font-size: 13px;">
+                        Hello, ${object.submitted_by_user_id.name} <br/>
+                        Please see the link of your project.
+                        You can review your project.<a href="${ctx['link']}" target="_blank">Project</a>
+                    </p>
+                </div>
+            </field>
+            <field name="lang">${object.lang}</field>
+            <field name="auto_delete" eval="False"/>
+            <field name="user_signature" eval="True"/>
+        </record>
+    </data>
+</odoo>

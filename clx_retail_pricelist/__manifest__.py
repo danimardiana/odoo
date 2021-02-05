@@ -8,22 +8,23 @@
     'summary': 'To manage pricelist',
     'author': 'CLx Media',
     'website': 'https://conversionlogix.com/',
-    'version': '13.1.0.0.20',
+    'version': '13.1.0.0.21',
     'sequence': 1,
     'license': 'AGPL-3',
     'description': """""",
     'depends': [
         'sale_management',
         'contact_modification',
-        # 'sale_product_configurator',
-        'sale_subscription'
+        'sale_product_configurator',
+        'sale_subscription',
+        'sale_product_configurator'
     ],
     'data': [
         'security/ir.model.access.csv',
         'views/product_category_view.xml',
         'views/product_pricelist_view.xml',
         'views/sale_order_view.xml',
-        # 'views/sale_product_configurator_views.xml',
+        'views/sale_product_configurator_views.xml',
         'report/sale_report_templates.xml',
 
     ],
