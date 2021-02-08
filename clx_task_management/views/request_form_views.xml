@@ -53,8 +53,7 @@
                     <page string="Line Item Details" name="line_item_details">
                         <field name="request_line" widget="section_and_note_one2many">
                             <tree editable="bottom">
-                                <field name="product_id" readonly="1"/>
-                                <field name="category_id" invisible="1"/>
+                                <field name="category_id" readonly="1"/>
                                 <field name="request_form_id" invisible="1"/>
                                 <field name="req_type"/>
                                 <field name="task_id"
@@ -66,8 +65,7 @@
                             <form>
                                 <group>
                                     <group>
-                                        <field name="product_id" readonly="1"/>
-                                        <field name="category_id" invisible="1"/>
+                                        <field name="category_id"/>
                                         <field name="req_type"/>
                                         <field name="task_id" options="{'no_create_edit': True, 'no_open': True}"/>
                                         <field name="requirements" widget="text"/>
@@ -84,6 +82,14 @@
                             <tree editable="bottom">
                                 <field name="product_id"/>
                                 <field name="link" widget="url"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Products Info">
+                        <field name="product_ids">
+                            <tree>
+                                <field name="name"/>
+                                <field name="categ_id"/>
                             </tree>
                         </field>
                     </page>
