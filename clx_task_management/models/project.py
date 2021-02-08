@@ -72,7 +72,7 @@ class ProjectTask(models.Model):
     repositary_task_id = fields.Many2one('main.task', string='Repository Task')
     sub_repositary_task_ids = fields.Many2many('sub.task',
                                                string='Repository Sub Task')
-    req_type = fields.Selection([('new', 'New'), ('update', 'Update')],
+    req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
     sub_task_id = fields.Many2one('sub.task', string="Sub Task from Master Table")
     team_ids = fields.Many2many('clx.team', string='Team')

@@ -1332,3 +1332,7 @@
 ## 02/08/2021
 #### Version 13.3.0.0.94
 - [FIX] clx_task_management : added new update type and added account manager in project,task,subtask
+
+## 02/08/2021
+#### Version 13.3.0.0.95
+- [FIX] clx_task_management : added new selection type for request type in task.
