@@ -35,6 +35,7 @@ class RequestForm(models.Model):
     update_all_products = fields.Boolean(string="Update All Products")
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one('project.project', string="Project")
+    product_ids = fields.Many2many('product.product', string="Products")
 
     def open_active_subscription_line(self):
         """
@@ -169,7 +170,7 @@ class RequestForm(models.Model):
                 'clx_priority': main_task.project_id.priority,
                 'description': line.description,
                 'clx_attachment_ids': self.clx_attachment_ids.ids,
-                'product_id': line.product_id.id if line.product_id else False
+                'category_id': line.category_id.id if line.category_id else False
             }
             return vals
 
@@ -209,7 +210,7 @@ class RequestForm(models.Model):
             'account_user_id': project_id.partner_id.account_user_id.id if project_id.partner_id.account_user_id else False,
             'clx_priority': self.priority,
             'clx_attachment_ids': self.clx_attachment_ids.ids,
-            'product_id': line.product_id.id if line.product_id else False
+            'category_id': line.category_id.id if line.category_id else False
         }
         return vals
 
@@ -249,8 +250,8 @@ class RequestForm(models.Model):
         web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         action_id = self.env.ref('project.open_view_project_all', raise_if_not_found=False)
         link = """{}/web#id={}&view_type=form&model=project.project&action={}""".format(web_base_url,
-                                                                                               self.project_id.id,
-                                                                                               action_id.id)
+                                                                                        self.project_id.id,
+                                                                                        action_id.id)
         context = self._context.copy() or {}
         context.update({'link': link})
         email_template = self.env.ref('clx_task_management.mail_template_request_form', raise_if_not_found=False)
@@ -332,6 +333,7 @@ class RequestForm(models.Model):
                 list_product.append(form_line_id.id)
         today = fields.Date.today()
         lines = self.env['sale.order.line'].search([('order_partner_id', '=', self.partner_id.id)])
+        order_lines = False
         if lines:
             order_lines = lines.filtered(
                 lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
@@ -339,15 +341,17 @@ class RequestForm(models.Model):
             future_lines = lines.filtered(lambda x: x.start_date and x.start_date >= today)
             if future_lines:
                 order_lines += future_lines
-            for product in order_lines.mapped('product_id'):
-                task_id = main_task_obj.search([('product_ids', 'in', product.id), ('req_type', '=', 'update')])
+            order_lines = order_lines.filtered(lambda x: x.subscription_id)
+            for category in order_lines.mapped('product_id').mapped('categ_id'):
+                # task_id = main_task_obj.search([('product_ids', 'in', product.id), ('req_type', '=', 'update')])
                 line_id = req_line_obj.create({
-                    'product_id': product.id,
+                    'category_id': category.id,
                     'req_type': 'update',
-                    'task_id': task_id[0].id if task_id else False
+                    # 'task_id': task_id[0].id if task_id else False
                 })
                 list_product.append(line_id.id)
-        self.update({'request_line': [(6, 0, list_product)]})
+        self.update({'request_line': [(6, 0, list_product)],
+                     'product_ids': order_lines.mapped('product_id') if order_lines else False})
 
     def update_description(self):
         for line in self.request_line:
@@ -366,14 +370,13 @@ class RequestFormLine(models.Model):
 
     request_form_id = fields.Many2one('request.form', string='Request Form',
                                       ondelete='cascade')
-    req_type = fields.Selection([('new', 'New'), ('update', 'Update')],
+    req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
-    product_id = fields.Many2one('product.product', string="Products")
-    category_id = fields.Many2one(related="product_id.categ_id")
+    category_id = fields.Many2one('product.category', string="Products Category")
 
     @api.onchange('task_id')
     def _onchange_task_id(self):
@@ -389,8 +392,8 @@ class RequestFormLine(models.Model):
             if not subscriptions:
                 raise UserError(_(
                     """There is no subscription available for this customer."""))
-        if not self.product_id:
+        if not self.category_id:
             return {'domain': {'task_id': [('req_type', '=', self.req_type)]}}
-        elif self.product_id and self.product_id and self.product_id.categ_id:
+        elif self.category_id:
             return {'domain': {'task_id': [('req_type', '=', self.req_type),
-                                           ('category_id', '=', self.product_id.categ_id.id)]}}
+                                           ('category_id', '=', self.category_id.id)]}}

@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
 
             <xpath expr="//field[@name='user_id']" position="attributes">
-                <attribute name="invisible">1</attribute>
+                <attribute name="string">Account Manager</attribute>
             </xpath>
             <xpath expr="//field[@name='project_id']" position="after">
                 <field name="partner_id"/>
@@ -37,6 +37,10 @@
                 <field name="priority"/>
                 <field name="client_services_team"/>
             </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="string">Account Manager</attribute>
+            </xpath>
+
         </field>
     </record>
 
@@ -143,7 +147,7 @@
             </field>
             <field name="project_id" position="before">
                 <field name="partner_id"/>
-                <field name="product_id"/>
+                <field name="category_id"/>
                 <field name="vertical"/>
                 <field name="implementation_specialist_id"/>
                 <field name="account_user_id" string="Account Manager"/>
@@ -271,8 +275,24 @@
                 <filter string="CAT Team Member" name="cat_team" domain="[]"
                         context="{'group_by':'clx_task_designer_id'}"/>
             </xpath>
+
+            <xpath expr="//group//filter[@name='user']" position="attributes">
+                <attribute name="string">Account Manager</attribute>
+            </xpath>
         </field>
     </record>
+
+    <record id="view_project_project_filter_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.project.search.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_project_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group//filter[@name='Manager']" position="attributes">
+                <attribute name="string">Account Manager</attribute>
+            </xpath>
+        </field>
+    </record>
+
 
     <!--override action because of  show only parent task on when action is call -->
     <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">

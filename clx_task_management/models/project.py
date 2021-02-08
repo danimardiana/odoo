@@ -34,6 +34,7 @@ class ProjectProject(models.Model):
         "ir.attachment", 'att_project_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
     implementation_specialist_id = fields.Many2one(related="partner_id.implementation_specialist_id")
+    user_id = fields.Many2one('res.users', string='Account Manager', default=lambda self: self.env.user, tracking=True)
 
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
@@ -111,7 +112,11 @@ class ProjectTask(models.Model):
     )
     clx_description = fields.Html(related="parent_id.description", readonly=False)
     implementation_specialist_id = fields.Many2one(related="project_id.partner_id.implementation_specialist_id")
-    product_id = fields.Many2one('product.product', string="Product")
+    category_id = fields.Many2one('product.category', string="Category")
+    user_id = fields.Many2one('res.users',
+                              string='Account Manager',
+                              default=lambda self: self.env.uid,
+                              index=True, tracking=True)
 
     def _compute_sub_task_project_ids(self):
         task_list = []
@@ -221,7 +226,7 @@ class ProjectTask(models.Model):
                 'clx_priority': project_id.priority,
                 'description': self.description,
                 'clx_attachment_ids': project_id.clx_attachment_ids.ids if project_id.clx_attachment_ids else False,
-                'product_id': self.parent_id.product_id.id if self.parent_id.product_id else False
+                'category_id': self.parent_id.category_id.id if self.parent_id.category_id else False
             }
             return vals
 

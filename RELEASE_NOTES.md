@@ -1328,3 +1328,7 @@
 ## 02/06/2021
 #### Version 13.1.0.0.1
 - [ADD] clx_sale_tax_apply : Added module for set tax for only tcc category type product.
+
+## 02/08/2021
+#### Version 13.3.0.0.94
+- [FIX] clx_task_management : added new update type and added account manager in project,task,subtask

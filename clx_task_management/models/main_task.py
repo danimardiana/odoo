@@ -13,7 +13,7 @@ class MainTask(models.Model):
     team_members_ids = fields.Many2many('res.users', string='Team Members')
     display_to_customer = fields.Boolean(string='Display To Customer')
     sub_task_count = fields.Integer(string="", compute='_compute_sub_task_count')
-    req_type = fields.Selection([('new', 'New'), ('update', 'Update')], string='Request Type')
+    req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')], string='Request Type')
     active = fields.Boolean(default=True)
     requirements = fields.Text(string="Requirements")
     category_id = fields.Many2one('product.category', string="Product Category")
