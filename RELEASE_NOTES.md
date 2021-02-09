@@ -1336,3 +1336,7 @@
 ## 02/08/2021
 #### Version 13.3.0.0.95
 - [FIX] clx_task_management : added new selection type for request type in task.
+
+## 02/09/2021
+#### Version 13.3.0.0.96
+- [FIX] clx_task_management : changed log meessage email subject and set warning on request form.

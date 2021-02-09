@@ -142,10 +142,16 @@ class RequestForm(models.Model):
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         today = fields.Date.today()
-        if line.req_type == 'update':
-            business_days_to_add = 3
+        if line.request_form_id.priority == 'high':
+            if line.req_type in ('update', 'budget'):
+                business_days_to_add = 1
+            else:
+                business_days_to_add = 3
         else:
-            business_days_to_add = 5
+            if line.req_type in ('update', 'budget'):
+                business_days_to_add = 3
+            else:
+                business_days_to_add = 5
         current_date = today
         # code for skip saturday and sunday for set deadline on task.
         while business_days_to_add > 0:
@@ -183,10 +189,16 @@ class RequestForm(models.Model):
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         today = fields.Date.today()
-        if line.req_type == 'update':
-            business_days_to_add = 3
+        if line.request_form_id.priority == 'high':
+            if line.req_type in ('update', 'budget'):
+                business_days_to_add = 1
+            else:
+                business_days_to_add = 3
         else:
-            business_days_to_add = 5
+            if line.req_type in ('update', 'budget'):
+                business_days_to_add = 3
+            else:
+                business_days_to_add = 5
         current_date = today
         # code for skip saturday and sunday for set deadline on task.
         while business_days_to_add > 0:
@@ -258,12 +270,43 @@ class RequestForm(models.Model):
         if email_template:
             email_template.with_context(context).send_mail(self.id, force_send=True)
 
+    def calculated_date(self, line):
+        date_list = []
+        for l in line:
+            today = fields.Date.today()
+            if l.request_form_id.priority == 'high':
+                if l.req_type in ('update', 'budget'):
+                    business_days_to_add = 1
+                else:
+                    business_days_to_add = 3
+            else:
+                if l.req_type in ('update', 'budget'):
+                    business_days_to_add = 3
+                else:
+                    business_days_to_add = 5
+            current_date = today
+            # code for skip saturday and sunday for set deadline on task.
+            while business_days_to_add > 0:
+                current_date += datetime.timedelta(days=1)
+                weekday = current_date.weekday()
+                if weekday >= 5:  # sunday = 6, saturday = 5
+                    continue
+                business_days_to_add -= 1
+            date_list.append(current_date)
+        return date_list
+
     def action_submit_form(self):
         """
         when request form is submitted create project and task and subtask from the Master table.
         :return:
         """
         self.ensure_one()
+        if self.request_line and self.intended_launch_date:
+            date_list = self.calculated_date(self.request_line)
+            print(date_list)
+            max_date = max(date_list)
+            if self.intended_launch_date < max_date:
+                raise UserError('Please check Intended launch Date !!')
         project_id = False
         project_obj = self.env['project.project']
         project_task_obj = self.env['project.task']
@@ -273,9 +316,10 @@ class RequestForm(models.Model):
             raise UserError('Please add Project Title!!')
         if not self.request_line:
             raise UserError('There is no Request Line, Please add some line')
-        if self.request_line and any(not line.requirements or not line.description for line in self.request_line):
+        if self.request_line and any(not line.description for line in self.request_line):
             raise UserError(
                 'Please add some Instruction on every line If do not have description Please delete that line.')
+
         subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
         if not subscriptions:
             raise UserError('You can not submit request form there is no active sale for this customer!!')
