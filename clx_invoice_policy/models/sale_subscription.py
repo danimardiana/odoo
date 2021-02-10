@@ -67,6 +67,8 @@ class SaleSubscriptionLine(models.Model):
     cancel_invoice_start_date = fields.Date('Cancel Start Date')
     cancel_invoice_end_date = fields.Date('Cancel End Date')
     account_id = fields.Many2one('account.move', string="Invoice")
+    is_prorate = fields.Boolean(string="Is Prorate?")
+    prorate_amount = fields.Float(string="Prorate Amount")
 
     def _creation_next_budgets(self):
         print("CRON CRON CRON")
@@ -149,24 +151,6 @@ class SaleSubscriptionLine(models.Model):
             return res
         else:
             return super(SaleSubscriptionLine, self).write(vals)
-
-    # @api.depends('price_unit', 'quantity', 'discount', 'analytic_account_id.pricelist_id')
-    # def _compute_price_subtotal(self):
-    #     AccountTax = self.env['account.tax']
-    #     for line in self:
-    #         discount = line.discount
-    #         if line.line_type in ('upsell', 'downsell'):
-    #             discount = 0.0
-    #         price = AccountTax._fix_tax_included_price(line.price_unit, line.product_id.sudo().taxes_id, AccountTax)
-    #         line.price_subtotal = line.quantity * price * (100.0 - discount) / 100.0
-    #         if line.analytic_account_id.partner_id.management_company_type_id.is_flat_discount and line.line_type not in (
-    #                 'upsell', 'downsell'):
-    #             if line.analytic_account_id.partner_id.management_company_type_id.clx_category_id.id == line.product_id.categ_id.id:
-    #                 line.price_subtotal = line.quantity * (
-    #                         price - line.analytic_account_id.partner_id.management_company_type_id.flat_discount)
-    #         if line.analytic_account_id.pricelist_id.sudo().currency_id:
-    #             line.price_subtotal = line.analytic_account_id.pricelist_id.sudo().currency_id.round(
-    #                 line.price_subtotal)
 
     def start_in_next(self):
         """
@@ -264,9 +248,9 @@ class SaleSubscriptionLine(models.Model):
             'line_type': self.line_type,
             'sale_line_ids': line.ids,
         }
-        if (self.invoice_end_date and self.invoice_end_date.day < 15) or (
-                self.invoice_start_date and self.invoice_start_date.day > 15):
-            new_price = self.price_unit / 2
+        if line.is_prorate and (self.invoice_end_date and self.invoice_end_date.day not in (30, 31)) or (
+                self.invoice_start_date and self.invoice_start_date.day != 1):
+            new_price = line.prorate_amount
             new_management_price = line.management_price / 2
             res.update({
                 'price_unit': new_price,
@@ -336,12 +320,10 @@ class SaleSubscriptionLine(models.Model):
             res.update({
                 'name': period_msg,
                 'subscription_end_date': self.end_date if self.end_date and self.end_date > date_end else expire_date,
-                # 'price_unit': self.price_unit,
             })
             if self._context.get('generate_invoice_date_range', False):
                 start_date = self.start_date
                 end_date = self.end_date
-                count_dict = self._context.get('count_dict', False)
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
@@ -350,10 +332,10 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(self._context.get('end_date')), {}))
                 res.update({
                     'name': period_msg,
-                    # 'price_unit': self.price_unit * count_dict.get(self.id, 1)
                 })
-                if (end_date and end_date.day < 15) or (start_date and start_date.day > 15):
-                    new_price = self.price_unit / 2
+                if line.is_prorate and self.end_date and self.end_date.month == end_date.month and self.end_date.day not in (
+                30, 31):
+                    new_price = self.prorate_amount
                     new_management_price = line.management_price / 2
                     res.update({
                         'price_unit': new_price,

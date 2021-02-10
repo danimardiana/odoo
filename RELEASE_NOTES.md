@@ -1340,3 +1340,7 @@
 ## 02/09/2021
 #### Version 13.3.0.0.96
 - [FIX] clx_task_management : changed log meessage email subject and set warning on request form.
+
+## 02/10/2021
+#### Version 13.1.0.0.64
+- [FIX] clx_invoice_policy : added prorate budget calculation as per the new changes

@@ -6,6 +6,11 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="before">
+                <field name="is_prorate"/>
+                <field name="prorate_amount"/>
+            </xpath>
+
             <xpath expr="//field[@name='payment_term_id']" position="after">
                 <field name="clx_invoice_policy_id"
                        attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"

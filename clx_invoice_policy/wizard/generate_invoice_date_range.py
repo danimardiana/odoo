@@ -38,7 +38,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
             if not adv_line.end_date and adv_line.start_date <= self.start_date or (
                     adv_line.start_date >= self.start_date):
                 final_adv_line += adv_line
-            elif adv_line.end_date and adv_line.start_date <= self.start_date and adv_line.end_date >= self.end_date:
+            elif adv_line.end_date and adv_line.start_date <= self.start_date and adv_line.end_date <= self.end_date:
                 final_adv_line += adv_line
         advance_lines = final_adv_line
         lang = partner_id.lang
@@ -75,7 +75,13 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((self.end_date - self.start_date).days)))
             for i in range(0, count):
-                partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
-                                        end_date=self.end_date,
-                                        ).generate_advance_invoice(
-                    advance_lines)
+                if partner_id.invoice_selection == 'sol':
+                    partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
+                                            end_date=self.end_date, sol=True,
+                                            ).generate_advance_invoice(
+                        advance_lines)
+                else:
+                    partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
+                                            end_date=self.end_date,
+                                            ).generate_advance_invoice(
+                        advance_lines)
