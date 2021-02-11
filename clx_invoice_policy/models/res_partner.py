@@ -143,7 +143,8 @@ class Partner(models.Model):
         so_lines = lines.filtered(lambda
                                       x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
         if self._context.get('generate_invoice_date_range'):
-            so_lines = lines
+            so_lines = lines.filtered(lambda
+                                      x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
         if not so_lines and not yearly_lines:
             if self._context.get('from_generate_invoice'):
                 raise UserError(_("You must have a sales order to create an invoice"))

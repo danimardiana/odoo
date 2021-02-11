@@ -67,8 +67,8 @@ class SaleSubscriptionLine(models.Model):
     cancel_invoice_start_date = fields.Date('Cancel Start Date')
     cancel_invoice_end_date = fields.Date('Cancel End Date')
     account_id = fields.Many2one('account.move', string="Invoice")
-    is_prorate = fields.Boolean(string="Is Prorate?")
-    prorate_amount = fields.Float(string="Prorate Amount")
+    is_prorate = fields.Boolean(related="so_line_id.is_prorate", string="Is Prorate?", readonly=False)
+    prorate_amount = fields.Float(related="so_line_id.prorate_amount", string="Prorate Amount", readonly=False)
 
     def _creation_next_budgets(self):
         print("CRON CRON CRON")
@@ -333,8 +333,8 @@ class SaleSubscriptionLine(models.Model):
                 res.update({
                     'name': period_msg,
                 })
-                if line.is_prorate and self.end_date and self.end_date.month == end_date.month and self.end_date.day not in (
-                30, 31):
+                if self.is_prorate and self.end_date and self.end_date.month == end_date.month and self.end_date.day not in (
+                        30, 31):
                     new_price = self.prorate_amount
                     new_management_price = line.management_price / 2
                     res.update({

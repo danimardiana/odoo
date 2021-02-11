@@ -35,10 +35,9 @@ class GenerateInvoiceDateRange(models.TransientModel):
                     sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance' and sl.product_id.subscription_template_id.recurring_rule_type == "monthly"))
         final_adv_line = self.env['sale.subscription.line']
         for adv_line in advance_lines:
-            if not adv_line.end_date and adv_line.start_date <= self.start_date or (
-                    adv_line.start_date >= self.start_date):
+            if not adv_line.end_date and self.end_date >= adv_line.start_date:
                 final_adv_line += adv_line
-            elif adv_line.end_date and adv_line.start_date <= self.start_date and adv_line.end_date <= self.end_date:
+            elif adv_line.end_date and self.start_date <= adv_line.end_date:
                 final_adv_line += adv_line
         advance_lines = final_adv_line
         lang = partner_id.lang

@@ -4,7 +4,7 @@
 
 {
     'name': 'Sale order tax apply',
-    'version': '13.1.1.0.1',
+    'version': '13.1.1.0.2',
     'sequence': 1,
     'description': """ Apply tax only for TCC type category product.
      """,

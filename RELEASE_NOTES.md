@@ -1344,3 +1344,7 @@
 ## 02/10/2021
 #### Version 13.1.0.0.64
 - [FIX] clx_invoice_policy : added prorate budget calculation as per the new changes
+
+## 02/11/2021
+#### Version 13.1.0.0.65
+- [FIX] clx_invoice_policy : FIx the issue when invoice creating for the sale order line wise.
