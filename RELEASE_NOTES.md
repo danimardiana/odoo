@@ -1348,3 +1348,7 @@
 ## 02/11/2021
 #### Version 13.1.0.0.65
 - [FIX] clx_invoice_policy : FIx the issue when invoice creating for the sale order line wise.
+
+## 02/11/2021
+#### Version 13.1.0.0.66
+- [FIX] clx_invoice_policy : Fixed the issue in prorate amount when creating a invoice manually.
