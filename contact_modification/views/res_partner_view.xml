@@ -239,11 +239,13 @@
 
             <xpath expr="//field[@name='type']" position="before">
                 <field name="ownership_company_type_id" domain="[('is_owner', '=', True)]"
+                       options="{'no_create_edit':True}"
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
             </xpath>
 
             <xpath expr="//field[@name='function']" position="before">
                 <field name="management_company_type_id" domain="[('is_management', '=', True)]"
+                       options="{'no_create_edit':True}"
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
             </xpath>
 
@@ -285,6 +287,7 @@
                 <field name="company_type" invisible="1"/>
                 <field name="contact_display_kanban" invisible="1"/>
                 <field name="contact_type_ids"
+
                        attrs="{'invisible': ['|',('company_type','!=','company'),('type', '!=', 'contact')]}"
                        widget="many2many_tags"/>
             </xpath>
@@ -395,8 +398,8 @@
                                 <hr/>
                                 <group col="12">
                                     <group colspan="5">
-                                        <field name="contact_type_ids" widget="many2many_tags"/>
-                                        <field name="child_id" string="Contact Name"/>
+                                        <field name="contact_type_ids" widget="many2many_tags" options="{'no_create_edit':True}"/>
+                                        <field name="child_id" string="Contact Name" options="{'no_create_edit':True}"/>
                                         <field name="name" string="Contact Name" invisible="1"
                                                attrs="{'required' : [('type', '=', 'contact')]}"/>
                                         <field name="title" placeholder="e.g. Mr."

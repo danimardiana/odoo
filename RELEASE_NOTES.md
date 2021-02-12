@@ -1352,3 +1352,11 @@
 ## 02/11/2021
 #### Version 13.1.0.0.66
 - [FIX] clx_invoice_policy : Fixed the issue in prorate amount when creating a invoice manually.
+
+## 02/12/2021
+#### Version 13.1.0.0.67
+- [FIX] clx_invoice_policy : Fixed the yearly subscription invoice issue.
+
+## 02/12/2021
+#### Version 13.1.1.0.36
+- [FIX] contact_modification : removed create and edit option on contact type.

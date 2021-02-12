@@ -8,7 +8,7 @@
     'summary': 'To manage Contacts with classification',
     'author': 'CLx Media',
     'website': 'https://conversionlogix.com/',
-    'version': '13.1.1.0.35',
+    'version': '13.1.1.0.36',
     'sequence': 1,
     'license': 'AGPL-3',
     'depends': [

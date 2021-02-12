@@ -334,7 +334,7 @@ class SaleSubscriptionLine(models.Model):
                     'name': period_msg,
                 })
                 if self.is_prorate:
-                    if (self.end_date and self._context.get('end_date') == end_date.month) or (self.start_date and self._context.get('start_date').month == start_date.month):
+                    if (self.end_date and self._context.get('end_date').month == end_date.month) or (self.start_date and self._context.get('start_date').month == start_date.month):
                         new_price = self.prorate_amount
                         new_management_price = line.management_price / 2
                         res.update({

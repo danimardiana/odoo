@@ -58,7 +58,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
                  ('parent_state', 'in', ('draft', 'posted')),
                  ])
             for y_line in yearly_advance_lines:
-                if y_line.id not in all_account_move_lines.mapped('subscription_lines_ids').ids:
+                if period_msg not in all_account_move_lines.mapped('name'):
                     advance_lines += y_line
         if account_move_lines:
             for ad_line in advance_lines:
@@ -70,9 +70,9 @@ class GenerateInvoiceDateRange(models.TransientModel):
             advance_lines_list = list(set(advance_lines.ids))
             advance_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
             count = 1
-            if partner_id.invoice_creation_type == 'separate':
-                count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-                                        range((self.end_date - self.start_date).days)))
+            # if partner_id.invoice_creation_type == 'separate':
+            #     count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+            #                             range((self.end_date - self.start_date).days)))
             for i in range(0, count):
                 if partner_id.invoice_selection == 'sol':
                     partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
