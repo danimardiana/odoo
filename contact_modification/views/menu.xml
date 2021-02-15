@@ -9,10 +9,24 @@
         <field name="domain">[('company_type', '=', 'owner')]</field>
     </record>
 
+    <!-- Additional Contact type -->
+    <record id="action_additional_contacts_contact_type" model="ir.actions.act_window">
+        <field name="name">Contact Type</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">contact.type</field>
+        <field name="view_mode">tree,form</field>
+        <!-- <field name="domain">[('company_type', '=', 'company')]</field> -->
+    </record>
+
     <menuitem action="action_partner_company_type_owner"
               id="menu_partner_company_type_owner"
               sequence="4"
               parent="contacts.menu_contacts"/>
+
+    <menuitem action="action_additional_contacts_contact_type"
+              id="menu_additional_contacts_contact_type"
+              sequence="101"
+              parent="contacts.res_partner_menu_config"/>
 
     <!-- Company Type Customer Company Contact -->
     <record id="action_partner_company_type_customer_company" model="ir.actions.act_window">
