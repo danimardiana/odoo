@@ -20,6 +20,7 @@
         'product'
     ],
     'data': [
+        'security/res_groups.xml',
         'security/ir.model.access.csv',
         'data/contact_type.xml',
         'views/res_partner_view.xml',

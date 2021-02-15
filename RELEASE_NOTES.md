@@ -1343,7 +1343,7 @@
 
 ## 02/10/2021
 #### Version 13.1.0.0.64
-- [FIX] clx_invoice_policy : added prorate budget calculation as per the new changes
+- [FIX] clx_invoice_policy : added prorate budget calculation as per the new changes.
 
 ## 02/11/2021
 #### Version 13.1.0.0.65
@@ -1360,3 +1360,7 @@
 ## 02/12/2021
 #### Version 13.1.1.0.36
 - [FIX] contact_modification : removed create and edit option on contact type.
+
+## 02/15/2021
+#### Version 13.1.1.0.37
+- [FIX] contact_modification : added access rights for the contact creation.
