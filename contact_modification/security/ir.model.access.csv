@@ -1,5 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_contact_type_user,contact.type,model_contact_type,contact_modification.group_allow_contact_type_create,1,1,1,0
+access_contact_type_user,contact.type,model_contact_type,contact_modification.group_allow_contact_type_create,1,1,1,1
 access_contact_type_internal_user,contact.type,model_contact_type,base.group_user,1,0,0,0
 access_res_partner_clx_child_user,access_res_partner_clx_child_user,model_res_partner_clx_child,base.group_user,1,1,1,1
 access_ads_line,ads.link,model_ads_link,base.group_user,1,1,1,1
