@@ -4,6 +4,8 @@
 
 from odoo import fields, models, api, _
 from dateutil import parser
+from collections import OrderedDict
+from datetime import timedelta
 
 
 class AccountMove(models.Model):
@@ -34,63 +36,63 @@ class AccountMove(models.Model):
                 else:
                     record.invoices_month_year = " "
 
-    # def unlink(self):
-    #     for record in self:
-    #         if record.invoice_origin:
-    #             for inv_line in record.invoice_line_ids:
-    #                 if inv_line.subscription_lines_ids:
-    #                     name = inv_line.name.split(':')
-    #                     name = name[-1].split('-')
-    #                     start_date = parser.parse(name[0])
-    #                     end_date = parser.parse(name[-1])
-    #                     if start_date and end_date:
-    #                         for sub in inv_line.subscription_lines_ids:
-    #                             if not sub.end_date:
-    #                                 sub.invoice_start_date = start_date.date()
-    #                                 sub.invoice_end_date = end_date.date()
-    #                             elif sub.end_date:
-    #                                 month_count = len(
-    #                                     OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-    #                                                 range((start_date.date() - sub.end_date).days)))
-    #                                 if month_count == 1 and start_date.date() > sub.end_date:
-    #                                     sub.invoice_start_date = False
-    #                                     sub.invoice_end_date = False
-    #                                 elif sub.start_date > start_date.date():
-    #                                     sub.invoice_start_date = sub.start_date
-    #                                     sub.invoice_end_date = sub.end_date
-    #                                 else:
-    #                                     sub.invoice_start_date = start_date.date()
-    #                                     sub.invoice_end_date = end_date.date()
-    #     return super(AccountMove, self).unlink()
-    #
-    # def button_cancel(self):
-    #     res = super(AccountMove, self).button_cancel()
-    #     if self.invoice_origin:
-    #         for inv_line in self.invoice_line_ids:
-    #             if inv_line.subscription_lines_ids:
-    #                 name = inv_line.name.split(':')
-    #                 name = name[-1].split('-')
-    #                 start_date = parser.parse(name[0])
-    #                 end_date = parser.parse(name[-1])
-    #                 if start_date and end_date:
-    #                     for sub in inv_line.subscription_lines_ids:
-    #                         if not sub.end_date:
-    #                             sub.invoice_start_date = start_date.date()
-    #                             sub.invoice_end_date = end_date.date()
-    #                         elif sub.end_date:
-    #                             month_count = len(
-    #                                 OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-    #                                             range((start_date.date() - sub.end_date).days)))
-    #                             if month_count == 1 and start_date.date() > sub.end_date:
-    #                                 sub.invoice_start_date = False
-    #                                 sub.invoice_end_date = False
-    #                             elif sub.start_date > start_date.date():
-    #                                 sub.invoice_start_date = sub.start_date
-    #                                 sub.invoice_end_date = sub.end_date
-    #                             else:
-    #                                 sub.invoice_start_date = start_date.date()
-    #                                 sub.invoice_end_date = end_date.date()
-    #     return res
+    def unlink(self):
+        for record in self:
+            if record.invoice_origin:
+                for inv_line in record.invoice_line_ids:
+                    if inv_line.subscription_lines_ids:
+                        name = inv_line.name.split(':')
+                        name = name[-1].split('-')
+                        start_date = parser.parse(name[0])
+                        end_date = parser.parse(name[-1])
+                        if start_date and end_date:
+                            for sub in inv_line.subscription_lines_ids:
+                                if not sub.end_date and sub.product_id.subscription_template_id.recurring_rule_type == "yearly":
+                                    sub.invoice_start_date = start_date.date()
+                                    sub.invoice_end_date = end_date.date()
+                                # elif sub.end_date:
+                                #     month_count = len(
+                                #         OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                #                     range((start_date.date() - sub.end_date).days)))
+                                #     if month_count == 1 and start_date.date() > sub.end_date:
+                                #         sub.invoice_start_date = False
+                                #         sub.invoice_end_date = False
+                                #     elif sub.start_date > start_date.date():
+                                #         sub.invoice_start_date = sub.start_date
+                                #         sub.invoice_end_date = sub.end_date
+                                #     else:
+                                #         sub.invoice_start_date = start_date.date()
+                                #         sub.invoice_end_date = end_date.date()
+        return super(AccountMove, self).unlink()
+
+    def button_cancel(self):
+        res = super(AccountMove, self).button_cancel()
+        if self.invoice_origin:
+            for inv_line in self.invoice_line_ids:
+                if inv_line.subscription_lines_ids:
+                    name = inv_line.name.split(':')
+                    name = name[-1].split('-')
+                    start_date = parser.parse(name[0])
+                    end_date = parser.parse(name[-1])
+                    if start_date and end_date:
+                        for sub in inv_line.subscription_lines_ids:
+                            if not sub.end_date and sub.product_id.subscription_template_id.recurring_rule_type == "yearly":
+                                sub.invoice_start_date = start_date.date()
+                                sub.invoice_end_date = end_date.date()
+                            # elif sub.end_date:
+                            #     month_count = len(
+                            #         OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                            #                     range((start_date.date() - sub.end_date).days)))
+                            #     if month_count == 1 and start_date.date() > sub.end_date:
+                            #         sub.invoice_start_date = False
+                            #         sub.invoice_end_date = False
+                            #     elif sub.start_date > start_date.date():
+                            #         sub.invoice_start_date = sub.start_date
+                            #         sub.invoice_end_date = sub.end_date
+                            #     else:
+                            #         sub.invoice_start_date = start_date.date()
+                            #         sub.invoice_end_date = end_date.date()
+        return res
 
 
 class AccountMoveLine(models.Model):

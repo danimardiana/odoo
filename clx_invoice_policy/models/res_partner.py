@@ -136,6 +136,9 @@ class Partner(models.Model):
         if self._context.get('cofirm_sale', False):
             yearly_lines = lines.filtered(lambda
                                               x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'yearly')
+        if self._context.get('generate_invoice_date_range', False):
+            yearly_lines = lines.filtered(lambda
+                                              x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'yearly')
         yearly_prepared_lines = [line.with_context({
             'advance': True
         })._prepare_invoice_line() for line in yearly_lines]
@@ -143,7 +146,8 @@ class Partner(models.Model):
         so_lines = lines.filtered(lambda
                                       x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
         if self._context.get('generate_invoice_date_range'):
-            so_lines = lines
+            so_lines = lines.filtered(lambda
+                                          x: x.product_id.subscription_template_id and x.product_id.subscription_template_id.recurring_rule_type == 'monthly')
         if not so_lines and not yearly_lines:
             if self._context.get('from_generate_invoice'):
                 raise UserError(_("You must have a sales order to create an invoice"))

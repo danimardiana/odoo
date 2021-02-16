@@ -51,11 +51,9 @@
                     </field>
                 </page>
                 <page name="clx_invoice_policy_creation" string="Invoice Policy Selection"
-                attrs="{'invisible': [('company_type_rel', '!=', 'management')]}">
+                attrs="{'invisible': [('company_type_rel', '!=', 'company')]}">
                     <group>
-                        <field name="invoice_selection" widget="radio"
-                               attrs="{'invisible': [('company_type_rel', '!=', 'management')]}"/>
-                        <field name="child_invoice_selection" attrs="{'invisible': [('company_type_rel', '!=', 'company')]}"/>
+                        <field name="invoice_selection" widget="radio"/>
                     </group>
                 </page>
             </notebook>

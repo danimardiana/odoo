@@ -6,6 +6,10 @@ from ast import literal_eval
 
 from odoo import api, fields, models
 
+# cnx = mysql.connector.connect(user='scott', password='password',
+#                               host='127.0.0.1',
+#                               database='employees')
+# cnx.close()
 
 class ContactType(models.Model):
     _name = "contact.type"
@@ -106,7 +110,7 @@ class Partner(models.Model):
     merchant_number = fields.Char(string="Ops Merchant Number")
     tap_clicks_username = fields.Char(string="TapClicks Username")
     tap_clicks_password = fields.Char(string="TapClicks Password")
-    call_rail_destination_number = fields.Char(string="CallRail Destination Number")
+    call_rail_destination_number = fields.Char(string="Extra Info")
     client_provided_tracking_email = fields.Char(string="Client-Provided Tracking Email")
     client_provided_utm_tracking_urls = fields.Char(string="Client-Provided UTM Tracking URLs")
     art_assets = fields.Char(string="Art Assets")

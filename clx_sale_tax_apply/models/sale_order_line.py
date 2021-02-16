@@ -15,7 +15,7 @@ class SaleOrderLine(models.Model):
             taxes = line.product_id.taxes_id.filtered(lambda r: r.company_id == line.order_id.company_id)
             tax = self.env['account.tax'].search(
                 [('state_ids', 'in', self.order_id.partner_id.state_id.id),
-                 ('category_ids', 'in', self.product_id.categ_id.id)], limit=1)
+                 ('category_ids', 'in', line.product_id.categ_id.id)], limit=1)
             if tax:
                 line.tax_id = tax.ids
             else:
