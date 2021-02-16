@@ -1364,3 +1364,7 @@
 ## 02/15/2021
 #### Version 13.1.1.0.37
 - [FIX] contact_modification : added access rights for the contact creation.
+
+## 02/12/2021
+#### Version 13.1.0.0.68
+- [FIX] clx_invoice_policy : Fix the yearly subscription creation from the generate invoice with date range.

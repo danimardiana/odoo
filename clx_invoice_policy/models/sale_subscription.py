@@ -302,7 +302,8 @@ class SaleSubscriptionLine(models.Model):
                 })
                 self.with_context(skip=True).write(vals)
                 return res
-            self.with_context(skip=True).write(vals)
+            if not self._context.get('generate_invoice_date_range', False):
+                self.with_context(skip=True).write(vals)
             if self.end_date:
                 if self.invoice_start_date and self.invoice_end_date and self.invoice_start_date <= self.end_date <= self.invoice_end_date:
                     self.with_context(skip=True).write(
@@ -327,14 +328,43 @@ class SaleSubscriptionLine(models.Model):
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
-                period_msg = ("Invoicing period: %s - %s") % (
-                    format_date(fields.Date.to_string(self._context.get('start_date')), {}),
-                    format_date(fields.Date.to_string(self._context.get('end_date')), {}))
+
+                count = len(OrderedDict(((self._context.get('start_date') + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                        range((self._context.get('end_date') - self._context.get('start_date')).days)))
+                if self.product_id.subscription_template_id.recurring_rule_type == "monthly":
+                    period_msg = ("Invoicing period: %s - %s") % (
+                        format_date(fields.Date.to_string(self.invoice_start_date), {}),
+                        format_date(fields.Date.to_string(self.invoice_end_date), {}))
+                    # if self.invoice_start_date.month != self._context.get('start_date').month:
+                    #     period_msg = ("Invoicing period: %s - %s") % (
+                    #         format_date(fields.Date.to_string(self._context.get('start_date')), {}),
+                    #         format_date(fields.Date.to_string(self._context.get('end_date')), {}))
+                    expire_date = (self.invoice_end_date + relativedelta(
+                        months=2)).replace(day=1) + relativedelta(days=-1)
+                    vals.update({
+                        'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(
+                            day=1) if self.invoice_end_date else False,
+                        'invoice_end_date': expire_date
+                    })
+                    self.write(vals)
+                # elif count == 12 and self.product_id.subscription_template_id.recurring_rule_type == "yearly":
+                #     period_msg = ("Invoicing period: %s - %s") % (
+                #         format_date(fields.Date.to_string(self._context.get('start_date')), {}),
+                #         format_date(fields.Date.to_string(self._context.get('end_date')), {}))
+                #     expire_date = (self.invoice_end_date + relativedelta(
+                #         months=2)).replace(day=1) + relativedelta(days=-1)
+                #     vals.update({
+                #         'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(
+                #             day=1) if self.invoice_end_date else False,
+                #         'invoice_end_date': expire_date
+                #     })
+                #     self.write(vals)
                 res.update({
                     'name': period_msg,
                 })
                 if self.is_prorate:
-                    if (self.end_date and self._context.get('end_date').month == end_date.month) or (self.start_date and self._context.get('start_date').month == start_date.month):
+                    if (self.end_date and self._context.get('end_date').month == end_date.month) or (
+                            self.start_date and self._context.get('start_date').month == start_date.month):
                         new_price = self.prorate_amount
                         new_management_price = line.management_price / 2
                         res.update({

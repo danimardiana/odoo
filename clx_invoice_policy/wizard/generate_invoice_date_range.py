@@ -7,10 +7,13 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from datetime import timedelta
 from collections import OrderedDict
+from dateutil.relativedelta import relativedelta
+import datetime
 
 
 class GenerateInvoiceDateRange(models.TransientModel):
     _name = "generate.invoice.date.range"
+    _description = "Generate Invoice Date Range"
 
     start_date = fields.Date('Start Date')
     end_date = fields.Date('End Date')
@@ -58,7 +61,10 @@ class GenerateInvoiceDateRange(models.TransientModel):
                  ('parent_state', 'in', ('draft', 'posted')),
                  ])
             for y_line in yearly_advance_lines:
-                if period_msg not in all_account_move_lines.mapped('name'):
+                count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                        range((self.end_date - self.start_date).days)))
+                if period_msg not in all_account_move_lines.mapped('name') and (
+                        count == 12 or y_line.start_date.month == self.start_date.month):
                     advance_lines += y_line
         if account_move_lines:
             for ad_line in advance_lines:
@@ -70,10 +76,12 @@ class GenerateInvoiceDateRange(models.TransientModel):
             advance_lines_list = list(set(advance_lines.ids))
             advance_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
             count = 1
-            # if partner_id.invoice_creation_type == 'separate':
-            #     count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-            #                             range((self.end_date - self.start_date).days)))
+            if partner_id.invoice_creation_type == 'separate':
+                count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                        range((self.end_date - self.start_date).days)))
+            next_month_date = self.start_date
             for i in range(0, count):
+                next_month_date = next_month_date + relativedelta(months=1)
                 if partner_id.invoice_selection == 'sol':
                     partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
                                             end_date=self.end_date, sol=True,
@@ -84,3 +92,15 @@ class GenerateInvoiceDateRange(models.TransientModel):
                                             end_date=self.end_date,
                                             ).generate_advance_invoice(
                         advance_lines)
+
+                all_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
+                for adv_line in all_lines:
+                    # if adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly" and period_msg not in all_account_move_lines.mapped(
+                    #         'name') and (
+                    #         adv_line.start_date.month == self.start_date.month and adv_line.start_date.year == self.start_date.year):
+                    #     advance_lines -= adv_line
+                    if adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly" and adv_line.invoice_start_date == next_month_date:
+                        advance_lines += adv_line
+                    elif adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly":
+                        advance_lines -= adv_line
+
