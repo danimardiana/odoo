@@ -3,6 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
+import datetime
 
 
 class ProjectTaskType(models.Model):
@@ -148,6 +149,25 @@ class ProjectTask(models.Model):
         :return: dictionary for the sub task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        today = fields.Date.today()
+        if self.clx_priority == 'high':
+            if self.req_type in ('update', 'budget'):
+                business_days_to_add = 1
+            else:
+                business_days_to_add = 3
+        else:
+            if self.req_type in ('update', 'budget'):
+                business_days_to_add = 3
+            else:
+                business_days_to_add = 5
+        current_date = today
+        # code for skip saturday and sunday for set deadline on task.
+        while business_days_to_add > 0:
+            current_date += datetime.timedelta(days=1)
+            weekday = current_date.weekday()
+            if weekday >= 5:  # sunday = 6, saturday = 5
+                continue
+            business_days_to_add -= 1
         if stage_id:
             vals = {
                 'name': sub_task.sub_task_name,
@@ -160,7 +180,11 @@ class ProjectTask(models.Model):
                 'team_members_ids': sub_task.team_members_ids.ids,
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
                 'clx_attachment_ids': main_task.project_id.clx_attachment_ids.ids if main_task.project_id.clx_attachment_ids else False,
-                'account_user_id': main_task.partner_id.account_user_id.id if main_task.partner_id.account_user_id else False
+                'account_user_id': self.partner_id.account_user_id.id if main_task.partner_id.account_user_id else False,
+                'clx_task_manager_id': self.project_id.clx_project_manager_id.id if self.project_id.clx_project_manager_id else False,
+                'clx_task_designer_id': self.project_id.clx_project_designer_id.id if self.project_id.clx_project_designer_id else False,
+                'ops_team_member_id': self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
+                'date_deadline': self.project_id.deadline if self.project_id.deadline else current_date
             }
             return vals
 
@@ -237,6 +261,25 @@ class ProjectTask(models.Model):
             raise UserError(_("You Can not Complete the Task until the all Sub Task are completed"))
 
     def write(self, vals):
+        today = fields.Date.today()
+        if self.clx_priority == 'high':
+            if self.req_type in ('update', 'budget'):
+                business_days_to_add = 1
+            else:
+                business_days_to_add = 3
+        else:
+            if self.req_type in ('update', 'budget'):
+                business_days_to_add = 3
+            else:
+                business_days_to_add = 5
+        current_date = today
+        # code for skip saturday and sunday for set deadline on task.
+        while business_days_to_add > 0:
+            current_date += datetime.timedelta(days=1)
+            weekday = current_date.weekday()
+            if weekday >= 5:  # sunday = 6, saturday = 5
+                continue
+            business_days_to_add -= 1
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         res = super(ProjectTask, self).write(vals)
         if 'active' in vals:
@@ -258,7 +301,11 @@ class ProjectTask(models.Model):
                 self.tag_ids = self.repositary_task_id.tag_ids.ids if self.repositary_task_id.tag_ids else False
                 self.team_ids = self.repositary_task_id.team_ids.ids if self.repositary_task_id.team_ids else False
                 self.team_members_ids = self.repositary_task_id.team_members_ids.ids if self.repositary_task_id.team_members_ids else False
-                self.account_user_id = self.project_id.partner_id.user_id.id if self.project_id.partner_id.user_id else False
+                self.account_user_id = self.project_id.partner_id.account_user_id.id if self.project_id.partner_id.account_user_id else False
+                self.clx_task_manager_id = self.project_id.clx_project_manager_id.id if self.project_id.clx_project_manager_id else False,
+                self.clx_task_designer_id= self.project_id.clx_project_designer_id.id if self.project_id.clx_project_designer_id else False,
+                self.ops_team_member_id = self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
+                self.date_deadline = self.project_id.deadline if self.project_id.deadline else current_date
 
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
