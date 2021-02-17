@@ -3,7 +3,9 @@
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, api, models, _
 from odoo.exceptions import UserError
+from dateutil.relativedelta import relativedelta
 import datetime
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class RequestForm(models.Model):
@@ -14,7 +16,7 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Datetime('Request Submission Date', default=datetime.datetime.today())
+    request_date = fields.Datetime('Request Submission Date', default=datetime.datetime.today(), copy=False)
     description = fields.Text('Project Title',
                               help="Choose a title for this client’s project request")
     request_line = fields.One2many('request.form.line', 'request_form_id',
@@ -189,16 +191,35 @@ class RequestForm(models.Model):
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         today = fields.Date.today()
-        if line.request_form_id.priority == 'high':
-            if line.req_type in ('update', 'budget'):
-                business_days_to_add = 1
+        current_day_with_time = self.write_date
+        date_time_str = today.strftime("%d/%m/%y")
+        date_time_str += ' 14:00:00'
+        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+        # if current_day_with_time after 2 pm:
+        #     today + 1 day
+        if current_day_with_time > comparsion_date:
+            today = today + relativedelta(days=1)
+            if line.request_form_id.priority == 'high':
+                if line.req_type in ('update', 'budget'):
+                    business_days_to_add = 1
+                else:
+                    business_days_to_add = 3
             else:
-                business_days_to_add = 3
+                if line.req_type in ('update', 'budget'):
+                    business_days_to_add = 3
+                else:
+                    business_days_to_add = 5
         else:
-            if line.req_type in ('update', 'budget'):
-                business_days_to_add = 3
+            if line.request_form_id.priority == 'high':
+                if line.req_type in ('update', 'budget'):
+                    business_days_to_add = 0
+                else:
+                    business_days_to_add = 2
             else:
-                business_days_to_add = 5
+                if line.req_type in ('update', 'budget'):
+                    business_days_to_add = 2
+                else:
+                    business_days_to_add = 4
         current_date = today
         # code for skip saturday and sunday for set deadline on task.
         while business_days_to_add > 0:
@@ -303,7 +324,6 @@ class RequestForm(models.Model):
         self.ensure_one()
         if self.request_line and self.intended_launch_date:
             date_list = self.calculated_date(self.request_line)
-            print(date_list)
             max_date = max(date_list)
             if self.intended_launch_date < max_date:
                 raise UserError('Please check Intended launch Date !!')
@@ -316,7 +336,7 @@ class RequestForm(models.Model):
             raise UserError('Please add Project Title!!')
         if not self.request_line:
             raise UserError('There is no Request Line, Please add some line')
-        if self.request_line and any(not line.description for line in self.request_line):
+        if self.request_line and any(not line.description or not line.task_id for line in self.request_line):
             raise UserError(
                 'Please add some Instruction on every line If do not have description Please delete that line.')
 

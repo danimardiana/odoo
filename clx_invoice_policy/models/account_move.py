@@ -47,22 +47,22 @@ class AccountMove(models.Model):
                         end_date = parser.parse(name[-1])
                         if start_date and end_date:
                             for sub in inv_line.subscription_lines_ids:
-                                if not sub.end_date and sub.product_id.subscription_template_id.recurring_rule_type == "yearly":
+                                if not sub.end_date:
                                     sub.invoice_start_date = start_date.date()
                                     sub.invoice_end_date = end_date.date()
-                                # elif sub.end_date:
-                                #     month_count = len(
-                                #         OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-                                #                     range((start_date.date() - sub.end_date).days)))
-                                #     if month_count == 1 and start_date.date() > sub.end_date:
-                                #         sub.invoice_start_date = False
-                                #         sub.invoice_end_date = False
-                                #     elif sub.start_date > start_date.date():
-                                #         sub.invoice_start_date = sub.start_date
-                                #         sub.invoice_end_date = sub.end_date
-                                #     else:
-                                #         sub.invoice_start_date = start_date.date()
-                                #         sub.invoice_end_date = end_date.date()
+                                elif sub.end_date:
+                                    month_count = len(
+                                        OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                                    range((start_date.date() - sub.end_date).days)))
+                                    if month_count == 1 and start_date.date() > sub.end_date:
+                                        sub.invoice_start_date = False
+                                        sub.invoice_end_date = False
+                                    elif sub.start_date > start_date.date():
+                                        sub.invoice_start_date = sub.start_date
+                                        sub.invoice_end_date = sub.end_date
+                                    else:
+                                        sub.invoice_start_date = start_date.date()
+                                        sub.invoice_end_date = end_date.date()
         return super(AccountMove, self).unlink()
 
     def button_cancel(self):
@@ -76,22 +76,22 @@ class AccountMove(models.Model):
                     end_date = parser.parse(name[-1])
                     if start_date and end_date:
                         for sub in inv_line.subscription_lines_ids:
-                            if not sub.end_date and sub.product_id.subscription_template_id.recurring_rule_type == "yearly":
+                            if not sub.end_date:
                                 sub.invoice_start_date = start_date.date()
                                 sub.invoice_end_date = end_date.date()
-                            # elif sub.end_date:
-                            #     month_count = len(
-                            #         OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
-                            #                     range((start_date.date() - sub.end_date).days)))
-                            #     if month_count == 1 and start_date.date() > sub.end_date:
-                            #         sub.invoice_start_date = False
-                            #         sub.invoice_end_date = False
-                            #     elif sub.start_date > start_date.date():
-                            #         sub.invoice_start_date = sub.start_date
-                            #         sub.invoice_end_date = sub.end_date
-                            #     else:
-                            #         sub.invoice_start_date = start_date.date()
-                            #         sub.invoice_end_date = end_date.date()
+                            elif sub.end_date:
+                                month_count = len(
+                                    OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                                range((start_date.date() - sub.end_date).days)))
+                                if month_count == 1 and start_date.date() > sub.end_date:
+                                    sub.invoice_start_date = False
+                                    sub.invoice_end_date = False
+                                elif sub.start_date > start_date.date():
+                                    sub.invoice_start_date = sub.start_date
+                                    sub.invoice_end_date = sub.end_date
+                                else:
+                                    sub.invoice_start_date = start_date.date()
+                                    sub.invoice_end_date = end_date.date()
         return res
 
 
