@@ -335,10 +335,10 @@ class SaleSubscriptionLine(models.Model):
                     period_msg = ("Invoicing period: %s - %s") % (
                         format_date(fields.Date.to_string(self.invoice_start_date), {}),
                         format_date(fields.Date.to_string(self.invoice_end_date), {}))
-                    # if self.invoice_start_date.month != self._context.get('start_date').month:
-                    #     period_msg = ("Invoicing period: %s - %s") % (
-                    #         format_date(fields.Date.to_string(self._context.get('start_date')), {}),
-                    #         format_date(fields.Date.to_string(self._context.get('end_date')), {}))
+                    if count == 1:
+                        period_msg = ("Invoicing period: %s - %s") % (
+                            format_date(fields.Date.to_string(self._context.get('start_date')), {}),
+                            format_date(fields.Date.to_string(self._context.get('end_date')), {}))
                     expire_date = (self.invoice_end_date + relativedelta(
                         months=2)).replace(day=1) + relativedelta(days=-1)
                     vals.update({

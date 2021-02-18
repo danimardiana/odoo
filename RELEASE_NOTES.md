@@ -1372,3 +1372,7 @@
 ## 02/17/2021
 #### Version 13.3.0.0.97
 - [FIX] clx_task_management : added launch date calculation on task.
+
+## 02/18/2021
+#### Version 13.1.0.0.69
+- [FIX] clx_invoice_policy : Fixed the issue of generating random invoices.
