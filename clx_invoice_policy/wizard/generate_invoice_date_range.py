@@ -72,7 +72,8 @@ class GenerateInvoiceDateRange(models.TransientModel):
                     advance_lines -= ad_line
             # raise UserError(_("Invoice of This period {} is Already created").format(period_msg))
         if advance_lines:
-            advance_lines = advance_lines.filtered(lambda x: x.price_unit > 0)
+            # if len(advance_lines) == 1:
+            #     advance_lines = advance_lines.filtered(lambda x: x.price_unit > 0)
             advance_lines_list = list(set(advance_lines.ids))
             advance_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
             count = 1
@@ -103,4 +104,3 @@ class GenerateInvoiceDateRange(models.TransientModel):
                         advance_lines += adv_line
                     elif adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly":
                         advance_lines -= adv_line
-

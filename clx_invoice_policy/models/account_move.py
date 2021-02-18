@@ -15,6 +15,7 @@ class AccountMove(models.Model):
     subscription_line_ids = fields.Many2many('sale.subscription.line', 'account_id', string="Subscription Lines")
     invoices_month_year = fields.Char(string="Invoicing Period", compute="set_invoices_month", store=False)
 
+
     def post(self):
         res = super(AccountMove, self).post()
         sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
@@ -106,3 +107,5 @@ class AccountMoveLine(models.Model):
     management_fees = fields.Float(string="Management Fees")
     retail_price = fields.Float(string="Retails Price")
     wholesale = fields.Float(string="Wholsesale")
+
+
