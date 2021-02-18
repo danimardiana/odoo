@@ -1376,3 +1376,7 @@
 ## 02/18/2021
 #### Version 13.1.0.0.69
 - [FIX] clx_invoice_policy : Fixed the issue of generating random invoices.
+
+## 02/18/2021
+#### Version 13.1.0.0.70
+- [FIX] clx_invoice_policy : fixed the issue when date range is more than 1 month in generate invoice with date range wizard.

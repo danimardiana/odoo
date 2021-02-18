@@ -80,27 +80,26 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((self.end_date - self.start_date).days)))
             next_month_date = self.start_date
+            start_date = self.start_date
+            end_date = self.end_date
             for i in range(0, count):
                 next_month_date = next_month_date + relativedelta(months=1)
                 if partner_id.invoice_selection == 'sol':
-                    partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
-                                            end_date=self.end_date, sol=True,
+                    partner_id.with_context(generate_invoice_date_range=True, start_date=start_date,
+                                            end_date=end_date, sol=True,
                                             ).generate_advance_invoice(
                         advance_lines)
                 else:
-                    partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
-                                            end_date=self.end_date,
+                    partner_id.with_context(generate_invoice_date_range=True, start_date=start_date,
+                                            end_date=end_date,
                                             ).generate_advance_invoice(
                         advance_lines)
 
                 all_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
                 for adv_line in all_lines:
-                    # if adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly" and period_msg not in all_account_move_lines.mapped(
-                    #         'name') and (
-                    #         adv_line.start_date.month == self.start_date.month and adv_line.start_date.year == self.start_date.year):
-                    #     advance_lines -= adv_line
                     if adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly" and adv_line.invoice_start_date == next_month_date:
                         advance_lines += adv_line
                     elif adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly":
                         advance_lines -= adv_line
-
+                start_date = start_date + relativedelta(months=1)
+                end_date = end_date + relativedelta(months=1)
