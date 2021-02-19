@@ -1377,10 +1377,11 @@
 #### Version 13.1.0.0.69
 - [FIX] clx_invoice_policy : Fixed the issue of generating random invoices.
 
+
 ## 02/19/2021
 #### Version 13.1.0.0.70
 - [FIX] clx_invoice_policy : Fixed the label generating issue.
 
 ## 02/19/2021
 #### Version 13.0.1.0.1
-- [ADD] mail_optional_follower_notification : Initial commit for the not send automail to followers. 
+- [ADD] mail_optional_follower_notification : Initial commit for the not send automail to followers.
