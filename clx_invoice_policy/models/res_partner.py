@@ -379,6 +379,9 @@ class Partner(models.Model):
                                 lambda x: x.product_id.id == line['product_id'] and x.name != line['name'])
                             if move_line:
                                 move_line.write({'name': line['name']})
+                            if account_move_lines.move_id.subscription_line_ids:
+                                subscription_lines = account_move_lines.move_id.subscription_line_ids.ids
+                                account_move_lines.move_id.write({'subscription_line_ids': [(6, 0, subscription_lines)]})
             else:
                 for line in prepared_lines:
                     del line['line_type']

@@ -12,6 +12,7 @@ from odoo import fields, models, api, _
 from calendar import monthrange
 
 
+
 class SaleSubscription(models.Model):
     _inherit = "sale.subscription"
 
@@ -248,15 +249,15 @@ class SaleSubscriptionLine(models.Model):
             'line_type': self.line_type,
             'sale_line_ids': line.ids,
         }
-        if self.is_prorate and (self.invoice_end_date and self.invoice_end_date.day not in (30, 31)) or (
-                self.invoice_start_date and self.invoice_start_date.day != 1):
-            new_price = self.prorate_amount
-            new_management_price = line.management_price / 2
-            res.update({
-                'price_unit': new_price,
-                'management_fees': new_management_price,
-                'wholesale': new_price - new_management_price,
-            })
+        if self.is_prorate:
+            if self.start_date.month == self.invoice_start_date.month:
+                new_price = self.prorate_amount
+                new_management_price = line.management_price / 2
+                res.update({
+                    'price_unit': new_price,
+                    'management_fees': new_management_price,
+                    'wholesale': new_price - new_management_price,
+                })
         if line.display_type:
             res['account_id'] = False
         if self._context.get('advance', False):
@@ -332,13 +333,13 @@ class SaleSubscriptionLine(models.Model):
                 count = len(OrderedDict(((self._context.get('start_date') + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((self._context.get('end_date') - self._context.get('start_date')).days)))
                 if self.product_id.subscription_template_id.recurring_rule_type == "monthly":
+                    # period_msg = ("Invoicing period: %s - %s") % (
+                    #     format_date(fields.Date.to_string(self.invoice_start_date), {}),
+                    #     format_date(fields.Date.to_string(self.invoice_end_date), {}))
+                    # if count == 1:
                     period_msg = ("Invoicing period: %s - %s") % (
-                        format_date(fields.Date.to_string(self.invoice_start_date), {}),
-                        format_date(fields.Date.to_string(self.invoice_end_date), {}))
-                    if count == 1:
-                        period_msg = ("Invoicing period: %s - %s") % (
-                            format_date(fields.Date.to_string(self._context.get('start_date')), {}),
-                            format_date(fields.Date.to_string(self._context.get('end_date')), {}))
+                        format_date(fields.Date.to_string(self._context.get('start_date')), {}),
+                        format_date(fields.Date.to_string(self._context.get('end_date')), {}))
                     expire_date = (self.invoice_end_date + relativedelta(
                         months=2)).replace(day=1) + relativedelta(days=-1)
                     vals.update({
