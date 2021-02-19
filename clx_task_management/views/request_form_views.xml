@@ -58,7 +58,7 @@
                                 <field name="req_type"/>
                                 <field name="task_id"
                                        options="{'no_create_edit': True, 'no_open': True, 'no_create': True}"
-                                       domain="[('req_type', '=', req_type),('category_id','=',category_id)]"/>
+                                       domain="[('pull_to_request_form','=',True),('req_type', '=', req_type),('category_id','=',category_id)]"/>
                                 <field name="requirements" invisible="1"/>
                                 <field name="description" class="custom-textarea"/>
                             </tree>
