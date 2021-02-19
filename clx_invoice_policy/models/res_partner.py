@@ -359,30 +359,54 @@ class Partner(models.Model):
                                 inv_line.wholesale = inv_line.price_unit - inv_line.management_fees
         else:
             order = so_lines[0].so_line_id.order_id
-            for line in prepared_lines:
-                del line['line_type']
-            account_id = self.env['account.move'].create({
-                'ref': order.client_order_ref,
-                'type': 'out_invoice',
-                'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
-                'invoice_user_id': order.user_id.id,
-                'narration': order.note,
-                'partner_id': self._context.get('co_op_invoice_partner') if self._context.get(
-                    'co_op_invoice_partner') else order.partner_invoice_id.id,
-                'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
-                'partner_shipping_id': order.partner_shipping_id.id,
-                'currency_id': order.pricelist_id.currency_id.id,
-                'invoice_payment_ref': order.reference,
-                'invoice_payment_term_id': order.payment_term_id.id,
-                'invoice_partner_bank_id': order.company_id.partner_id.bank_ids[:1].id,
-                'team_id': order.team_id.id,
-                'campaign_id': order.campaign_id.id,
-                'medium_id': order.medium_id.id,
-                'source_id': order.source_id.id,
-                'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
-            })
-        if account_id:
-            account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
+            # if len(prepared_lines) == 1:
+            if all(line['line_type'] == "downsell" for line in prepared_lines):
+                for line in prepared_lines:
+                    account_move_lines = self.env['account.move.line'].search(
+                        [('partner_id', '=', order.partner_id.id),
+                         ('parent_state', '=', 'draft'),
+                         ('name', '=', line['name'])
+                         ], limit=1)
+                    if account_move_lines and line[
+                        'line_type'] == 'downsell' and so_lines.ids not in account_move_lines.subscription_lines_ids.ids:
+                        del line['line_type']
+                        if account_move_lines.move_id:
+                            account_move_lines.move_id.with_context(name=line['name']).write(
+                                {'invoice_line_ids': [(0, 0, line)]
+                                 }
+                            )
+                            move_line = account_move_lines.move_id.invoice_line_ids.filtered(
+                                lambda x: x.product_id.id == line['product_id'] and x.name != line['name'])
+                            if move_line:
+                                move_line.write({'name': line['name']})
+                            if account_move_lines.move_id.subscription_line_ids:
+                                subscription_lines = account_move_lines.move_id.subscription_line_ids.ids
+                                account_move_lines.move_id.write({'subscription_line_ids': [(6, 0, subscription_lines)]})
+            else:
+                for line in prepared_lines:
+                    del line['line_type']
+                account_id = self.env['account.move'].create({
+                    'ref': order.client_order_ref,
+                    'type': 'out_invoice',
+                    'invoice_origin': '/'.join(so_lines.mapped('so_line_id').mapped('order_id').mapped('name')),
+                    'invoice_user_id': order.user_id.id,
+                    'narration': order.note,
+                    'partner_id': self._context.get('co_op_invoice_partner') if self._context.get(
+                        'co_op_invoice_partner') else order.partner_invoice_id.id,
+                    'fiscal_position_id': order.fiscal_position_id.id or self.property_account_position_id.id,
+                    'partner_shipping_id': order.partner_shipping_id.id,
+                    'currency_id': order.pricelist_id.currency_id.id,
+                    'invoice_payment_ref': order.reference,
+                    'invoice_payment_term_id': order.payment_term_id.id,
+                    'invoice_partner_bank_id': order.company_id.partner_id.bank_ids[:1].id,
+                    'team_id': order.team_id.id,
+                    'campaign_id': order.campaign_id.id,
+                    'medium_id': order.medium_id.id,
+                    'source_id': order.source_id.id,
+                    'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
+                })
+                if account_id:
+                    account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
 
     def generate_arrears_invoice(self, lines):
         today = date.today()
