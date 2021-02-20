@@ -290,6 +290,9 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project_project_filter"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="implementation_specialist_id" string="Implementation Specialist"/>
+            </xpath>
             <xpath expr="//group//filter[@name='Manager']" position="attributes">
                 <attribute name="string">Account Manager</attribute>
             </xpath>
