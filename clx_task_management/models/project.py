@@ -254,6 +254,10 @@ class ProjectTask(models.Model):
             }
             return vals
 
+    @api.onchange('repositary_task_id')
+    def on_repository_change(self):
+        self.name = self.repositary_task_id.name
+
     @api.onchange('stage_id')
     def onchange_stage_id(self):
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')

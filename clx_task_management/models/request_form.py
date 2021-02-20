@@ -457,7 +457,9 @@ class RequestFormLine(models.Model):
                 raise UserError(_(
                     """There is no subscription available for this customer."""))
         if not self.category_id:
-            return {'domain': {'task_id': [('req_type', '=', self.req_type)]}}
+            return {'domain': {'task_id': [('req_type', '=', self.req_type),
+                                           ('pull_to_request_form', '=', True)]}}
         elif self.category_id:
             return {'domain': {'task_id': [('req_type', '=', self.req_type),
-                                           ('category_id', '=', self.category_id.id)]}}
+                                           ('category_id', '=', self.category_id.id),
+                                           ('pull_to_request_form', '=', True)]}}

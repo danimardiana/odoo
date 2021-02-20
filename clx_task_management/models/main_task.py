@@ -19,6 +19,7 @@ class MainTask(models.Model):
     category_id = fields.Many2one('product.category', string="Product Category")
     tag_ids = fields.Many2many('project.tags', string="Tags")
     product_ids = fields.Many2many('product.product', string="Products")
+    pull_to_request_form = fields.Boolean(string='Pull to the Request Form', default=True)
 
     # @api.onchange('team_ids')
     # def _onchange_team_ids(self):

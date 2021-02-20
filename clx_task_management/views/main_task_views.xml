@@ -24,6 +24,7 @@
                             <field name="team_members_ids" widget="many2many_tags"/>
                             <field name="tag_ids" widget="many2many_tags"/>
                             <field name="display_to_customer"/>
+                            <field name="pull_to_request_form"/>
                         </group>
                         <group>
                             <field name="req_type"/>
@@ -66,6 +67,7 @@
                 <field name="tag_ids" widget="many2many_tags"/>
                 <field name="display_to_customer"/>
                 <field name="category_id"/>
+                <field name="pull_to_request_form"/>
             </tree>
         </field>
     </record>

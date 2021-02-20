@@ -7,6 +7,7 @@ from odoo import fields, models, tools, api
 
 class SaleSubscriptionData(models.Model):
     _name = "sale.subscription.report.data"
+    _description = "Sale Subscription Report Data"
 
     date = fields.Date('Date', readonly=True)
     end_date = fields.Date(string='End Date', readonly=True)
