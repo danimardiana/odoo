@@ -250,7 +250,7 @@ class SaleSubscriptionLine(models.Model):
             'sale_line_ids': line.ids,
         }
         if self.is_prorate:
-            if self.start_date.month == self.invoice_start_date.month:
+            if self.invoice_start_date and self.start_date.month == self.invoice_start_date.month:
                 new_price = self.prorate_amount
                 new_management_price = line.management_price / 2
                 res.update({
@@ -258,7 +258,7 @@ class SaleSubscriptionLine(models.Model):
                     'management_fees': new_management_price,
                     'wholesale': new_price - new_management_price,
                 })
-            if self.end_date.month == self.invoice_end_date.month:
+            if self.invoice_end_date and self.end_date and self.end_date.month == self.invoice_end_date.month:
                 new_price = self.prorate_end_amount
                 new_management_price = line.management_price / 2
                 res.update({

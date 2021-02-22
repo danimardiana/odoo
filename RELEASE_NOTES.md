@@ -1401,3 +1401,7 @@
 ## 02/22/2021
 #### Version 13.1.0.0.72
 - [FIX] clx_invoice_policy : Added prorate end amount for invoice creation.
+
+## 02/22/2021
+#### Version 13.1.0.0.73
+- [FIX] clx_invoice_policy : fix the date comparsion issue.
