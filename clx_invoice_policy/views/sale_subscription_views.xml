@@ -11,6 +11,7 @@
                    position="before">
                 <field name="is_prorate"/>
                 <field name="prorate_amount"/>
+                <field name="prorate_end_amount"/>
             </xpath>
             <xpath expr="//group[@name='main']//div" position="attributes">
                 <attribute name="invisible">1</attribute>

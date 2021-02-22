@@ -1396,4 +1396,8 @@
 
 ## 02/22/2021
 #### Version 13.3.0.0.98
-- [FIX] clx_task_management : fixed the timezone issue in deadline of project and task. 
+- [FIX] clx_task_management : fixed the timezone issue in deadline of project and task.
+
+## 02/22/2021
+#### Version 13.1.0.0.72
+- [FIX] clx_invoice_policy : Added prorate end amount for invoice creation.
