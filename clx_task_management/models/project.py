@@ -40,7 +40,9 @@ class ProjectProject(models.Model):
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
         if 'active' in vals:
-            self.task_ids.write({'active': vals.get('active', False)})
+            # self.task_ids.write({'active': vals.get('active', False)})
+            for task in self.task_ids:
+                task.write({'active': vals.get('active', False)})
         if vals.get('clx_project_manager_id', False):
             cs_team = self.env['clx.team'].search([('team_name', '=', 'CS')])
             for task in self.task_ids:

@@ -41,7 +41,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
         for adv_line in advance_lines:
             if not adv_line.end_date and self.end_date >= adv_line.start_date:
                 final_adv_line += adv_line
-            elif adv_line.end_date and self.start_date <= adv_line.end_date:
+            elif adv_line.end_date and adv_line.start_date <= self.end_date:
                 final_adv_line += adv_line
         advance_lines = final_adv_line
         lang = partner_id.lang

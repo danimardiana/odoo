@@ -56,8 +56,8 @@ class AccountMove(models.Model):
                                         OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                                     range((start_date.date() - sub.end_date).days)))
                                     if month_count == 1 and start_date.date() > sub.end_date:
-                                        sub.invoice_start_date = False
-                                        sub.invoice_end_date = False
+                                        sub.invoice_start_date = sub.start_date
+                                        sub.invoice_end_date = sub.end_date
                                     elif sub.start_date > start_date.date():
                                         sub.invoice_start_date = sub.start_date
                                         sub.invoice_end_date = sub.end_date
@@ -85,8 +85,8 @@ class AccountMove(models.Model):
                                     OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                                 range((start_date.date() - sub.end_date).days)))
                                 if month_count == 1 and start_date.date() > sub.end_date:
-                                    sub.invoice_start_date = False
-                                    sub.invoice_end_date = False
+                                    sub.invoice_start_date = sub.start_date
+                                    sub.invoice_end_date = sub.end_date
                                 elif sub.start_date > start_date.date():
                                     sub.invoice_start_date = sub.start_date
                                     sub.invoice_end_date = sub.end_date

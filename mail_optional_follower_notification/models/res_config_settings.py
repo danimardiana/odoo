@@ -11,15 +11,15 @@ class ResConfigSettings(models.TransientModel):
 
     @api.model
     def set_values(self):
-        self.env['ir.config_parameter'].sudo().set_param(
-            'is_send_auto_mail', self.is_create_auto_task or False)
+        config_parameter = self.env['ir.config_parameter'].sudo()
+        config_parameter.set_param(
+            'is_send_auto_mail', self.is_send_auto_mail or False,
+        )
         return super(ResConfigSettings, self).set_values()
 
     @api.model
     def get_values(self):
         res = super(ResConfigSettings, self).get_values()
         params = self.env['ir.config_parameter'].sudo()
-        res.update(
-            is_send_auto_mail=bool(params.get_param('is_send_auto_mail', '')) or False
-        )
+        res.update({'is_send_auto_mail': bool(params.get_param('is_send_auto_mail', False))})
         return res

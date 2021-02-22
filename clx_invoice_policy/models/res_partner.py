@@ -187,6 +187,7 @@ class Partner(models.Model):
             pre_line.update({
                 'subscription_lines_ids': sub_lines.ids if sub_lines else False
             })
+        account_id = False
         if not self._context.get('sol'):
             for line in prepared_lines:
                 line_type = line['line_type']
@@ -405,8 +406,8 @@ class Partner(models.Model):
                     'source_id': order.source_id.id,
                     'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
                 })
-                if account_id:
-                    account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
+        if account_id:
+            account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
 
     def generate_arrears_invoice(self, lines):
         today = date.today()

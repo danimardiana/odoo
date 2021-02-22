@@ -151,7 +151,7 @@ class SaleSubscriptionLine(models.Model):
                         })
             return res
         else:
-            return super(SaleSubscriptionLine, self).write(vals)
+            return res
 
     def start_in_next(self):
         """
@@ -312,7 +312,7 @@ class SaleSubscriptionLine(models.Model):
                             'invoice_end_date': self.end_date
                         }
                     )
-                elif self.invoice_start_date and self.invoice_start_date > self.end_date:
+                elif self.invoice_start_date and self.invoice_start_date > self.end_date and not self._context.get('generate_invoice_date_range', False):
                     self.with_context(skip=True).write(
                         {
                             'invoice_end_date': False,
@@ -333,13 +333,11 @@ class SaleSubscriptionLine(models.Model):
                 count = len(OrderedDict(((self._context.get('start_date') + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((self._context.get('end_date') - self._context.get('start_date')).days)))
                 if self.product_id.subscription_template_id.recurring_rule_type == "monthly":
-                    # period_msg = ("Invoicing period: %s - %s") % (
-                    #     format_date(fields.Date.to_string(self.invoice_start_date), {}),
-                    #     format_date(fields.Date.to_string(self.invoice_end_date), {}))
-                    # if count == 1:
                     period_msg = ("Invoicing period: %s - %s") % (
                         format_date(fields.Date.to_string(self._context.get('start_date')), {}),
                         format_date(fields.Date.to_string(self._context.get('end_date')), {}))
+                    if not self.invoice_end_date:
+                        print("_________")
                     expire_date = (self.invoice_end_date + relativedelta(
                         months=2)).replace(day=1) + relativedelta(days=-1)
                     vals.update({
@@ -348,18 +346,6 @@ class SaleSubscriptionLine(models.Model):
                         'invoice_end_date': expire_date
                     })
                     self.write(vals)
-                # elif count == 12 and self.product_id.subscription_template_id.recurring_rule_type == "yearly":
-                #     period_msg = ("Invoicing period: %s - %s") % (
-                #         format_date(fields.Date.to_string(self._context.get('start_date')), {}),
-                #         format_date(fields.Date.to_string(self._context.get('end_date')), {}))
-                #     expire_date = (self.invoice_end_date + relativedelta(
-                #         months=2)).replace(day=1) + relativedelta(days=-1)
-                #     vals.update({
-                #         'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(
-                #             day=1) if self.invoice_end_date else False,
-                #         'invoice_end_date': expire_date
-                #     })
-                #     self.write(vals)
                 res.update({
                     'name': period_msg,
                 })

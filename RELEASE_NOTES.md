@@ -1384,4 +1384,16 @@
 
 ## 02/19/2021
 #### Version 13.0.1.0.1
-- [ADD] mail_optional_follower_notification : Initial commit for the not send automail to followers.
+- [ADD] mail_optional_follower_notification : Initial commit for the not send automail to followers. 
+
+## 02/22/2021
+#### Version 13.0.1.0.2
+- [FIX] mail_optional_follower_notification : Fixed the issue related to config setting issue.
+
+## 02/22/2021
+#### Version 13.1.0.0.71
+- [FIX] clx_invoice_policy : Fixed the issue subscription lines in not updated on invoice.
+
+## 02/22/2021
+#### Version 13.3.0.0.98
+- [FIX] clx_task_management : fixed the timezone issue in deadline of project and task. 
