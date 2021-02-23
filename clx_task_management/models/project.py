@@ -246,6 +246,7 @@ class ProjectTask(models.Model):
             raise UserError(_("You Can not Complete the Task until the all Sub Task are completed"))
 
     def write(self, vals):
+        res = super(ProjectTask, self).write(vals)
         today = fields.Date.today()
         current_day_with_time = self.write_date
         user_tz = self.env.user.tz or 'US/Pacific'
@@ -287,7 +288,6 @@ class ProjectTask(models.Model):
                 continue
             business_days_to_add -= 1
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
-        res = super(ProjectTask, self).write(vals)
         if 'active' in vals:
             for task in self.child_ids:
                 self._cr.execute("UPDATE project_task SET active = %s WHERE id = %s", [vals.get('active'), task.id])

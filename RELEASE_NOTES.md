@@ -1412,4 +1412,12 @@
 
 ## 02/22/2021
 #### Version 13.3.0.0.99
-- [FIX] clx_task_management : Fixed the deadline related issue on subtask. 
+- [FIX] clx_task_management : Fixed the deadline related issue on subtask.
+
+## 02/23/2021
+#### Version 13.1.0.0.75
+- [FIX] clx_invoice_policy : Fixed invoice generation issue when user select more than 1 one month data range.
+
+## 02/22/2021
+#### Version 13.3.0.0.100
+- [FIX] clx_task_management : Fixed deadline issue when user create manually parent task. 

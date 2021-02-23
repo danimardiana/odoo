@@ -106,11 +106,11 @@ class GenerateInvoiceDateRange(models.TransientModel):
                     elif adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly":
                         advance_lines -= adv_line
                 start_date = start_date + relativedelta(months=1)
-                # for adv_line in all_lines:
-                #     advance_lines = False
-                #     if adv_line.product_id.subscription_template_id.recurring_rule_type == "monthly":
-                #         if not adv_line.end_date and end_date >= adv_line.start_date:
-                #             final_adv_line += adv_line
-                #         elif adv_line.end_date and adv_line.start_date <= end_date and start_date <= adv_line.end_date:
-                #             final_adv_line += adv_line
-                # advance_lines = final_adv_line
+                final_adv_line = self.env['sale.subscription.line']
+                for adv_line in all_lines:
+                    if adv_line.product_id.subscription_template_id.recurring_rule_type == "monthly":
+                        if not adv_line.end_date and end_date >= adv_line.start_date:
+                            final_adv_line += adv_line
+                        elif adv_line.end_date and adv_line.start_date <= end_date and start_date <= adv_line.end_date:
+                            final_adv_line += adv_line
+                advance_lines = final_adv_line
