@@ -1405,3 +1405,11 @@
 ## 02/22/2021
 #### Version 13.1.0.0.73
 - [FIX] clx_invoice_policy : fix the date comparsion issue.
+
+## 02/23/2021
+#### Version 13.1.0.0.74
+- [FIX] clx_invoice_policy : fixed the end date issue while creation manualy invoice.
+
+## 02/22/2021
+#### Version 13.3.0.0.99
+- [FIX] clx_task_management : Fixed the deadline related issue on subtask. 

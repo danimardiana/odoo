@@ -9,7 +9,6 @@
 
             <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='price_unit']"
                    position="before">
-                <field name="is_prorate"/>
                 <field name="prorate_amount"/>
                 <field name="prorate_end_amount"/>
             </xpath>
