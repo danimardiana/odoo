@@ -9,6 +9,7 @@ from datetime import timedelta
 from collections import OrderedDict
 from dateutil.relativedelta import relativedelta
 import datetime
+from calendar import monthrange
 
 
 class GenerateInvoiceDateRange(models.TransientModel):
@@ -40,7 +41,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
         for adv_line in advance_lines:
             if not adv_line.end_date and self.end_date >= adv_line.start_date:
                 final_adv_line += adv_line
-            elif adv_line.end_date and self.start_date <= adv_line.end_date:
+            elif adv_line.end_date and adv_line.start_date <= self.end_date and self.start_date <= adv_line.end_date:
                 final_adv_line += adv_line
         advance_lines = final_adv_line
         lang = partner_id.lang
@@ -81,26 +82,35 @@ class GenerateInvoiceDateRange(models.TransientModel):
                 count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((self.end_date - self.start_date).days)))
             next_month_date = self.start_date
+            start_date = self.start_date
+            # end_date = self.end_date
             for i in range(0, count):
                 next_month_date = next_month_date + relativedelta(months=1)
+                end_date = datetime.date(start_date.year, start_date.month,
+                                         monthrange(start_date.year, start_date.month)[-1])
                 if partner_id.invoice_selection == 'sol':
-                    partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
-                                            end_date=self.end_date, sol=True,
+                    partner_id.with_context(generate_invoice_date_range=True, start_date=start_date,
+                                            end_date=end_date, sol=True,
                                             ).generate_advance_invoice(
                         advance_lines)
                 else:
-                    partner_id.with_context(generate_invoice_date_range=True, start_date=self.start_date,
-                                            end_date=self.end_date,
+                    partner_id.with_context(generate_invoice_date_range=True, start_date=start_date,
+                                            end_date=end_date,
                                             ).generate_advance_invoice(
                         advance_lines)
 
                 all_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
                 for adv_line in all_lines:
-                    # if adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly" and period_msg not in all_account_move_lines.mapped(
-                    #         'name') and (
-                    #         adv_line.start_date.month == self.start_date.month and adv_line.start_date.year == self.start_date.year):
-                    #     advance_lines -= adv_line
                     if adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly" and adv_line.invoice_start_date == next_month_date:
                         advance_lines += adv_line
                     elif adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly":
                         advance_lines -= adv_line
+                start_date = start_date + relativedelta(months=1)
+                final_adv_line = self.env['sale.subscription.line']
+                for adv_line in all_lines:
+                    if adv_line.product_id.subscription_template_id.recurring_rule_type == "monthly":
+                        if not adv_line.end_date and end_date >= adv_line.start_date:
+                            final_adv_line += adv_line
+                        elif adv_line.end_date and adv_line.start_date <= end_date and start_date <= adv_line.end_date:
+                            final_adv_line += adv_line
+                advance_lines = final_adv_line
