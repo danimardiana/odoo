@@ -361,5 +361,16 @@ class SaleSubscriptionLine(models.Model):
                     res.update({
                         'price_unit': new_price,
                     })
-
+        if line.order_id.partner_id.invoice_selection == 'sol':
+            if line.product_id.name != line.name:
+                res.update({'description': line.name})
+            else:
+                res.update({'description': line.product_id.name})
+                if line.order_id.partner_id.vertical in ('res', 'srl') and line.product_id.budget_wrapping:
+                    res.update({'description': line.product_id.budget_wrapping})
+                else:
+                    if line.product_id.budget_wrapping_auto_local:
+                        res.update({'description': line.product_id.budget_wrapping_auto_local})
+        else:
+            res.update({'description': line.product_id.categ_id.name})
         return res

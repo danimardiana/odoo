@@ -32,6 +32,7 @@
                 <field name="subscription_start_date" invisible="1"/>
                 <field name="subscription_end_date" invisible="1"/>
                 <field name="category_id"/>
+                <field name="description"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Subscription Lines" name="subscription_lines">

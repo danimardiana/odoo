@@ -1418,6 +1418,23 @@
 #### Version 13.1.0.0.75
 - [FIX] clx_invoice_policy : Fixed invoice generation issue when user select more than 1 one month data range.
 
-## 02/22/2021
+## 02/23/2021
 #### Version 13.3.0.0.100
-- [FIX] clx_task_management : Fixed deadline issue when user create manually parent task. 
+- [FIX] clx_task_management : Fixed deadline issue when user create manually parent task.
+
+## 02/24/2021
+#### Version 13.3.0.1.1
+- [FIX] clx_task_management : fixed project archieved issue.
+
+## 02/24/2021
+#### Version 13.1.0.0.76
+- [FIX] clx_invoice_policy : added description on invoice
+
+## 02/24/2021
+#### Version 13.3.0.0.32
+- [FIX] clx_invoice_reports : added description on invoice pdf reports.
+
+## 02/24/2021
+#### Version 13.0.1.0.3
+- [FIX] mail_optional_follower_notification : changed in sending mail flow.
+

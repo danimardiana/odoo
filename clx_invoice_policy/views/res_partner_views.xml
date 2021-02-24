@@ -10,7 +10,7 @@
                 <field name="clx_invoice_policy_id"
                        attrs="{'invisible': [('company_type', 'in', ('person','owner','management'))]}"/>
                 <field name="is_subscribed" invisible="True"/>
-                <field name="invoice_creation_type"/>
+                <field name="invoice_creation_type" invisible="1"/>
             </xpath>
             <sheet position="before">
                 <header>
