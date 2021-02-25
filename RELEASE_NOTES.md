@@ -1438,3 +1438,10 @@
 #### Version 13.0.1.0.3
 - [FIX] mail_optional_follower_notification : changed in sending mail flow.
 
+## 02/25/2021
+#### Version 13.3.0.1.2
+- [FIX] clx_task_management : Fixed the deadline issue, the deadline was not set on subtask while creating manually task.
+
+## 02/25/2021
+#### Version 13.1.0.0.77
+- [FIX] clx_invoice_policy : Fixed the issue of duplicate generating issue.

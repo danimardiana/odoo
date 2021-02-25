@@ -169,7 +169,7 @@ class ProjectTask(models.Model):
                 'clx_task_manager_id': self.project_id.clx_project_manager_id.id if self.project_id.clx_project_manager_id else False,
                 'clx_task_designer_id': self.project_id.clx_project_designer_id.id if self.project_id.clx_project_designer_id else False,
                 'ops_team_member_id': self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
-                'date_deadline': self.parent_id.date_deadline if self.parent_id else False
+                'date_deadline': main_task and main_task.date_deadline
             }
             return vals
 
@@ -248,7 +248,8 @@ class ProjectTask(models.Model):
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
         today = fields.Date.today()
-        if vals.get('write_date',False):
+        current_date = today
+        if 'active' not in vals:
             current_day_with_time = self.write_date
             user_tz = self.env.user.tz or 'US/Pacific'
             current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
@@ -301,6 +302,7 @@ class ProjectTask(models.Model):
             if repositary_main_task:
                 repo_sub_tasks = sub_task_obj.search([('parent_id', '=', repositary_main_task.id),
                                                       ('dependency_ids', '=', False)])
+                self.date_deadline = current_date
                 for sub_task in repo_sub_tasks:
                     vals = self.prepared_sub_task_vals(
                         sub_task, self)
@@ -312,7 +314,6 @@ class ProjectTask(models.Model):
                 self.clx_task_manager_id = self.project_id.clx_project_manager_id.id if self.project_id.clx_project_manager_id else False,
                 self.clx_task_designer_id = self.project_id.clx_project_designer_id.id if self.project_id.clx_project_designer_id else False,
                 self.ops_team_member_id = self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
-                self.date_deadline = current_date
 
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')

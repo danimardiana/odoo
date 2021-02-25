@@ -23,7 +23,7 @@ class Partner(models.Model):
     invoice_selection = fields.Selection([
         ('prod_categ', 'Product Category'),
         ('sol', 'Sale Order Line')
-    ], string="Display on", default="prod_categ")
+    ], string="Display on", default="sol")
 
     invoice_creation_type = fields.Selection([
         ('combined', 'Combined'),
