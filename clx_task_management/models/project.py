@@ -252,45 +252,46 @@ class ProjectTask(models.Model):
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
         today = fields.Date.today()
-        current_day_with_time = self.write_date
-        user_tz = self.env.user.tz or 'US/Pacific'
-        current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
-        date_time_str = today.strftime("%d/%m/%y")
-        date_time_str += ' 14:00:00'
-        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
-        # if current_day_with_time after 2 pm:
-        #     today + 1 day
-        if current_day_with_time.time() > comparsion_date.time():
-            today = today + relativedelta(days=1)
-            if self.clx_priority == 'high':
-                if self.req_type in ('update', 'budget'):
-                    business_days_to_add = 1
+        if vals.get('write_date',False):
+            current_day_with_time = self.write_date
+            user_tz = self.env.user.tz or 'US/Pacific'
+            current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+            date_time_str = today.strftime("%d/%m/%y")
+            date_time_str += ' 14:00:00'
+            comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+            # if current_day_with_time after 2 pm:
+            #     today + 1 day
+            if current_day_with_time.time() > comparsion_date.time():
+                today = today + relativedelta(days=1)
+                if self.clx_priority == 'high':
+                    if self.req_type in ('update', 'budget'):
+                        business_days_to_add = 1
+                    else:
+                        business_days_to_add = 3
                 else:
-                    business_days_to_add = 3
+                    if self.req_type in ('update', 'budget'):
+                        business_days_to_add = 3
+                    else:
+                        business_days_to_add = 5
             else:
-                if self.req_type in ('update', 'budget'):
-                    business_days_to_add = 3
+                if self.clx_priority == 'high':
+                    if self.req_type in ('update', 'budget'):
+                        business_days_to_add = 0
+                    else:
+                        business_days_to_add = 2
                 else:
-                    business_days_to_add = 5
-        else:
-            if self.clx_priority == 'high':
-                if self.req_type in ('update', 'budget'):
-                    business_days_to_add = 0
-                else:
-                    business_days_to_add = 2
-            else:
-                if self.req_type in ('update', 'budget'):
-                    business_days_to_add = 2
-                else:
-                    business_days_to_add = 4
-        current_date = today
-        # code for skip saturday and sunday for set deadline on task.
-        while business_days_to_add > 0:
-            current_date += datetime.timedelta(days=1)
-            weekday = current_date.weekday()
-            if weekday >= 5:  # sunday = 6, saturday = 5
-                continue
-            business_days_to_add -= 1
+                    if self.req_type in ('update', 'budget'):
+                        business_days_to_add = 2
+                    else:
+                        business_days_to_add = 4
+            current_date = today
+            # code for skip saturday and sunday for set deadline on task.
+            while business_days_to_add > 0:
+                current_date += datetime.timedelta(days=1)
+                weekday = current_date.weekday()
+                if weekday >= 5:  # sunday = 6, saturday = 5
+                    continue
+                business_days_to_add -= 1
         complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
         if 'active' in vals:
             for task in self.child_ids:

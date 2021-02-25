@@ -37,13 +37,6 @@ class GenerateInvoiceDateRange(models.TransientModel):
         advance_lines = lines.filtered(
             lambda sl: (
                     sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance' and sl.product_id.subscription_template_id.recurring_rule_type == "monthly"))
-        final_adv_line = self.env['sale.subscription.line']
-        for adv_line in advance_lines:
-            if not adv_line.end_date and self.end_date >= adv_line.start_date:
-                final_adv_line += adv_line
-            elif adv_line.end_date and adv_line.start_date <= self.end_date and self.start_date <= adv_line.end_date:
-                final_adv_line += adv_line
-        advance_lines = final_adv_line
         lang = partner_id.lang
         format_date = self.env['ir.qweb.field.date'].with_context(
             lang=lang).value_to_html
@@ -71,23 +64,28 @@ class GenerateInvoiceDateRange(models.TransientModel):
             for ad_line in advance_lines:
                 if ad_line.id in account_move_lines.mapped('subscription_lines_ids').ids:
                     advance_lines -= ad_line
-            # raise UserError(_("Invoice of This period {} is Already created").format(period_msg))
         if advance_lines:
-            # if len(advance_lines) == 1:
-            #     advance_lines = advance_lines.filtered(lambda x: x.price_unit > 0)
             advance_lines_list = list(set(advance_lines.ids))
-            advance_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
+            all_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
             count = 1
             if partner_id.invoice_creation_type == 'separate':
                 count = len(OrderedDict(((self.start_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                         range((self.end_date - self.start_date).days)))
             next_month_date = self.start_date
             start_date = self.start_date
-            # end_date = self.end_date
             for i in range(0, count):
                 next_month_date = next_month_date + relativedelta(months=1)
                 end_date = datetime.date(start_date.year, start_date.month,
                                          monthrange(start_date.year, start_date.month)[-1])
+                final_adv_line = self.env['sale.subscription.line']
+
+                for adv_line in all_lines:
+                    if adv_line.product_id.subscription_template_id.recurring_rule_type == "monthly":
+                        if not adv_line.end_date and end_date >= adv_line.start_date:
+                            final_adv_line += adv_line
+                        elif adv_line.end_date and adv_line.start_date <= end_date and start_date <= adv_line.end_date:
+                            final_adv_line += adv_line
+                advance_lines = final_adv_line
                 if partner_id.invoice_selection == 'sol':
                     partner_id.with_context(generate_invoice_date_range=True, start_date=start_date,
                                             end_date=end_date, sol=True,
@@ -99,18 +97,9 @@ class GenerateInvoiceDateRange(models.TransientModel):
                                             ).generate_advance_invoice(
                         advance_lines)
 
-                all_lines = self.env['sale.subscription.line'].browse(advance_lines_list)
                 for adv_line in all_lines:
                     if adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly" and adv_line.invoice_start_date == next_month_date:
                         advance_lines += adv_line
                     elif adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly":
                         advance_lines -= adv_line
                 start_date = start_date + relativedelta(months=1)
-                final_adv_line = self.env['sale.subscription.line']
-                for adv_line in all_lines:
-                    if adv_line.product_id.subscription_template_id.recurring_rule_type == "monthly":
-                        if not adv_line.end_date and end_date >= adv_line.start_date:
-                            final_adv_line += adv_line
-                        elif adv_line.end_date and adv_line.start_date <= end_date and start_date <= adv_line.end_date:
-                            final_adv_line += adv_line
-                advance_lines = final_adv_line

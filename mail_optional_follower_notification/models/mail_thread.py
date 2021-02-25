@@ -10,10 +10,10 @@ class MailThread(models.AbstractModel):
     def _notify_compute_recipients(self, message, msg_vals):
         """ Compute recipients to notify based on subtype and followers. This
         method returns data structured as expected for ``_notify_recipients``. """
-        recipient_data = super()._notify_compute_recipients(message, msg_vals)
+        recipient_data = super(MailThread, self)._notify_compute_recipients(message, msg_vals)
         params = self.env['ir.config_parameter'].sudo()
         is_send_auto_mail = bool(params.get_param('is_send_auto_mail', ''))
-        if is_send_auto_mail:
+        if is_send_auto_mail and self._context.get('custom_layout', False):
             # filter out all the followers
             pids = (
                 msg_vals.get("partner_ids", [])
