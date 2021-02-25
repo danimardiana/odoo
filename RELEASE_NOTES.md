@@ -1445,3 +1445,7 @@
 ## 02/25/2021
 #### Version 13.1.0.0.77
 - [FIX] clx_invoice_policy : Fixed the issue of duplicate generating issue.
+
+## 02/25/2021
+#### Version 13.1.0.0.78
+- [ADD] clx_invoice_policy : Merger 2 sale order lines in invoice if those lines have same description.  
