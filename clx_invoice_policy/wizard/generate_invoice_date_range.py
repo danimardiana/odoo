@@ -27,6 +27,7 @@ class GenerateInvoiceDateRange(models.TransientModel):
 
     def generate_invoice(self):
         partner_id = self.env['res.partner'].search([('id', '=', self._context.get('active_id'))])
+        lines = []
         if partner_id:
             lines = self.env['sale.subscription.line'].search([
                 ('so_line_id.order_id.partner_id', 'child_of', partner_id.id),
@@ -86,6 +87,17 @@ class GenerateInvoiceDateRange(models.TransientModel):
                         elif adv_line.end_date and adv_line.start_date <= end_date and start_date <= adv_line.end_date:
                             final_adv_line += adv_line
                 advance_lines = final_adv_line
+                period_msg = ("Invoicing period: %s - %s") % (
+                    format_date(fields.Date.to_string(start_date), {}),
+                    format_date(fields.Date.to_string(end_date), {}))
+                account_move_lines = self.env['account.move.line'].search(
+                    [('partner_id', '=', partner_id.id), ('name', '=', period_msg),
+                     ('parent_state', 'in', ('draft', 'posted')),
+                     ('subscription_lines_ids', 'in', advance_lines.ids)])
+                if account_move_lines:
+                    for ad_line in advance_lines:
+                        if ad_line.id in account_move_lines.mapped('subscription_lines_ids').ids:
+                            advance_lines -= ad_line
                 if partner_id.invoice_selection == 'sol':
                     partner_id.with_context(generate_invoice_date_range=True, start_date=start_date,
                                             end_date=end_date, sol=True,
