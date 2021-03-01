@@ -112,9 +112,10 @@ class ProjectTask(models.Model):
         store=True)
     sub_task_project_ids = fields.One2many(compute="_compute_sub_task_project_ids", comodel_name='sub.task.project',
                                            string="Sub Task")
-    clx_attachment_ids = fields.Many2many(
-        "ir.attachment", 'att_task_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
-    )
+    clx_attachment_ids = fields.Many2many(related='project_id.clx_attachment_ids', string="Files", readonly=False)
+    # clx_attachment_ids = fields.Many2many(
+    #     "ir.attachment", 'att_task_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
+    # )
     clx_description = fields.Html(related="parent_id.description", readonly=False)
     implementation_specialist_id = fields.Many2one(related="project_id.partner_id.implementation_specialist_id")
     category_id = fields.Many2one('product.category', string="Category")
