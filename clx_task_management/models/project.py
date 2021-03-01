@@ -58,9 +58,8 @@ class ProjectProject(models.Model):
             for task in self.task_ids:
                 task.clx_project_manager_id = self.clx_project_manager_id.id
         if vals.get('clx_project_designer_id', False):
-            self.task_ids.write({'clx_task_designer_id': self.clx_project_designer_id.id})
-            # for task in self.task_ids:
-            #     task.clx_project_designer_id = self.clx_project_designer_id.id
+            for task in self.task_ids:
+                task.clx_project_designer_id = self.clx_project_designer_id.id
         return res
 
     def action_done_project(self):
