@@ -18,26 +18,35 @@ class ProjectProject(models.Model):
     _inherit = 'project.project'
 
     req_form_id = fields.Many2one('request.form', string='Request Form')
-    clx_state = fields.Selection([('new', 'NEW'), ('in_progress', 'In Progress'), ('done', 'Done')], string="State")
+    clx_state = fields.Selection(
+        [('new', 'NEW'), ('in_progress', 'In Progress'), ('done', 'Done')], string="State")
     clx_sale_order_ids = fields.Many2many('sale.order', string='Sale order')
-    project_ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link", readonly=False)
-    clx_project_manager_id = fields.Many2one('res.users', string="CS Team Member")
-    clx_project_designer_id = fields.Many2one('res.users', string="CAT Team Member")
+    project_ads_link_ids = fields.One2many(
+        related='partner_id.ads_link_ids', string="Ads Link", readonly=False)
+    clx_project_manager_id = fields.Many2one(
+        'res.users', string="CS Team Member")
+    clx_project_designer_id = fields.Many2one(
+        'res.users', string="CAT Team Member")
     ops_team_member_id = fields.Many2one("res.users", string="OPS Team Member")
-    management_company_type_id = fields.Many2one(related='partner_id.management_company_type_id')
-    google_analytics_cl_account_location = fields.Selection(related='partner_id.google_analytics_cl_account_location')
+    management_company_type_id = fields.Many2one(
+        related='partner_id.management_company_type_id')
+    google_analytics_cl_account_location = fields.Selection(
+        related='partner_id.google_analytics_cl_account_location')
     cs_notes = fields.Text(related='partner_id.cs_notes')
     ops_notes = fields.Text(related='partner_id.ops_notes')
     cat_notes = fields.Text(related='partner_id.cat_notes')
     deadline = fields.Date(string='Deadline')
-    priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    priority = fields.Selection(
+        [('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     client_services_team = fields.Selection(related="partner_id.management_company_type_id.client_services_team",
                                             store=True)
     clx_attachment_ids = fields.Many2many(
         "ir.attachment", 'att_project_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
-    implementation_specialist_id = fields.Many2one(related="partner_id.implementation_specialist_id")
-    user_id = fields.Many2one('res.users', string='Account Manager', default=lambda self: self.env.user, tracking=True)
+    implementation_specialist_id = fields.Many2one(
+        related="partner_id.implementation_specialist_id")
+    user_id = fields.Many2one('res.users', string='Account Manager',
+                              default=lambda self: self.env.user, tracking=True)
 
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
@@ -56,15 +65,15 @@ class ProjectProject(models.Model):
                 task.ops_team_member_id = self.ops_team_member_id.id
         if vals.get('clx_project_manager_id', False):
             for task in self.task_ids:
-                task.clx_project_manager_id = self.clx_project_manager_id.id
+                task.clx_task_manager_id = self.clx_project_manager_id.id
         if vals.get('clx_project_designer_id', False):
-            self.task_ids.write({'clx_task_designer_id': self.clx_project_designer_id.id})
-            # for task in self.task_ids:
-            #     task.clx_project_designer_id = self.clx_project_designer_id.id
+            for task in self.task_ids:
+                task.clx_task_designer_id = self.clx_project_designer_id.id
         return res
 
     def action_done_project(self):
-        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        complete_stage = self.env.ref(
+            'clx_task_management.clx_project_stage_8')
         if all(task.stage_id.id == complete_stage.id for task in self.task_ids):
             self.clx_state = 'done'
         else:
@@ -79,17 +88,21 @@ class ProjectTask(models.Model):
                                                string='Repository Sub Task')
     req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
-    sub_task_id = fields.Many2one('sub.task', string="Sub Task from Master Table")
+    sub_task_id = fields.Many2one(
+        'sub.task', string="Sub Task from Master Table")
     team_ids = fields.Many2many('clx.team', string='Team')
     team_members_ids = fields.Many2many('res.users', string="Team Members")
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
-    clx_sale_order_line_id = fields.Many2one('sale.order.line', string="Sale order Item")
+    clx_sale_order_line_id = fields.Many2one(
+        'sale.order.line', string="Sale order Item")
     requirements = fields.Text(string='Requirements')
     clx_task_manager_id = fields.Many2one("res.users", string="CS Team Member")
-    clx_task_designer_id = fields.Many2one("res.users", string="CAT Team Member")
+    clx_task_designer_id = fields.Many2one(
+        "res.users", string="CAT Team Member")
     ops_team_member_id = fields.Many2one("res.users", string="OPS Team Member")
 
-    management_company_type_id = fields.Many2one(related='project_id.partner_id.management_company_type_id')
+    management_company_type_id = fields.Many2one(
+        related='project_id.partner_id.management_company_type_id')
     google_analytics_cl_account_location = fields.Selection(
         related='project_id.partner_id.google_analytics_cl_account_location')
     cs_notes = fields.Text(related='project_id.partner_id.cs_notes')
@@ -99,24 +112,31 @@ class ProjectTask(models.Model):
     account_user_id = fields.Many2one("res.users", string="Salesperson")
     website = fields.Char(related='project_id.partner_id.website')
     partner_id = fields.Many2one(related='project_id.partner_id', store=True)
-    project_ads_link_ids = fields.One2many(related='project_id.project_ads_link_ids', string="Ads Link", readonly=False)
+    project_ads_link_ids = fields.One2many(
+        related='project_id.project_ads_link_ids', string="Ads Link", readonly=False)
     art_assets = fields.Char(related='project_id.partner_id.art_assets')
-    call_rail_destination_number = fields.Char(related='project_id.partner_id.call_rail_destination_number')
+    call_rail_destination_number = fields.Char(
+        related='project_id.partner_id.call_rail_destination_number')
     dni = fields.Char(related='project_id.partner_id.dni')
     reviewer_user_id = fields.Many2one('res.users', string="Reviewer")
     fix = fields.Selection([('not_set', 'Not Set'), ('no', 'No'), ('yes', 'Yes')], string="Fix Needed",
                            default="not_set")
-    clx_priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    clx_priority = fields.Selection(
+        [('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     client_services_team = fields.Selection(
         related="project_id.partner_id.management_company_type_id.client_services_team",
         store=True)
     sub_task_project_ids = fields.One2many(compute="_compute_sub_task_project_ids", comodel_name='sub.task.project',
                                            string="Sub Task")
     clx_attachment_ids = fields.Many2many(
-        "ir.attachment", 'att_task_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
-    )
-    clx_description = fields.Html(related="parent_id.description", readonly=False)
-    implementation_specialist_id = fields.Many2one(related="project_id.partner_id.implementation_specialist_id")
+        related='project_id.clx_attachment_ids', string="Files", readonly=False)
+    # clx_attachment_ids = fields.Many2many(
+    #     "ir.attachment", 'att_task_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
+    # )
+    clx_description = fields.Html(
+        related="parent_id.description", readonly=False)
+    implementation_specialist_id = fields.Many2one(
+        related="project_id.partner_id.implementation_specialist_id")
     category_id = fields.Many2one('product.category', string="Category")
     user_id = fields.Many2one('res.users',
                               string='Account Manager',
@@ -126,7 +146,8 @@ class ProjectTask(models.Model):
     def _compute_sub_task_project_ids(self):
         task_list = []
         if not self.parent_id and self.repositary_task_id:
-            sub_tasks = self.env['sub.task'].search([('parent_id', '=', self.repositary_task_id.id)])
+            sub_tasks = self.env['sub.task'].search(
+                [('parent_id', '=', self.repositary_task_id.id)])
             sub_task_project_obj = self.env['sub.task.project']
             child_task = self.child_ids
             for sub_task in sub_tasks:
@@ -188,7 +209,8 @@ class ProjectTask(models.Model):
         }
 
     def unlink(self):
-        completed_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        completed_stage = self.env.ref(
+            'clx_task_management.clx_project_stage_8')
         for task in self:
             task.project_id.message_post(type='comment', body=_("""
                 <p>Task Has been Deleted By %s</p><br/>
@@ -196,9 +218,11 @@ class ProjectTask(models.Model):
             """) % (self.env.user.name, task.name))
             if task.stage_id.id != completed_stage.id:
                 params = self.env['ir.config_parameter'].sudo()
-                auto_create_sub_task = bool(params.get_param('auto_create_sub_task')) or False
+                auto_create_sub_task = bool(
+                    params.get_param('auto_create_sub_task')) or False
                 if auto_create_sub_task:
-                    main_task = task.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
+                    main_task = task.project_id.task_ids.mapped(
+                        'sub_task_id').mapped('parent_id')
                     sub_tasks = self.env['sub.task'].search(
                         [('parent_id', 'in', main_task.ids), ('dependency_ids', 'in', task.sub_task_id.ids)])
                     for sub_task in sub_tasks:
@@ -214,9 +238,11 @@ class ProjectTask(models.Model):
         :return: dictionary of the sub task for the project.task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
-        sub_task = self.project_id.task_ids.filtered(lambda x: x.sub_task_id.parent_id.id == task.parent_id.id)
+        sub_task = self.project_id.task_ids.filtered(
+            lambda x: x.sub_task_id.parent_id.id == task.parent_id.id)
         if stage_id:
-            parent_id = self.project_id.task_ids.filtered(lambda x: x.name == task.parent_id.name)
+            parent_id = self.project_id.task_ids.filtered(
+                lambda x: x.name == task.parent_id.name)
             vals = {
                 'name': task.sub_task_name,
                 'project_id': project_id.id,
@@ -245,9 +271,11 @@ class ProjectTask(models.Model):
 
     @api.onchange('stage_id')
     def onchange_stage_id(self):
-        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        complete_stage = self.env.ref(
+            'clx_task_management.clx_project_stage_8')
         if not self.parent_id and self.stage_id.id == complete_stage.id:
-            raise UserError(_("You Can not Complete the Task until the all Sub Task are completed"))
+            raise UserError(
+                _("You Can not Complete the Task until the all Sub Task are completed"))
 
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
@@ -256,10 +284,12 @@ class ProjectTask(models.Model):
         if 'active' not in vals:
             current_day_with_time = self.write_date
             user_tz = self.env.user.tz or 'US/Pacific'
-            current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+            current_day_with_time = timezone('UTC').localize(
+                current_day_with_time).astimezone(timezone(user_tz))
             date_time_str = today.strftime("%d/%m/%y")
             date_time_str += ' 14:00:00'
-            comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+            comparsion_date = datetime.datetime.strptime(
+                date_time_str, '%d/%m/%y %H:%M:%S')
             # if current_day_with_time after 2 pm:
             #     today + 1 day
             if current_day_with_time.time() > comparsion_date.time():
@@ -293,16 +323,19 @@ class ProjectTask(models.Model):
                 if weekday >= 5:  # sunday = 6, saturday = 5
                     continue
                 business_days_to_add -= 1
-        complete_stage = self.env.ref('clx_task_management.clx_project_stage_8')
+        complete_stage = self.env.ref(
+            'clx_task_management.clx_project_stage_8')
         if 'active' in vals:
             for task in self.child_ids:
-                self._cr.execute("UPDATE project_task SET active = %s WHERE id = %s", [vals.get('active'), task.id])
+                self._cr.execute("UPDATE project_task SET active = %s WHERE id = %s", [
+                                 vals.get('active'), task.id])
         # if vals.get('date_deadline'):
         #     for task in self.child_ids:
         #         task.date_deadline = self.date_deadline
         sub_task_obj = self.env['sub.task']
         if vals.get('req_type', False) and vals.get('repositary_task_id', False):
-            repositary_main_task = self.env['main.task'].browse(vals.get('repositary_task_id'))
+            repositary_main_task = self.env['main.task'].browse(
+                vals.get('repositary_task_id'))
             if repositary_main_task:
                 repo_sub_tasks = sub_task_obj.search([('parent_id', '=', repositary_main_task.id),
                                                       ('dependency_ids', '=', False)])
@@ -323,7 +356,8 @@ class ProjectTask(models.Model):
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             if self.sub_task_id:
-                parent_task_main_task = self.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
+                parent_task_main_task = self.project_id.task_ids.mapped(
+                    'sub_task_id').mapped('parent_id')
                 dependency_tasks = sub_task_obj.search(
                     [('dependency_ids', 'in', self.sub_task_id.ids),
                      ('parent_id', 'in', parent_task_main_task.ids)])
@@ -338,7 +372,8 @@ class ProjectTask(models.Model):
                             lambda x: x.sub_task_id.id in task.dependency_ids.ids)
                     depedent_task_list = task.dependency_ids.ids
                     for depedent_task in task.dependency_ids:
-                        task_found = all_task.filtered(lambda x: x.name == depedent_task.sub_task_name)
+                        task_found = all_task.filtered(
+                            lambda x: x.name == depedent_task.sub_task_name)
                         if task_found:
                             count += 1
                     if all(line.stage_id.id == complete_stage.id for line in all_task) and count == len(
@@ -354,9 +389,11 @@ class ProjectTask(models.Model):
 
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
             params = self.env['ir.config_parameter'].sudo()
-            auto_create_sub_task = bool(params.get_param('auto_create_sub_task')) or False
+            auto_create_sub_task = bool(
+                params.get_param('auto_create_sub_task')) or False
             if auto_create_sub_task:
-                main_task = self.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
+                main_task = self.project_id.task_ids.mapped(
+                    'sub_task_id').mapped('parent_id')
                 sub_tasks = self.env['sub.task'].search(
                     [('parent_id', 'in', main_task.ids), ('dependency_ids', 'in', self.sub_task_id.ids)])
                 for sub_task in sub_tasks:
@@ -381,7 +418,8 @@ class ProjectTask(models.Model):
             'current_task': self.id,
             'default_sub_task_ids': sub_tasks.ids,
         })
-        view_id = self.env.ref('clx_task_management.task_popup_warning_wizard_form_view').id
+        view_id = self.env.ref(
+            'clx_task_management.task_popup_warning_wizard_form_view').id
         return {'type': 'ir.actions.act_window',
                 'name': _('Sub Task'),
                 'res_model': 'task.popup.warning.wizard',
@@ -392,7 +430,8 @@ class ProjectTask(models.Model):
                 }
 
     def action_view_cancel_task(self):
-        main_task = self.project_id.task_ids.mapped('sub_task_id').mapped('parent_id')
+        main_task = self.project_id.task_ids.mapped(
+            'sub_task_id').mapped('parent_id')
         sub_tasks = self.env['sub.task'].search(
             [('parent_id', 'in', main_task.ids), ('dependency_ids', 'in', self.sub_task_id.ids)])
         context = dict(self._context) or {}
@@ -401,7 +440,8 @@ class ProjectTask(models.Model):
             'default_sub_task_ids': sub_tasks.ids,
             'current_task': self.id
         })
-        view_id = self.env.ref('clx_task_management.task_cancel_warning_wizard_form_view').id
+        view_id = self.env.ref(
+            'clx_task_management.task_cancel_warning_wizard_form_view').id
         return {'type': 'ir.actions.act_window',
                 'name': _('Sub Task'),
                 'res_model': 'task.cancel.warning.wizard',
