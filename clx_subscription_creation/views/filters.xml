@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- <field name="name">sale.subscription.search</field>
+    <field name="model">sale.subscription</field>
+    <field name="arch" type="xml">
+        <search>
+            <filter string="Client" name="is_active"/>
+        </search>
+    </field> -->
+    <record id="sale_subscription_sale_subscription_view_search" model="ir.ui.view">
+        <field name="name">sale.subscription.search</field>
+        <field name="model">sale.subscription</field>
+        <field name="inherit_id" ref="sale_subscription.sale_subscription_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='end_month']" position="after">
+                <separator/>
+                <filter name="is_active" string="Active Only" domain="[('is_active','=',True)]"/>
+            </xpath>
+            <!-- <xpath expr="//group" position="inside">
+                <filter name="mgmt_company" string="Management Company" context="{'group_by': 'mgmt_company'}"/>
+            </xpath> -->
+        </field>
+    </record>
+</odoo>

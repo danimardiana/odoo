@@ -175,28 +175,7 @@
                            groups="account.group_show_line_subtotals_tax_included"/>
                         <tr>
                             <td>
-                                <t t-if="line.partner_id.vertical in ('res','srl')">
-                                    <t t-if="line.product_id.budget_wrapping">
-                                        <span t-field="line.product_id.budget_wrapping"/>
-                                    </t>
-                                    <t t-elif="line.product_id.name">
-                                        <span t-field="line.product_id.name"/>
-                                    </t>
-                                </t>
-                                <t t-if="line.partner_id.vertical in ('auto','local')">
-                                    <t t-if="line.product_id.budget_wrapping_auto_local">
-                                        <span t-field="line.product_id.budget_wrapping_auto_local"/>
-                                    </t>
-                                    <t t-elif="line.product_id.name">
-                                        <span t-field="line.product_id.name"/>
-                                    </t>
-                                </t>
-                                <t t-if="line.category_id.name">
-                                    <span t-field="line.category_id.name"/>
-                                </t>
-                                <t t-if="not line.category_id and not line.product_id">
-                                    <span t-field="line.name"/>
-                                </t>
+                                <span t-field="line.description"/>
                             </td>
                             <td name="th_amount" class="text-right">
                                 <t t-if="line.tax_ids">

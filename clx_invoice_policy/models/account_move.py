@@ -15,7 +15,6 @@ class AccountMove(models.Model):
     subscription_line_ids = fields.Many2many('sale.subscription.line', 'account_id', string="Subscription Lines")
     invoices_month_year = fields.Char(string="Invoicing Period", compute="set_invoices_month", store=False)
 
-
     def post(self):
         res = super(AccountMove, self).post()
         sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
@@ -56,8 +55,8 @@ class AccountMove(models.Model):
                                         OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                                     range((start_date.date() - sub.end_date).days)))
                                     if month_count == 1 and start_date.date() > sub.end_date:
-                                        sub.invoice_start_date = False
-                                        sub.invoice_end_date = False
+                                        sub.invoice_start_date = sub.start_date
+                                        sub.invoice_end_date = sub.end_date
                                     elif sub.start_date > start_date.date():
                                         sub.invoice_start_date = sub.start_date
                                         sub.invoice_end_date = sub.end_date
@@ -85,8 +84,8 @@ class AccountMove(models.Model):
                                     OrderedDict(((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                                 range((start_date.date() - sub.end_date).days)))
                                 if month_count == 1 and start_date.date() > sub.end_date:
-                                    sub.invoice_start_date = False
-                                    sub.invoice_end_date = False
+                                    sub.invoice_start_date = sub.start_date
+                                    sub.invoice_end_date = sub.end_date
                                 elif sub.start_date > start_date.date():
                                     sub.invoice_start_date = sub.start_date
                                     sub.invoice_end_date = sub.end_date
@@ -107,5 +106,4 @@ class AccountMoveLine(models.Model):
     management_fees = fields.Float(string="Management Fees")
     retail_price = fields.Float(string="Retails Price")
     wholesale = fields.Float(string="Wholsesale")
-
-
+    description = fields.Char(string="Description")

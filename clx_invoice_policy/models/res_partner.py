@@ -23,7 +23,7 @@ class Partner(models.Model):
     invoice_selection = fields.Selection([
         ('prod_categ', 'Product Category'),
         ('sol', 'Sale Order Line')
-    ], string="Display on", default="prod_categ")
+    ], string="Display on", default="sol")
 
     invoice_creation_type = fields.Selection([
         ('combined', 'Combined'),
@@ -115,6 +115,23 @@ class Partner(models.Model):
                 ad_lines += line
         return ad_lines
 
+    def _merge_line_same_description(self, prepared_lines):
+        base_lines = {}
+        if prepared_lines:
+            for line in prepared_lines:
+                if line['description'] not in base_lines:
+                    base_lines.update({line['description']: line})
+                else:
+                    base_lines[line['description']]['quantity'] = 1
+                    base_lines[line['description']]['price_unit'] += line['price_unit']
+                    base_lines[line['description']]['tax_ids'][0][2].extend(line['tax_ids'][0][2])
+                    base_lines[line['description']]['analytic_account_id'] = line['analytic_account_id']
+                    base_lines[line['description']]['analytic_tag_ids'][0][2].extend(line['analytic_tag_ids'][0][2])
+                    base_lines[line['description']]['subscription_ids'][0][2].extend(line['subscription_ids'][0][2])
+                    base_lines[line['description']]['subscription_lines_ids'].extend(line['subscription_lines_ids'])
+        return base_lines
+
+
     def generate_advance_invoice(self, lines):
         """
         To calculate invoice lines for Advances Policy.
@@ -187,6 +204,7 @@ class Partner(models.Model):
             pre_line.update({
                 'subscription_lines_ids': sub_lines.ids if sub_lines else False
             })
+        account_id = False
         if not self._context.get('sol'):
             for line in prepared_lines:
                 line_type = line['line_type']
@@ -379,9 +397,15 @@ class Partner(models.Model):
                                 lambda x: x.product_id.id == line['product_id'] and x.name != line['name'])
                             if move_line:
                                 move_line.write({'name': line['name']})
+                            if account_move_lines.move_id.subscription_line_ids:
+                                subscription_lines = account_move_lines.move_id.subscription_line_ids.ids
+                                account_move_lines.move_id.write(
+                                    {'subscription_line_ids': [(6, 0, subscription_lines)]})
             else:
                 for line in prepared_lines:
                     del line['line_type']
+                if prepared_lines:
+                    prepared_lines = self._merge_line_same_description(prepared_lines)
                 account_id = self.env['account.move'].create({
                     'ref': order.client_order_ref,
                     'type': 'out_invoice',
@@ -400,10 +424,12 @@ class Partner(models.Model):
                     'campaign_id': order.campaign_id.id,
                     'medium_id': order.medium_id.id,
                     'source_id': order.source_id.id,
-                    'invoice_line_ids': [(0, 0, x) for x in prepared_lines]
+                    'invoice_line_ids': [
+                            (0, 0, x) for x in prepared_lines.values()
+                        ]
                 })
-                if account_id:
-                    account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
+        if account_id:
+            account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
 
     def generate_arrears_invoice(self, lines):
         today = date.today()
