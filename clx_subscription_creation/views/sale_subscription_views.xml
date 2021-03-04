@@ -8,6 +8,7 @@
         <field name="arch" type="xml">
             <field name='team_id' position="after">
                 <field name="product_id"/>
+                <field name="is_active"/>
             </field>
             <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='price_unit']"
                    position="after">
@@ -67,6 +68,7 @@
 
             <xpath expr="//field[@name='user_id']" position="after">
                 <field name="product_id"/>
+                <field name="is_active" readonly="1"/>
             </xpath>
 
         </field>
