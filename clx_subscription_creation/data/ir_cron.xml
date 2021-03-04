@@ -5,7 +5,7 @@
         <field name="model_id" ref="sale_subscription.model_sale_subscription"/>
         <field name="state">code</field>
         <field name="code">model.deactivate_finished_subscriptins()</field>
-        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 2:00:00')" />
+        <!-- <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 02:00')" /> -->
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
