@@ -181,28 +181,21 @@ class RequestForm(models.Model):
         # if current_day_with_time after 2 pm:
         #     today + 1 day
         if current_day_with_time.time() > comparsion_date.time():
-            today = today + relativedelta(days=1)
-            if line.request_form_id.priority == 'high':
-                if line.req_type in ('update', 'budget'):
-                    business_days_to_add = 1
-                else:
-                    business_days_to_add = 3
-            else:
-                if line.req_type in ('update', 'budget'):
-                    business_days_to_add = 3
-                else:
-                    business_days_to_add = 5
+            business_days_to_add = 1
         else:
-            if line.request_form_id.priority == 'high':
-                if line.req_type in ('update', 'budget'):
-                    business_days_to_add = 0
-                else:
-                    business_days_to_add = 2
+            business_days_to_add = 0
+
+        if line.request_form_id.priority == 'high':
+            if line.req_type in ('update', 'budget'):
+                business_days_to_add += 0
             else:
-                if line.req_type in ('update', 'budget'):
-                    business_days_to_add = 2
-                else:
-                    business_days_to_add = 4
+                business_days_to_add += 2
+        else:
+            if line.req_type in ('update', 'budget'):
+                business_days_to_add += 2
+            else:
+                business_days_to_add += 4
+
         current_date = today
         # code for skip saturday and sunday for set deadline on task.
         while business_days_to_add > 0:
