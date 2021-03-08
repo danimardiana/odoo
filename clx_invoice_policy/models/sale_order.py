@@ -40,12 +40,7 @@ class SaleOrder(models.Model):
         if lines:
             so_lines = lines.filtered(lambda x: x.invoice_start_date.month == current_month_start_day.month)
             for i in range(0, count):
-                if self.partner_id.child_invoice_selection:
-                    if self.partner_id.child_invoice_selection == 'sol':
-                        self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
-                    else:
-                        self.partner_id.with_context(cofirm_sale=True).generate_advance_invoice(so_lines)
-                if not self.partner_id.child_invoice_selection and self.partner_id.invoice_selection:
+                if self.partner_id.invoice_selection:
                     if self.partner_id.invoice_selection == 'sol':
                         self.partner_id.with_context(cofirm_sale=True, sol=True).generate_advance_invoice(so_lines)
                     else:

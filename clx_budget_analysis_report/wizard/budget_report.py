@@ -11,6 +11,7 @@ import datetime
 
 class BudgetReportWizard(models.TransientModel):
     _name = 'budget.report.wizard'
+    _description = "Budget Report Wizard"
 
     partner_ids = fields.Many2many('res.partner', string="Customers")
     start_date = fields.Date(string="Start Date", default=datetime.datetime(fields.Date.today().year, 1, 1).date())

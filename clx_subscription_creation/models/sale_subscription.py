@@ -3,16 +3,31 @@
 # See LICENSE file for full copyright & licensing details.
 
 from odoo import fields, models
+from datetime import date
 
 
 class SaleSubscription(models.Model):
     _inherit = "sale.subscription"
+    is_active = fields.Boolean(string="Active", default=True)
+
+    def deactivate_finished_subscriptins(self):
+        today = date.today()
+        subscriptions = self.env['sale.subscription'].search(
+            [('is_active', '=', True)], order='')
+        for subscription in subscriptions:
+            sub_lines = self.env['sale.subscription.line'].search(
+                [('analytic_account_id', '=', subscription.id)], order='')
+            deactive_flag = len(
+                list(filter(lambda x: (not x.end_date or x.end_date > today), sub_lines)))
+            if not deactive_flag:
+                subscription.is_active = False
 
     def partial_invoice_line(self, sale_order, option_line, refund=False, date_from=False):
         """ Add an invoice line on the sales order for the specified option and add a discount
         to take the partial recurring period into account """
         order_line_obj = self.env['sale.order.line']
-        ratio, message = self._partial_recurring_invoice_ratio(date_from=date_from)
+        ratio, message = self._partial_recurring_invoice_ratio(
+            date_from=date_from)
         if message != "":
             sale_order.message_post(body=message)
         _discount = (1 - ratio) * 100
@@ -33,7 +48,8 @@ class SaleSubscription(models.Model):
         set product_id from the recurring invoice line field.
         """
         for subscription in self:
-            product_id = subscription.recurring_invoice_line_ids.mapped('product_id')
+            product_id = subscription.recurring_invoice_line_ids.mapped(
+                'product_id')
             subscription.product_id = product_id[0].id if product_id else False
 
     def _get_description_from_line(self):
@@ -45,7 +61,8 @@ class SaleSubscription(models.Model):
 
     product_id = fields.Many2one('product.product', string="Product",
                                  compute='_get_product_from_line')
-    product_des = fields.Char(string="Description", compute='_get_description_from_line')
+    product_des = fields.Char(string="Description",
+                              compute='_get_description_from_line')
 
     def _compute_invoice_count(self):
         invoice = self.env['account.move']
@@ -99,5 +116,7 @@ class SaleSubscriptionLine(models.Model):
         ('downsell', 'Downsell')
     ], string='Origin', default='base')
 
-    management_price = fields.Float(related="so_line_id.management_price", string='Management Price')
-    wholesale_price = fields.Float(related="so_line_id.wholesale_price",string='Wholesale Price')
+    management_price = fields.Float(
+        related="so_line_id.management_price", string='Management Price')
+    wholesale_price = fields.Float(
+        related="so_line_id.wholesale_price", string='Wholesale Price')

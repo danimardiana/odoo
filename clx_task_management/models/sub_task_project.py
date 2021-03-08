@@ -6,6 +6,7 @@ from odoo import fields, api, models
 
 class SubTaskProject(models.Model):
     _name = "sub.task.project"
+    _description = "Sub Task project"
 
     task_id = fields.Many2one('project.task', string="Task")
     sub_task_id = fields.Many2one('sub.task', string="Sub Task")

@@ -14,7 +14,6 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     is_invoiced = fields.Boolean(string='invoiced')
-    is_prorate = fields.Boolean(string="Is Prorate?")
     prorate_amount = fields.Float(string="Prorate Amount")
 
     @api.onchange('product_id')

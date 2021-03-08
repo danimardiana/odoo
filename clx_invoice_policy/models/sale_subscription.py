@@ -67,8 +67,8 @@ class SaleSubscriptionLine(models.Model):
     cancel_invoice_start_date = fields.Date('Cancel Start Date')
     cancel_invoice_end_date = fields.Date('Cancel End Date')
     account_id = fields.Many2one('account.move', string="Invoice")
-    is_prorate = fields.Boolean(related="so_line_id.is_prorate", string="Is Prorate?", readonly=False)
-    prorate_amount = fields.Float(related="so_line_id.prorate_amount", string="Prorate Amount", readonly=False)
+    prorate_amount = fields.Float(related="so_line_id.prorate_amount", string="Prorate Start Amount", readonly=False)
+    prorate_end_amount = fields.Float(string="Prorate End Amount")
 
     def _creation_next_budgets(self):
         print("CRON CRON CRON")
@@ -150,7 +150,7 @@ class SaleSubscriptionLine(models.Model):
                         })
             return res
         else:
-            return super(SaleSubscriptionLine, self).write(vals)
+            return res
 
     def start_in_next(self):
         """
@@ -248,14 +248,16 @@ class SaleSubscriptionLine(models.Model):
             'line_type': self.line_type,
             'sale_line_ids': line.ids,
         }
-        if self.is_prorate and (self.invoice_end_date and self.invoice_end_date.day not in (30, 31)) or (
-                self.invoice_start_date and self.invoice_start_date.day != 1):
-            new_price = self.prorate_amount
-            new_management_price = line.management_price / 2
+
+        if self.invoice_start_date and self.start_date.month == self.invoice_start_date.month:
+            new_price = self.prorate_amount if self.prorate_amount > 0 else self.price_unit
             res.update({
                 'price_unit': new_price,
-                'management_fees': new_management_price,
-                'wholesale': new_price - new_management_price,
+            })
+        if self.invoice_end_date and self.end_date and self.end_date.month == self.invoice_end_date.month:
+            new_price = self.prorate_end_amount if self.prorate_end_amount > 0 else self.price_unit
+            res.update({
+                'price_unit': new_price,
             })
         if line.display_type:
             res['account_id'] = False
@@ -302,7 +304,8 @@ class SaleSubscriptionLine(models.Model):
                 })
                 self.with_context(skip=True).write(vals)
                 return res
-            self.with_context(skip=True).write(vals)
+            if not self._context.get('generate_invoice_date_range', False):
+                self.with_context(skip=True).write(vals)
             if self.end_date:
                 if self.invoice_start_date and self.invoice_end_date and self.invoice_start_date <= self.end_date <= self.invoice_end_date:
                     self.with_context(skip=True).write(
@@ -310,7 +313,8 @@ class SaleSubscriptionLine(models.Model):
                             'invoice_end_date': self.end_date
                         }
                     )
-                elif self.invoice_start_date and self.invoice_start_date > self.end_date:
+                elif self.invoice_start_date and self.invoice_start_date > self.end_date and not self._context.get(
+                        'generate_invoice_date_range', False):
                     self.with_context(skip=True).write(
                         {
                             'invoice_end_date': False,
@@ -327,19 +331,46 @@ class SaleSubscriptionLine(models.Model):
                 lang = line.order_id.partner_invoice_id.lang
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
-                period_msg = ("Invoicing period: %s - %s") % (
-                    format_date(fields.Date.to_string(self._context.get('start_date')), {}),
-                    format_date(fields.Date.to_string(self._context.get('end_date')), {}))
+
+                count = len(OrderedDict(((self._context.get('start_date') + timedelta(_)).strftime("%B-%Y"), 0) for _ in
+                                        range((self._context.get('end_date') - self._context.get('start_date')).days)))
+                if self.product_id.subscription_template_id.recurring_rule_type == "monthly":
+                    period_msg = ("Invoicing period: %s - %s") % (
+                        format_date(fields.Date.to_string(self._context.get('start_date')), {}),
+                        format_date(fields.Date.to_string(self._context.get('end_date')), {}))
+                    if self.invoice_end_date:
+                        expire_date = (self.invoice_end_date + relativedelta(
+                            months=2)).replace(day=1) + relativedelta(days=-1)
+                        vals.update({
+                            'invoice_start_date': (self.invoice_end_date + relativedelta(months=1)).replace(
+                                day=1) if self.invoice_end_date else False,
+                            'invoice_end_date': expire_date
+                        })
+                        self.write(vals)
                 res.update({
                     'name': period_msg,
                 })
-                if self.is_prorate:
-                    if (self.end_date and self._context.get('end_date').month == end_date.month) or (self.start_date and self._context.get('start_date').month == start_date.month):
-                        new_price = self.prorate_amount
-                        new_management_price = line.management_price / 2
-                        res.update({
-                            'price_unit': new_price,
-                            'management_fees': new_management_price,
-                            'wholesale': new_price - new_management_price,
-                        })
+
+                if (self.start_date and self._context.get('start_date').month == start_date.month):
+                    new_price = self.prorate_amount if self.prorate_amount > 0 else self.price_unit
+                    res.update({
+                        'price_unit': new_price,
+                    })
+                if (self.end_date and self._context.get('end_date').month == end_date.month):
+                    new_price = self.prorate_end_amount if self.prorate_end_amount > 0 else self.price_unit
+                    res.update({
+                        'price_unit': new_price,
+                    })
+        if line.order_id.partner_id.invoice_selection == 'sol':
+            if line.product_id.name != line.name:
+                res.update({'description': line.name})
+            else:
+                res.update({'description': line.product_id.name})
+                if line.order_id.partner_id.vertical in ('res', 'srl') and line.product_id.budget_wrapping:
+                    res.update({'description': line.product_id.budget_wrapping})
+                else:
+                    if line.product_id.budget_wrapping_auto_local:
+                        res.update({'description': line.product_id.budget_wrapping_auto_local})
+        else:
+            res.update({'description': line.product_id.categ_id.name})
         return res

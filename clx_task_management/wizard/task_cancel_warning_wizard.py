@@ -7,6 +7,7 @@ from odoo import models, fields
 
 class TaskpopupWarningWizard(models.TransientModel):
     _name = 'task.popup.warning.wizard'
+    _description = "Task Popup Warning Wizard"
 
     sub_task_ids = fields.Many2many('sub.task')
 
@@ -26,6 +27,7 @@ class TaskpopupWarningWizard(models.TransientModel):
 
 class TaskCancelWarningWizard(models.TransientModel):
     _name = 'task.cancel.warning.wizard'
+    _description = "Task Warning Wizard"
 
     sub_task_ids = fields.Many2many('sub.task')
 
