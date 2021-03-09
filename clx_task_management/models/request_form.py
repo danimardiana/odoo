@@ -180,21 +180,17 @@ class RequestForm(models.Model):
         comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
         # if current_day_with_time after 2 pm:
         #     today + 1 day
-        if current_day_with_time.time() > comparsion_date.time():
-            business_days_to_add = 1
-        else:
-            business_days_to_add = 0
+        business_days_to_add = 0
+        if current_day_with_time.time() > comparsion_date.time() or today.weekday() > 4:
+            business_days_to_add += 1
 
-        if line.request_form_id.priority == 'high':
-            if line.req_type in ('update', 'budget'):
-                business_days_to_add += 0
-            else:
-                business_days_to_add += 2
+        if line.request_form_id.priority != 'high':
+            business_days_to_add += 2
+
+        if line.req_type in ('update', 'budget'):
+            business_days_to_add += 0
         else:
-            if line.req_type in ('update', 'budget'):
-                business_days_to_add += 2
-            else:
-                business_days_to_add += 4
+            business_days_to_add += 2
 
         current_date = today
         # code for skip saturday and sunday for set deadline on task.
