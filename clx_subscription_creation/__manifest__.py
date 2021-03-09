@@ -22,8 +22,10 @@
     ],
     'data': [
         'views/sale_order_views.xml',
+        'views/filters.xml',
         'views/sale_subscription_views.xml',
-        'wizard/sale_subscription_wizard_views.xml'
+        'wizard/sale_subscription_wizard_views.xml',
+        'data/ir_cron.xml'
     ],
     'installable': True,
     'application': True,
