@@ -6,11 +6,6 @@ from ast import literal_eval
 
 from odoo import api, fields, models
 
-# cnx = mysql.connector.connect(user='scott', password='password',
-#                               host='127.0.0.1',
-#                               database='employees')
-# cnx.close()
-
 class ContactType(models.Model):
     _name = "contact.type"
     _description = "Contact Type"
@@ -132,7 +127,7 @@ class Partner(models.Model):
         ('Missing: pursue', 'Missing: pursue'),
         ('Missing: abandoned', 'Missing: abandoned')
     ], string="Google Analytics CL Account Location")
-    dni = fields.Char(string='DNI')
+    dni = fields.Text(string='DNI')
     submitted_platform_id = fields.Many2one('submitted.platform', string="Submittal Platform")
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")

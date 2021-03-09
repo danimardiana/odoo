@@ -117,7 +117,7 @@ class ProjectTask(models.Model):
     art_assets = fields.Char(related='project_id.partner_id.art_assets')
     call_rail_destination_number = fields.Char(
         related='project_id.partner_id.call_rail_destination_number')
-    dni = fields.Char(related='project_id.partner_id.dni')
+    dni = fields.Text(related='project_id.partner_id.dni')
     reviewer_user_id = fields.Many2one('res.users', string="Reviewer")
     fix = fields.Selection([('not_set', 'Not Set'), ('no', 'No'), ('yes', 'Yes')], string="Fix Needed",
                            default="not_set")
