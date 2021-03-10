@@ -171,6 +171,62 @@ class RequestForm(models.Model):
         return : dictionary of the task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+
+        current_date = self.calculated_date(line)
+        
+        vals = {
+            'name': line.task_id.name,
+            'project_id': project_id.id,
+            'description': line.description.replace('\n', '<br/>'),
+            'stage_id': stage_id.id,
+            'repositary_task_id': line.task_id.id,
+            'req_type': line.task_id.req_type,
+            'team_ids': line.task_id.team_ids.ids,
+            'team_members_ids': line.task_id.team_members_ids.ids,
+            'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
+            'requirements': line.requirements,
+            'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
+            'account_user_id': project_id.partner_id.account_user_id.id if project_id.partner_id.account_user_id else False,
+            'clx_priority': self.priority,
+            'clx_attachment_ids': self.clx_attachment_ids.ids,
+            'category_id': line.category_id.id if line.category_id else False
+        }
+        return vals
+
+    def prepared_project_vals(self, description, partner_id):
+        """
+        prepared dictionary for the create project
+        :Param : description : Title of the project
+        :Param : partner_id : browsable object of the partner
+        :return : return dictionary
+        """
+        max_date = max(map(self.calculated_date,self.request_line))
+
+        vals = {
+            'partner_id': partner_id.id,
+            'name': description,
+            'clx_state': 'new',
+            'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
+            'user_id': self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
+            'deadline': max_date,
+            'priority': self.priority,
+            'clx_attachment_ids': self.clx_attachment_ids.ids
+        }
+        return vals
+
+    def _send_request_form_mail(self):
+        web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        action_id = self.env.ref('project.open_view_project_all', raise_if_not_found=False)
+        link = """{}/web#id={}&view_type=form&model=project.project&action={}""".format(web_base_url,
+                                                                                        self.project_id.id,
+                                                                                        action_id.id)
+        context = self._context.copy() or {}
+        context.update({'link': link})
+        email_template = self.env.ref('clx_task_management.mail_template_request_form', raise_if_not_found=False)
+        if email_template:
+            email_template.with_context(context).send_mail(self.id, force_send=True)
+
+    def calculated_date(self, line):
         today = fields.Date.today()
         current_day_with_time = self.write_date
         user_tz = self.env.user.tz or 'US/Pacific'
@@ -200,103 +256,49 @@ class RequestForm(models.Model):
             if weekday >= 5:  # sunday = 6, saturday = 5
                 continue
             business_days_to_add -= 1
-        vals = {
-            'name': line.task_id.name,
-            'project_id': project_id.id,
-            'description': line.description.replace('\n', '<br/>'),
-            'stage_id': stage_id.id,
-            'repositary_task_id': line.task_id.id,
-            'req_type': line.task_id.req_type,
-            'team_ids': line.task_id.team_ids.ids,
-            'team_members_ids': line.task_id.team_members_ids.ids,
-            'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
-            'requirements': line.requirements,
-            'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
-            'account_user_id': project_id.partner_id.account_user_id.id if project_id.partner_id.account_user_id else False,
-            'clx_priority': self.priority,
-            'clx_attachment_ids': self.clx_attachment_ids.ids,
-            'category_id': line.category_id.id if line.category_id else False
-        }
-        return vals
 
-    def prepared_project_vals(self, description, partner_id):
-        """
-        prepared dictionary for the create project
-        :Param : description : Title of the project
-        :Param : partner_id : browsable object of the partner
-        :return : return dictionary
-        """
-        date_list = self.calculated_date(self.request_line)
-        max_date = max(date_list)
-        vals = {
-            'partner_id': partner_id.id,
-            'name': description,
-            'clx_state': 'new',
-            'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
-            'user_id': self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
-            'deadline': max_date,
-            'priority': self.priority,
-            'clx_attachment_ids': self.clx_attachment_ids.ids
-        }
-        return vals
+            # today = fields.Date.today()
+            # current_day_with_time = self.write_date
+            # user_tz = self.env.user.tz or 'US/Pacific'
+            # current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+            # date_time_str = today.strftime("%d/%m/%y")
+            # date_time_str += ' 14:00:00'
+            # comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+            # # if current_day_with_time after 2 pm:
+            # #     today + 1 day
+            # if current_day_with_time.time() > comparsion_date.time():
+            #     today = today + relativedelta(days=1)
+            #     if line.request_form_id.priority == 'high':
+            #         if line.req_type in ('update', 'budget'):
+            #             business_days_to_add = 1
+            #         else:
+            #             business_days_to_add = 3
+            #     else:
+            #         if line.req_type in ('update', 'budget'):
+            #             business_days_to_add = 3
+            #         else:
+            #             business_days_to_add = 5
+            # else:
+            #     if line.request_form_id.priority == 'high':
+            #         if line.req_type in ('update', 'budget'):
+            #             business_days_to_add = 0
+            #         else:
+            #             business_days_to_add = 2
+            #     else:
+            #         if line.req_type in ('update', 'budget'):
+            #             business_days_to_add = 2
+            #         else:
+            #             business_days_to_add = 4
+            # current_date = today
+            # # code for skip saturday and sunday for set deadline on task.
+            # while business_days_to_add > 0:
+            #     current_date += datetime.timedelta(days=1)
+            #     weekday = current_date.weekday()
+            #     if weekday >= 5:  # sunday = 6, saturday = 5
+            #         continue
+            #     business_days_to_add -= 1
 
-    def _send_request_form_mail(self):
-        web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        action_id = self.env.ref('project.open_view_project_all', raise_if_not_found=False)
-        link = """{}/web#id={}&view_type=form&model=project.project&action={}""".format(web_base_url,
-                                                                                        self.project_id.id,
-                                                                                        action_id.id)
-        context = self._context.copy() or {}
-        context.update({'link': link})
-        email_template = self.env.ref('clx_task_management.mail_template_request_form', raise_if_not_found=False)
-        if email_template:
-            email_template.with_context(context).send_mail(self.id, force_send=True)
-
-    def calculated_date(self, line):
-        date_list = []
-        for line in line:
-            today = fields.Date.today()
-            current_day_with_time = self.write_date
-            user_tz = self.env.user.tz or 'US/Pacific'
-            current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
-            date_time_str = today.strftime("%d/%m/%y")
-            date_time_str += ' 14:00:00'
-            comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
-            # if current_day_with_time after 2 pm:
-            #     today + 1 day
-            if current_day_with_time.time() > comparsion_date.time():
-                today = today + relativedelta(days=1)
-                if line.request_form_id.priority == 'high':
-                    if line.req_type in ('update', 'budget'):
-                        business_days_to_add = 1
-                    else:
-                        business_days_to_add = 3
-                else:
-                    if line.req_type in ('update', 'budget'):
-                        business_days_to_add = 3
-                    else:
-                        business_days_to_add = 5
-            else:
-                if line.request_form_id.priority == 'high':
-                    if line.req_type in ('update', 'budget'):
-                        business_days_to_add = 0
-                    else:
-                        business_days_to_add = 2
-                else:
-                    if line.req_type in ('update', 'budget'):
-                        business_days_to_add = 2
-                    else:
-                        business_days_to_add = 4
-            current_date = today
-            # code for skip saturday and sunday for set deadline on task.
-            while business_days_to_add > 0:
-                current_date += datetime.timedelta(days=1)
-                weekday = current_date.weekday()
-                if weekday >= 5:  # sunday = 6, saturday = 5
-                    continue
-                business_days_to_add -= 1
-            date_list.append(current_date)
-        return date_list
+        return current_date
 
     def action_submit_form(self):
         """
@@ -305,8 +307,7 @@ class RequestForm(models.Model):
         """
         self.ensure_one()
         if self.request_line and self.intended_launch_date:
-            date_list = self.calculated_date(self.request_line)
-            max_date = max(date_list)
+            max_date = max(map(self.calculated_date,self.request_line))
             if self.intended_launch_date < max_date:
                 raise UserError('Please check Intended launch Date !!')
         project_id = False
