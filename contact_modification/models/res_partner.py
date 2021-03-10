@@ -116,6 +116,7 @@ class Partner(models.Model):
         ('Localdata@conversionlogix.com', 'Localdata@conversionlogix.com'),
         ('Autodata@conversionlogix.com', 'Autodata@conversionlogix.com'),
         ('RESanalytics@clxmedia.com', 'RESanalytics@clxmedia.com'),
+        ('Resanalytics2@clxmedia.com', 'Resanalytics2@clxmedia.com'),
         ('reporting@conversionlogix.com', 'reporting@conversionlogix.com'),
         ('reporting1@conversionlogix.com', 'reporting1@conversionlogix.com'),
         ('reporting2@conversionlogix.com', 'reporting2@conversionlogix.com'),
