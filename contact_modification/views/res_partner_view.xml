@@ -154,13 +154,19 @@
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+
+            <!-- Company Address -->
             <label name="address_name" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))]}
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
+                                         'required': [('company_type', 'in', ('company'))]}
                 </attribute>            
             </label>
             <xpath expr="//div[hasclass('o_address_format')]" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))]}</attribute>
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
+                                         'required': [('company_type', 'in', ('company'))]}
+                </attribute>
             </xpath>
+
             <field name="industry_id" position="attributes">
                 <attribute name="invisible">1</attribute>
             </field>
@@ -177,21 +183,16 @@
             <field name="title" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'not in', ('vendor'))]}</attribute>
             </field>
+
+            <!-- Job Position -->
             <field name="function" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
-                </attribute>
-            </field>
-           
-             <label for="mobile" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
-                </attribute>         
-            </label>
-            <field name="mobile" position="attributes">
-               <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))],
+                                         'required': [('company_type', 'in', ('person'))]}
                 </attribute>
             </field>
 
-             <label for="phone" position="attributes">
+            <!-- Phone Label and Field -->
+            <label for="phone" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
                 </attribute>         
             </label>
@@ -199,23 +200,31 @@
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
                 </attribute>
             </field>
-              <label for="email" position="attributes">
+
+             <!-- Mobile Label and Field -->
+            <label for="mobile" position="attributes">
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
+                </attribute>         
+            </label>
+            <field name="mobile" position="attributes">
+               <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
+               </attribute>
+            </field>
+
+            <!-- Email Label and Field -->
+            <label for="email" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
                 </attribute>         
             </label>
             <field name="email" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))]}
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('company','owner','management'))],
+                                         'required': [('company_type', 'in', ('person'))]}
                 </attribute>
             </field>
+
             <xpath expr="//page[@name='sales_purchases']" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))]}</attribute>
             </xpath>
-
-            <!-- Contacts & Addresses tab -->
-            <xpath expr="//page[1]" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))]}</attribute>
-            </xpath>
-            
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" string="Properties" name="properties_owner" type="object"
                         icon="fa-tasks" attrs="{'invisible': [('company_type', '!=', 'owner')]}">
@@ -272,12 +281,6 @@
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
             </xpath>
 
-            <!-- <xpath expr="//page[@name='sales_purchases']//group[@name='sale']" position="attributes">
-                <attribute name="attrs">
-                    {'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}
-                </attribute>
-            </xpath> -->
-
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
                 <field name="implementation_specialist_id" attrs="{'invisible':[('company_type','not in','company')]}"/>
                 <field name="account_user_id" invisible="0"/>
@@ -322,6 +325,11 @@
             </xpath>
             <xpath expr="//field[@name='child_ids']/kanban" position="attributes">
                 <attribute name="create">0</attribute>
+            </xpath>
+            
+            <!-- Contacts & Addresses tab -->
+            <xpath expr="//page[1]" position="attributes">
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))]}</attribute>
             </xpath>
             <xpath expr="//page[1]" position="inside">
                 <page string="link Contacts">
@@ -508,11 +516,15 @@
                 </page>
             </xpath>
             <field name="vat" position="after">
-                <field name="vertical" attrs="{'invisible': [('company_type', 'not in', ('vendor'))]}"/>
+                <field name="vertical" attrs="{'invisible': [('company_type', 'not in', ('vendor'))],
+                                               'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="branding_name" attrs="{'invisible': [('company_type', 'not in', ('vendor'))]}"/>
-                <field name="timezone_char" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
-                <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company','vendor'))]}"/>
-                <field name="master_id" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
+                <field name="timezone_char" attrs="{'invisible': [('company_type', 'not in', ('company'))],
+                                                    'required': [('company_type', 'in', ('company'))]}"/>
+                <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company','vendor'))],
+                                                 'required': [('company_type', 'in', ('company'))]}"/>
+                <field name="master_id" attrs="{'invisible': [('company_type', 'not in', ('company'))],
+                                                'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="submitted_platform_id" invisible="1"/>
                 <field name="client_services_team" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
                 <field name="is_flat_discount" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
