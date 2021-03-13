@@ -161,11 +161,37 @@
                                          'required': [('company_type', 'in', ('company'))]}
                 </attribute>            
             </label>
-            <xpath expr="//div[hasclass('o_address_format')]" position="attributes">
+            <xpath expr="//field[hasclass('o_address_street')]" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
                                          'required': [('company_type', 'in', ('company'))]}
                 </attribute>
             </xpath>
+             <xpath expr="//field[@name='street2']" position="attributes">
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
+                                         'required': [('company_type', 'in', ('company'))]}
+                </attribute>
+            </xpath>
+            <xpath expr="//field[hasclass('o_address_city')]" position="attributes">
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
+                                         'required': [('company_type', 'in', ('company'))]}
+                </attribute>
+            </xpath>
+            <xpath expr="//field[hasclass('o_address_state')]" position="attributes">
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
+                                         'required': [('company_type', 'in', ('company'))]}
+                </attribute>
+            </xpath>
+            <xpath expr="//field[hasclass('o_address_zip')]" position="attributes">
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
+                                         'required': [('company_type', 'in', ('company'))]}
+                </attribute>
+            </xpath>
+            <xpath expr="//field[@name='country_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
+                                         'required': [('company_type', 'in', ('company'))]}
+                </attribute>
+            </xpath>
+
 
             <field name="industry_id" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -173,8 +199,11 @@
             <field name="vat" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'not in', ('vendor'))]}</attribute>
             </field>
+
+            <!-- Website Link -->
             <field name="website" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person','owner','management'))]}
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person','owner','management'))],
+                                         'required': [('company_type', 'in', ('company'))]}
                 </attribute>
             </field>
             <field name="category_id" position="attributes">
@@ -523,8 +552,7 @@
                                                     'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company','vendor'))],
                                                  'required': [('company_type', 'in', ('company'))]}"/>
-                <field name="master_id" attrs="{'invisible': [('company_type', 'not in', ('company'))],
-                                                'required': [('company_type', 'in', ('company'))]}"/>
+                <field name="master_id" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
                 <field name="submitted_platform_id" invisible="1"/>
                 <field name="client_services_team" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
                 <field name="is_flat_discount" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
