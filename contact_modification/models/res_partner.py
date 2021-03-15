@@ -111,6 +111,7 @@ class Partner(models.Model):
     art_assets = fields.Char(string="Art Assets")
     google_analytics_cl_account_location = fields.Selection([
         ('greystaranalytics@conversionlogix.com', 'greystaranalytics@conversionlogix.com'),
+        ('Ave5analytics@clxmedia.com', 'Ave5analytics@clxmedia.com'),
         ('RESdata@conversionlogix.com', 'RESdata@conversionlogix.com'),
         ('SRLdata@conversionlogix.com', 'SRLdata@conversionlogix.com'),
         ('Localdata@conversionlogix.com', 'Localdata@conversionlogix.com'),

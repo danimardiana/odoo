@@ -52,6 +52,53 @@ class SaleSubscription(models.Model):
             action = {'type': 'ir.actions.act_window_close'}
         return action
 
+    def subscription_wholesale_period(self, retail, price_list):
+        management_fee = 0.0
+        if price_list.is_custom:
+            if retail <= price_list.min_retail_amount:
+                management_fee = price_list.fixed_mgmt_price
+            else:
+                management_fee = round(
+                    (price_list.percent_mgmt_price * retail) / 100, 2)
+        else:
+            # if management fee fixed
+            if price_list.is_fixed and price_list.fixed_mgmt_price:
+                if retail > price_list.fixed_mgmt_price:
+                    management_fee = price_list.fixed_mgmt_price
+
+            # if management fee percentage
+            if price_list.is_percentage and price_list.percent_mgmt_price:
+                management_fee = round(
+                    (price_list.percent_mgmt_price * retail) / 100, 2)
+
+        return {'management_fee': management_fee, 'wholesale_price': retail - management_fee}
+
+    def pricelist_flatten(self, price_list):
+        mapped = {}
+
+        def prod_var(price_line):
+            return str(price_list.id) + '_0_' + str(price_line.product_id.id)
+
+        def prod(price_line):
+            return str(price_list.id) + '_1_' + str(price_line.product_tmpl_id.id)
+
+        def category(price_line):
+            return str(price_list.id) + '_2_' + str(price_line.categ_id.id)
+
+        def glob(price_line):
+            return str(price_list.id) + '_3'
+
+        pricelistLevels = {'0_product_variant': prod_var,
+                           '1_product': prod,
+                           '2_product_category': category,
+                           '3_global': glob}
+
+        for price_line in price_list.item_ids:
+            tag = pricelistLevels[price_line.applied_on](price_line)
+            mapped[tag] = price_line
+
+        return mapped
+
 
 class SaleSubscriptionLine(models.Model):
     """
@@ -67,11 +114,22 @@ class SaleSubscriptionLine(models.Model):
     cancel_invoice_start_date = fields.Date('Cancel Start Date')
     cancel_invoice_end_date = fields.Date('Cancel End Date')
     account_id = fields.Many2one('account.move', string="Invoice")
-    prorate_amount = fields.Float(related="so_line_id.prorate_amount", string="Prorate Start Amount", readonly=False)
+    prorate_amount = fields.Float(
+        related="so_line_id.prorate_amount", string="Prorate Start Amount", readonly=False)
     prorate_end_amount = fields.Float(string="Prorate End Amount")
 
     def _creation_next_budgets(self):
         print("CRON CRON CRON")
+
+    def get_subscription_line_retail_period(self, subscription_line, start_date, end_date):
+        final_price = 0
+        if subscription_line.start_date <= end_date and (not subscription_line.end_date or (subscription_line.end_date and subscription_line.end_date >= start_date)):
+            final_price = subscription_line.price_unit
+            if start_date <= subscription_line.start_date and subscription_line.prorate_amount:
+                final_price = subscription_line.prorate_amount 
+            if subscription_line.prorate_end_amount and subscription_line.end_date <= end_date:
+                final_price = subscription_line.prorate_end_amount
+        return final_price
 
     def write(self, vals):
         res = super(SaleSubscriptionLine, self).write(vals)
@@ -95,10 +153,13 @@ class SaleSubscriptionLine(models.Model):
                         OrderedDict(((budget_lines[0].end_date + timedelta(_)).strftime("%B-%Y"), 0) for _ in
                                     range((self.end_date - budget_lines[0].end_date).days)))
                 if month_diff and budget_lines:
-                    start_date = budget_lines[0].end_date + relativedelta(days=1)
-                    start_date.replace(day=monthrange(start_date.year, start_date.month)[1])
+                    start_date = budget_lines[0].end_date + \
+                        relativedelta(days=1)
+                    start_date.replace(day=monthrange(
+                        start_date.year, start_date.month)[1])
                     for i in range(0, month_diff):
-                        end_date = (start_date + relativedelta(months=1)).replace(day=1) + relativedelta(days=-1)
+                        end_date = (start_date + relativedelta(months=1)
+                                    ).replace(day=1) + relativedelta(days=-1)
                         vals = {
                             'partner_id': self.analytic_account_id.partner_id.id,
                             'start_date': start_date,
@@ -226,7 +287,8 @@ class SaleSubscriptionLine(models.Model):
         today = date.today()
         date_start = line.start_date
         date_end = date_start + relativedelta(months=1, days=-1)
-        period_msg = self._format_period_msg(date_start, date_end, line, self.invoice_start_date, self.invoice_end_date)
+        period_msg = self._format_period_msg(
+            date_start, date_end, line, self.invoice_start_date, self.invoice_end_date)
         policy_month = self.so_line_id.order_id.clx_invoice_policy_id.num_of_month + 1
         res = {
             'display_type': line.display_type,
@@ -296,7 +358,8 @@ class SaleSubscriptionLine(models.Model):
                 format_date = self.env['ir.qweb.field.date'].with_context(
                     lang=lang).value_to_html
                 period_msg = ("Invoicing period: %s - %s") % (
-                    format_date(fields.Date.to_string(self.invoice_start_date), {}),
+                    format_date(fields.Date.to_string(
+                        self.invoice_start_date), {}),
                     format_date(fields.Date.to_string(self.invoice_end_date), {}))
                 res.update({
                     'name': period_msg,
@@ -336,7 +399,8 @@ class SaleSubscriptionLine(models.Model):
                                         range((self._context.get('end_date') - self._context.get('start_date')).days)))
                 if self.product_id.subscription_template_id.recurring_rule_type == "monthly":
                     period_msg = ("Invoicing period: %s - %s") % (
-                        format_date(fields.Date.to_string(self._context.get('start_date')), {}),
+                        format_date(fields.Date.to_string(
+                            self._context.get('start_date')), {}),
                         format_date(fields.Date.to_string(self._context.get('end_date')), {}))
                     if self.invoice_end_date:
                         expire_date = (self.invoice_end_date + relativedelta(
@@ -367,10 +431,12 @@ class SaleSubscriptionLine(models.Model):
             else:
                 res.update({'description': line.product_id.name})
                 if line.order_id.partner_id.vertical in ('res', 'srl') and line.product_id.budget_wrapping:
-                    res.update({'description': line.product_id.budget_wrapping})
+                    res.update(
+                        {'description': line.product_id.budget_wrapping})
                 else:
                     if line.product_id.budget_wrapping_auto_local:
-                        res.update({'description': line.product_id.budget_wrapping_auto_local})
+                        res.update(
+                            {'description': line.product_id.budget_wrapping_auto_local})
         else:
             res.update({'description': line.product_id.categ_id.name})
         return res

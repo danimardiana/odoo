@@ -6,18 +6,17 @@
         <field name="model">sale.budget.report</field>
         <field name="arch" type="xml">
             <pivot string="Sales Budget" disable_linking="True">
-                <field name="date" type="col"/>
                 <field name="wholesale_price" type="measure"/>
-                <field name="price" type="measure"/>
-                <field name="date" interval="day" type="col"/>
+                <field name="management_fee" type="measure"/>
+                <field name="retail_price" type="measure"/>
+                <field name="start_date" interval="day" type="col"/>
                 <field name="end_date" interval="day" type="col"/>
                 <field name="partner_id" type="row"/>
                 <field name="product_id" type="row"/>
-                <field name="base_price" invisible="1" type="measure"/>
-                <field name="upsell_down_sell_price" invisible="1" type="measure"/>
             </pivot>
         </field>
     </record>
+
 
     <!--<record id="sale_budget_report_view_search" model="ir.ui.view">
         <field name="name">sale.budget.report.search</field>
@@ -37,16 +36,170 @@
         <field name="domain">[]</field>
     </record>
 
-    <!--<menuitem
-            id="budget_reporting"
-            name="Reporting"
-            parent="clx_budget_management.main_menu_sale_budget"
-            sequence="3"/>
+    <!-- <record id="sale_budget_report_action_qweb" model="ir.actions.report">
+        <field name="name">Budget Report(QWeb)</field>
+        <field name="model">report.sale_subscription.budgets_report</field>
+        <field name="report_type">qweb-html</field>
+        <field name="context"></field>
+        <field name="domain">[]</field>
+    </record> -->
 
-    <menuitem
-            id="sale_budget_report_menu"
-            name="Budget Report"
-            parent="clx_budget_analysis_report.budget_reporting"
-            action="clx_budget_analysis_report.sale_budget_report_action"
-            sequence="1"/>-->
+    <report
+		id = "sale_budget_report_action_qweb"
+		model = "budget.report.wizard"
+		name = "clx_budget_analysis_report.report_budget_qweb"
+		string = "Report"
+		report_type = "qweb-html"/>
+
+    <!--<menuitem id="budget_reporting" name="Reporting" parent="clx_budget_management.main_menu_sale_budget" sequence="3"/>
+    <menuitem id="sale_budget_report_menu" name="Budget Report" parent="clx_budget_analysis_report.budget_reporting" action="clx_budget_analysis_report.sale_budget_report_action" sequence="1"/>-->
+    <!-- Main template -->
+
+    <template id="report_budget_qweb">
+        <style type="text/css">
+            table.report-budgets-wrapper{
+                overflow-x: scroll;
+            }
+            table.report-budgets{
+                text-align:center;
+                border-spacing: 0px;
+                border-collapse: collapse;
+            }
+            table.report-budgets th,td {
+                padding:2px;
+                border:1px solid;
+                min-height:20px;
+                font-size:10pt;
+            }
+            table.report-budgets th.moneys,td.moneys {
+                min-width:50px;
+            }            
+            table.report-budgets th.names,td.names {
+                min-width:150px;
+                background-color:#dddddd;
+            }
+            table.report-budgets th.dates,td.dates {
+                min-width:70px;
+            }
+            table.report-budgets th{
+                background-color:#dddddd;
+            }
+            .table-report-cap{
+                text-align: center;
+                font-size: 21px;
+                font-weight: 600;
+            }
+        </style>
+        <t t-foreach="companies" t-as="company_id">
+            <t t-set="spk" t-value="companies[company_id]" />
+
+            <table class="report-budgets">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Subscription</th>
+                        <t t-foreach="all_periods" t-as="period">
+                            <th colspan="5">
+                                <t t-esc="period"/>
+                            </th>
+                        </t>
+                    </tr>
+                    <tr>
+                        <t t-foreach="all_periods" t-as="period">
+                            <th>Retail</th>
+                            <th>Wholesale</th>
+                            <th>Management Fee</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <a target="_blank" t-attf-href="http://localhost:8069/web#id={{spk['partner_id']}}&amp;model=res.partner&amp;view_type=form&amp;cids=1&amp;menu_id=294">
+                        <div class="table-report-cap" t-esc="spk['company_name']" />
+                    </a>
+                    <t t-foreach="spk['subs']" t-as="line">
+                        <tr>
+                            <td class="names">
+                                <!-- <div t-esc="spk['subs'][line]" /> -->
+                                <a target="_blank" t-attf-href="/web#id={{spk['subs'][line]['subscription_id']}}&amp;action=433&amp;model=sale.subscription&amp;view_type=form&amp;cids=1&amp;menu_id=294"><div t-esc="spk['subs'][line]['description']" /></a>
+                            </td>
+                            <t t-foreach="all_periods" t-as="period">
+                                <!-- <div t-esc="spk['subs'][line]" /> -->
+                                <t t-if="period in spk['subs'][line]">
+                                    <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
+                                        <td class="moneys">
+                                            <div t-esc="sub_period['retail_price']" />
+                                        </td>
+                                        <td class="moneys">
+                                            <div t-esc="sub_period['wholesale_price']" />
+                                        </td>
+                                        <td class="moneys">
+                                            <div t-esc="sub_period['management_fee']" />
+                                        </td>
+                                        <td class="dates">
+                                            <div t-esc="sub_period['start_date']" />
+                                        </td>
+                                        <td class="dates">
+                                            <div t-esc="sub_period['end_date']" />
+                                        </td>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <td class="moneys"></td>
+                                    <td class="moneys"></td>
+                                    <td class="moneys"></td>
+                                    <td class="dates"></td>
+                                    <td class="dates"></td>
+                                </t>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </t>
+    </template>
+
+    <template id="report_budget_report_data_qweb_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <p>Report</p>
+                <div t-field="doc.id" />
+                <t t-foreach="get_all" t-as="rec">
+                    <p>Ttt</p>
+                    <div t-field="rec.name" />
+                </t>
+                <t t-foreach="spk" t-as="spp">
+                    <p>Spk</p>
+                    <div t-field="spp.name" />
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_sale_order_subscription_lines">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="sale.report_sale_order_subscription_lines_document" t-lang="doc.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Translatable template -->
+    <template id="report_sale_order_subscription_lines_document">
+        <!-- Re-browse of the record with the partner lang -->
+        <t t-set="doc" t-value="doc.with_context(lang=doc.partner_id.lang)" />
+        <t t-call="web.external_layout">
+            <div class="page">
+                <div class="oe_structure"/>
+                <div class="row">
+                    <div class="col-6">
+                        <strong t-if="doc.partner_shipping_id == doc.partner_invoice_id">Invoice and shipping address:</strong>
+                        <strong t-if="doc.partner_shipping_id != doc.partner_invoice_id">Invoice address:</strong>
+                        <div t-field="doc.partner_invoice_id" t-options="{&quot;no_marker&quot;: True}"/>
+                    </div>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
 </odoo>
