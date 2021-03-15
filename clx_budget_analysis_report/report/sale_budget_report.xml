@@ -57,13 +57,18 @@
 
     <template id="report_budget_qweb">
         <style type="text/css">
-            table.report-budgets-wrapper{
+            .report-budgets-wrapper{
                 overflow-x: scroll;
+                font-family: Arial;
             }
             table.report-budgets{
                 text-align:center;
                 border-spacing: 0px;
                 border-collapse: collapse;
+            }
+
+            table.report-budgets .moneys.retail{
+                font-weight:600;
             }
             table.report-budgets th,td {
                 padding:2px;
@@ -90,9 +95,10 @@
                 font-weight: 600;
             }
         </style>
+        <div class="report-budgets-wrapper">
         <t t-foreach="companies" t-as="company_id">
+            
             <t t-set="spk" t-value="companies[company_id]" />
-
             <table class="report-budgets">
                 <thead>
                     <tr>
@@ -114,7 +120,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <a target="_blank" t-attf-href="http://localhost:8069/web#id={{spk['partner_id']}}&amp;model=res.partner&amp;view_type=form&amp;cids=1&amp;menu_id=294">
+                    <a target="_blank" t-attf-href="/web#id={{spk['partner_id']}}&amp;model=res.partner&amp;view_type=form&amp;cids=1&amp;menu_id=294">
                         <div class="table-report-cap" t-esc="spk['company_name']" />
                     </a>
                     <t t-foreach="spk['subs']" t-as="line">
@@ -127,7 +133,7 @@
                                 <!-- <div t-esc="spk['subs'][line]" /> -->
                                 <t t-if="period in spk['subs'][line]">
                                     <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
-                                        <td class="moneys">
+                                        <td class="moneys retail">
                                             <div t-esc="sub_period['retail_price']" />
                                         </td>
                                         <td class="moneys">
@@ -157,6 +163,7 @@
                 </tbody>
             </table>
         </t>
+        </div>
     </template>
 
     <template id="report_budget_report_data_qweb_document">
