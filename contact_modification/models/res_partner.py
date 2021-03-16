@@ -111,11 +111,13 @@ class Partner(models.Model):
     art_assets = fields.Char(string="Art Assets")
     google_analytics_cl_account_location = fields.Selection([
         ('greystaranalytics@conversionlogix.com', 'greystaranalytics@conversionlogix.com'),
+        ('Ave5analytics@clxmedia.com', 'Ave5analytics@clxmedia.com'),
         ('RESdata@conversionlogix.com', 'RESdata@conversionlogix.com'),
         ('SRLdata@conversionlogix.com', 'SRLdata@conversionlogix.com'),
         ('Localdata@conversionlogix.com', 'Localdata@conversionlogix.com'),
         ('Autodata@conversionlogix.com', 'Autodata@conversionlogix.com'),
         ('RESanalytics@clxmedia.com', 'RESanalytics@clxmedia.com'),
+        ('Resanalytics2@clxmedia.com', 'Resanalytics2@clxmedia.com'),
         ('reporting@conversionlogix.com', 'reporting@conversionlogix.com'),
         ('reporting1@conversionlogix.com', 'reporting1@conversionlogix.com'),
         ('reporting2@conversionlogix.com', 'reporting2@conversionlogix.com'),
@@ -175,6 +177,7 @@ class Partner(models.Model):
     def onchange_ownership_company_type_id(self, view_id=None, view_type='form', toolbar=False, submenu=False):
         res = super(Partner, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=False)
         if ((self.ownership_company_type_id) and ('Greystar' in self.ownership_company_type_id.name)):  
+
             doc = etree.XML(res['arch'])
             for node in doc.xpath("//field[@name='yardi_code']"):
                     node.set("required", "1")
@@ -182,7 +185,7 @@ class Partner(models.Model):
                     modifiers['required'] = 1
                     node.set("modifiers", json.dumps(modifiers))
             res['arch'] = etree.tostring(doc)
-
+            
             for node in doc.xpath("//field[@name='master_id']"):
                     node.set("required", "1")
                     modifiers = json.loads(node.get("modifiers"))
