@@ -166,11 +166,11 @@
                                          'required': [('company_type', 'in', ('company'))]}
                 </attribute>
             </xpath>
-             <xpath expr="//field[@name='street2']" position="attributes">
+             <!-- <xpath expr="//field[@name='street2']" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
                                          'required': [('company_type', 'in', ('company'))]}
                 </attribute>
-            </xpath>
+            </xpath> -->
             <xpath expr="//field[hasclass('o_address_city')]" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
                                          'required': [('company_type', 'in', ('company'))]}
@@ -296,8 +296,7 @@
 
             <xpath expr="//field[@name='type']" position="before">
                 <field name="mangement_company_type" 
-                       attrs="{'invisible':[('is_management','=',False)],
-                               'required':['|',('is_company','=',True),('is_management','=',True)]}"/>
+                       attrs="{'invisible':[('is_management','=',False)]}"/>
             </xpath>
 
             <xpath expr="//field[@name='type']" position="before">
