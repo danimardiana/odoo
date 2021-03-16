@@ -8,7 +8,8 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after">
                 <field name="clx_invoice_policy_id"
-                       attrs="{'invisible': [('company_type', 'in', ('person','owner','management'))]}"/>
+                       attrs="{'invisible': [('company_type', 'in', ('person','owner','management'))],
+                               'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="is_subscribed" invisible="True"/>
                 <field name="invoice_creation_type" invisible="1"/>
             </xpath>

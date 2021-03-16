@@ -3,7 +3,8 @@
 # See LICENSE file for full copyright & licensing details.
 
 from ast import literal_eval
-
+from lxml import etree
+import json
 from odoo import api, fields, models
 
 class ContactType(models.Model):
@@ -46,8 +47,7 @@ class Partner(models.Model):
         selection_add=[
             ('company', 'Customer Company'),
             ('owner', 'Owner'),
-            ('management', 'Management'),
-            ('vendor', 'Vendor')
+            ('management', 'Management')
         ], inverse='_write_company_type')
     ownership_company_type_id = fields.Many2one(
         'res.partner', string='Owner Ship Company')
@@ -171,6 +171,37 @@ class Partner(models.Model):
         return super(Partner, self).read_group(
             domain, fields, groupby, offset=offset,
             limit=limit, orderby=orderby, lazy=lazy)
+
+
+    @api.onchange('ownership_company_type_id')
+    def onchange_ownership_company_type_id(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+        res = super(Partner, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=False)
+        if ((self.ownership_company_type_id) and ('Greystar' in self.ownership_company_type_id.name)):
+            print('ITS A GREYSTART PROPERTY')
+            
+            doc = etree.XML(res['arch'])
+            for node in doc.xpath("//field[@name='yardi_code']"):
+                    node.set("required", "1")
+                    modifiers = json.loads(node.get("modifiers"))
+                    print(modifiers)
+                    modifiers['required'] = 1
+                    node.set("modifiers", json.dumps(modifiers))
+                    print(json.loads(node.get("modifiers")))
+            res['arch'] = etree.tostring(doc)
+
+            for node in doc.xpath("//field[@name='master_id']"):
+                    node.set("required", "1")
+                    modifiers = json.loads(node.get("modifiers"))
+                    print(modifiers)
+                    modifiers['required'] = 1
+                    node.set("modifiers", json.dumps(modifiers))
+                    print(json.loads(node.get("modifiers")))
+            res['arch'] = etree.tostring(doc)
+
+        return res
+    
+            
+                  
 
     @api.onchange('contact_company_type_id')
     def onchange_contact_company_type(self):
