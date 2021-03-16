@@ -3,7 +3,8 @@
 # See LICENSE file for full copyright & licensing details.
 
 from ast import literal_eval
-
+from lxml import etree
+import json
 from odoo import api, fields, models
 
 class ContactType(models.Model):
@@ -46,8 +47,7 @@ class Partner(models.Model):
         selection_add=[
             ('company', 'Customer Company'),
             ('owner', 'Owner'),
-            ('management', 'Management'),
-            ('vendor', 'Vendor')
+            ('management', 'Management')
         ], inverse='_write_company_type')
     ownership_company_type_id = fields.Many2one(
         'res.partner', string='Owner Ship Company')
@@ -111,11 +111,13 @@ class Partner(models.Model):
     art_assets = fields.Char(string="Art Assets")
     google_analytics_cl_account_location = fields.Selection([
         ('greystaranalytics@conversionlogix.com', 'greystaranalytics@conversionlogix.com'),
+        ('Ave5analytics@clxmedia.com', 'Ave5analytics@clxmedia.com'),
         ('RESdata@conversionlogix.com', 'RESdata@conversionlogix.com'),
         ('SRLdata@conversionlogix.com', 'SRLdata@conversionlogix.com'),
         ('Localdata@conversionlogix.com', 'Localdata@conversionlogix.com'),
         ('Autodata@conversionlogix.com', 'Autodata@conversionlogix.com'),
         ('RESanalytics@clxmedia.com', 'RESanalytics@clxmedia.com'),
+        ('Resanalytics2@clxmedia.com', 'Resanalytics2@clxmedia.com'),
         ('reporting@conversionlogix.com', 'reporting@conversionlogix.com'),
         ('reporting1@conversionlogix.com', 'reporting1@conversionlogix.com'),
         ('reporting2@conversionlogix.com', 'reporting2@conversionlogix.com'),
@@ -169,6 +171,32 @@ class Partner(models.Model):
         return super(Partner, self).read_group(
             domain, fields, groupby, offset=offset,
             limit=limit, orderby=orderby, lazy=lazy)
+
+
+    @api.onchange('ownership_company_type_id')
+    def onchange_ownership_company_type_id(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+        res = super(Partner, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=False)
+        if ((self.ownership_company_type_id) and ('Greystar' in self.ownership_company_type_id.name)):  
+
+            doc = etree.XML(res['arch'])
+            for node in doc.xpath("//field[@name='yardi_code']"):
+                    node.set("required", "1")
+                    modifiers = json.loads(node.get("modifiers"))
+                    modifiers['required'] = 1
+                    node.set("modifiers", json.dumps(modifiers))
+            res['arch'] = etree.tostring(doc)
+            
+            for node in doc.xpath("//field[@name='master_id']"):
+                    node.set("required", "1")
+                    modifiers = json.loads(node.get("modifiers"))
+                    modifiers['required'] = 1
+                    node.set("modifiers", json.dumps(modifiers))
+            res['arch'] = etree.tostring(doc)
+
+        return res
+    
+            
+                  
 
     @api.onchange('contact_company_type_id')
     def onchange_contact_company_type(self):

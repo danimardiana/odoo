@@ -8,6 +8,12 @@ from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
 
+def remove_followers_non_clx(object_clean):
+    for follower in object_clean.message_partner_ids:
+        if (not follower.email) or ('clxmedia.com' not in follower.email):
+            object_clean.message_unsubscribe([follower.id])
+
+
 class ProjectTaskType(models.Model):
     _inherit = 'project.task.type'
 
@@ -48,6 +54,12 @@ class ProjectProject(models.Model):
     user_id = fields.Many2one('res.users', string='Account Manager',
                               default=lambda self: self.env.user, tracking=True)
 
+    @api.model
+    def create(self, vals):
+        project = super(ProjectProject, self).create(vals)
+        remove_followers_non_clx(project)
+        return project
+
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
         if 'active' in vals:
@@ -69,6 +81,7 @@ class ProjectProject(models.Model):
         if vals.get('clx_project_designer_id', False):
             for task in self.task_ids:
                 task.clx_task_designer_id = self.clx_project_designer_id.id
+        remove_followers_non_clx(self)
         return res
 
     def action_done_project(self):
@@ -142,6 +155,13 @@ class ProjectTask(models.Model):
                               string='Account Manager',
                               default=lambda self: self.env.uid,
                               index=True, tracking=True)
+
+    @api.model
+    def create(self, vals):
+        new_task = super(ProjectTask, self).create(vals)
+        # remove followers not from CLX
+        remove_followers_non_clx(new_task)
+        return new_task
 
     def _compute_sub_task_project_ids(self):
         task_list = []
@@ -408,6 +428,7 @@ class ProjectTask(models.Model):
         if vals.get('clx_task_manager_id', False):
             for task in self.child_ids:
                 task.clx_task_manager_id = self.clx_task_manager_id.id
+        remove_followers_non_clx(self)
         return res
 
     def action_view_popup_task(self):
