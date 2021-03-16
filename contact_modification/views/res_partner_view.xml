@@ -297,7 +297,7 @@
             <xpath expr="//field[@name='type']" position="before">
                 <field name="mangement_company_type" 
                        attrs="{'invisible':[('is_management','=',False)],
-                               'required':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',False),('is_vendor','=',False)]}"/>
+                               'required':['|',('is_company','=',True),('is_management','=',True)]}"/>
             </xpath>
 
             <xpath expr="//field[@name='type']" position="before">
@@ -310,14 +310,14 @@
                 <field name="management_company_type_id" domain="[('is_management', '=', True)]"
                        options="{'no_create_edit':True}"
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)],
-                               'required':['|','|','|',('is_company','=',True),('is_management','=',False),('is_owner','=',False),('is_vendor','=',False)]}"/>
+                               'required':[('is_company','=',True)]}"/>
             </xpath>
 
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
                 <field name="implementation_specialist_id" attrs="{'invisible':[('company_type','not in','company')]}"/>
                 <field name="account_user_id" 
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)],
-                               'required':['|','|','|',('is_company','=',True),('is_management','=',False),('is_owner','=',False),('is_vendor','=',False)]}"/>
+                               'required':[('is_company','=',True)]}"/>
                 <field name="secondary_user_id"
                        attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
                 <field name="national_user_id"
