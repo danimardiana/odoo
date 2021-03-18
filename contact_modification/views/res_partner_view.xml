@@ -277,6 +277,7 @@
                 <field name="is_management" invisible="1"/>
                 <field name="is_vendor" invisible="1"/>
                 <field name="is_company" invisible="1"/>
+                 <field name="is_greystar_company" invisible="1"/>
             </xpath>
 
             <xpath expr="//field[@name='parent_id']" position="replace">
@@ -554,8 +555,10 @@
                 <field name="branding_name" attrs="{'invisible': [('company_type', 'not in', ('vendor'))]}"/>
                 <field name="timezone_char" attrs="{'invisible': [('company_type', 'not in', ('company'))],
                                                     'required': [('company_type', 'in', ('company'))]}"/>
-                <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
-                <field name="master_id" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
+                <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company'))],
+                                                 'required': [('is_greystar_company', '=', True)]}"/>
+                <field name="master_id" attrs="{'invisible': [('company_type', 'not in', ('company'))],
+                                                'required': [('is_greystar_company', '=', True)]}"/>
                 <field name="submitted_platform_id" invisible="1"/>
                 <field name="client_services_team" attrs="{'invisible': [('company_type', 'not in', ('management'))],
                                                            'required': [('company_type', 'in', ('management'))]}"/>

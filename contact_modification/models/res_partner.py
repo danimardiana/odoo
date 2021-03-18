@@ -62,6 +62,8 @@ class Partner(models.Model):
     is_vendor = fields.Boolean(
         string='Is a Vendore', default=False,
         help="Check if the contact is a Vendor")
+    is_greystar_company = fields.Boolean(
+        string='Is a Greystar company', default=False)
     account_user_id = fields.Many2one('res.users',
                                       string='Account Manager')
     secondary_user_id = fields.Many2one('res.users',
@@ -172,31 +174,12 @@ class Partner(models.Model):
             domain, fields, groupby, offset=offset,
             limit=limit, orderby=orderby, lazy=lazy)
 
-
     @api.onchange('ownership_company_type_id')
-    def onchange_ownership_company_type_id(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        res = super(Partner, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=False)
-        if ((self.ownership_company_type_id) and ('Greystar' in self.ownership_company_type_id.name)):  
-
-            doc = etree.XML(res['arch'])
-            for node in doc.xpath("//field[@name='yardi_code']"):
-                    node.set("required", "1")
-                    modifiers = json.loads(node.get("modifiers"))
-                    modifiers['required'] = 1
-                    node.set("modifiers", json.dumps(modifiers))
-            res['arch'] = etree.tostring(doc)
-            
-            for node in doc.xpath("//field[@name='master_id']"):
-                    node.set("required", "1")
-                    modifiers = json.loads(node.get("modifiers"))
-                    modifiers['required'] = 1
-                    node.set("modifiers", json.dumps(modifiers))
-            res['arch'] = etree.tostring(doc)
-
-        return res
-    
-            
-                  
+    def onchange_ownership_company_type_id(self):
+        if ((self.ownership_company_type_id) and ('Greystar' in self.ownership_company_type_id.name)):
+            self.is_greystar_company = True
+        else:
+            self.is_greystar_company = False
 
     @api.onchange('contact_company_type_id')
     def onchange_contact_company_type(self):
