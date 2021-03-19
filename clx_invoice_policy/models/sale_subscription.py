@@ -52,6 +52,20 @@ class SaleSubscription(models.Model):
             action = {'type': 'ir.actions.act_window_close'}
         return action
 
+    def pricelist_determination(self, product, price_list):
+        pricelist_flat = self.pricelist_flatten(price_list)
+        pricelist2process = {}
+        tags = [str(price_list.id) + '_0_' + str(product.id),
+        str(price_list.id) + '_1_' + \
+            str(0 if 'product_tmpl_id' not in product else product.product_tmpl_id.id),
+        str(price_list.id) + '_2_' + str(product.categ_id.id),
+        str(price_list.id) + '_3', list(pricelist_flat.keys())[0]]
+        for tag in tags:
+            if tag in pricelist_flat:
+                pricelist2process = pricelist_flat[tag]
+                break
+        return pricelist2process
+
     def subscription_wholesale_period(self, retail, price_list):
         management_fee = 0.0
         if price_list.is_custom:

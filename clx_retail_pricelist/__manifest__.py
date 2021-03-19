@@ -25,8 +25,9 @@
         'views/product_pricelist_view.xml',
         'views/sale_order_view.xml',
         'views/sale_product_configurator_views.xml',
+        'views/assets.xml',
+        'views/product_product_views.xml',
         'report/sale_report_templates.xml',
-
     ],
     'installable': True,
     'application': True,
