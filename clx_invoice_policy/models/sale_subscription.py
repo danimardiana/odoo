@@ -84,7 +84,9 @@ class SaleSubscription(models.Model):
             if price_list.is_percentage and price_list.percent_mgmt_price:
                 management_fee = round(
                     (price_list.percent_mgmt_price * retail) / 100, 2)
-
+        #but never less than minimum price 
+        if management_fee < price_list.fixed_mgmt_price:
+            management_fee = price_list.fixed_mgmt_price 
         return {'management_fee': management_fee, 'wholesale_price': retail - management_fee}
 
     def pricelist_flatten(self, price_list):

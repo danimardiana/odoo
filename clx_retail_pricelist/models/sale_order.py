@@ -27,8 +27,15 @@ class SaleOrder(models.Model):
     product_price_calculation_ids = fields.One2many(
         'product.price.calculation', 'order_id', ondelete='cascade',
         readonly=True, string="Product Price")
-    display_management_fee = fields.Boolean(string="Display Management Fee",
-                                            default=True)
+    display_management_fee = fields.Boolean(string="Display Management Fee", default=True)
+    
+    def web_base_url(self):
+        return self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+    def money_formatting(self, val):
+        result_string = "${value:.2f}"
+        # if result_string [0] != "$"
+        return result_string.format(value = val)
 
     def management_fee_calculation(self, price_unit, product, pricelist):
         pricelist_product = self.env['sale.subscription'].pricelist_determination(

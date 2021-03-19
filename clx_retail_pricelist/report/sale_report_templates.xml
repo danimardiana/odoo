@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="sale.sale_order_portal_content" name="Contract Preview">
+        <t t-set="url_prefix" t-value="sale_order.web_base_url()"/>
+        <xpath expr="." position="inside">
+            <link t-attf-href="{{url_prefix}}/clx_retail_pricelist/static/src/css/custom_contract.css" rel="stylesheet" type="text/css"/>
+        </xpath>
+
         <div class="contractPrintBody">
             <div id="cover_page" class="">
                 <div class="printLinesTop only-print">
@@ -11,23 +16,30 @@
 
                 <div class="middle_section">
                     <div>
-                        <img id="cover_page_logo" class="mb-6 col-12" src="/clx_retail_pricelist/static/img/cl_horizontal-NEW.png" alt="Conversion Logix Logo"/>
+                        <img id="cover_page_logo" class="mb-6 col-12" t-attf-src="{{url_prefix}}/clx_retail_pricelist/static/src/img/cl_horizontal-NEW.png" alt="Conversion Logix Logo"/>
                     </div>
-                    <h1 class="contract-title"><address t-field="sale_order.partner_invoice_id" t-options='{"widget": "contact", "fields": ["name"], "no_marker": True}'/></h1>
+                    <h1 class="contract-title mt16">
+                        <address t-field="sale_order.partner_invoice_id" t-options='{"widget": "contact", "fields": ["name"], "no_marker": True}'/>
+                    </h1>
                 </div>
                 <div id="dedicated_account_rep_info" class="col-12">
-                    <div class="salesRepInfoWrapper row" >
+                    <div class="salesRepInfoWrapper row">
                         <div class="col-10 offset-3">Dedicated Account Representative Information:</div>
-                        <div class="col-10 offset-4">Name: <stong t-esc="sale_order.user_id.name"/></div>
-                        <div class="col-10 offset-4">Email: <stong t-esc="sale_order.user_id.email"/></div>
-                        <div class="col-10 offset-4">Phone: <stong t-esc="sale_order.user_id.phone"/></div>
+                        <div class="col-10 offset-4">Name: <stong t-esc="sale_order.user_id.name"/>
+                        </div>
+                        <div class="col-10 offset-4">Email: <stong t-esc="sale_order.user_id.email"/>
+                        </div>
+                        <div class="col-10 offset-4">Phone: <stong t-esc="sale_order.user_id.phone"/>
+                        </div>
                     </div>
                 </div>
                 <div class="printFooterFirstPage">
-                    <span>conversionlogix.com</span><span style="padding:0px 50px 0px 50px;">|</span><span style="font-style:italic;">17921 Bothell Everett Hwy. #105 // Bothell, WA 98012</span>
+                    <span>conversionlogix.com</span>
+                    <span style="padding:0px 50px 0px 50px;">|</span>
+                    <span style="font-style:italic;">17921 Bothell Everett Hwy. #105 // Bothell, WA 98012</span>
                 </div>
                 <div class="printObscureFirstPage">
-                </div>            
+                </div>
             </div>
         </div>
 
@@ -35,42 +47,45 @@
             <div class="pseudoPage">
                 <div class="communityLogoWrapper row">
                     <img class="col-6 offset-3" t-if="sale_order.user_id.image_1024" t-att-src="image_data_uri(sale_order.user_id.image_1024)" alt="Contact"/>
-                    <img class="col-6 offset-3" t-if="not sale_order.user_id.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact"/>
+                    <!-- <img class="col-6 offset-3" t-if="not sale_order.user_id.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact"/> -->
                 </div>
                 <div class="communityName row justify-content-md-center">
-                    <h2><span t-esc="sale_order.partner_invoice_id.name"/> - Proposal of Services</h2>
+                    <h2>
+                        <span t-esc="sale_order.partner_invoice_id.name"/> - Proposal of Services</h2>
                 </div>
                 <div class="contractedServicesWrapper">
-                        <t t-set="first_month_subtotal" t-value="0.0"/>
-                        <t t-set="fee_subtotal" t-value="0.0"/>
-                        <t t-set="current_subtotal" t-value="0.0"/>
-                        <t t-foreach="sale_order.order_line" t-as="line">
+                    <t t-set="first_month_subtotal" t-value="0.0"/>
+                    <t t-set="fee_subtotal" t-value="0.0"/>
+                    <t t-set="current_subtotal" t-value="0.0"/>
+                    <t t-foreach="sale_order.order_line" t-as="line">
 
-    <!-- section just for compatibly with original ones --> 
-    <section id="details" style="page-break-inside: auto;display:none;" class="mt32">
-        <t t-set="display_discount" t-value="True in [line.discount > 0 for line in sale_order.order_line]"/>
-        <table class="table table-sm" id="sales_order_table">
-        <thead>
-        <tr>
-        </tr>
-        </thead>
-        </table>
-        <section t-if="sale_order.signature" id="signature" name="Signature"/>
-        <div id="quote_qty"/>
-        <div class="row" id="so_date"/>
-        <div id="informations"/>
-    </section>
+                        <!-- section just for compatibly with original ones -->
+                        <section id="details" style="page-break-inside: auto;display:none;" class="mt32">
+                            <t t-set="display_discount" t-value="True in [line.discount > 0 for line in sale_order.order_line]"/>
+                            <table class="table table-sm" id="sales_order_table">
+                                <thead>
+                                    <tr>
+                                    </tr>
+                                </thead>
+                            </table>
+                            <section t-if="sale_order.signature" id="signature" name="Signature"/>
+                            <div id="quote_qty"/>
+                            <div class="row" id="so_date"/>
+                            <div id="informations"/>
+                        </section>
 
-                            <t t-if="line.product_id.categ_id.name=='Fees'">
-                                <span t-set="fee_subtotal" t-value="fee_subtotal+line.price_unit"/>
-                            </t>
-                            <t t-else="">
+                        <t t-if="line.product_id.categ_id.name=='Fees'">
+                            <span t-set="fee_subtotal" t-value="fee_subtotal+line.price_unit"/>
+                        </t>
+                        <t t-else="">
                             <div class="productLineWrapper row">
                                 <div class="topbar row valign-wrapper col-12">
-                                    <section id="details" class="productTitle col-4">
+                                    <section id="details" class="productTitle col-6">
                                         <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
                                             <t t-if="not line.display_type">
-                                                <td id="product_name"><span t-field="line.name"/></td>
+                                                <td id="product_name">
+                                                    <span t-field="line.name"/>
+                                                </td>
                                             </t>
                                             <t t-if="line.display_type == 'line_section'">
                                                 <td colspan="99">
@@ -85,463 +100,1035 @@
                                                 </td>
                                             </t>
                                             <div class="descriptionWrapper">
-                                                <div class="description col-11 offset-4">
-                                                    <td id="product_name"><span t-esc="line.product_id.contract_product_description"/></td>
+                                                <div class="description col-12">
+                                                    <td id="product_name">
+                                                        <span t-esc="line.product_id.contract_product_description"/>
+                                                    </td>
                                                 </div>
-                                            </div>                                            
+                                            </div>
                                         </tr>
                                     </section>
-                                    <div class="productTotalWrapperWrapper col-8">
+                                    <div class="productTotalWrapperWrapper col-6">
                                         <div class="productTotalWrapper">
-                                            <div class="monthlyTotalText">Monthly Total: </div><div class="productTotal"><span t-esc="line.price_unit"/></div>
+                                            <div class="monthlyTotalText">Monthly Total: </div>
+                                            <div class="productTotal">
+                                                <span t-esc="sale_order.money_formatting(line.price_unit)"/>
+                                            </div>
                                         </div>
                                         <div t-if="line.prorate_amount" class="productTotalWrapper">
-                                            <div style="display:inline-block;">First Month Total: </div><div class="productTotal"><span t-esc="line.prorate_amount"/></div>
+                                            <div style="display:inline-block;">First Month Total: </div>
+                                            <div class="productTotal">
+                                                <span t-esc="sale_order.money_formatting(line.prorate_amount)"/>
+                                            </div>
                                         </div>
                                         <t t-set="management_fee_calculated" t-value="sale_order.management_fee_calculation(line.price_unit,line.product_template_id,sale_order.pricelist_id)" />
-                                        <div t-if="management_fee_calculated" class="productTotalWrapper" >
-                                            <div style="display:inline-block;">Monthly Fee: </div><div class="productTotal"><span t-esc="management_fee_calculated"/></div>
+                                        <div t-if="management_fee_calculated" class="productTotalWrapper">
+                                            <div style="display:inline-block;">Monthly Fee: </div>
+                                            <div class="productTotal">
+                                                <span t-esc="sale_order.money_formatting(management_fee_calculated)"/>
+                                            </div>
                                         </div>
                                         <t t-set="first_month_subtotal" t-value="first_month_subtotal + (line.prorate_amount if line.prorate_amount else line.price_unit)"/>
                                         <t t-set="current_subtotal" t-value="current_subtotal + line.price_unit"/>
                                     </div>
                                 </div>
                             </div>
-                            </t>
                         </t>
+                    </t>
 
-                        <t t-if="current_section and (line_last or sale_order.order_line[line_index+1].display_type == 'line_section')">
-                            <tr class="is-subtotal text-right">
-                                <td colspan="99">
-                                    <strong class="mr16">Subtotal</strong>
-                                    <span
-                                        t-esc="current_subtotal"
-                                        t-options='{"widget": "monetary", "display_currency": sale_order.pricelist_id.currency_id}'
-                                    />
-                                </td>
-                            </tr>
-                        </t>
+                    <t t-if="current_section and (line_last or sale_order.order_line[line_index+1].display_type == 'line_section')">
+                        <tr class="is-subtotal text-right">
+                            <td colspan="99">
+                                <strong class="mr16">Subtotal</strong>
+                                <span t-esc="sale_order.money_formatting(current_subtotal)"/>
+                            </td>
+                        </tr>
+                    </t>
                 </div>
             </div>
         </div>
-                <div class="monthlyTotalWrappersWrapper dont_break_inside row">
-                    <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
-                        <div class="firstMonthlyTotalWrapper">
-                            <div class="">First Month Spend: </div>
-                            <div class="monthlyTotal">$ <span t-esc="first_month_subtotal"/></div>
-                        </div>
-                    </div>
-                    <div class="offset-2 col-4 monthlyTotalWrapper">
-                        <div class="">Recurring Monthly Spend: </div>
-                        <div class="monthlyTotal">$ <span t-esc="current_subtotal"/></div>
-                    </div>
-                </div>
-                <div class="col-8 offset-2">
-                    <div class="section_wrapper_subtle">
-                        <h2 class="full center">Key Information</h2>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Community Name:</div>
-                            <span class="col-7" t-esc="sale_order.partner_invoice_id.name"/>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Community Address:</div>
-                            <span class="col-7" t-esc="', '.join([str(sale_order.partner_invoice_id.street)+str(sale_order.partner_invoice_id.street2 if sale_order.partner_invoice_id.street2 else ''),str(sale_order.partner_invoice_id.city),str(sale_order.partner_invoice_id.state_id.name),str(sale_order.partner_invoice_id.zip),str(sale_order.partner_invoice_id.country_id.name)])"/>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Website:</div>
-                            <span class="col-7" t-esc="sale_order.partner_invoice_id.website"/>
-                        </div>
-                        <!-- REPLACEME - Ownership??? -->
-                    </div>
-                </div>
-                <div class="dont_break_inside clear_shadow col-8 offset-2">
-                    <div class="section_wrapper_subtle">
-                        <h2 class="full center">Length and Fees</h2>
-                        <!-- Contract Length -->
-                        <div class="keyValueRow row">
-                            <div class="col-4">Contract Length:</div>
-                            <div class="col-6 offset-1 ">
-                                <span t-esc="sale_order.contract_length"/>
-                            </div>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-4">Intended Launch Date:</div>
-                            <div class="col-6 offset-1 ">
-                                <span t-esc="sale_order.contract_start_date"/>
-                            </div>
-                        </div>
-                        <!-- Setup Fee -->
-                        <div class="keyValueRow row">
-                            <div class="col-5">Setup Fee:</div>
-                            <div class="col-6 offset-1">
-                                $<span t-esc="fee_subtotal"/>
-                            </div>
-                        </div>
-                        <!-- Ad Change Fees -->
-                        </div>
-                </div>
-
-                <div class="dont_break_inside clear_shadow col-8 offset-2" >
-                    <div class="payment_details section_wrapper_subtle">
-                        <h2 class="full center">Payment Details</h2>
-                            <div class="keyValueRow row">
-                            <div class="col-5">Payment Method:</div><div class="col-6 offset-1">Direct Bill</div>
-                        </div>
-                    </div>
-                </div>
-
-        <t t-set="greystar_flag" t-value="sale_order.partner_invoice_id.management_company_type_id.name.find('Greystar')"/>
-        <t t-if="greystar_flag">
-            <t t-call="clx_retail_pricelist.sale_order_portal_content_nongs_mba"/>
-            <div class="dont_break_inside clear_shadow col-10 offset-1">
-                <div class="termsOfServiceWrapper section_wrapper_subtle row">
-                    <div class="termsOfServices col-12">
-                        <h2 class="full center">Terms of Service:</h2>
-                        <p>Fees based upon minimum guaranteed 6 months – 6 month initial commitment from date of launch. Agreement will renew annually for additional 6 months unless otherwise noted. Advertiser or Provider may cancel this agreement by providing 30 day written notice (including notice through email) at the time that initial contracted term is fulfilled. All elements of the campaign must be pre-paid in full each month for the campaign to run. If payment lapses, the campaign will be paused until payment is received. Prices include creative (two rounds of initial design, changes as needed (ads should run for at least 30 days without changes), campaign management and monthly reports. Branded Search Targeting packages include both desktop and mobile investments. Search management fee is $400 or 20%, whichever is greater. Targeted Online Display CPM is $12, with premium placement, $18</p>                        
-                    </div>
-                </div>
-            </div>            
-        </t>
-        <t t-else="">
-            <div class="dont_break_inside clear_shadow col-10 offset-1">
-                <div class="termsOfServiceWrapper section_wrapper_subtle row">
-                    <div class="termsOfServices col-12">
-                        <h2 class="full center">Terms of Service:</h2>
-                        <p>Standard Length of Agreement is as selected above. After initial commitment, agreement becomes month to month. Advertiser may cancel this Order and Agreement upon 30 day written notice including notice via email. If cancelled prior to the agreement length, a retroactive setup fee of $250 may be charged. Should Advertiser exercise this right, Advertiser’s liability for further delivery of traffic shall be limited to only that traffic delivered during the 30-day notice period. Launch dates from the 1st-15th will be billed at a full month. Launch dates from the 15th-end of month will be billed a half month. CallChatter invoices are not prorated. Total monthly cost is inclusive of the management fee as defined in the National Preferred Vendor Agreement between Greystar and Conversion Logix.</p><p>Paid Search - $1800 per Month beginning April 2021 GTC<br/>Display Retargeting - $400 per month beginning April 2021 GTC<br/><br/>$2,200 monthly Total</p>                        
-                    </div>
-                </div>
-            </div>
-        </t>
-        <t t-if="report_type != 'html'">
-            <div class="col-12 dont_break_inside" style="margin-top: 20px;border: 6px double #BE2329;border-radius: 27px;">
-                <div class="signing_section section_wrapper row" style="margin-bottom:0px;">
-                    <h2 class="col-12 full center">Signatures</h2>
-                    
-                    <div class="col-12 subsection">
-                        <div class="subsection_header">Client</div>
-                        <div class="row">
-                            <div class="col-4">Client/Agent Signature</div>
-                            <div class="col-5" style="padding:0px 10px;"><div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div></div>
-                            <div class="col-1">Date</div>
-                            <div class="col-2 center" style="padding:0px 10px;"><div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-4">Name</div>
-                            <div class="col-5" style="padding:0px 10px;"><div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div></div>
-                            <div class="col-1">Title</div>
-                            <div class="col-2" style="padding:0px 10px;"><div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-4">By:</div>
-                            <div class="col-5" style="padding:0px 10px;"><div style="border-bottom:2px solid black;display: inline-block;width: 100%;">Other</div></div>
-                        </div>
-                    </div>
-                    <div class="col-12 subsection">
-                        <div class="subsection_header">Conversion Logix</div>
-                        <div class="row">
-                            <div class="col-4">Conversion Logix:</div>
-                            <div class="col-5" style="padding:0px 10px;"><div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div></div>
-                            <div class="col-1">Date</div>
-                            <div class="col-2 center" style="padding:0px 10px;"><div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </t>
-
-    </template>
-
-<!-- TEMPLATE FOR HTML CONTRACT -->
-    <template id="sale.sale_order_portal_template" name="Sales Order Portal Template" inherit_id="portal.portal_sidebar" primary="True">
-        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
-            <t t-set="o_portal_fullwidth_alert" groups="sales_team.group_sale_salesman">
-                <t t-call="portal.portal_back_in_edit_mode">
-                    <t t-set="backend_url" t-value="'/web#model=%s&amp;id=%s&amp;action=%s&amp;view_type=form' % (sale_order._name, sale_order.id, action.id)"/>
-                </t>
-            </t>
-
-            <div class="row mt16 o_portal_sale_sidebar">
-                <!-- Sidebar -->
-                <t t-call="portal.portal_record_sidebar">
-                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
-
-                    <t t-set="title">
-                        <h2 class="mb-0"><b t-field="sale_order.amount_total" data-id="total_amount"/> </h2>
-                    </t>
-                    <t t-set="entries">
-                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
-                            <li class="list-group-item flex-grow-1">
-                                <a t-if="sale_order.has_to_be_signed(True)" role="button" class="btn btn-primary btn-block mb8" data-toggle="modal" data-target="#modalaccept" href="#">
-                                    <i class="fa fa-check"/><t t-if="sale_order.has_to_be_paid(True)"> Sign &amp; Pay</t><t t-else=""> Accept &amp; Sign</t>
-                                </a>
-                                <a t-elif="sale_order.has_to_be_paid(True)" role="button" id="o_sale_portal_paynow" data-toggle="modal" data-target="#modalaccept" href="#" t-att-class="'btn-block mb8 %s' % ('btn btn-light' if sale_order.transaction_ids else 'btn btn-primary')" >
-                                    <i class="fa fa-check"/> <t t-if="not sale_order.signature">Accept &amp; Pay</t><t t-else="">Pay Now</t>
-                                </a>
-                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
-                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
-                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="sale_order.get_portal_url(report_type='pdf', download=True)" title="Download"><i class="fa fa-download"/> Download</a>
+                                <div class="monthlyTotalWrappersWrapper dont_break_inside row">
+                                    <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
+                                        <div class="firstMonthlyTotalWrapper">
+                                            <div class="">First Month Spend: </div>
+                                            <div class="monthlyTotal"><span t-esc="sale_order.money_formatting(first_month_subtotal)"/>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="btn-group flex-grow-1 mb-1">
-                                        <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="sale_order.get_portal_url(report_type='pdf')" id="print_invoice_report" title="Print" target="_blank"><i class="fa fa-print"/> Print</a>
+                                    <div class="offset-2 col-4 monthlyTotalWrapper">
+                                        <div class="">Recurring Monthly Spend1: </div>
+                                        <div class="monthlyTotal"><span t-esc="sale_order.money_formatting(current_subtotal)"/>
+                                        </div>
                                     </div>
                                 </div>
-                            </li>
-
-                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
-                                <ul class="nav flex-column bs-sidenav"></ul>
-                            </li>
-
-                            <t t-if="not sale_order.is_expired and sale_order.state in ['draft', 'sent']">
-                                <li t-if="sale_order.remaining_validity_days &gt; 0" class="list-group-item">
-                                    <small><b class="text-muted">This offer expires in</b></small>
-                                    <div class="day_counter">
-                                        <i class="fa fa-clock-o" aria-label="Dates" title="Dates"></i>
-                                        <t t-esc="sale_order.remaining_validity_days"/>
-                                        <t t-if="sale_order.remaining_validity_days &gt; 1">days</t><t t-else="">day</t>
+                                <div class="col-8 offset-2">
+                                    <div class="section_wrapper_subtle">
+                                        <h2 class="full center">Key Information</h2>
+                                        <div class="keyValueRow row">
+                                            <div class="col-5 leftKey">Community Name:</div>
+                                            <span class="col-7" t-esc="sale_order.partner_invoice_id.name"/>
+                                        </div>
+                                        <div class="keyValueRow row">
+                                            <div class="col-5 leftKey">Community Address:</div>
+                                            <span class="col-7" t-esc="', '.join([str(sale_order.partner_invoice_id.street)+str(sale_order.partner_invoice_id.street2 if sale_order.partner_invoice_id.street2 else ''),str(sale_order.partner_invoice_id.city),str(sale_order.partner_invoice_id.state_id.name),str(sale_order.partner_invoice_id.zip),str(sale_order.partner_invoice_id.country_id.name)])"/>
+                                        </div>
+                                        <div class="keyValueRow row">
+                                            <div class="col-5 leftKey">Website:</div>
+                                            <span class="col-7" t-esc="sale_order.partner_invoice_id.website"/>
+                                        </div>
+                                        <!-- REPLACEME - Ownership??? -->
                                     </div>
-                                </li>
-                                <li t-if="sale_order.amount_undiscounted - sale_order.amount_untaxed &gt; 0.01" class="list-group-item flex-grow-1">
-                                    <small><b class="text-muted">Your advantage</b></small>
-                                    <small>
-                                        <b t-field="sale_order.amount_undiscounted"
-                                            t-options='{"widget": "monetary", "display_currency": sale_order.pricelist_id.currency_id}'
-                                            style="text-decoration: line-through"
-                                            class="d-block mt-1"
-                                            data-id="amount_undiscounted" />
-                                    </small>
-                                    <t t-if="sale_order.amount_untaxed == sale_order.amount_total">
-                                        <h4 t-field="sale_order.amount_total" class="text-success" data-id="total_amount"/>
-                                    </t>
-                                    <t t-else="">
-                                        <h4 t-field="sale_order.amount_untaxed" class="text-success mb-0" data-id="total_untaxed"/>
-                                        <small>(<span t-field="sale_order.amount_total" data-id="total_amount"/> Incl. tax)</small>
-                                    </t>
-                                </li>
+                                </div>
+                                <div class="dont_break_inside clear_shadow col-8 offset-2">
+                                    <div class="section_wrapper_subtle">
+                                        <h2 class="full center">Length and Fees</h2>
+                                        <!-- Contract Length -->
+                                        <div class="keyValueRow row">
+                                            <div class="col-4">Contract Length:</div>
+                                            <div class="col-6 offset-1 ">
+                                                <span t-esc="sale_order.contract_length"/>
+                                            </div>
+                                        </div>
+                                        <div class="keyValueRow row">
+                                            <div class="col-4">Intended Launch Date:</div>
+                                            <div class="col-6 offset-1 ">
+                                                <span t-esc="sale_order.contract_start_date"/>
+                                            </div>
+                                        </div>
+                                        <!-- Setup Fee -->
+                                        <div class="keyValueRow row">
+                                            <div class="col-5">Setup Fee:</div>
+                                            <div class="col-6 offset-1">
+                                            <span t-esc="sale_order.money_formatting(fee_subtotal)"/>
+                                            </div>
+                                        </div>
+                                        <!-- Ad Change Fees -->
+                                    </div>
+                                </div>
+
+                                <div class="dont_break_inside clear_shadow col-8 offset-2">
+                                    <div class="payment_details section_wrapper_subtle">
+                                        <h2 class="full center">Payment Details</h2>
+                                        <div class="keyValueRow row">
+                                            <div class="col-5">Payment Method:</div>
+                                            <div class="col-6 offset-1">Direct Bill</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <t t-set="greystar_flag" t-value="sale_order.partner_invoice_id.management_company_type_id and sale_order.partner_invoice_id.management_company_type_id.name.find('Greystar')"/>
+                                <t t-if="greystar_flag">
+                                    <div class="mt32 clear_shadow col-10 offset-1">
+                                        <t t-call="clx_retail_pricelist.sale_order_portal_content_nongs_mba"/>
+                                    </div>
+                                    <div class="dont_break_inside clear_shadow col-10 offset-1">
+                                        <div class="termsOfServiceWrapper section_wrapper_subtle row">
+                                            <div class="termsOfServices col-12">
+                                                <h2 class="full center">Terms of Service:</h2>
+                                                <p>Fees based upon minimum guaranteed 6 months – 6 month initial commitment from date of launch. Agreement will renew annually for additional 6 months unless otherwise noted. Advertiser or Provider may cancel this agreement by providing 30 day written notice (including notice through email) at the time that initial contracted term is fulfilled. All elements of the campaign must be pre-paid in full each month for the campaign to run. If payment lapses, the campaign will be paused until payment is received. Prices include creative (two rounds of initial design, changes as needed (ads should run for at least 30 days without changes), campaign management and monthly reports. Branded Search Targeting packages include both desktop and mobile investments. Search management fee is $400 or 20%, whichever is greater. Targeted Online Display CPM is $12, with premium placement, $18</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="dont_break_inside clear_shadow col-10 offset-1">
+                                        <div class="termsOfServiceWrapper section_wrapper_subtle row">
+                                            <div class="termsOfServices col-12">
+                                                <h2 class="full center">Terms of Service:</h2>
+                                                <p>Standard Length of Agreement is as selected above. After initial commitment, agreement becomes month to month. Advertiser may cancel this Order and Agreement upon 30 day written notice including notice via email. If cancelled prior to the agreement length, a retroactive setup fee of $250 may be charged. Should Advertiser exercise this right, Advertiser’s liability for further delivery of traffic shall be limited to only that traffic delivered during the 30-day notice period. Launch dates from the 1st-15th will be billed at a full month. Launch dates from the 15th-end of month will be billed a half month. CallChatter invoices are not prorated. Total monthly cost is inclusive of the management fee as defined in the National Preferred Vendor Agreement between Greystar and Conversion Logix.</p>
+                                                <p>Paid Search - $1800 per Month beginning April 2021 GTC<br/>
+Display Retargeting - $400 per month beginning April 2021 GTC<br/>
+                                            <br/>
+$2,200 monthly Total</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                        <t t-if="report_type != 'html'">
+                            <div class="col-12 dont_break_inside" style="margin-top: 20px;border: 6px double #BE2329;border-radius: 27px;">
+                                <div class="signing_section section_wrapper row" style="margin-bottom:0px;">
+                                    <h2 class="col-12 full center">Signatures</h2>
+
+                                    <div class="col-12 subsection">
+                                        <div class="subsection_header">Client</div>
+                                        <div class="row">
+                                            <div class="col-4">Client/Agent Signature</div>
+                                            <div class="col-5" style="padding:0px 10px;">
+                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                            </div>
+                                            <div class="col-1">Date</div>
+                                            <div class="col-2 center" style="padding:0px 10px;">
+                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-4">Name</div>
+                                            <div class="col-5" style="padding:0px 10px;">
+                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                            </div>
+                                            <div class="col-1">Title</div>
+                                            <div class="col-2" style="padding:0px 10px;">
+                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-4">By:</div>
+                                            <div class="col-5" style="padding:0px 10px;">
+                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;">Other</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 subsection">
+                                        <div class="subsection_header">Conversion Logix</div>
+                                        <div class="row">
+                                            <div class="col-4">Conversion Logix:</div>
+                                            <div class="col-5" style="padding:0px 10px;">
+                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                            </div>
+                                            <div class="col-1">Date</div>
+                                            <div class="col-2 center" style="padding:0px 10px;">
+                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                    </template>
+
+                    <!-- TEMPLATE FOR HTML CONTRACT -->
+                    <template id="sale.sale_order_portal_template" name="Sales Order Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+                        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+                            <t t-set="o_portal_fullwidth_alert" groups="sales_team.group_sale_salesman">
+                                <t t-call="portal.portal_back_in_edit_mode">
+                                    <t t-set="backend_url" t-value="'/web#model=%s&amp;id=%s&amp;action=%s&amp;view_type=form' % (sale_order._name, sale_order.id, action.id)"/>
+                                </t>
                             </t>
 
-                            <li t-if="sale_order.user_id" class="list-group-item flex-grow-1">
-                                <div class="small mb-1"><strong class="text-muted">Salesperson</strong></div>
-                                <div class="row flex-nowrap">
-                                    <div class="col flex-grow-0 pr-2">
-                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="sale_order.user_id.image_1024" t-att-src="image_data_uri(sale_order.user_id.image_1024)" alt="Contact"/>
-                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="not sale_order.user_id.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact"/>
-                                    </div>
-                                    <div class="col pl-0" style="min-width: 150px">
-                                        <span t-field="sale_order.user_id" t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}'/>
-                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send message</a>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </t>
-                </t>
+                            <div class="row mt16 o_portal_sale_sidebar">
+                                <!-- Sidebar -->
+                                <t t-call="portal.portal_record_sidebar">
+                                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
 
-                <!-- Page content -->
-                <div id="quote_content" class="col-12 col-lg justify-content-end">
-
-                    <!-- modal relative to the actions sign and pay -->
-                    <div role="dialog" class="modal fade" id="modalaccept">
-                        <div class="modal-dialog" t-if="sale_order.has_to_be_signed(True)">
-                            <form id="accept" method="POST" t-att-data-order-id="sale_order.id" t-att-data-token="sale_order.access_token" class="js_accept_json modal-content js_website_submit_form">
-                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                <header class="modal-header">
-                                    <h4 class="modal-title">Validate Order</h4>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
-                                </header>
-                                <main class="modal-body" id="sign-dialog">
-                                    <p>
-                                        <span>By signing this proposal, I agree to the following terms:</span>
-                                        <ul>
-                                            <li><span>Accepted on the behalf of:</span> <b t-field="sale_order.partner_id.commercial_partner_id"/></li>
-                                            <li><span>For an amount of:</span> <b data-id="total_amount" t-field="sale_order.amount_total"/></li>
-                                            <li t-if="sale_order.payment_term_id"><span>With payment terms:</span> <b t-field="sale_order.payment_term_id.note"/></li>
-                                        </ul>
-                                    </p>
-                                    <t t-call="portal.signature_form">
-                                        <t t-set="call_url" t-value="sale_order.get_portal_url(suffix='/accept')"/>
-                                        <t t-set="default_name" t-value="sale_order.partner_id.name"/>
+                                    <t t-set="title">
+                                        <h2 class="mb-0">
+                                            <b t-field="sale_order.amount_total" data-id="total_amount"/>
+                                        </h2>
                                     </t>
-                                </main>
-                            </form>
-                        </div>
+                                    <t t-set="entries">
+                                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                                            <li class="list-group-item flex-grow-1">
+                                                <a t-if="sale_order.has_to_be_signed(True)" role="button" class="btn btn-primary btn-block mb8" data-toggle="modal" data-target="#modalaccept" href="#">
+                                                    <i class="fa fa-check"/>
+                                                    <t t-if="sale_order.has_to_be_paid(True)"> Sign &amp; Pay</t>
+                                                    <t t-else=""> Accept &amp; Sign</t>
+                                                </a>
+                                                <a t-elif="sale_order.has_to_be_paid(True)" role="button" id="o_sale_portal_paynow" data-toggle="modal" data-target="#modalaccept" href="#" t-att-class="'btn-block mb8 %s' % ('btn btn-light' if sale_order.transaction_ids else 'btn btn-primary')">
+                                                    <i class="fa fa-check"/>
+                                                    <t t-if="not sale_order.signature">Accept &amp; Pay</t>
+                                                    <t t-else="">Pay Now</t>
+                                                </a>
+                                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="sale_order.get_portal_url(report_type='pdf', download=True)" title="Download">
+                                                            <i class="fa fa-download"/>
+ Download</a>
+                                                    </div>
+                                                    <div class="btn-group flex-grow-1 mb-1">
+                                                        <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="sale_order.get_portal_url(report_type='pdf')" id="print_invoice_report" title="Print" target="_blank">
+                                                            <i class="fa fa-print"/>
+ Print</a>
+                                                    </div>
+                                                </div>
+                                            </li>
 
-                        <div class="modal-dialog" t-if="not sale_order.has_to_be_signed(True) and sale_order.has_to_be_paid(True)">
-                            <div class="modal-content">
-                                <header class="modal-header">
-                                    <h4 class="modal-title">Validate Order</h4>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
-                                </header>
-                                <main class="modal-body" id="sign-dialog">
-                                    <p>
-                                        <span>By paying this proposal, I agree to the following terms:</span>
-                                        <ul>
-                                            <li><span>Accepted on the behalf of:</span> <b t-field="sale_order.partner_id.commercial_partner_id"/></li>
-                                            <li><span>For an amount of:</span> <b data-id="total_amount" t-field="sale_order.amount_total"/></li>
-                                            <li t-if="sale_order.payment_term_id"><span>With payment terms:</span> <b t-field="sale_order.payment_term_id.note"/></li>
+                                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                                <ul class="nav flex-column bs-sidenav"></ul>
+                                            </li>
+
+                                            <t t-if="not sale_order.is_expired and sale_order.state in ['draft', 'sent']">
+                                                <li t-if="sale_order.remaining_validity_days &gt; 0" class="list-group-item">
+                                                    <small>
+                                                        <b class="text-muted">This offer expires in</b>
+                                                    </small>
+                                                    <div class="day_counter">
+                                                        <i class="fa fa-clock-o" aria-label="Dates" title="Dates"></i>
+                                                        <t t-esc="sale_order.remaining_validity_days"/>
+                                                        <t t-if="sale_order.remaining_validity_days &gt; 1">days</t>
+                                                        <t t-else="">day</t>
+                                                    </div>
+                                                </li>
+                                                <li t-if="sale_order.amount_undiscounted - sale_order.amount_untaxed &gt; 0.01" class="list-group-item flex-grow-1">
+                                                    <small>
+                                                        <b class="text-muted">Your advantage</b>
+                                                    </small>
+                                                    <small>
+                                                        <b t-field="sale_order.amount_undiscounted" t-options='{"widget": "monetary", "display_currency": sale_order.pricelist_id.currency_id}' style="text-decoration: line-through" class="d-block mt-1" data-id="amount_undiscounted" />
+                                                    </small>
+                                                    <t t-if="sale_order.amount_untaxed == sale_order.amount_total">
+                                                        <h4 t-field="sale_order.amount_total" class="text-success" data-id="total_amount"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <h4 t-field="sale_order.amount_untaxed" class="text-success mb-0" data-id="total_untaxed"/>
+                                                        <small>(                                                            <span t-field="sale_order.amount_total" data-id="total_amount"/>
+ Incl. tax)</small>
+                                                    </t>
+                                                </li>
+                                            </t>
+
+                                            <li t-if="sale_order.user_id" class="list-group-item flex-grow-1">
+                                                <div class="small mb-1">
+                                                    <strong class="text-muted">Salesperson</strong>
+                                                </div>
+                                                <div class="row flex-nowrap">
+                                                    <div class="col flex-grow-0 pr-2">
+                                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="sale_order.user_id.image_1024" t-att-src="image_data_uri(sale_order.user_id.image_1024)" alt="Contact"/>
+                                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="not sale_order.user_id.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact"/>
+                                                    </div>
+                                                    <div class="col pl-0" style="min-width: 150px">
+                                                        <span t-field="sale_order.user_id" t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}'/>
+                                                        <a href="#discussion" class="small">
+                                                            <i class="fa fa-comment"></i> Send message</a>
+                                                    </div>
+                                                </div>
+                                            </li>
                                         </ul>
-                                    </p>
-                                    <div t-if="pms or acquirers" id="payment_method" class="text-left">
-                                        <h3 class="mb24">Pay with</h3>
-                                        <t t-call="payment.payment_tokens_list">
-                                            <t t-set="mode" t-value="'payment'"/>
-                                            <t t-set="submit_txt">Pay &amp; Confirm</t>
-                                            <t t-set="icon_class" t-value="'fa-lock'"/>
-                                            <t t-set="form_action" t-value="sale_order.get_portal_url(suffix='/transaction/token')"/>
-                                            <t t-set="prepare_tx_url" t-value="sale_order.get_portal_url(suffix='/transaction/')"/>
-                                            <t t-set="access_token" t-value="sale_order.access_token"/>
+                                    </t>
+                                </t>
+
+                                <!-- Page content -->
+                                <div id="quote_content" class="col-12 col-lg justify-content-end">
+
+                                    <!-- modal relative to the actions sign and pay -->
+                                    <div role="dialog" class="modal fade" id="modalaccept">
+                                        <div class="modal-dialog" t-if="sale_order.has_to_be_signed(True)">
+                                            <form id="accept" method="POST" t-att-data-order-id="sale_order.id" t-att-data-token="sale_order.access_token" class="js_accept_json modal-content js_website_submit_form">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <header class="modal-header">
+                                                    <h4 class="modal-title">Validate Order</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
+                                                </header>
+                                                <main class="modal-body" id="sign-dialog">
+                                                    <p>
+                                                        <span>By signing this proposal, I agree to the following terms:</span>
+                                                        <ul>
+                                                            <li>
+                                                                <span>Accepted on the behalf of:</span>
+                                                                <b t-field="sale_order.partner_id.commercial_partner_id"/>
+                                                            </li>
+                                                            <li>
+                                                                <span>For an amount of:</span>
+                                                                <b data-id="total_amount" t-field="sale_order.amount_total"/>
+                                                            </li>
+                                                            <li t-if="sale_order.payment_term_id">
+                                                                <span>With payment terms:</span>
+                                                                <b t-field="sale_order.payment_term_id.note"/>
+                                                            </li>
+                                                        </ul>
+                                                    </p>
+                                                    <t t-call="portal.signature_form">
+                                                        <t t-set="call_url" t-value="sale_order.get_portal_url(suffix='/accept')"/>
+                                                        <t t-set="default_name" t-value="sale_order.partner_id.name"/>
+                                                    </t>
+                                                </main>
+                                            </form>
+                                        </div>
+
+                                        <div class="modal-dialog" t-if="not sale_order.has_to_be_signed(True) and sale_order.has_to_be_paid(True)">
+                                            <div class="modal-content">
+                                                <header class="modal-header">
+                                                    <h4 class="modal-title">Validate Order</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
+                                                </header>
+                                                <main class="modal-body" id="sign-dialog">
+                                                    <p>
+                                                        <span>By paying this proposal, I agree to the following terms:</span>
+                                                        <ul>
+                                                            <li>
+                                                                <span>Accepted on the behalf of:</span>
+                                                                <b t-field="sale_order.partner_id.commercial_partner_id"/>
+                                                            </li>
+                                                            <li>
+                                                                <span>For an amount of:</span>
+                                                                <b data-id="total_amount" t-field="sale_order.amount_total"/>
+                                                            </li>
+                                                            <li t-if="sale_order.payment_term_id">
+                                                                <span>With payment terms:</span>
+                                                                <b t-field="sale_order.payment_term_id.note"/>
+                                                            </li>
+                                                        </ul>
+                                                    </p>
+                                                    <div t-if="pms or acquirers" id="payment_method" class="text-left">
+                                                        <h3 class="mb24">Pay with</h3>
+                                                        <t t-call="payment.payment_tokens_list">
+                                                            <t t-set="mode" t-value="'payment'"/>
+                                                            <t t-set="submit_txt">Pay &amp; Confirm</t>
+                                                            <t t-set="icon_class" t-value="'fa-lock'"/>
+                                                            <t t-set="form_action" t-value="sale_order.get_portal_url(suffix='/transaction/token')"/>
+                                                            <t t-set="prepare_tx_url" t-value="sale_order.get_portal_url(suffix='/transaction/')"/>
+                                                            <t t-set="access_token" t-value="sale_order.access_token"/>
+                                                        </t>
+                                                    </div>
+                                                </main>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- modal relative to the action reject -->
+                                    <div role="dialog" class="modal fade" id="modaldecline">
+                                        <div class="modal-dialog">
+                                            <form id="decline" method="POST" t-attf-action="/my/orders/#{sale_order.id}/decline?access_token=#{sale_order.access_token}" class="modal-content">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <header class="modal-header">
+                                                    <h4 class="modal-title">Reject This Quotation</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
+                                                </header>
+                                                <main class="modal-body">
+                                                    <p>
+                                        Tell us why you are refusing this quotation, this will help us improve our services.
+                                                    </p>
+                                                    <textarea rows="4" name="decline_message" required="" placeholder="Your feedback..." class="form-control" />
+                                                </main>
+                                                <footer class="modal-footer">
+                                                    <button type="submit" t-att-id="sale_order.id" class="btn btn-danger">
+                                                        <i class="fa fa-times"></i> Reject</button>
+                                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                                                </footer>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- status messages -->
+                                    <div t-if="message == 'sign_ok'" class="alert alert-success alert-dismissable d-print-none" role="status">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">&amp;times;</button>
+                                        <strong>Thank You!</strong>
+                                        <br/>
+                                        <t t-if="message == 'sign_ok' and sale_order.state in ['sale', 'done']">Your order has been confirmed.</t>
+                                        <t t-elif="message == 'sign_ok' and sale_order.has_to_be_paid()">Your order has been signed but still needs to be paid to be confirmed.</t>
+                                        <t t-else="">Your order has been signed.</t>
+                                    </div>
+
+                                    <div t-if="message == 'cant_reject' and sale_order.has_to_be_signed()" class="alert alert-danger alert-dismissable d-print-none" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">&amp;times;</button>
+                        Your order is not in a state to be rejected.
+                                    </div>
+
+                                    <t t-if="sale_order.transaction_ids">
+                                        <t t-call="payment.payment_confirmation_status">
+                                            <t t-set="payment_tx_id" t-value="sale_order.get_portal_last_transaction()"/>
+                                            <t t-set="reference" t-value="sale_order.reference"/>
+                                        </t>
+                                    </t>
+
+                                    <div t-if="sale_order.state == 'cancel'" class="alert alert-danger alert-dismissable d-print-none" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="close">&amp;times;</button>
+                                        <strong>This quotation has been canceled.</strong>
+                                        <a role="button" href="#discussion">
+                                            <i class="fa fa-comment"/>
+ Contact us to get a new quotation.</a>
+                                    </div>
+
+                                    <div t-if="sale_order.is_expired" class="alert alert-warning alert-dismissable d-print-none" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="close">&amp;times;</button>
+                                        <strong>This offer expired!</strong>
+                                        <a role="button" href="#discussion">
+                                            <i class="fa fa-comment"/>
+ Contact us to get a new quotation.</a>
+                                    </div>
+
+                                    <!-- main content -->
+                                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                                        <div t-call="sale.sale_order_portal_content"/>
+                                    </div>
+
+                                    <!-- bottom actions -->
+                                    <div t-if="sale_order.has_to_be_signed(True) or sale_order.has_to_be_paid(True)" class="row justify-content-center text-center d-print-none pt-1 pb-4">
+
+                                        <t t-if="sale_order.has_to_be_signed(True)">
+                                            <div class="col-sm-auto mt8">
+                                                <a role="button" class="btn btn-primary" data-toggle="modal" data-target="#modalaccept" href="#">
+                                                    <i class="fa fa-check"/>
+                                                    <t t-if="sale_order.has_to_be_paid(True)"> Sign &amp; Pay</t>
+                                                    <t t-else=""> Accept &amp; Sign</t>
+                                                </a>
+                                            </div>
+                                            <div class="col-sm-auto mt8">
+                                                <a role="button" class="btn btn-secondary" href="#discussion">
+                                                    <i class="fa fa-comment"/>
+ Feedback</a>
+                                            </div>
+                                            <div class="col-sm-auto mt8">
+                                                <a role="button" class="btn btn-danger" data-toggle="modal" data-target="#modaldecline" href="#">
+                                                    <i class="fa fa-times"/>
+ Reject</a>
+                                            </div>
+                                        </t>
+                                        <div t-elif="sale_order.has_to_be_paid(True)" class="col-sm-auto mt8">
+                                            <a role="button" data-toggle="modal" data-target="#modalaccept" href="#" t-att-class="'%s' % ('btn btn-light' if sale_order.transaction_ids else 'btn btn-primary')">
+                                                <i class="fa fa-check"/>
+                                                <t t-if="not sale_order.signature">Accept &amp; Pay</t>
+                                                <t t-else="">Pay Now</t>
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <!-- chatter -->
+                                    <div id="sale_order_communication" class="mt-4">
+                                        <h2>History</h2>
+                                        <t t-call="portal.message_thread">
+                                            <t t-set="object" t-value="sale_order"/>
                                         </t>
                                     </div>
-                                </main>
+                                </div>                                <!-- // #quote_content -->
                             </div>
-                        </div>
-                    </div>
+                        </xpath>
+                    </template>
 
-                    <!-- modal relative to the action reject -->
-                    <div role="dialog" class="modal fade" id="modaldecline">
-                        <div class="modal-dialog">
-                            <form id="decline" method="POST" t-attf-action="/my/orders/#{sale_order.id}/decline?access_token=#{sale_order.access_token}" class="modal-content">
-                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                                <header class="modal-header">
-                                    <h4 class="modal-title">Reject This Quotation</h4>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
-                                </header>
-                                <main class="modal-body">
-                                    <p>
-                                        Tell us why you are refusing this quotation, this will help us improve our services.
-                                    </p>
-                                    <textarea rows="4" name="decline_message" required="" placeholder="Your feedback..." class="form-control" />
-                                </main>
-                                <footer class="modal-footer">
-                                    <button type="submit" t-att-id="sale_order.id" class="btn btn-danger"><i class="fa fa-times"></i> Reject</button>
-                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                                </footer>
-                            </form>
-                        </div>
-                    </div>
+                    <template id="sale_management.sale_order_portal_content_inherit_sale_management" name="Order Options" inherit_id="sale.sale_order_portal_content">
+                        <!-- just overwrite the Odoo built-in template -->
+                    </template>
 
-                    <!-- status messages -->
-                    <div t-if="message == 'sign_ok'" class="alert alert-success alert-dismissable d-print-none" role="status">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">&amp;times;</button>
-                        <strong>Thank You!</strong><br/>
-                        <t t-if="message == 'sign_ok' and sale_order.state in ['sale', 'done']">Your order has been confirmed.</t>
-                        <t t-elif="message == 'sign_ok' and sale_order.has_to_be_paid()">Your order has been signed but still needs to be paid to be confirmed.</t>
-                        <t t-else="">Your order has been signed.</t>
-                    </div>
-
-                    <div t-if="message == 'cant_reject' and sale_order.has_to_be_signed()" class="alert alert-danger alert-dismissable d-print-none" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">&amp;times;</button>
-                        Your order is not in a state to be rejected.
-                    </div>
-
-                    <t t-if="sale_order.transaction_ids">
-                        <t t-call="payment.payment_confirmation_status">
-                            <t t-set="payment_tx_id" t-value="sale_order.get_portal_last_transaction()"/>
-                            <t t-set="reference" t-value="sale_order.reference"/>
+                    <template id="sale.report_saleorder">
+                        <!-- just overwrite the Odoo built-in template -->
+                        <t t-call="web.html_container">
+                            <t t-foreach="docs" t-as="doc">
+                                <t t-esc="doc.web_base_url()"/>
+                                <t t-call="sale.sale_order_portal_content" t-lang="doc.partner_id.lang">
+                                    <t t-set="sale_order" t-value="doc"/>
+                                </t>
+                            </t>
                         </t>
-                    </t>
+                    </template>
 
-                    <div t-if="sale_order.state == 'cancel'" class="alert alert-danger alert-dismissable d-print-none" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="close">&amp;times;</button>
-                        <strong>This quotation has been canceled.</strong> <a role="button" href="#discussion"><i class="fa fa-comment"/> Contact us to get a new quotation.</a>
-                    </div>
-
-                    <div t-if="sale_order.is_expired" class="alert alert-warning alert-dismissable d-print-none" role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="close">&amp;times;</button>
-                        <strong>This offer expired!</strong> <a role="button" href="#discussion"><i class="fa fa-comment"/> Contact us to get a new quotation.</a>
-                    </div>
-
-                    <!-- main content -->
-                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
-                        <div t-call="sale.sale_order_portal_content"/>
-                    </div>
-
-                    <!-- bottom actions -->
-                    <div t-if="sale_order.has_to_be_signed(True) or sale_order.has_to_be_paid(True)" class="row justify-content-center text-center d-print-none pt-1 pb-4">
-
-                        <t t-if="sale_order.has_to_be_signed(True)">
-                            <div class="col-sm-auto mt8">
-                                <a role="button" class="btn btn-primary" data-toggle="modal" data-target="#modalaccept" href="#"><i class="fa fa-check"/><t t-if="sale_order.has_to_be_paid(True)"> Sign &amp; Pay</t><t t-else=""> Accept &amp; Sign</t></a>
-                            </div>
-                            <div class="col-sm-auto mt8">
-                                <a role="button" class="btn btn-secondary" href="#discussion"><i class="fa fa-comment"/> Feedback</a>
-                            </div>
-                            <div class="col-sm-auto mt8">
-                                <a role="button" class="btn btn-danger" data-toggle="modal" data-target="#modaldecline" href="#"> <i class="fa fa-times"/> Reject</a>
-                            </div>
-                        </t>
-                        <div t-elif="sale_order.has_to_be_paid(True)" class="col-sm-auto mt8">
-                            <a role="button" data-toggle="modal" data-target="#modalaccept" href="#" t-att-class="'%s' % ('btn btn-light' if sale_order.transaction_ids else 'btn btn-primary')">
-                                <i class="fa fa-check"/> <t t-if="not sale_order.signature">Accept &amp; Pay</t><t t-else="">Pay Now</t>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- chatter -->
-                    <div id="sale_order_communication" class="mt-4">
-                        <h2>History</h2>
-                        <t t-call="portal.message_thread">
-                            <t t-set="object" t-value="sale_order"/>
-                        </t>
-                    </div>
-                </div><!-- // #quote_content -->
-            </div>
-        </xpath>
-    </template>
-
-    <template id="sale_management.sale_order_portal_content_inherit_sale_management" name="Order Options" inherit_id="sale.sale_order_portal_content">
-    <!-- just overwrite the Odoo built-in template -->
-    </template>
-
-    <template id="sale.report_saleorder">
-    <!-- just overwrite the Odoo built-in template -->
-        <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="doc">
-                <t t-call="sale.sale_order_portal_content" t-lang="doc.partner_id.lang">
-                    <t t-set="sale_order" t-value="doc"/>
-                </t>
-            </t>
-        </t>
-    </template>
-
-    <template id="sale_order_portal_content_nongs_mba" name="Non-Graystar MBA">
-        <div class="pseudoPage msa-block">
-            <h2 class="full center">MASTER SERVICES AGREEMENT:</h2>
-            <p>
-                <b>Last Updated: [8.10.2020]</b>
-                    </p>
-            <p style="text-indent: 0in">By signing Conversion Logix Insertion Order(s) that references this Master Services Agreement (together, the
-                Insertion Order(s) and this Master Services Agreement are the “<i><b>Agreement</b></i>”), the entity identified on said Insertion Order (“<i><b>Customer</b></i>”) and Conversion Logix, LLC (“<i><b>Provider</b></i>”) each signifies that it has read, understands, and agrees to be bound by the terms and conditions hereof.
-                Provider and Customer may be referred to individually as a “<i><b>Party</b></i>” and collectively as the “<i><b>Parties</b></i>.” For good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged,
+                    <template id="sale_order_portal_content_nongs_mba" name="Non-Graystar MBA">
+                        <div class="pseudoPage msa-block">
+                            <h2 class="full center">MASTER SERVICES AGREEMENT:</h2>
+                            <p>
+                                <b>Last Updated: [8.10.2020]</b>
+                            </p>
+                            <p style="text-indent: 0in">By signing Conversion Logix Insertion Order(s) that references this Master Services Agreement (together, the
+                Insertion Order(s) and this Master Services Agreement are the “<i>
+                                <b>Agreement</b>
+                            </i>”), the entity identified on said Insertion Order (“<i>
+                            <b>Customer</b>
+                        </i>”) and Conversion Logix, LLC (“<i>
+                        <b>Provider</b>
+                    </i>”) each signifies that it has read, understands, and agrees to be bound by the terms and conditions hereof.
+                Provider and Customer may be referred to individually as a “<i>
+                    <b>Party</b>
+                </i>” and collectively as the “<i>
+                <b>Parties</b>
+            </i>.” For good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged,
                 the Parties agree to these terms and conditions through their undersigned authorized representatives.</p>
-            <p><b>1. DEFINITIONS. </b>
+        <p>
+            <b>1. DEFINITIONS. </b>
             <span>Capitalized terms used herein shall have the meanings set forth in this Section </span>1<span>.</span>
-            </p>
-            <p>
-                <b>1.1. “<i>Aggregated Data</i>”</b> means Personal Information and usage information that is anonymized
+        </p>
+        <p>
+            <b>1.1. “<i>Aggregated Data</i>”
+            </b> means Personal Information and usage information that is anonymized
                 and aggregated with similar data and information to the extent that the original Personal Information and usage
                 information is no longer attributable to any specific individual.
-            </p>
-            <p>
-                <b>1.2. “<i>Authorized Persons</i>”</b> means Provider’s employees, contractors, agents, and
+        </p>
+        <p>
+            <b>1.2. “<i>Authorized Persons</i>”
+            </b> means Provider’s employees, contractors, agents, and
                 auditors who have a need to know or otherwise access Personal Information to enable Provider to perform its
                 obligations under this Agreement, and who are bound by confidentiality and other obligations sufficient to protect
                 Personal Information in accordance with the terms and conditions of this Agreement.
-            </p>
-            <p>
-                <b>1.3. “<i>Personal Information</i>”</b> means information that Customer provides or for which Customer
+        </p>
+        <p>
+            <b>1.3. “<i>Personal Information</i>”
+            </b> means information that Customer provides or for which Customer
                 provides access to Provider, or information which Provider creates or obtains on behalf of Customer, in accordance
                 with this Agreement that: (i) directly or indirectly identifies an individual; or (ii) can be used to authenticate
                 an individual.
-            </p>
+        </p>
 
-            <p>
-                <b>1.4. “<i>Data Breach</i>”</b> means any act or omission that materially compromises the security,
+        <p>
+            <b>1.4. “<i>Data Breach</i>”
+            </b> means any act or omission that materially compromises the security,
                 confidentiality, or integrity of Personal Information or the physical, technical, administrative, or organizational
                 safeguards put in place by Provider, or by Customer should Provider have access to Customer’s systems, that
                 relate to the protection of the security, confidentiality, or integrity of Personal Information, or (ii) receipt of
                 a complaint in relation to the privacy and data security practices of Service Provider or a breach or alleged breach
                 of this Agreement relating to such privacy and data security practices.
-            </p>    
-        </div>
-    </template>
+        </p>
+
+    </div>
+    <div class="pseudoPage  msa-block">
+        <p>
+            <B>1.5. “<I>Losses</I>”
+            </B> mean all losses, damages, liabilities, deficiencies, actions, judgments,
+                interest, awards, penalties, fines, costs, or expenses of whatever kind, including reasonable attorneys' fees
+                and the cost of enforcing any right to indemnification hereunder and the cost of pursuing any insurance providers.
+        </p>
+        <p>
+            <B>2.PERFORMANCE OF SERVICES.</B>
+        </p>
+        <p>
+            <B>2.1. Services. </B>Provider will provide services (“<I>
+            <B>Services</B>
+        </I
+                >”) and works, materials, or other tangible or intangible property (“<I>
+        <B>Deliverables</B>
+    </I
+                >”) to Customer in accordance with the terms and conditions of this Agreement and one or more insertion orders
+                (each an “<I>
+    <B>Insertion Order</B>
+</I
+                >”) that may be agreed to and executed by the Parties, each of which will be made a part of this Agreement and
+                each of which will contain the applicable rates for the Services and Deliverables set forth therein. This Agreement
+                and any Insertion Orders entered into hereunder constitute the entire agreement between the Parties concerning the
+                subject matter hereof and supersede any other prior or contemporaneous communications. In the event of a conflict
+                between the terms of this Agreement and any Insertion Order, the terms of this Agreement will control unless the
+                Insertion Order explicitly states otherwise. The terms of any purchase order or any general terms and conditions
+                Customer may maintain will not apply. This Agreement does not obligate either Provider or Customer to enter into any
+                specific Insertion Order or any Insertion Orders at all.
+</p>
+<p>
+<B>2.2. Acceptance</B>. Except to the extent a Insertion Order contains specific acceptance provisions, all Services
+                and/or Deliverables provided to Customer for approval will be deemed accepted (“<I>
+<B>Accepted</B>
+</I
+                >”) if within ten (10) days after delivery, Customer has not provided to Provider written notice identifying
+                specifically any basis for not approving the Services and/or Deliverables, as applicable.
+</p>
+<p>
+<B>2.3. Correction/Re-Performance</B>. If a Service or Deliverable contains any nonconformities, Customer shall
+                describe to Provider in writing the issues with such Service or Deliverable. Provider shall promptly and proactively
+                correct the nonconformity and redeliver the Service or Deliverable or re-perform the activities related to the
+                Service or Deliverable, as the case may be, unless Customer expressly states in writing that it does not require
+                Provider to correct a certain nonconformity that it considers, in Customer's sole discretion, to be
+                immaterial.
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+<p>
+<B>2.4. Change Orders</B>. Changes to the scope of the Services or any Deliverables shall be made only in a writing
+                executed by authorized representatives of both Parties. Provider will not be obligated to work on a change until the
+                Parties agree in writing upon its price and/or schedule impact. Provider will continue performing the Services in
+                according with such Insertion Order until the Parties agree in writing to any such change or adjustment. If the
+                Parties are unable to agree to a mutually acceptable change or adjustment, either Party may terminate the relevant
+                Insertion Order upon ten (10) days' written notice to the other.
+</p>
+<p>
+<B>2.5. Personnel; Subcontractors.</B> Provider reserves the right to determine which of its personnel shall be
+                assigned to perform Services; provided, however, that it will, subject to scheduling and staffing considerations,
+                attempt to honor Customer's request for specific individuals. Provider may use subcontractors to perform
+                Services, in which case it will be responsible for the performance of those subcontractors.
+</p>
+<p>
+<B>3. CUSTOMER OBLIGATIONS.</B>
+</p>
+<p>
+<B>3.1. Cooperation. </B>Customer acknowledges that Provider's ability to deliver the Services depends upon
+                full and timely cooperation by Customer and Customer's staff, as well as the timely access to and accuracy and
+                completeness of any information provided. Provider will have no liability for any delay in the provision of Services
+                or other loss of any nature resulting from any failure by Customer to provide full and timely cooperation or to
+                provide Provider accurate and complete information.
+</p>
+<p>
+<B>3.2. Compliance with Laws. </B>Customer shall at all times comply with all federal, state, and local laws,
+                ordinances, regulations, and orders that are applicable to the operation of its business and to this Agreement and
+                its performance hereunder. Without limiting the generality of the foregoing, Customer shall at all times, at its own
+                expense, obtain and maintain all certifications, credentials, authorizations, licenses, and permits necessary to
+                conduct its business relating to the exercise of its rights and the performance of its obligations under this
+                Agreement. Customer is responsible for providing complete, truthful, and legally compliant information to Provider,
+                and Provider shall not be held responsible for any non-compliance by Customer.
+</p>
+
+
+</div>
+<div class="pseudoPage  msa-block">
+<p>
+<B>4. PAYMENT; FEES; EXPENSES.</B>
+</p>
+<p>
+<B>4.1. Fees. </B>As full and complete compensation for performing all Services specified in this Agreement and for
+                assuming all duties, responsibilities, and obligations required by this Agreement, Customer will compensate Provider
+                for all fees, compensation, and other amounts as specified in the applicable Insertion Order (the “<I
+                    >
+<B>Fees</B>
+</I
+                >”) in accordance with the terms of this Agreement and in any Insertion Order entered into by the Parties.
+                Fees are exclusive of taxes, levies, duties, governmental charges and expenses (with the exception of any
+                Subcontractor's income taxes), which amounts will be billed to and paid by Customer.
+</p>
+<p>
+<B>4.2. Expenses. </B> Customer shall pay Provider for the reasonable expenses including, but not limited to, out of
+                pocket travel and living expenses, incurred by Provider and its personnel in connection with its performance of the
+                Services (the “<I>
+<B>Expenses</B>
+</I
+                >”).
+</p>
+<p>
+<B>4.3. Billing and Payment.</B> Provider shall prepare and submit invoices to the Customer via email for all
+                Services and expenses incurred on a monthly basis, or as otherwise set forth in the Insertion Order. Customer will
+                pay invoices in U.S. prior to the service start date noted on Provider's invoice. Payments due hereunder must
+                be made by wire transfer, certified check, bank check or such other method as may be agreed upon by the Provider.
+                Customer shall have no right of offset or withholding under this Agreement. Any amounts not paid by Customer when
+                due to Provider shall be subject to interest charges, from the date due until paid, at the rate of one and one half
+                percent (1.5%) per month, or the highest interest rate allowable by law (whichever is less), payable monthly. 
+</p>
+<p class="no-indent">If any amounts due to Provider from Customer becomes past due for any reason, Provider may at its option and without
+                further notice withhold further Services until all invoices have been paid in full, and such withholding of Services
+                shall not be considered a breach or default of any of Provider's obligations under this Agreement.</p>
+<p>
+<B>4.4. Taxes. </B>Provider is responsible for all Provider personnel and for the payment of their compensation,
+                including, if applicable, withholding of income taxes, and the payment and withholding of social security and other
+                payroll taxes, unemployment insurance, workers' compensation insurance payments, and disability benefits.
+                Customer shall be responsible for all sales, use, and excise taxes, and any other similar taxes, duties, and charges
+                of any kind imposed by any federal, state, or local governmental entity on any amounts payable by Customer
+                hereunder. 
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+<p class="no-indent">Any such taxes, duties, and charges currently assessed or which may be assessed in the future, that are
+                applicable to the Services are for the Customer's account, and Customer hereby agrees to pay such
+                taxes; <I>provided, that</I>, in no event shall Customer pay or be responsible for any taxes imposed on, or
+                with respect to, Provider's income, revenues, gross receipts, personnel, or real or personal property or other
+                assets.
+</p>
+<p>
+<B>4.5. Disputes. </B>In the event of any good faith dispute with regard to a portion of an invoice, the undisputed
+                portion shall be paid as provided herein. Upon resolution of the disputed portion, any amounts owed to Provider
+                shall be paid with interest at the rate set forth below accruing from the date such amounts were originally due.
+</p>
+<p>
+<B>5. CONFIDENTIALITY.</B>
+<SPAN>From time to time during the Term of this Agreement, either Party (as the “</SPAN>
+<I>Disclosing Party</I
+                >
+<SPAN>”) may disclose or make available to the other Party (as the “</SPAN>
+<I>Receiving Party</I
+                >
+<SPAN>”) information about its business affairs, products/services, confidential intellectual property, trade
+                    secrets, third-party confidential information and other sensitive or proprietary information, whether orally or
+                    in written, electronic or other form or media, and whether or not marked, designated or otherwise identified as
+                    “confidential” (collectively, “</SPAN>
+<I>Confidential Information</I>
+<SPAN>”). Confidential Information shall not include information that, at the time of disclosure: (i) is or
+                    becomes generally available to and known by the public other than as a result of, directly or indirectly, any
+                    breach of this Section </SPAN>5<SPAN>
+                    by the Receiving Party or any of its representatives; (ii) is or becomes available to the Receiving Party on a
+                    non-confidential basis from a third-party source, provided that such third party is not and was not prohibited
+                    from disclosing such Confidential Information; (iii) was known by or in the possession of the Receiving Party or
+                    its representatives before being disclosed by or on behalf of the Disclosing Party; (iv) was or is independently
+                    developed by the Receiving Party without reference to or use, in whole or in part, of any of the Disclosing
+                    Party's Confidential Information; or (v) is required to be disclosed under applicable federal, state or
+                    local law, regulation or a valid order issued by a court or governmental agency of competent jurisdiction. 
+                The Receiving Party shall: (A) protect and safeguard the confidentiality of the Disclosing Party's
+                    Confidential Information with at least the same degree of care as the Receiving Party would protect its own
+                    Confidential Information, but in no event with less than a commercially reasonable degree of care; (B) not use
+                    the Disclosing Party's Confidential Information, or permit it to be accessed or used, for any purpose
+                    other than to exercise its rights or perform its obligations under this Agreement; and (C) not disclose any such
+                    Confidential Information to any person or entity, except to the Receiving Party's representatives who need
+                    to know the Confidential Information to assist the Receiving Party, or act on its behalf, to exercise its rights
+                    or perform its obligations under the Agreement. </SPAN>
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+<p class="no-indent">
+                The Receiving Party shall be responsible for any breach of this
+                    Section 5 caused by any of its representatives. At any time during or after the term of this Agreement, at the Disclosing
+                    Party's written request, the Receiving Party shall promptly return, and shall require its representatives
+                    to return to the Disclosing Party all copies, whether in written, electronic or other form or media, of the
+                    Disclosing Party's Confidential Information, or destroy all such copies and certify in writing to the
+                    Disclosing Party that such Confidential Information has been destroyed. In addition to all other remedies
+                    available at law, the Disclosing Party may seek equitable relief (including injunctive relief) against the
+                    Receiving Party and its representatives to prevent the breach or threatened breach of this Section 5 and to secure its enforcement.
+</p>
+<p>
+<b>6. INTELLECTUAL PROPRIETARY RIGHTS. </b
+                >
+<SPAN
+                    >All intellectual property rights, including copyrights, patents, patent disclosures and inventions (whether
+                    patentable or not), trademarks, service marks, trade secrets, know-how and other confidential
+                    information, trade dress, trade names, logos, corporate names and domain names, together with all of the
+                    goodwill associated therewith, derivative works and all other rights (collectively, “</SPAN
+                >
+<I>Intellectual Property Rights</I
+                >
+<SPAN
+                    >”) in and to all the Deliverables), except for any Confidential Information of Customer or customer
+                    materials, shall be owned by Provider.  Provider hereby grants Customer a license to use all
+                    Intellectual Property Rights in the Deliverables free of additional charge and on a non-exclusive, worldwide,
+                    non-transferable, non-sublicensable, fully paid-up, royalty-free and perpetual basis to the extent necessary to
+                    enable Customer to make reasonable use of the Deliverables and the Services.</SPAN
+                >
+</p>
+<p>
+<B>7. INFORMATION SECURITY.</B>
+</p>
+<p>
+<B>7.1. Compliance with Laws.</B> Provider will comply with applicable laws and regulations in its creation,
+                collection, receipt, access, use, storage, disposal, and disclosure of Personal Information.
+</p>
+<p>
+<B>7.2. Security Measures. </B>Provider will employ reasonable security measures to protect Personal Information in
+                accordance with Provider's information security policy as amended from time to time.
+</p>
+<p>
+<B>7.3. Cyber Incident Response Plan.</B> Provider maintains a cyber-incident breach response plan in accordance
+                with accepted industry standards and will implement the procedures required under such plan on the occurrence of a
+                Data Breach.
+</p>
+<p>
+<B>7.4. Notification.</B> Provider will notify Customer of a Data Breach as soon as reasonably practicable, but no
+                later than fourteen (14), after Provider becomes aware of it.
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+
+<p>
+<B>7.5. Return or Disposal of Personal Information.</B> On the termination or expiration of this Agreement, Provider
+                will promptly return to Customer or securely dispose of all Personal Information in its possession. If Provider is
+                not reasonably able to return or securely dispose of Personal Information, including, but not limited to, Personal
+                Information stored on backup media, Provider will continue to protect such Personal Information in accordance with
+                the terms of this Agreement until such time that it can reasonably return or securely dispose of such Personal
+                Information.
+</p>
+<p>
+<B>7.6. Aggregated Data. </B>Provider shall own all right, title, and interest in the Aggregated Data.</p>
+<p>
+<B>8. LIMITED WARRANTIES AND REMEDIES.</B>
+</p>
+<p>
+<B>8.1. Professionalism. </B>Provider warrants that all Services will be performed using generally accepted industry
+                standards and practices and that the Services and Deliverables will not knowingly violate or infringe any third
+                party's intellectual property rights.
+</p>
+<p>
+<B>8.2. Exclusions.</B> Provider will not be liable for any services or products provided by third-party vendors,
+                developers, or consultants identified or referred to Customer by Provider or its employees, affiliates, or agents,
+                unless such third-party products or services are provided under written agreement between Provider and Customer, and
+                then only to the extent expressly provided in such agreement.
+</p>
+<p>
+<B>8.3. Disclaimers.</B> EXCEPT FOR THE EXPRESS WARRANTIES SPECIFIED IN THIS SECTION 8, CUSTOMER ACCEPTS THE
+                SERVICES AND DELIVERABLES “AS IS”. THE WARRANTIES AND REMEDIES SET FORTH IN THIS SECTION 8 ARE EXCLUSIVE
+                AND IN LIEU OF ALL OTHER WARRANTIES OF PROVIDER AND REMEDIES OF CUSTOMER, EXPRESS OR IMPLIED, ARISING BY LAW OR
+                OTHERWISE, WITH RESPECT TO ANY ERROR, DEFECT, DEFICIENCY OR NONCOMPLIANCE IN ANY SERVICES, DELIVERABLES,
+                PRE-EXISTING WORKS OR OTHER ITEMS FURNISHED BY OR ON BEHALF OF PROVIDER UNDER THIS AGREEMENT OR ANY STATEMENTS OF
+                WORK, INCLUDING, WITHOUT LIMITATION, ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+                QUALITY, ACCURACY, OR NON-INFRINGEMENT AND ANY IMPLIED WARRANTY ARISING FROM COURSE OF PERFORMANCE, COURSE OF
+                DEALING OR USAGE OF TRADE.
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+<p>
+<B>9. INDEMNIFICATION.</B>
+</p>
+<p>
+<B>9.1. By Provider. </B>Provider shall defend, indemnify, and hold harmless Customer and its officers, directors,
+                employees, agents, successors, and permitted assigns (each, a “<I>
+<B>Customer Indemnitee</B>
+</I
+                >”) from and against all Losses arising out of or resulting from: (a) bodily injury, death of any person, or
+                damage to real or tangible, personal property resulting from the willful, fraudulent, or grossly negligent acts or
+                omissions of Provider or Provider Personnel; (b) Provider's material breach of any representation,
+                warranty, or obligation of Provider set forth in this Agreement; or (c) a claim that any of the Services
+                or Deliverables or Customer's receipt or use thereof infringes any intellectual property right of a third
+                party arising under the laws of the United States. However, Provider shall have no obligations under
+                this Section 9.1 with respect to intellectual property rights claims to the extent arising out of: (a) any
+                instruction, information, designs, specifications, or other materials provided by Customer in writing
+                to Provider; (b) use of the Deliverables in combination with any materials not supplied to Customer or
+                specified by Provider in writing, if the infringement would have been avoided by the use of the Deliverables
+                not so combined; or (c) any modifications or changes made to the Deliverables by or on behalf of any person other
+                than Provider or its personnel.
+</p>
+<p>
+<B>9.2. Customer's Indemnification. </B>Customer shall defend, indemnify, and hold harmless Provider and
+                its officers, directors, employees, agents, successors, and permitted assigns from and against all Losses arising
+                out of or resulting from: (a) bodily injury, death of any person, or damage to real or tangible, personal property
+                resulting from the grossly negligent or willful acts or omissions of Customer; and (b) Customer's material
+                breach of any representation, warranty, or obligation of Customer in this Agreement.
+</p>
+<p>
+<B>9.3. Indemnification Procedure.</B> The party seeking indemnification hereunder shall promptly notify the
+                indemnifying party in writing of any claim and cooperate with the indemnifying party at the indemnifying
+                party's sole cost and expense. The indemnifying party shall immediately take control of the defense and
+                investigation of such claim and shall employ counsel of its choice to handle and defend the same, at the
+                indemnifying party's sole cost and expense. The indemnifying party shall not settle any action in a manner
+                that adversely affects the rights of the indemnified party without the indemnified party's prior written
+                consent, which shall not be unreasonably withheld or delayed. The indemnified party may participate in and observe
+                the proceedings at its own cost and expense.
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+<p>
+<B>9.4. Obligation Exceptions. </B>Notwithstanding anything to the contrary in this Agreement, the indemnifying
+                party is not obligated to indemnify, hold harmless, or defend the indemnified party against any claim (whether
+                direct or indirect) to the extent such claim or corresponding losses arise out of or result from, in whole or in
+                part, the indemnified party's: (a) negligence or more culpable act or omission (including recklessness or
+                willful misconduct); or (b) bad faith failure to materially comply with any of its obligations set forth in
+                this Agreement.
+</p>
+<p>
+<B>10. LIMITATION OF LIABILITY.</B>
+</p>
+<p>
+<B>10.1. Dollar Cap. </B>Except for the specific remedies expressly identified as such in this Agreement,
+                Provider's sole liability (whether in contract, tort, negligence, strict liability in tort or by statute or
+                otherwise) for any claim in any manner related to this Agreement, shall be the payment of direct damages, and such
+                damages shall in no event in the aggregate exceed the Fees and Expenses received by Provider hereunder with respect
+                to the work involved under the applicable Insertion Order. Customer's exclusive remedy for any claim arising
+                out of these arrangements shall be for Provider, upon receipt of written notice pursuant to Section 14.7, to use
+                commercially reasonable efforts to cure the breach at its expense, or failing that, the return of Fees and Expenses
+                paid to Provider for the work related to the breach.
+</p>
+<p>
+<B>10.2. Exclusion of Consequential Damages. </B>IN NO EVENT SHALL EITHER PARTY BE LIABLE FOR ANY CONSEQUENTIAL,
+                INCIDENTAL, INDIRECT, SPECIAL OR PUNITIVE DAMAGE, LOSS OR EXPENSES (INCLUDING, BUT NOT LIMITED TO, BUSINESS
+                INTERRUPTION, LOST BUSINESS, LOST PROFITS, OR LOST SAVINGS), EVEN IF IT HAS BEEN ADVISED OF THEIR POSSIBLE
+                EXISTENCE. THE LIABILITIES LIMITED BY THIS SECTION 10 APPLY: (A) TO LIABILITY FOR NEGLIGENCE; (B) REGARDLESS OF THE
+                FORM OF ACTION, WHETHER IN CONTRACT, TORT, STRICT PRODUCT LIABILITY, OR OTHERWISE; (C) EVEN IF A PARTY IS ADVISED IN
+                ADVANCE OF THE POSSIBILITY OF THE DAMAGES IN QUESTION AND EVEN IF SUCH DAMAGES WERE FORESEEABLE; AND (D) EVEN IF A
+                PARTY'S REMEDIES FAIL OF THEIR ESSENTIAL PURPOSE.
+</p>
+
+</div>
+<div class="pseudoPage  msa-block short-upper-margin">
+<p>
+<B>11. TERM AND TERMINATION.</B>
+</p>
+<p>
+<B>11.1. Term. </B>This Agreement shall commence on the Effective Date and continue until otherwise terminated under
+                this Section 11 (the “<I>
+<B>Term</B>
+</I
+                >”).
+</p>
+<p>
+<B>11.2. Termination for Breach.</B> Either Party may terminate this Agreement at any time in the event of a breach
+                by the other Party of a material covenant, representation, warranty, commitment, or obligation under this Agreement
+                that remains uncured for thirty (30) days following written notice thereof. Such termination shall be effective
+                immediately and automatically upon the expiration of the applicable notice period, without further notice or action
+                by either Party. Termination shall be in addition to any other remedies that may be available to the non-breaching
+                Party. Notwithstanding the foregoing, any failure by Customer to timely pay Provider any amounts due under any
+                Insertion Order will constitute a material breach of this Agreement.
+</p>
+<p>
+<B>11.3. Termination for Bankruptcy, Insolvency, or Financial Insecurity.</B> Either Party may terminate this
+                Agreement immediately at its option upon written notice if the other Party: (a) becomes or is declared insolvent or
+                bankrupt; (b) is the subject of a voluntary or involuntary bankruptcy or other proceeding related to its liquidation
+                or solvency, which proceeding is not dismissed within ninety (90) calendar days after its filing; (c) ceases to do
+                business in the normal course; or (d) makes an assignment for the benefit of creditors. This Agreement shall
+                terminate immediately and automatically upon any determination by a court of competent jurisdiction that either
+                Party is excused or prohibited from performing in full all obligations hereunder, including, without limitation,
+                rejection of this Agreement pursuant to 11 U.S.C. §365.
+</p>
+<p>
+<B>11.4. Obligations Upon Termination. </B>If this Agreement or any Insertion Order is terminated pursuant to this
+                Section 11, then, unless otherwise specifically provided for in the Agreement or the applicable Insertion Order, the
+                following will apply: (a) the parties will cooperate to effect an orderly, efficient, effective and expeditious
+                termination of the party's respective activities under the terminated Insertion Order; (b) Provider will
+                return to Customer any and all customer-furnished items delivered by Customer to Provider under the terminated
+                Insertion Order; (c) Provider will have no obligation to perform any Services under the terminated Insertion Order
+                after the effective date of the termination; and (d) Customer will pay to Provider any Fees, reimbursable Expenses,
+                compensation or other amounts payable for Services performed under the terminated Insertion Order prior to the
+                effective date of the termination. Upon termination, each Party shall return the other party's Confidential
+                Information and any other materials or property of the other Party that is in its possession at the time of
+                termination.
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+<p>
+<B>12. DISPUTE RESOLUTION. </B>
+<SPAN
+                    >The Parties agree that, in the event of a dispute or alleged breach, they will work together in good faith
+                    first, to resolve the matter internally by escalating it to higher levels of management and, then if necessary,
+                    to use a mutually agreed upon alternative dispute resolution technique prior to resorting to litigation. Any
+                    mediation or arbitration under this Section </SPAN
+                >12<SPAN>
+                    will be held in Seattle, Washington. In the event the parties fail to mutually agree upon such technique within
+                    thirty (30) days after good faith attempts at internal resolution have failed, either party may resort to
+                    litigation. This provision shall not apply to disputes involving confidentiality or infringement of intellectual
+                    property rights (in which case either party shall be free to seek any available remedies).</SPAN
+                >
+</p>
+<p>
+<B>13. NON-SOLICITATION. </B>
+<SPAN
+                    >Customer will not directly or indirectly solicit any employee of Provider during the Term and for a period of
+                    12 months after its completion, except with the prior written consent of Provider.</SPAN
+                >
+</p>
+<p>
+<B>14. MISCELLANEOUS.</B>
+</p>
+<p>
+<B>14.1. Severability.</B> If a court holds any provision of this Agreement to be illegal, invalid, or
+                unenforceable, the remaining provisions will remain in full force and effect and the Parties will amend the
+                Agreement to give effect to the stricken clause to the maximum extent possible.
+</p>
+<p>
+<B>14.2. Relationship of the Parties. </B>The relationship between the Parties is that of independent contractors.
+                Nothing contained in this Agreement shall be construed as creating any agency, partnership, joint venture, or other
+                form of joint enterprise, employment, or fiduciary relationship between the Parties, and neither party shall have
+                authority to contract for or bind the other Party in any manner whatsoever.
+</p>
+<p>
+<B>14.3. Assignment.</B> Neither Party may assign this Agreement or any Insertion Order without the written consent
+                of the other. Any attempt by a Party to this Agreement to assign this Agreement or any Insertion Order without the
+                written consent of the other Party may be deemed notice of termination of this Agreement, effective on the date of
+                assignment, by the other Party.
+</p>
+<p>
+<B>14.4. Waiver. </B>A Party does not waive any right under this Agreement by failing to insist on compliance with
+                any of the terms of this Agreement or by failing to exercise any right hereunder. Any waivers granted hereunder are
+                effective only if recorded in a writing signed by the Party granting such waiver.
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+<p>
+<B>14.5. Force Majeure. </B>The Provider shall not be liable or responsible to Customer, nor be deemed to have
+                defaulted or breached this Agreement, for any failure or delay in fulfilling or performing any term of this
+                Agreement when and to the extent such failure or delay is caused by or results from acts or circumstances beyond the
+                reasonable control of Provider including, without limitation, acts of God, flood, fire, earthquake, explosion,
+                governmental actions, war, invasion or hostilities (whether war is declared or not), terrorist threats or acts,
+                riot, or other civil unrest, national emergency, revolution, insurrection, epidemic, lock-outs, strikes or other
+                labor disputes (whether or not relating to either party's workforce), or restraints or delays affecting carriers or
+                inability or delay in obtaining supplies of adequate or suitable materials, materials or telecommunication breakdown
+                or power outage, provided that, if the event in question continues for a continuous period in excess of 90 days,
+                Customer shall be entitled to give notice in writing to Provider to terminate this Agreement.
+</p>
+<p>
+<B>14.6. Governing Law; Venue.</B> This Agreement is governed by Washington law, excluding its conflicts of law
+                rules, except to the extent that such law is preempted by applicable federal law. The Parties hereby irrevocably
+                submit to exclusive personal jurisdiction and venue in the federal and state courts in King County, Washington, for
+                any dispute arising out of this Agreement, waive all objections to jurisdiction and venue of such courts, and agree
+                not to commence or prosecute any such dispute other than in such courts.
+</p>
+
+<p>
+<B>14.7. Notice</B>. All notices, requests, consents, claims, demands, waivers, and other communications hereunder
+                (each, a “<I>
+<B>Notice</B>
+</I
+                >”) must be in writing and addressed to the Parties at the addresses set forth on the Insertion Order(s) (or
+                to such other address that may be designated by the Party giving Notice from time to time in accordance with this
+                Section). All Notices must be delivered by personal delivery, nationally recognized overnight courier (with all fees
+                pre-paid), or email (with confirmation of transmission) or certified or registered mail (in each case, return
+                receipt requested, postage pre-paid). Except as otherwise provided in this Agreement, a Notice is effective only:
+                (a) upon receipt by the receiving Party; and (b) if the Party giving the Notice has complied with the requirements
+                of this Section.
+</p>
+</div>
+<div class="pseudoPage  msa-block">
+<p>
+<B>14.8. Cumulative Rights; Construction; Amendment; Counterparts. </B>The rights and remedies of the Parties under
+                this Agreement are cumulative, and either Party may enforce any of its rights or remedies under this Agreement or
+                other rights and remedies available to it at law or in equity. No modification or amendment of this Agreement is
+                binding unless it is in writing and signed by both Parties. This Agreement may be executed by electronic or digital
+                means and in counterparts, each of which (including signature pages) will be deemed an original, but all of which
+                together will constitute one and the same instrument. Each person who signs this Agreement on behalf of a Party
+                represents and warrants that he or she has the authority to enter into this Agreement on behalf of the Party and
+                bind the Party in accordance with its terms.
+</p>
+</div>
+</template>
 </odoo>
