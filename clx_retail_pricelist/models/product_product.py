@@ -9,3 +9,7 @@ class ProductProduct(models.Model):
 
     contract_product_description = fields.Text(
         string="Description for the Product as it will appear in contract")
+
+    def web_base_url(self):
+        print(web.base.url)
+        return web.base.url

@@ -17,11 +17,11 @@ body {
     padding-bottom: 7%;
     text-align: center;
 }
-/*.salesRepInfoWrapper {
-    width: 100%;
-    margin: 150px auto;
-    display: block;
-}*/
+.salesRepInfoWrapper.row {
+    font-size: 0.5cm;
+    border-left: 5.5cm;
+}
+
 #clickAndImpressionTxt {
     color: #be2329;
     font-weight: bold;
@@ -67,7 +67,7 @@ h3 {
     width: 100%;
     text-align: center;
     padding: 6px;
-    font-size: xx-large;
+    font-size: 1cm;
 }
 .productLineWrapper {
     border-top: 2px double black;
