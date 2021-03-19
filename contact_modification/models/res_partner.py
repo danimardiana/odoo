@@ -51,6 +51,9 @@ class Partner(models.Model):
         ], inverse='_write_company_type')
     ownership_company_type_id = fields.Many2one(
         'res.partner', string='Owner Ship Company')
+    ownership_company_name = fields.Char(
+        related='ownership_company_type_id.name', store=True, string='Ownership Company Name', default='')
+
     management_company_type_id = fields.Many2one(
         'res.partner', string='Mgmt. Company')
     is_owner = fields.Boolean(

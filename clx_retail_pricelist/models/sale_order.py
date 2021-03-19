@@ -30,6 +30,13 @@ class SaleOrder(models.Model):
     display_management_fee = fields.Boolean(string="Display Management Fee",
                                             default=True)
 
+    def management_fee_calculation(self, price_unit, product, pricelist):
+        pricelist_product = self.env['sale.subscription'].pricelist_determination(
+            product, pricelist)
+        result = self.env['sale.subscription'].subscription_wholesale_period(
+            price_unit, pricelist_product)
+        return result['management_fee']
+
     @api.onchange('pricelist_id')
     def onchange_pricelist(self):
         if self.pricelist_id:
