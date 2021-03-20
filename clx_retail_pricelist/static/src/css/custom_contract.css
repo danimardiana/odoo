@@ -18,7 +18,7 @@ body {
     text-align: center;
 }
 .salesRepInfoWrapper.row {
-    font-size: 0.5cm;
+    font-size: 14px;
     border-left: 5.5cm;
 }
 
@@ -216,6 +216,7 @@ h3 {
 .printFooterFirstPage {
     display: none;
 }
+
 @media print {
     @page {
         size: auto;
@@ -230,6 +231,7 @@ h3 {
     p {
         -webkit-margin-before: 1px;
     }
+
     .printLinesTop {
         position: absolute;
         width: 500px;
@@ -398,84 +400,110 @@ h3 {
     .no-indent {
         text-indent: 0 !important;
     }
+    .salesRepInfoW  rapper {
+        font-size: 2cm;
+    }
 }
 
-/**
-* New Contract Form /sales/new-contract/
-*/
-#Header_Wrapper {
-    z-index: 99999 !important;
-    background-color: white;
-    border: solid;
-    border-width: 1px;
-    border-radius: 4px;
-    padding: 4px;
-}
-#Contract_Name_Preview_Wrapper {
-    text-align: center;
-    font-size: x-large;
-    display: inline-block;
-}
-#Contract_Name_Preview_Wrapper > div {
-    display: inline-block;
-}
-.Calculations_Wrapper_Wrapper {
-    border-top-style: dashed;
-    border-top-width: 1px;
-    padding: 12px 0px;
-    margin-top: 3px;
-}
-.Calculations_Wrapper > div {
-    display: inline-block;
-}
-.Calculations_Wrapper {
-    width: 29.8%;
-    display: inline-block;
-    text-align: center;
-    border: 1px solid black;
-    border-radius: 8px;
-    margin: 0% 1.5%;
-    overflow: hidden;
-    /* min-height: 42px;
-    padding-top: 12px; */
-}
-.datepicker-modal {
-    top: 15% !important;
-}
 
-/*
-* Dropify Kludge
-*/
-.dropify-wrapper.touch-fallback {
-    height: auto !important;
+/* PDF modifications */
+.pseudoPage {
+    page-break-before: always;
+    padding: 0.5in 0;
 }
-
-.subsection_header p {
-    margin-left: 20px;
-    display: inline;
+.container.pdf .salesRepInfoWrapper.row {
+    font-size: 0.6cm;
+    border-left: 5.5cm;
 }
-
-#companyAddressGoogleMaps {
-    min-height: 300px;
-    max-width: 1016px;
-}
-
-.managementCompaniesContracts .has-options {
-    min-height: 60px;
-}
-
-.section_wrapper .subsection {
-    padding: 10px;
-    border: 2px solid #909090;
-    margin-bottom: 30px;
-}
-
-.section_wrapper .subsection_header {
+.container.pdf .col-12{
     width: 100%;
-    font-size: medium;
-    font-style: italic;
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 10px;
-    padding: 5px 0px 5px 0px;
+    display: inline-block;
+}
+.container.pdf .col-6{
+    width: 48%;
+    display: inline-block;
+}
+.container.pdf  .col-5{
+    width: 40%;
+    max-width: 40%;
+    display: inline-block;
+}
+.container.pdf  .col-4{
+    width: 40%;
+    display: inline-block;
+}
+.container.pdf  .col-2{
+    width: 16%;
+    max-width: 40%;
+    display: inline-block;
+}
+.container.pdf  .col-1{
+    width: 8%;
+    display: inline-block;
+}
+.container.pdf .col-8{
+    width: 80%;
+    max-width: 80%;
+    display: inline-block;
+}
+.container.pdf .offset-2{
+    left: 0;
+    margin-left: 10%;
+}
+.container.pdf .row{
+    width:100%;
+    display: block;
+    max-width: 100%;
+}
+.container.pdf  .productTotalWrapper {
+    font-size: 0.5cm;
+    width: 40%;
+}
+.container.pdf  .firstMonthlyTotalWrapperWrapper,.container.pdf  .monthlyTotalWrapper {
+    font-size: 0.6cm;
+    width: 40%;
+}
+.container.pdf  .monthlyTotal {
+        font-size: 0.6cm;
+        padding: 2px 26px;
+        margin: auto;
+        width: auto;
+        text-align: center;
+        border-radius: 30px;
+        max-width: 135px;
+        display: block;
+}
+.container.pdf  .productTitle {
+    width: 58%;
+    font-size: 0.7cm;
+}
+.container.pdf  .section_wrapper_subtle {
+    font-size: 0.6cm;
+}
+.container.pdf .msa-block{
+    font-size: 0.5cm;
+    padding: 0.1in 0;
+}
+.container.pdf .termsOfServices p{
+    font-size: 0.5cm;
+}
+.container.pdf .contractedServicesWrapper{
+    max-width: 94%;
+    margin-left: 3%;
+}
+.signature-block{
+    max-width: 90%;
+    margin-left: 5%;
+    font-size: 0.5cm;
+}
+.container.pdf .signing_section{
+    margin-left: 0px;
+    margin: 10px;
+}
+.container.pdf .signing_section .row{
+    margin: 10px 0;
+}
+.subsection_header {
+    border-bottom: #adadad 2px solid;
+    border-top: #adadad 2px solid;
 }

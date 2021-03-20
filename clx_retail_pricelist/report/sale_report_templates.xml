@@ -2,11 +2,14 @@
 <odoo>
     <template id="sale.sale_order_portal_content" name="Contract Preview">
         <t t-set="url_prefix" t-value="sale_order.web_base_url()"/>
-        <xpath expr="." position="inside">
-            <link t-attf-href="{{url_prefix}}/clx_retail_pricelist/static/src/css/custom_contract.css" rel="stylesheet" type="text/css"/>
-        </xpath>
+        <t t-if="report_type=='pdf'">
+            <xpath expr="." position="inside">
+                <link t-attf-href="{{url_prefix}}/clx_retail_pricelist/static/src/css/custom_contract.css" rel="stylesheet" type="text/css"/>
+                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" type="text/css"/>
+            </xpath>
+        </t>
 
-        <div class="contractPrintBody">
+        <div t-attf-class="container {{report_type}}">
             <div id="cover_page" class="">
                 <div class="printLinesTop only-print">
                     <div id="gold-line"></div>
@@ -43,7 +46,7 @@
             </div>
         </div>
 
-        <div class="container">
+        <div t-attf-class="container {{report_type}}">
             <div class="pseudoPage">
                 <div class="communityLogoWrapper row">
                     <img class="col-6 offset-3" t-if="sale_order.user_id.image_1024" t-att-src="image_data_uri(sale_order.user_id.image_1024)" alt="Contact"/>
@@ -145,155 +148,158 @@
                         </tr>
                     </t>
                 </div>
+                <div class="monthlyTotalWrappersWrapper dont_break_inside row">
+                    <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
+                        <div class="firstMonthlyTotalWrapper">
+                            <div class="">First Month Spend: </div>
+                            <div class="monthlyTotal"><span t-esc="sale_order.money_formatting(first_month_subtotal)"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="offset-2 col-4 monthlyTotalWrapper">
+                        <div class="">Recurring Monthly Spend: </div>
+                        <div class="monthlyTotal"><span t-esc="sale_order.money_formatting(current_subtotal)"/>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="pseudoPage">
+                <div class="col-8 offset-2">
+                    <div class="section_wrapper_subtle">
+                        <h2 class="full center">Key Information</h2>
+                        <div class="keyValueRow row">
+                            <div class="col-5 leftKey">Community Name:</div>
+                            <span class="col-7" t-esc="sale_order.partner_invoice_id.name"/>
+                        </div>
+                        <div class="keyValueRow row">
+                            <div class="col-5 leftKey">Community Address:</div>
+                            <span class="col-7" t-esc="', '.join([str(sale_order.partner_invoice_id.street)+str(sale_order.partner_invoice_id.street2 if sale_order.partner_invoice_id.street2 else ''),str(sale_order.partner_invoice_id.city),str(sale_order.partner_invoice_id.state_id.name),str(sale_order.partner_invoice_id.zip),str(sale_order.partner_invoice_id.country_id.name)])"/>
+                        </div>
+                        <div class="keyValueRow row">
+                            <div class="col-5 leftKey">Website:</div>
+                            <span class="col-7" t-esc="sale_order.partner_invoice_id.website"/>
+                        </div>
+                        <!-- REPLACEME - Ownership??? -->
+                    </div>
+                </div>
+                <div class="dont_break_inside clear_shadow col-8 offset-2">
+                    <div class="section_wrapper_subtle">
+                        <h2 class="full center">Length and Fees</h2>
+                        <!-- Contract Length -->
+                        <div class="keyValueRow row">
+                            <div class="col-4">Contract Length:</div>
+                            <div class="col-6 offset-1 ">
+                                <span t-esc="sale_order.contract_length"/>
+                            </div>
+                        </div>
+                        <div class="keyValueRow row">
+                            <div class="col-4">Intended Launch Date:</div>
+                            <div class="col-6 offset-1 ">
+                                <span t-esc="sale_order.contract_start_date"/>
+                            </div>
+                        </div>
+                        <!-- Setup Fee -->
+                        <div class="keyValueRow row">
+                            <div class="col-5">Setup Fee:</div>
+                            <div class="col-6 offset-1">
+                            <span t-esc="sale_order.money_formatting(fee_subtotal)"/>
+                            </div>
+                        </div>
+                        <!-- Ad Change Fees -->
+                    </div>
+                </div>
+                <div class="dont_break_inside clear_shadow col-8 offset-2">
+                    <div class="payment_details section_wrapper_subtle">
+                        <h2 class="full center">Payment Details</h2>
+                        <div class="keyValueRow row">
+                            <div class="col-5">Payment Method:</div>
+                            <div class="col-6 offset-1">Direct Bill</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <t t-set="greystar_flag" t-value="sale_order.partner_invoice_id.management_company_type_id and sale_order.partner_invoice_id.management_company_type_id.name.find('Greystar')"/>
+            <t t-if="greystar_flag">
+                <div class="mt32 clear_shadow col-10 offset-1">
+                    <t t-call="clx_retail_pricelist.sale_order_portal_content_nongs_mba"/>
+                </div>
+                <div class="dont_break_inside clear_shadow col-10 offset-1">
+                    <div class="termsOfServiceWrapper section_wrapper_subtle row">
+                        <div class="termsOfServices col-12">
+                            <h2 class="full center">Terms of Service:</h2>
+                            <p>Fees based upon minimum guaranteed 6 months – 6 month initial commitment from date of launch. Agreement will renew annually for additional 6 months unless otherwise noted. Advertiser or Provider may cancel this agreement by providing 30 day written notice (including notice through email) at the time that initial contracted term is fulfilled. All elements of the campaign must be pre-paid in full each month for the campaign to run. If payment lapses, the campaign will be paused until payment is received. Prices include creative (two rounds of initial design, changes as needed (ads should run for at least 30 days without changes), campaign management and monthly reports. Branded Search Targeting packages include both desktop and mobile investments. Search management fee is $400 or 20%, whichever is greater. Targeted Online Display CPM is $12, with premium placement, $18</p>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="dont_break_inside clear_shadow col-10 offset-1">
+                    <div class="termsOfServiceWrapper section_wrapper_subtle row">
+                        <div class="termsOfServices col-12">
+                            <h2 class="full center">Terms of Service:</h2>
+                            <p>Standard Length of Agreement is as selected above. After initial commitment, agreement becomes month to month. Advertiser may cancel this Order and Agreement upon 30 day written notice including notice via email. If cancelled prior to the agreement length, a retroactive setup fee of $250 may be charged. Should Advertiser exercise this right, Advertiser’s liability for further delivery of traffic shall be limited to only that traffic delivered during the 30-day notice period. Launch dates from the 1st-15th will be billed at a full month. Launch dates from the 15th-end of month will be billed a half month. CallChatter invoices are not prorated. Total monthly cost is inclusive of the management fee as defined in the National Preferred Vendor Agreement between Greystar and Conversion Logix.</p>
+                            <p>Paid Search - $1800 per Month beginning April 2021 GTC<br/>
+                            Display Retargeting - $400 per month beginning April 2021 GTC<br/>
+                                                            <br/>
+                            $2,200 monthly Total</p>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-if="report_type != 'html1'">
+                <div class="signature-block dont_break_inside" style="margin-top: 20px;border: 6px double #BE2329;border-radius: 27px;">
+                    <div class="signing_section section_wrapper row" style="margin-bottom:0px;">
+                        <h2 class="col-12 full center">Signatures</h2>
+
+                        <div class="col-12 subsection">
+                            <div class="subsection_header">Client</div>
+                            <div class="row">
+                                <div class="col-4">Client/Agent Signature</div>
+                                <div class="col-5" style="padding:0px 10px;">
+                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                </div>
+                                <div class="col-1">Date</div>
+                                <div class="col-2 center" style="padding:0px 10px;">
+                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-4">Name</div>
+                                <div class="col-5" style="padding:0px 10px;">
+                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                </div>
+                                <div class="col-1">Title</div>
+                                <div class="col-2" style="padding:0px 10px;">
+                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-4">By:</div>
+                                <div class="col-5" style="padding:0px 10px;">
+                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;">Other</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 subsection">
+                            <div class="subsection_header">Conversion Logix</div>
+                            <div class="row">
+                                <div class="col-4">Conversion Logix:</div>
+                                <div class="col-5" style="padding:0px 10px;">
+                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                </div>
+                                <div class="col-1">Date</div>
+                                <div class="col-2 center" style="padding:0px 10px;">
+                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
         </div>
-                                <div class="monthlyTotalWrappersWrapper dont_break_inside row">
-                                    <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
-                                        <div class="firstMonthlyTotalWrapper">
-                                            <div class="">First Month Spend: </div>
-                                            <div class="monthlyTotal"><span t-esc="sale_order.money_formatting(first_month_subtotal)"/>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="offset-2 col-4 monthlyTotalWrapper">
-                                        <div class="">Recurring Monthly Spend1: </div>
-                                        <div class="monthlyTotal"><span t-esc="sale_order.money_formatting(current_subtotal)"/>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-8 offset-2">
-                                    <div class="section_wrapper_subtle">
-                                        <h2 class="full center">Key Information</h2>
-                                        <div class="keyValueRow row">
-                                            <div class="col-5 leftKey">Community Name:</div>
-                                            <span class="col-7" t-esc="sale_order.partner_invoice_id.name"/>
-                                        </div>
-                                        <div class="keyValueRow row">
-                                            <div class="col-5 leftKey">Community Address:</div>
-                                            <span class="col-7" t-esc="', '.join([str(sale_order.partner_invoice_id.street)+str(sale_order.partner_invoice_id.street2 if sale_order.partner_invoice_id.street2 else ''),str(sale_order.partner_invoice_id.city),str(sale_order.partner_invoice_id.state_id.name),str(sale_order.partner_invoice_id.zip),str(sale_order.partner_invoice_id.country_id.name)])"/>
-                                        </div>
-                                        <div class="keyValueRow row">
-                                            <div class="col-5 leftKey">Website:</div>
-                                            <span class="col-7" t-esc="sale_order.partner_invoice_id.website"/>
-                                        </div>
-                                        <!-- REPLACEME - Ownership??? -->
-                                    </div>
-                                </div>
-                                <div class="dont_break_inside clear_shadow col-8 offset-2">
-                                    <div class="section_wrapper_subtle">
-                                        <h2 class="full center">Length and Fees</h2>
-                                        <!-- Contract Length -->
-                                        <div class="keyValueRow row">
-                                            <div class="col-4">Contract Length:</div>
-                                            <div class="col-6 offset-1 ">
-                                                <span t-esc="sale_order.contract_length"/>
-                                            </div>
-                                        </div>
-                                        <div class="keyValueRow row">
-                                            <div class="col-4">Intended Launch Date:</div>
-                                            <div class="col-6 offset-1 ">
-                                                <span t-esc="sale_order.contract_start_date"/>
-                                            </div>
-                                        </div>
-                                        <!-- Setup Fee -->
-                                        <div class="keyValueRow row">
-                                            <div class="col-5">Setup Fee:</div>
-                                            <div class="col-6 offset-1">
-                                            <span t-esc="sale_order.money_formatting(fee_subtotal)"/>
-                                            </div>
-                                        </div>
-                                        <!-- Ad Change Fees -->
-                                    </div>
-                                </div>
-
-                                <div class="dont_break_inside clear_shadow col-8 offset-2">
-                                    <div class="payment_details section_wrapper_subtle">
-                                        <h2 class="full center">Payment Details</h2>
-                                        <div class="keyValueRow row">
-                                            <div class="col-5">Payment Method:</div>
-                                            <div class="col-6 offset-1">Direct Bill</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <t t-set="greystar_flag" t-value="sale_order.partner_invoice_id.management_company_type_id and sale_order.partner_invoice_id.management_company_type_id.name.find('Greystar')"/>
-                                <t t-if="greystar_flag">
-                                    <div class="mt32 clear_shadow col-10 offset-1">
-                                        <t t-call="clx_retail_pricelist.sale_order_portal_content_nongs_mba"/>
-                                    </div>
-                                    <div class="dont_break_inside clear_shadow col-10 offset-1">
-                                        <div class="termsOfServiceWrapper section_wrapper_subtle row">
-                                            <div class="termsOfServices col-12">
-                                                <h2 class="full center">Terms of Service:</h2>
-                                                <p>Fees based upon minimum guaranteed 6 months – 6 month initial commitment from date of launch. Agreement will renew annually for additional 6 months unless otherwise noted. Advertiser or Provider may cancel this agreement by providing 30 day written notice (including notice through email) at the time that initial contracted term is fulfilled. All elements of the campaign must be pre-paid in full each month for the campaign to run. If payment lapses, the campaign will be paused until payment is received. Prices include creative (two rounds of initial design, changes as needed (ads should run for at least 30 days without changes), campaign management and monthly reports. Branded Search Targeting packages include both desktop and mobile investments. Search management fee is $400 or 20%, whichever is greater. Targeted Online Display CPM is $12, with premium placement, $18</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </t>
-                                <t t-else="">
-                                    <div class="dont_break_inside clear_shadow col-10 offset-1">
-                                        <div class="termsOfServiceWrapper section_wrapper_subtle row">
-                                            <div class="termsOfServices col-12">
-                                                <h2 class="full center">Terms of Service:</h2>
-                                                <p>Standard Length of Agreement is as selected above. After initial commitment, agreement becomes month to month. Advertiser may cancel this Order and Agreement upon 30 day written notice including notice via email. If cancelled prior to the agreement length, a retroactive setup fee of $250 may be charged. Should Advertiser exercise this right, Advertiser’s liability for further delivery of traffic shall be limited to only that traffic delivered during the 30-day notice period. Launch dates from the 1st-15th will be billed at a full month. Launch dates from the 15th-end of month will be billed a half month. CallChatter invoices are not prorated. Total monthly cost is inclusive of the management fee as defined in the National Preferred Vendor Agreement between Greystar and Conversion Logix.</p>
-                                                <p>Paid Search - $1800 per Month beginning April 2021 GTC<br/>
-Display Retargeting - $400 per month beginning April 2021 GTC<br/>
-                                            <br/>
-$2,200 monthly Total</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </t>
-                        <t t-if="report_type != 'html'">
-                            <div class="col-12 dont_break_inside" style="margin-top: 20px;border: 6px double #BE2329;border-radius: 27px;">
-                                <div class="signing_section section_wrapper row" style="margin-bottom:0px;">
-                                    <h2 class="col-12 full center">Signatures</h2>
-
-                                    <div class="col-12 subsection">
-                                        <div class="subsection_header">Client</div>
-                                        <div class="row">
-                                            <div class="col-4">Client/Agent Signature</div>
-                                            <div class="col-5" style="padding:0px 10px;">
-                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                            </div>
-                                            <div class="col-1">Date</div>
-                                            <div class="col-2 center" style="padding:0px 10px;">
-                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-4">Name</div>
-                                            <div class="col-5" style="padding:0px 10px;">
-                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                            </div>
-                                            <div class="col-1">Title</div>
-                                            <div class="col-2" style="padding:0px 10px;">
-                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-4">By:</div>
-                                            <div class="col-5" style="padding:0px 10px;">
-                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;">Other</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 subsection">
-                                        <div class="subsection_header">Conversion Logix</div>
-                                        <div class="row">
-                                            <div class="col-4">Conversion Logix:</div>
-                                            <div class="col-5" style="padding:0px 10px;">
-                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                            </div>
-                                            <div class="col-1">Date</div>
-                                            <div class="col-2 center" style="padding:0px 10px;">
-                                                <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </t>
 
                     </template>
 
