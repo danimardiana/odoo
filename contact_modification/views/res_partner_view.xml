@@ -268,7 +268,7 @@
 
             <xpath expr="//field[@name='type']" position="before">
                 <field name="id" invisible="1"/>
-                <field name="company_type_rel"/>
+                <field name="company_type_rel" required="1"/>
             </xpath>
 
             <xpath expr="//field[@name='name']" position="after">
