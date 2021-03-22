@@ -60,9 +60,9 @@ h3 {
 .contractPrintBody li {
     list-style-type: disc !important;
 }
-.communityLogoWrapper  {
+/* .communityLogoWrapper  {
     margin: 100px 0;
-}
+} */
 .contract-title {
     width: 100%;
     text-align: center;
@@ -383,14 +383,6 @@ h3 {
     .container {
         margin: 0 auto !important;
     }
-
-    .pseudoPage {
-        page-break-before: always;
-        padding: 0.5in 0;
-    }
-    .pseudoPage.short-upper-margin {
-        padding: 0.3in 0;
-    }
     .msa-block {
         padding-left: 0.3in !important;
     }
@@ -409,7 +401,9 @@ h3 {
 /* PDF modifications */
 .pseudoPage {
     page-break-before: always;
-    padding: 0.5in 0;
+}
+.pseudoPage.short-upper-margin {
+    padding: 0.3in 0;
 }
 .container.pdf .salesRepInfoWrapper.row {
     font-size: 0.6cm;
@@ -444,6 +438,11 @@ h3 {
 .container.pdf .col-8{
     width: 80%;
     max-width: 80%;
+    display: inline-block;
+}
+.container.pdf .col-7{
+    width: 58%;
+    max-width: 58%;
     display: inline-block;
 }
 .container.pdf .offset-2{
@@ -498,7 +497,6 @@ h3 {
 }
 .container.pdf .signing_section{
     margin-left: 0px;
-    margin: 10px;
 }
 .container.pdf .signing_section .row{
     margin: 10px 0;
@@ -506,4 +504,7 @@ h3 {
 .subsection_header {
     border-bottom: #adadad 2px solid;
     border-top: #adadad 2px solid;
+}
+.justify-content-center {
+    text-align: center;
 }
