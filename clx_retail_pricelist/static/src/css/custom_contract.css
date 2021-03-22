@@ -481,7 +481,8 @@ h3 {
 }
 .container.pdf .msa-block{
     font-size: 0.5cm;
-    padding: 0.1in 0;
+    padding: 0.1in 0!important;
+    margin: 0!important;
 }
 .container.pdf .termsOfServices p{
     font-size: 0.5cm;
