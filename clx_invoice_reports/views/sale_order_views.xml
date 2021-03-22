@@ -6,13 +6,24 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-
             <xpath expr="//field[@name='date_order']" position="after">
                 <field name="contract_length"/>
                 <field name="intended_launch_date"/>
                 <!--<field name="setup_fee"/>-->
             </xpath>
-
+        <xpath expr="//field[@name='partner_id']" position="replace">
+                <field name="partner_id"
+                       widget="res_partner_many2one"
+                       context="{
+                            'res_partner_search_mode': 'company',
+                            'show_address' : True,
+                            'show_vat': True
+                       }"
+                       options="{
+                            'no_create_edit' : True
+                           }"
+                    />
+            </xpath>
         </field>
     </record>
 </odoo>
