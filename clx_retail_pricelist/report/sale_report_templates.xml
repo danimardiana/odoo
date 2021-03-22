@@ -47,12 +47,13 @@
         </div>
 
         <div t-attf-class="container {{report_type}}">
-            <div class="pseudoPage">
+            <div class="pseudoPage short-upper-margin">
                 <div class="communityLogoWrapper row">
-                    <img class="col-6 offset-3" t-if="sale_order.user_id.image_1024" t-att-src="image_data_uri(sale_order.user_id.image_1024)" alt="Contact"/>
+                    <span t-set="logo_image" t-value="sale_order.user_id.image_1920 or sale_order.user_id.image_1024 or sale_order.user_id.image_medium or sale_order.user_id.image_512"/>
+                    <img class="col-4 offset-4" t-if="logo_image" t-att-src="image_data_uri(logo_image)" alt="Contact"/>
                     <!-- <img class="col-6 offset-3" t-if="not sale_order.user_id.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact"/> -->
                 </div>
-                <div class="communityName row justify-content-md-center">
+                <div class="communityName row justify-content-center">
                     <h2>
                         <span t-esc="sale_order.partner_invoice_id.name"/> - Proposal of Services</h2>
                 </div>
@@ -164,7 +165,7 @@
                 </div>
             </div>
 
-            <div class="pseudoPage">
+            <div class="pseudoPage short-upper-margin">
                 <div class="col-8 offset-2">
                     <div class="section_wrapper_subtle">
                         <h2 class="full center">Key Information</h2>
@@ -248,7 +249,7 @@
                     </div>
                 </div>
             </t>
-            <t t-if="report_type != 'html1'">
+            <t t-if="report_type != 'html'">
                 <div class="signature-block dont_break_inside" style="margin-top: 20px;border: 6px double #BE2329;border-radius: 27px;">
                     <div class="signing_section section_wrapper row" style="margin-bottom:0px;">
                         <h2 class="col-12 full center">Signatures</h2>
@@ -608,7 +609,7 @@
                     </template>
 
                     <template id="sale_order_portal_content_nongs_mba" name="Non-Graystar MBA">
-                        <div class="pseudoPage msa-block">
+                        <div class="pseudoPage short-upper-margin msa-block">
                             <h2 class="full center">MASTER SERVICES AGREEMENT:</h2>
                             <p>
                                 <b>Last Updated: [8.10.2020]</b>
@@ -663,7 +664,7 @@
         </p>
 
     </div>
-    <div class="pseudoPage  msa-block">
+    <div class="pseudoPage short-upper-margin msa-block">
         <p>
             <B>1.5. “<I>Losses</I>”
             </B> mean all losses, damages, liabilities, deficiencies, actions, judgments,
@@ -710,7 +711,7 @@
                 immaterial.
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p>
 <B>2.4. Change Orders</B>. Changes to the scope of the Services or any Deliverables shall be made only in a writing
                 executed by authorized representatives of both Parties. Provider will not be obligated to work on a change until the
@@ -747,7 +748,7 @@
 
 
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p>
 <B>4. PAYMENT; FEES; EXPENSES.</B>
 </p>
@@ -791,7 +792,7 @@
                 hereunder. 
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p class="no-indent">Any such taxes, duties, and charges currently assessed or which may be assessed in the future, that are
                 applicable to the Services are for the Customer's account, and Customer hereby agrees to pay such
                 taxes; <I>provided, that</I>, in no event shall Customer pay or be responsible for any taxes imposed on, or
@@ -836,7 +837,7 @@
                     or perform its obligations under the Agreement. </SPAN>
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p class="no-indent">
                 The Receiving Party shall be responsible for any breach of this
                     Section 5 caused by any of its representatives. At any time during or after the term of this Agreement, at the Disclosing
@@ -887,7 +888,7 @@
                 later than fourteen (14), after Provider becomes aware of it.
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 
 <p>
 <B>7.5. Return or Disposal of Personal Information.</B> On the termination or expiration of this Agreement, Provider
@@ -924,7 +925,7 @@
                 DEALING OR USAGE OF TRADE.
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p>
 <B>9. INDEMNIFICATION.</B>
 </p>
@@ -964,7 +965,7 @@
                 the proceedings at its own cost and expense.
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p>
 <B>9.4. Obligation Exceptions. </B>Notwithstanding anything to the contrary in this Agreement, the indemnifying
                 party is not obligated to indemnify, hold harmless, or defend the indemnified party against any claim (whether
@@ -1041,7 +1042,7 @@
                 termination.
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p>
 <B>12. DISPUTE RESOLUTION. </B>
 <SPAN
@@ -1089,7 +1090,7 @@
                 effective only if recorded in a writing signed by the Party granting such waiver.
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p>
 <B>14.5. Force Majeure. </B>The Provider shall not be liable or responsible to Customer, nor be deemed to have
                 defaulted or breached this Agreement, for any failure or delay in fulfilling or performing any term of this
@@ -1124,7 +1125,7 @@
                 of this Section.
 </p>
 </div>
-<div class="pseudoPage  msa-block">
+<div class="pseudoPage short-upper-margin msa-block">
 <p>
 <B>14.8. Cumulative Rights; Construction; Amendment; Counterparts. </B>The rights and remedies of the Parties under
                 this Agreement are cumulative, and either Party may enforce any of its rights or remedies under this Agreement or
