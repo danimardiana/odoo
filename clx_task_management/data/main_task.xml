@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <data>
+    <data noupdate="1">
         <!--Client Launch-->
         <record id="clx_client_launch_task" model="main.task">
             <field name="name">Client Launch</field>

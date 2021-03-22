@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <data>
+    <data noupdate="1">
         <record id="clx_sales_team" model="clx.team">
             <field name="team_name">Sales</field>
         </record>

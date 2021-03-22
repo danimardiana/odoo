@@ -1448,4 +1448,8 @@
 
 ## 02/25/2021
 #### Version 13.1.0.0.78
-- [ADD] clx_invoice_policy : Merger 2 sale order lines in invoice if those lines have same description.  
+- [ADD] clx_invoice_policy : Merger 2 sale order lines in invoice if those lines have same description.
+
+## 03/22/2021
+#### Version 13.3.0.1.3
+- [FIX] clx_task_management : fixed the issue related to demo data.
