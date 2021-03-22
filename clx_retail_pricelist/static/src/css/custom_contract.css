@@ -395,6 +395,9 @@ h3 {
     .salesRepInfoW  rapper {
         font-size: 2cm;
     }
+    .pseudoPage {
+    page-break-before: always;
+    }
 }
 
 
@@ -487,9 +490,13 @@ h3 {
 .container.pdf .termsOfServices p{
     font-size: 0.5cm;
 }
+.msa-wrapper{
+    max-width: 93%;
+    margin-left: 4%;
+}
 .container.pdf .contractedServicesWrapper{
-    max-width: 94%;
-    margin-left: 3%;
+    max-width: 93%;
+    margin-left: 1in;
 }
 .signature-block{
     max-width: 90%;

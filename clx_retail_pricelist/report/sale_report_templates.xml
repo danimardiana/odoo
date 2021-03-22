@@ -223,7 +223,7 @@
 
             <t t-set="greystar_flag" t-value="sale_order.partner_invoice_id.management_company_type_id and sale_order.partner_invoice_id.management_company_type_id.name.find('Greystar')"/>
             <t t-if="greystar_flag">
-                <div class="mt32 clear_shadow col-10 offset-1">
+                <div class="msa-wrapper">
                     <t t-call="clx_retail_pricelist.sale_order_portal_content_nongs_mba"/>
                 </div>
                 <div class="dont_break_inside clear_shadow col-10 offset-1">
