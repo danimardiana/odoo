@@ -313,18 +313,19 @@ h3 {
     }
     .printFooterFirstPage {
         width: 100%;
-        bottom: 0.2in;
+        bottom: 0.22in;
         position: absolute;
         text-align: center;
         padding: 80px 4px 4px 4px;
         z-index: 99999;
         background-color: white;
+        overflow: visible;
     }
     .print_break_before,
     .pseudoPage {
         display: block;
         page-break-before: auto;
-        margin: 50px;
+        margin: 0px;
     }
     .row {
         page-break-inside: avoid;
@@ -349,7 +350,7 @@ h3 {
         height: 100%;
         top: 0px;
         left: 0px;
-        padding-top: 10px;
+        /* padding-top: 10px; */
     }
     .windowObscureArea,
     .obscureLoaderWrapper,
@@ -537,11 +538,22 @@ h3 {
 }
 .pdf.printFooterFirstPage{
     display: block;
-    bottom: -4cm;
+    bottom: -5cm;
     position: relative;
     text-align: center;
 }
 .pdf .communityLogoWrapper{
     position: relative;
-    top: -1.5cm;
+    top: -.5cm;
+    display: block;
+}
+.pdf .descriptionWrapper{
+    font-size: 0.5cm;
+}
+.pdf .website_url{
+    overflow-wrap: anywhere;
+    width: 100%;
+    /* overflow: hidden; */
+    text-overflow: clip;
+    word-break: break-all;
 }
