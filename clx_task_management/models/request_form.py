@@ -171,39 +171,9 @@ class RequestForm(models.Model):
         return : dictionary of the task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
-        today = fields.Date.today()
-        current_day_with_time = self.write_date
-        user_tz = self.env.user.tz or 'US/Pacific'
-        current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
-        date_time_str = today.strftime("%d/%m/%y")
-        date_time_str += ' 14:00:00'
-        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
-        # if current_day_with_time after 2 pm:
-        #     today + 1 day
-        if current_day_with_time.time() > comparsion_date.time():
-            business_days_to_add = 1
-        else:
-            business_days_to_add = 0
 
-        if line.request_form_id.priority == 'high':
-            if line.req_type in ('update', 'budget'):
-                business_days_to_add += 0
-            else:
-                business_days_to_add += 2
-        else:
-            if line.req_type in ('update', 'budget'):
-                business_days_to_add += 2
-            else:
-                business_days_to_add += 4
-
-        current_date = today
-        # code for skip saturday and sunday for set deadline on task.
-        while business_days_to_add > 0:
-            current_date += datetime.timedelta(days=1)
-            weekday = current_date.weekday()
-            if weekday >= 5:  # sunday = 6, saturday = 5
-                continue
-            business_days_to_add -= 1
+        current_date = self.calculated_date(line)
+        
         vals = {
             'name': line.task_id.name,
             'project_id': project_id.id,
@@ -230,8 +200,8 @@ class RequestForm(models.Model):
         :Param : partner_id : browsable object of the partner
         :return : return dictionary
         """
-        date_list = self.calculated_date(self.request_line)
-        max_date = max(date_list)
+        max_date = max(map(self.calculated_date,self.request_line))
+
         vals = {
             'partner_id': partner_id.id,
             'name': description,
@@ -256,51 +226,125 @@ class RequestForm(models.Model):
         if email_template:
             email_template.with_context(context).send_mail(self.id, force_send=True)
 
+    @api.onchange('priority')
+    def _onchange_priority(self):
+        for line in self.request_line:
+            if hasattr(line , 'req_type'):
+                today = fields.Date.today() if fields.Date.today() else datetime.datetime.today()
+                current_day_with_time = self.write_date if self.write_date else datetime.datetime.today() 
+                user_tz = line.env.user.tz or 'US/Pacific'
+                current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+                date_time_str = today.strftime("%d/%m/%y")
+                date_time_str += ' 14:00:00'
+                comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+                # if current_day_with_time after 2 pm:
+                #     today + 1 day
+                if current_day_with_time.time() > comparsion_date.time():
+                    today = today + relativedelta(days=1)
+                    if self.priority == 'high':
+                        if line.req_type and line.req_type in ('update', 'budget'):             
+                            business_days_to_add = 1
+                        else:
+                            business_days_to_add = 3
+                    else:
+                        if line.req_type and line.req_type in ('update', 'budget'):
+                            business_days_to_add = 3
+                        else:
+                            business_days_to_add = 5
+                else:
+                    if self.priority == 'high':
+                        if line.req_type and line.req_type in ('update', 'budget'):
+                            business_days_to_add = 0
+                        else:
+                            business_days_to_add = 2
+                    else:
+                        if line.req_type and line.req_type in ('update', 'budget'):
+                            business_days_to_add = 2
+                        else:
+                            business_days_to_add = 4
+                current_date = today
+                # code for skip saturday and sunday for set deadline on task.
+                while business_days_to_add > 0:
+                    current_date += datetime.timedelta(days=1)
+                    weekday = current_date.weekday()
+                    if weekday >= 5:  # sunday = 6, saturday = 5
+                        continue
+                    business_days_to_add -= 1
+                line.task_deadline = current_date
+
     def calculated_date(self, line):
-        date_list = []
-        for line in line:
-            today = fields.Date.today()
-            current_day_with_time = self.write_date
-            user_tz = self.env.user.tz or 'US/Pacific'
-            current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
-            date_time_str = today.strftime("%d/%m/%y")
-            date_time_str += ' 14:00:00'
-            comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
-            # if current_day_with_time after 2 pm:
-            #     today + 1 day
-            if current_day_with_time.time() > comparsion_date.time():
-                today = today + relativedelta(days=1)
-                if line.request_form_id.priority == 'high':
-                    if line.req_type in ('update', 'budget'):
-                        business_days_to_add = 1
-                    else:
-                        business_days_to_add = 3
-                else:
-                    if line.req_type in ('update', 'budget'):
-                        business_days_to_add = 3
-                    else:
-                        business_days_to_add = 5
-            else:
-                if line.request_form_id.priority == 'high':
-                    if line.req_type in ('update', 'budget'):
-                        business_days_to_add = 0
-                    else:
-                        business_days_to_add = 2
-                else:
-                    if line.req_type in ('update', 'budget'):
-                        business_days_to_add = 2
-                    else:
-                        business_days_to_add = 4
-            current_date = today
-            # code for skip saturday and sunday for set deadline on task.
-            while business_days_to_add > 0:
-                current_date += datetime.timedelta(days=1)
-                weekday = current_date.weekday()
-                if weekday >= 5:  # sunday = 6, saturday = 5
-                    continue
-                business_days_to_add -= 1
-            date_list.append(current_date)
-        return date_list
+        today = fields.Date.today()
+        current_day_with_time = self.write_date
+        user_tz = self.env.user.tz or 'US/Pacific'
+        current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+        date_time_str = today.strftime("%d/%m/%y")
+        date_time_str += ' 14:00:00'
+        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+        # if current_day_with_time after 2 pm:
+        #     today + 1 day
+        business_days_to_add = 0
+        if current_day_with_time.time() > comparsion_date.time() or today.weekday() > 4:
+            business_days_to_add += 1
+
+        if line.request_form_id.priority != 'high':
+            business_days_to_add += 2
+
+        if line.req_type in ('update', 'budget'):
+            business_days_to_add += 0
+        else:
+            business_days_to_add += 2
+
+        current_date = today
+        # code for skip saturday and sunday for set deadline on task.
+        while business_days_to_add > 0:
+            current_date += datetime.timedelta(days=1)
+            weekday = current_date.weekday()
+            if weekday >= 5:  # sunday = 6, saturday = 5
+                continue
+            business_days_to_add -= 1
+
+            # today = fields.Date.today()
+            # current_day_with_time = self.write_date
+            # user_tz = self.env.user.tz or 'US/Pacific'
+            # current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+            # date_time_str = today.strftime("%d/%m/%y")
+            # date_time_str += ' 14:00:00'
+            # comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+            # # if current_day_with_time after 2 pm:
+            # #     today + 1 day
+            # if current_day_with_time.time() > comparsion_date.time():
+            #     today = today + relativedelta(days=1)
+            #     if line.request_form_id.priority == 'high':
+            #         if line.req_type in ('update', 'budget'):
+            #             business_days_to_add = 1
+            #         else:
+            #             business_days_to_add = 3
+            #     else:
+            #         if line.req_type in ('update', 'budget'):
+            #             business_days_to_add = 3
+            #         else:
+            #             business_days_to_add = 5
+            # else:
+            #     if line.request_form_id.priority == 'high':
+            #         if line.req_type in ('update', 'budget'):
+            #             business_days_to_add = 0
+            #         else:
+            #             business_days_to_add = 2
+            #     else:
+            #         if line.req_type in ('update', 'budget'):
+            #             business_days_to_add = 2
+            #         else:
+            #             business_days_to_add = 4
+            # current_date = today
+            # # code for skip saturday and sunday for set deadline on task.
+            # while business_days_to_add > 0:
+            #     current_date += datetime.timedelta(days=1)
+            #     weekday = current_date.weekday()
+            #     if weekday >= 5:  # sunday = 6, saturday = 5
+            #         continue
+            #     business_days_to_add -= 1
+
+        return current_date
 
     def action_submit_form(self):
         """
@@ -309,8 +353,7 @@ class RequestForm(models.Model):
         """
         self.ensure_one()
         if self.request_line and self.intended_launch_date:
-            date_list = self.calculated_date(self.request_line)
-            max_date = max(date_list)
+            max_date = max(map(self.calculated_date,self.request_line))
             if self.intended_launch_date < max_date:
                 raise UserError('Please check Intended launch Date !!')
         project_id = False
@@ -412,7 +455,6 @@ class RequestForm(models.Model):
                     line.description = self.update_products_des
                 line.req_type = 'update'
 
-
 class RequestFormLine(models.Model):
     _name = 'request.form.line'
     _description = 'Request Form Line'
@@ -423,10 +465,63 @@ class RequestFormLine(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
+    task_deadline = fields.Date(string='Deadline', readonly=True, copy=False, compute='_default_task_deadline')
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
     category_id = fields.Many2one('product.category', string="Products Category")
+  
+    def create_task_deadline_date(self):
+        today = datetime.datetime.today()
+        current_day_with_time = datetime.datetime.today()
+        user_tz = self.env.user.tz or 'US/Pacific'
+        current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+        date_time_str = today.strftime("%d/%m/%y")
+        date_time_str += ' 14:00:00'
+        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+        # if current_day_with_time after 2 pm:
+        #     today + 1 day
+        if current_day_with_time.time() > comparsion_date.time():
+            today = today + relativedelta(days=1)
+            if self.request_form_id.priority == 'high':
+                if self.req_type in ('update', 'budget'):             
+                    business_days_to_add = 1
+                else:
+                    business_days_to_add = 3
+            else:
+                if self.req_type in ('update', 'budget'):
+                    business_days_to_add = 3
+                else:
+                    business_days_to_add = 5
+        else:
+            if self.request_form_id.priority == 'high':
+                if self.req_type in ('update', 'budget'):
+                    business_days_to_add = 0
+                else:
+                    business_days_to_add = 2
+            else:
+                if self.req_type in ('update', 'budget'):
+                    business_days_to_add = 2
+                else:
+                    business_days_to_add = 4
+        current_date = today
+        # code for skip saturday and sunday for set deadline on task.
+        while business_days_to_add > 0:
+            current_date += datetime.timedelta(days=1)
+            weekday = current_date.weekday()
+            if weekday >= 5:  # sunday = 6, saturday = 5
+                continue
+            business_days_to_add -= 1
+        self.task_deadline = current_date
+   
+
+    def _default_task_deadline(self):    
+        for line in self:
+            line.create_task_deadline_date()
+    
+    @api.onchange('req_type')
+    def _onchange_req_type(self):
+        self.create_task_deadline_date()
 
     @api.onchange('task_id')
     def _onchange_task_id(self):
@@ -449,3 +544,8 @@ class RequestFormLine(models.Model):
             return {'domain': {'task_id': [('req_type', '=', self.req_type),
                                            ('category_id', '=', self.category_id.id),
                                            ('pull_to_request_form', '=', True)]}}
+
+   
+
+
+    

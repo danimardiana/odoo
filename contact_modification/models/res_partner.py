@@ -3,13 +3,9 @@
 # See LICENSE file for full copyright & licensing details.
 
 from ast import literal_eval
-
+from lxml import etree
+import json
 from odoo import api, fields, models
-
-# cnx = mysql.connector.connect(user='scott', password='password',
-#                               host='127.0.0.1',
-#                               database='employees')
-# cnx.close()
 
 class ContactType(models.Model):
     _name = "contact.type"
@@ -47,12 +43,11 @@ class Partner(models.Model):
                 c.task_count for c in partner.child_ids)
 
     company_type = fields.Selection(
-        string='Company Type', compute='_compute_company_type', store=True,
+        string='Company Type', store=True,
         selection_add=[
             ('company', 'Customer Company'),
             ('owner', 'Owner'),
-            ('management', 'Management'),
-            ('vendor', 'Vendor')
+            ('management', 'Management')
         ], inverse='_write_company_type')
     ownership_company_type_id = fields.Many2one(
         'res.partner', string='Owner Ship Company')
@@ -67,6 +62,8 @@ class Partner(models.Model):
     is_vendor = fields.Boolean(
         string='Is a Vendore', default=False,
         help="Check if the contact is a Vendor")
+    is_greystar_company = fields.Boolean(
+        string='Is a Greystar company', default=False)
     account_user_id = fields.Many2one('res.users',
                                       string='Account Manager')
     secondary_user_id = fields.Many2one('res.users',
@@ -116,11 +113,13 @@ class Partner(models.Model):
     art_assets = fields.Char(string="Art Assets")
     google_analytics_cl_account_location = fields.Selection([
         ('greystaranalytics@conversionlogix.com', 'greystaranalytics@conversionlogix.com'),
+        ('Ave5analytics@clxmedia.com', 'Ave5analytics@clxmedia.com'),
         ('RESdata@conversionlogix.com', 'RESdata@conversionlogix.com'),
         ('SRLdata@conversionlogix.com', 'SRLdata@conversionlogix.com'),
         ('Localdata@conversionlogix.com', 'Localdata@conversionlogix.com'),
         ('Autodata@conversionlogix.com', 'Autodata@conversionlogix.com'),
         ('RESanalytics@clxmedia.com', 'RESanalytics@clxmedia.com'),
+        ('Resanalytics2@clxmedia.com', 'Resanalytics2@clxmedia.com'),
         ('reporting@conversionlogix.com', 'reporting@conversionlogix.com'),
         ('reporting1@conversionlogix.com', 'reporting1@conversionlogix.com'),
         ('reporting2@conversionlogix.com', 'reporting2@conversionlogix.com'),
@@ -132,7 +131,7 @@ class Partner(models.Model):
         ('Missing: pursue', 'Missing: pursue'),
         ('Missing: abandoned', 'Missing: abandoned')
     ], string="Google Analytics CL Account Location")
-    dni = fields.Char(string='DNI')
+    dni = fields.Text(string='DNI')
     submitted_platform_id = fields.Many2one('submitted.platform', string="Submittal Platform")
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
@@ -175,6 +174,13 @@ class Partner(models.Model):
             domain, fields, groupby, offset=offset,
             limit=limit, orderby=orderby, lazy=lazy)
 
+    @api.onchange('ownership_company_type_id')
+    def onchange_ownership_company_type_id(self):
+        if ((self.ownership_company_type_id) and ('Greystar' in self.ownership_company_type_id.name)):
+            self.is_greystar_company = True
+        else:
+            self.is_greystar_company = False
+
     @api.onchange('contact_company_type_id')
     def onchange_contact_company_type(self):
         if self.contact_company_type_id:
@@ -204,6 +210,8 @@ class Partner(models.Model):
             else:
                 rec.contact_display_kanban = ''
 
+    # On new contact creationg do not set company_type
+    # by default. User is required to make the selection
     @api.depends('is_company', 'is_owner', 'is_management')
     def _compute_company_type(self):
         for partner in self:
@@ -219,8 +227,8 @@ class Partner(models.Model):
             elif partner.is_vendor and not partner.is_owner and \
                     not partner.is_management:
                 partner.company_type = 'vendor'
-            else:
-                partner.company_type = 'person'
+            # else:
+            #     partner.company_type = 'person'
 
     def properties_owner(self):
         self.ensure_one()
