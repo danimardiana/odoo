@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <!--Sub Task For Client Launch-->
-    <data>
+    <data noupdate="1">
         <record id="clx_client_launch_sub_task_1" model="sub.task">
             <field name="sub_task_name">Provide client questionnaire answers or confirm questionnaire submitted by
                 client.

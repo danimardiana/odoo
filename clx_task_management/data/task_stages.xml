@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <data>
+    <data noupdate="1">
         <record id="clx_project_stage_1" model="project.task.type">
             <field name="sequence">1</field>
             <field name="name">New</field>
