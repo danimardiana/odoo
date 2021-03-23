@@ -171,6 +171,10 @@
                         <div class="keyValueRow row">
                             <div class="col-5 leftKey">Community Name:</div>
                             <span class="col-7" t-esc="sale_order.partner_invoice_id.name"/>
+                        </div>                        
+                        <div class="keyValueRow row">
+                            <div class="col-5 leftKey">Legal Name:</div>
+                            <span class="col-7" t-esc="sale_order.partner_invoice_id.legal_name "/>
                         </div>
                         <div class="keyValueRow row">
                             <div class="col-5 leftKey">Community Address:</div>
