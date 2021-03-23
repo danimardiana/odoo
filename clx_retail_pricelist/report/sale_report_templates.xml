@@ -8,6 +8,7 @@
                 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" type="text/css"/>
             </xpath>
         </t>
+        <t t-set="greystar_flag" t-value="sale_order.partner_invoice_id.management_company_type_id and sale_order.partner_invoice_id.management_company_type_id.name.find('Greystar')>-1"/>
 
         <div t-attf-class="container {{report_type}}">
             <div id="cover_page" class="">
@@ -36,10 +37,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="printFooterFirstPage">
+                <div t-attf-class="{{report_type}} printFooterFirstPage">
                     <span>conversionlogix.com</span>
                     <span style="padding:0px 50px 0px 50px;">|</span>
-                    <span style="font-style:italic;">17921 Bothell Everett Hwy. #105 // Bothell, WA 98012</span>
+                    <span style="font-style:italic;">17921 Bothell Everett Hwy. #105 Bothell, WA, 98012</span>
                 </div>
                 <div class="printObscureFirstPage">
                 </div>
@@ -49,9 +50,7 @@
         <div t-attf-class="container {{report_type}}">
             <div class="pseudoPage short-upper-margin">
                 <div class="communityLogoWrapper row">
-                    <span t-set="logo_image" t-value="sale_order.user_id.image_1920 or sale_order.user_id.image_1024 or sale_order.user_id.image_medium or sale_order.user_id.image_512"/>
-                    <img class="col-4 offset-4" t-if="logo_image" t-att-src="image_data_uri(logo_image)" alt="Contact"/>
-                    <!-- <img class="col-6 offset-3" t-if="not sale_order.user_id.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact"/> -->
+                    <img class="col-4 offset-4" t-if="sale_order.partner_id.image_1920" t-att-src="'data:image/png;base64,%s' % to_text(sale_order.partner_id.image_1920)"/>
                 </div>
                 <div class="communityName row justify-content-center">
                     <h2>
@@ -181,6 +180,20 @@
                             <div class="col-5 leftKey">Website:</div>
                             <span class="col-7" t-esc="sale_order.partner_invoice_id.website"/>
                         </div>
+                        <t t-if="greystar_flag">                
+                            <div class="keyValueRow row">
+                                <div class="col-5 leftKey">Master ID:</div>
+                                <span class="col-7" t-esc="sale_order.partner_invoice_id.master_id"/>
+                            </div> 
+                            <div class="keyValueRow row">
+                                <div class="col-5 leftKey">Yardi ID:</div>
+                                <span class="col-7" t-esc="sale_order.partner_invoice_id.yardi_code"/>
+                            </div>
+                        </t>                            
+                        <div t-if="sale_order.partner_invoice_id.ownership_company_type_id" class="keyValueRow row">
+                                <div class="col-5 leftKey">Ownership Group:</div>
+                                <span class="col-7" t-esc="sale_order.partner_invoice_id.ownership_company_type_id.name"/>
+                        </div>
                         <!-- REPLACEME - Ownership??? -->
                     </div>
                 </div>
@@ -221,8 +234,7 @@
                 </div>
             </div>
 
-            <t t-set="greystar_flag" t-value="sale_order.partner_invoice_id.management_company_type_id and sale_order.partner_invoice_id.management_company_type_id.name.find('Greystar')"/>
-            <t t-if="greystar_flag">
+            <t t-if="not greystar_flag">
                 <div class="msa-wrapper">
                     <t t-call="clx_retail_pricelist.sale_order_portal_content_nongs_mba"/>
                 </div>

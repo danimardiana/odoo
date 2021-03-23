@@ -454,8 +454,8 @@ h3 {
     display: inline-block;
 }
 .container.pdf .col-7{
-    width: 58%;
-    max-width: 58%;
+    width: 57%;
+    max-width: 57%;
     display: inline-block;
 }
 .container.pdf .offset-2{
@@ -523,15 +523,25 @@ h3 {
     text-align: center;
 }
 .termsOfServiceWrapper {
-    margin-top: -11px;
+    margin-top: 0px;
     width: 93%;
     margin-left: 4%;
 }
 .container.pdf .termsOfServiceWrapper {
-    margin-top: -11px;
+    margin-top: 0;
     width: 93%;
     margin-left: 0.4in;
 }
 .container.pdf .msa-wrapper {
     padding: 0 1in 0 0.5in;
+}
+.pdf.printFooterFirstPage{
+    display: block;
+    bottom: -4cm;
+    position: relative;
+    text-align: center;
+}
+.pdf .communityLogoWrapper{
+    position: relative;
+    top: -1.5cm;
 }
