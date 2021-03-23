@@ -206,6 +206,10 @@ h3 {
     position: relative;
     opacity: 1;
 }
+.msa-wrapper {
+    padding: 0 3%;
+
+}
 /**
 * ===============
 *      Print
@@ -396,7 +400,8 @@ h3 {
         font-size: 2cm;
     }
     .pseudoPage {
-    page-break-before: always;
+        page-break-before: always;
+        height:90%;
     }
 }
 
@@ -416,13 +421,18 @@ h3 {
     width: 100%;
     display: inline-block;
 }
+.container.pdf .col-10{
+    width: 83%;
+    max-width: 83%;
+    display: inline-block;
+}
 .container.pdf .col-6{
     width: 48%;
     display: inline-block;
 }
 .container.pdf  .col-5{
-    width: 40%;
-    max-width: 40%;
+    width: 41.6%;
+    max-width: 41.6%;
     display: inline-block;
 }
 .container.pdf  .col-4{
@@ -490,13 +500,9 @@ h3 {
 .container.pdf .termsOfServices p{
     font-size: 0.5cm;
 }
-.msa-wrapper{
-    max-width: 93%;
-    margin-left: 4%;
-}
 .container.pdf .contractedServicesWrapper{
-    max-width: 93%;
-    margin-left: 1in;
+    max-width: 94%;
+    margin-left: 3%;
 }
 .signature-block{
     max-width: 90%;
@@ -515,4 +521,17 @@ h3 {
 }
 .justify-content-center {
     text-align: center;
+}
+.termsOfServiceWrapper {
+    margin-top: -11px;
+    width: 93%;
+    margin-left: 4%;
+}
+.container.pdf .termsOfServiceWrapper {
+    margin-top: -11px;
+    width: 93%;
+    margin-left: 0.4in;
+}
+.container.pdf .msa-wrapper {
+    padding: 0 1in 0 0.5in;
 }

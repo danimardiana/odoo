@@ -226,7 +226,7 @@
                 <div class="msa-wrapper">
                     <t t-call="clx_retail_pricelist.sale_order_portal_content_nongs_mba"/>
                 </div>
-                <div class="dont_break_inside clear_shadow col-10 offset-1">
+                <div class="dont_break_inside clear_shadow col-12">
                     <div class="termsOfServiceWrapper section_wrapper_subtle row">
                         <div class="termsOfServices col-12">
                             <h2 class="full center">Terms of Service:</h2>
@@ -236,7 +236,7 @@
                 </div>
             </t>
             <t t-else="">
-                <div class="dont_break_inside clear_shadow col-10 offset-1">
+                <div class="dont_break_inside clear_shadow col-12">
                     <div class="termsOfServiceWrapper section_wrapper_subtle row">
                         <div class="termsOfServices col-12">
                             <h2 class="full center">Terms of Service:</h2>
