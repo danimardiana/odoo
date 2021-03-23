@@ -43,7 +43,7 @@ class Partner(models.Model):
                 c.task_count for c in partner.child_ids)
 
     company_type = fields.Selection(
-        string='Company Type', compute='_compute_company_type', store=True,
+        string='Company Type', store=True,
         selection_add=[
             ('company', 'Customer Company'),
             ('owner', 'Owner'),
@@ -225,8 +225,8 @@ class Partner(models.Model):
             elif partner.is_vendor and not partner.is_owner and \
                     not partner.is_management:
                 partner.company_type = 'vendor'
-            else:
-                partner.company_type = 'person'
+            # else:
+            #     partner.company_type = 'person'
 
     def properties_owner(self):
         self.ensure_one()
