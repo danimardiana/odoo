@@ -569,6 +569,7 @@
                 <field name="vertical" attrs="{'invisible': [('company_type', 'not in', ('company'))],
                                                     'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="branding_name" attrs="{'invisible': [('company_type', 'not in', ('vendor'))]}"/>
+                <field name="legal_name" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
                 <field name="timezone_char" attrs="{'invisible': [('company_type', 'not in', ('company'))],
                                                     'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company'))],
