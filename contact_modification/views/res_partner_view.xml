@@ -24,7 +24,10 @@
                 <field name="function" invisible="1"/>
                 <field name="phone" optional="show"/>
                 <field name="email" optional="show"/>
-                <field name="management_company_type_id" string="Region"/>
+                <field name="management_company_type_id" 
+                       string="Region"
+                       options="{'no_create' : True}"
+                />
             </tree>
         </field>
     </record>
@@ -39,7 +42,10 @@
                 <field name="function" invisible="1"/>
                 <field name="phone" optional="show"/>
                 <field name="email" optional="show"/>
-                <field name="ownership_company_type_id" string="Region"/>
+                <field name="ownership_company_type_id"
+                       string="Region"
+                       options="{'no_create' : True}"
+                />
             </tree>
         </field>
     </record>
@@ -115,6 +121,7 @@
     <record id="contacts.action_contacts" model="ir.actions.act_window">
         <field name="context">{'default_is_company': True, 'custom_filter_groupby': True}</field>
     </record>
+
     <!-- Inherit Form View to Modify it -->
     <record id="view_partner_property_form_inherit_contact_modification" model="ir.ui.view">
         <field name="name">res.partner.property.form.inherit</field>
@@ -130,9 +137,9 @@
                     <field name="merchant_number"/>
                 </group>
             </xpath>
-
         </field>
     </record>
+
     <!-- Inherit Form View to Modify it -->
     <record id="view_partner_form_inherit_website_inherit_contact_modification" model="ir.ui.view">
         <field name="name">res.partner.form.website.inherit</field>
@@ -153,6 +160,15 @@
         <field name="arch" type="xml">
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Company Type Radio Buttons -->
+             <xpath expr="//field[@name='company_type']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|','|','|',('company_type','=','person'),
+                                                                  ('company_type','=','company'),
+                                                                  ('company_type','=','owner'),
+                                                                  ('company_type','=','management')]}
+                </attribute>
             </xpath>
 
             <!-- Company Address -->
@@ -268,7 +284,7 @@
 
             <xpath expr="//field[@name='type']" position="before">
                 <field name="id" invisible="1"/>
-                <field name="company_type_rel"/>
+                <field name="company_type_rel" required="1"/>
             </xpath>
 
             <xpath expr="//field[@name='name']" position="after">
@@ -302,13 +318,13 @@
 
             <xpath expr="//field[@name='type']" position="before">
                 <field name="ownership_company_type_id" domain="[('is_owner', '=', True)]"
-                       options="{'no_create_edit':True}"
+                       options="{'no_create':True}"
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
             </xpath>
 
             <xpath expr="//field[@name='function']" position="before">
                 <field name="management_company_type_id" domain="[('is_management', '=', True)]"
-                       options="{'no_create_edit':True}"
+                       options="{'no_create':True}"
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)],
                                'required':[('is_company','=',True)]}"/>
             </xpath>
@@ -553,6 +569,7 @@
                 <field name="vertical" attrs="{'invisible': [('company_type', 'not in', ('company'))],
                                                     'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="branding_name" attrs="{'invisible': [('company_type', 'not in', ('vendor'))]}"/>
+                <field name="legal_name" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
                 <field name="timezone_char" attrs="{'invisible': [('company_type', 'not in', ('company'))],
                                                     'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company'))],
