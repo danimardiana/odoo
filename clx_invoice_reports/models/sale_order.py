@@ -18,4 +18,4 @@ class SaleOrder(models.Model):
     setup_fee = fields.Char(string="Setup Fee")
 
     def _get_text_contract_length(self):
-        return dict(contract_lengths_const)[self.contract_length]
+        return dict(contract_lengths_const)[self.contract_length] if self.contract_length else ''
