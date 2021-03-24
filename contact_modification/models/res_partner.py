@@ -43,7 +43,7 @@ class Partner(models.Model):
                 c.task_count for c in partner.child_ids)
 
     company_type = fields.Selection(
-        string='Company Type', compute='_compute_company_type', store=True,
+        string='Company Type', store=True,
         selection_add=[
             ('company', 'Customer Company'),
             ('owner', 'Owner'),
@@ -143,6 +143,7 @@ class Partner(models.Model):
         [('emerging_accounts', 'Emerging Accounts'), ('national_accounts', 'National Accounts')],
         default='emerging_accounts', string="Client Services Team")
     implementation_specialist_id = fields.Many2one('res.users', string="Implementation Specialist - Customer Success")
+    legal_name = fields.Char(string="Legal Name") 
 
     def open_submitted_req_form(self):
         request_forms = self.env['request.form'].search([('partner_id', '=', self.id), ('state', '=', 'submitted')])
@@ -210,6 +211,8 @@ class Partner(models.Model):
             else:
                 rec.contact_display_kanban = ''
 
+    # On new contact creationg do not set company_type
+    # by default. User is required to make the selection
     @api.depends('is_company', 'is_owner', 'is_management')
     def _compute_company_type(self):
         for partner in self:
@@ -225,8 +228,8 @@ class Partner(models.Model):
             elif partner.is_vendor and not partner.is_owner and \
                     not partner.is_management:
                 partner.company_type = 'vendor'
-            else:
-                partner.company_type = 'person'
+            # else:
+            #     partner.company_type = 'person'
 
     def properties_owner(self):
         self.ensure_one()
