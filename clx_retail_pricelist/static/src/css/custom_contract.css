@@ -469,7 +469,7 @@ h3 {
     max-width: 100%;
 }
 .container.pdf  .productTotalWrapper {
-    font-size: 0.5cm;
+    font-size: 0.45cm;
     width: 40%;
 }
 .container.pdf  .firstMonthlyTotalWrapperWrapper,.container.pdf  .monthlyTotalWrapper {
@@ -508,10 +508,13 @@ h3 {
 .signature-block{
     max-width: 90%;
     margin-left: 5%;
-    font-size: 0.5cm;
+    font-size: 0.48cm;
 }
 .container.pdf .signing_section{
-    margin-left: 0px;
+    margin: 0px;
+    top:-5px;
+    position:relative;
+    overflow:hidden;
 }
 .container.pdf .signing_section .row{
     margin: 10px 0;
