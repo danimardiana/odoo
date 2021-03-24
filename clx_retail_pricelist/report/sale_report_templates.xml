@@ -265,7 +265,7 @@
             </t>
             <t t-if="report_type != 'html'">
                 <div class="signature-block dont_break_inside" style="margin-top: 20px;border: 6px double #BE2329;border-radius: 27px;">
-                    <div class="signing_section section_wrapper row" style="margin-bottom:0px;">
+                    <div class="signing_section section_wrapper row">
                         <h2 class="col-12 full center">Signatures</h2>
 
                         <div class="col-12 subsection">
