@@ -210,7 +210,7 @@
                         <div class="keyValueRow row">
                             <div class="col-4">Contract Length:</div>
                             <div class="col-6 offset-1 ">
-                                <span t-esc="sale_order._get_text_contract_length()"/>
+                                <span t-esc="sale_order.get_text_contract_length()"/>
                             </div>
                         </div>
                         <div class="keyValueRow row">
@@ -263,57 +263,20 @@
                     </div>
                 </div>
             </t>
-            <t t-if="report_type != 'html'">
-                <div class="signature-block dont_break_inside" style="margin-top: 20px;border: 6px double #BE2329;border-radius: 27px;">
-                    <div class="signing_section section_wrapper row" style="margin-bottom:0px;">
-                        <h2 class="col-12 full center">Signatures</h2>
-
-                        <div class="col-12 subsection">
-                            <div class="subsection_header">Client</div>
-                            <div class="row">
-                                <div class="col-4">Client/Agent Signature</div>
-                                <div class="col-5" style="padding:0px 10px;">
-                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                </div>
-                                <div class="col-1">Date</div>
-                                <div class="col-2 center" style="padding:0px 10px;">
-                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-4">Name</div>
-                                <div class="col-5" style="padding:0px 10px;">
-                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                </div>
-                                <div class="col-1">Title</div>
-                                <div class="col-2" style="padding:0px 10px;">
-                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-4">By:</div>
-                                <div class="col-5" style="padding:0px 10px;">
-                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;">Other</div>
-                                </div>
-                            </div>
+            
+            <div t-if="sale_order.signature" class="mt32 ml64 mr4 signature">
+                <div t-attf-class="dont_break_inside clear_shadow col-5 offset-6 {{report_type}}signature">                
+                        <div>
+                            <strong>Signature</strong>
                         </div>
-                        <div class="col-12 subsection">
-                            <div class="subsection_header">Conversion Logix</div>
-                            <div class="row">
-                                <div class="col-4">Conversion Logix:</div>
-                                <div class="col-5" style="padding:0px 10px;">
-                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                </div>
-                                <div class="col-1">Date</div>
-                                <div class="col-2 center" style="padding:0px 10px;">
-                                    <div style="border-bottom:2px solid black;display: inline-block;width: 100%;"></div>
-                                </div>
-                            </div>
+                        <div>
+                            <img t-att-src="image_data_uri(sale_order.signature)"/>
                         </div>
-                    </div>
+                        <div class="text-center">
+                            <p t-field="sale_order.signed_by"/>
+                        </div>
                 </div>
-            </t>
-
+            </div>
         </div>
 
                     </template>
