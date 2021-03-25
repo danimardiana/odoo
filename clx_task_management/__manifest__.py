@@ -25,7 +25,6 @@
         'data/task_stages.xml',
         'data/team_data.xml',
         'data/main_task.xml',
-        # 'data/client_launch_task.xml',
         'data/mail_template.xml',
         'views/request_form_template.xml',
         'views/request_form_portal_views.xml',
