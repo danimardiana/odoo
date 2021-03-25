@@ -17,5 +17,8 @@ class SaleOrder(models.Model):
     intended_launch_date = fields.Date(string='Intended Launch Date')
     setup_fee = fields.Char(string="Setup Fee")
 
-    def _get_text_contract_length(self):
-        return dict(contract_lengths_const)[self.contract_length] if self.contract_length else ''
+    def get_text_contract_length(self):
+        if not self.contract_length:
+            return ''
+        return dict(contract_lengths_const)[self.contract_length]
+
