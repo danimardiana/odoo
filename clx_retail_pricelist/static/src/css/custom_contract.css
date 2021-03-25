@@ -510,15 +510,22 @@ h3 {
     margin-left: 5%;
     font-size: 0.48cm;
 }
-.container.pdf .signing_section{
-    margin: 0px;
-    top:-5px;
-    position:relative;
-    overflow:hidden;
+/* .pdfsignature{
+    max-width: 8cm;
 }
-.container.pdf .signing_section .row{
-    margin: 10px 0;
+
+.htmlsignature{
+    max-width: 8cm;
+} */
+
+.pdfsignature img,.htmlsignature img{
+    width:100%;
 }
+.signature {
+    top: 1cm;
+    position: relative;
+}
+
 .subsection_header {
     border-bottom: #adadad 2px solid;
     border-top: #adadad 2px solid;
