@@ -12,8 +12,8 @@
                 <field name="display_management_fee"/>
             </field>
             <notebook position="inside">
-                <page string="Product Price" name="product_price">
-                    <field name="product_price_calculation_ids">
+                <page string="Product Price" name="product_price" invisible="1">
+                    <field name="product_price_calculation_ids" >
                         <tree string="Product Price" editable="bottom">
                             <field name="product_id"/>
                             <field name="management_fees"/>
@@ -26,6 +26,9 @@
             <xpath expr="//field[@name='order_line']/tree" position="inside">
                 <field name="management_price" invisible="1"/>
                 <field name="wholesale_price" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>
