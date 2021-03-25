@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='date_order']" position="after">
                 <field name="contract_length"/>
-                <field name="intended_launch_date"/>
+                <!-- <field name="intended_launch_date" invisible="1"/> -->
                 <!--<field name="setup_fee"/>-->
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="replace">
