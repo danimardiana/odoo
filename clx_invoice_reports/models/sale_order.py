@@ -21,8 +21,8 @@ class SaleOrder(models.Model):
     def onchange_partner_id(self):
         super(SaleOrder, self).onchange_partner_id()
 
-        # If Greystar company or person, default contact to 3 months
-        if ((self.partner_id) and ('Greystar' in self.partner_id.display_name)):
+        # If Greystar company pricing, default contact to 3 months
+        if ((self.partner_id) and (self.partner_id.property_product_pricelist.id == 2)):
             self.contract_length = '3_m'
         else:
             self.contract_length = '1_m'    
