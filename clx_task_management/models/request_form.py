@@ -26,7 +26,11 @@ class RequestForm(models.Model):
                              default='draft', tracking=True)
     is_create_client_launch = fields.Boolean('Is this a brand new media campaign launch or relaunch?')
     ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
+
     intended_launch_date = fields.Date(string='Intended Launch Date')
+    # Proof Date
+    deadline_date = fields.Date('Proof Due Date', compute='set_proof_deadline_date')
+    
     attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
     sale_order_id = fields.Many2many('sale.order', string="Sale Order")
     clx_attachment_ids = fields.Many2many(
@@ -38,6 +42,24 @@ class RequestForm(models.Model):
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one('project.project', string="Project")
     product_ids = fields.Many2many('product.product', string="Products")
+
+    # @api.multi
+    # @api.constraints('intended_launch_date','deadline_date')
+    def launch_date_constraints(self):
+        for rec in self:
+            if rec.intended_launch_date < rec.deadline_date:
+                raise ValidationError(_('Intended launch date must be equal or greater that proofing due date.'))
+
+    # TODO: get max proof deadline date from list of main project tasks
+    def set_proof_deadline_date(self):
+        proof_date = fields.Date.today()
+        print('INIT PROOF DATE: ', proof_date)
+        return proof_date
+
+    @api.onchange('intended_launch_date')
+    def onchange_intended_launch_date(self):
+        print('proof_deadline_date: ', self.deadline_date)
+        print('intended_launch_date: ', self.intended_launch_date)
 
     def open_active_subscription_line(self):
         """
@@ -172,7 +194,12 @@ class RequestForm(models.Model):
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
 
+        # Proof Due Date/Deadline
         current_date = self.calculated_date(line)
+        
+        # Client Wanted Launch Date
+        # Must be after proof date deadline
+        launch_date = self.intended_launch_date if self.intended_launch_date > current_date else current_date
         
         vals = {
             'name': line.task_id.name,
@@ -183,7 +210,8 @@ class RequestForm(models.Model):
             'req_type': line.task_id.req_type,
             'team_ids': line.task_id.team_ids.ids,
             'team_members_ids': line.task_id.team_members_ids.ids,
-            'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
+            'date_deadline': current_date,
+            'intended_launch_date': launch_date, 
             'requirements': line.requirements,
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             'account_user_id': project_id.partner_id.account_user_id.id if project_id.partner_id.account_user_id else False,
@@ -465,7 +493,7 @@ class RequestFormLine(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
-    task_deadline = fields.Date(string='Deadline', readonly=True, copy=False, compute='_default_task_deadline')
+    task_deadline = fields.Date(string='First Proof Due', readonly=True, copy=False, compute='_default_task_deadline')
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
@@ -514,7 +542,6 @@ class RequestFormLine(models.Model):
             business_days_to_add -= 1
         self.task_deadline = current_date
    
-
     def _default_task_deadline(self):    
         for line in self:
             line.create_task_deadline_date()

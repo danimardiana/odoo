@@ -41,7 +41,12 @@ class ProjectProject(models.Model):
     cs_notes = fields.Text(related='partner_id.cs_notes')
     ops_notes = fields.Text(related='partner_id.ops_notes')
     cat_notes = fields.Text(related='partner_id.cat_notes')
-    deadline = fields.Date(string='Deadline')
+    
+    # Proofing Due Date
+    deadline = fields.Date(string='Deadline') 
+    # Client Launch Date
+    intended_launch_date = fields.Date(related="req_form_id.intended_launch_date", string='Intended Launch Date', store=True)
+    
     priority = fields.Selection(
         [('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     client_services_team = fields.Selection(related="partner_id.management_company_type_id.client_services_team",
@@ -211,6 +216,7 @@ class ProjectTask(models.Model):
                 'clx_task_designer_id': self.project_id.clx_project_designer_id.id if self.project_id.clx_project_designer_id else False,
                 'ops_team_member_id': self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
                 'date_deadline': main_task and main_task.date_deadline
+                # 'intended_launch_date': 
             }
             return vals
 
@@ -284,6 +290,16 @@ class ProjectTask(models.Model):
                 'category_id': self.parent_id.category_id.id if self.parent_id.category_id else False
             }
             return vals
+
+    #  update subtask deadline if main task deadline changes
+    @api.onchange('date_deadline')
+    def onchange_main_task_deadline(self):
+        for subtask in self.child_ids:
+            subtask.date_deadline = self.date_deadline
+            print(subtask.date_deadline)
+
+            # self._cr.execute("UPDATE project_task SET date_deadline = %s WHERE id = %s", [
+            #                         vals.get('active'), task.id])
 
     @api.onchange('repositary_task_id')
     def on_repository_change(self):
