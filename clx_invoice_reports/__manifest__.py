@@ -18,12 +18,12 @@
         'views/report_invoice_document.xml',
         'views/res_company_views.xml',
         'views/sale_order_views.xml',
+        'views/sale_order_email_templates.xml',
         'views/product_product_views.xml',
         'report/contract_layout.xml',
         'report/contract_template.xml',
         'report/contract_report.xml',
         'report/contract_template_greystar.xml'
-
     ],
     'demo': [
     ],
