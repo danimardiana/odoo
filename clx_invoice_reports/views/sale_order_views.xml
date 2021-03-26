@@ -5,7 +5,16 @@
         <field name="name">sale.order.form</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
-        <field name="arch" type="xml">
+        <field name="arch" type="xml">             
+            <xpath expr="//button[@name='action_quotation_send']" position="replace">
+            </xpath>
+            <xpath expr="//button[@name='action_quotation_send']" position="replace">
+            </xpath>
+            <xpath expr="//button[@name='action_quotation_send']" position="replace">
+            </xpath>
+            <xpath expr="//button[@name='action_quotation_send']" position="replace">
+                <button name="sale_order_email_action" type="object" string="Send E-mail"/>
+            </xpath>
             <xpath expr="//field[@name='date_order']" position="after">
                 <field name="contract_length"/>
                 <!-- <field name="intended_launch_date" invisible="1"/> -->
