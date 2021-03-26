@@ -17,21 +17,24 @@
             </xpath>
             <xpath expr="//field[@name='date_order']" position="after">
                 <field name="contract_length"/>
-                <field name="intended_launch_date"/>
+                <!-- <field name="intended_launch_date" invisible="1"/> -->
                 <!--<field name="setup_fee"/>-->
             </xpath>
-        <xpath expr="//field[@name='partner_id']" position="replace">
+            <xpath expr="//field[@name='partner_id']" position="replace">
                 <field name="partner_id"
                        widget="res_partner_many2one"
                        context="{
-                            'res_partner_search_mode': 'company',
-                            'show_address' : True,
-                            'show_vat': True
+                       'default_company_type': 'company',
+                       'res_partner_search_mode': 'company',
+                       'show_vat': True
                        }"
-                       options="{
-                            'no_create_edit' : True
-                           }"
-                    />
+                       options="{'no_quick_create': True}"
+                />
+                <!-- Options for create edit buttons in autocomplete
+                    no_quick_create - remove Create [client name] option.
+                    no_create_edit - remove all Create Edit options.
+                    no_create - no_quick_create and no_create_edit combined.
+                -->
             </xpath>
         </field>
     </record>
