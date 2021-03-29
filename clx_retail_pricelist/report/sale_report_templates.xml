@@ -9,6 +9,7 @@
             </xpath>
         </t>
         <t t-set="greystar_flag" t-value="sale_order.partner_invoice_id.management_company_type_id and sale_order.partner_invoice_id.management_company_type_id.name.find('Greystar')>-1"/>
+        <t t-set="avenue5_flag" t-value="sale_order.partner_invoice_id.management_company_type_id and sale_order.partner_invoice_id.management_company_type_id.name.find('Avenue5')>-1"/>
 
         <div t-attf-class="container {{report_type}}">
             <div id="cover_page" class="">
@@ -244,25 +245,16 @@
                 <div class="msa-wrapper">
                     <t t-call="clx_retail_pricelist.sale_order_portal_content_nongs_mba"/>
                 </div>
-                <div class="dont_break_inside clear_shadow col-12">
-                    <div class="termsOfServiceWrapper section_wrapper_subtle row">
-                        <div class="termsOfServices col-12">
-                            <h2 class="full center">Terms of Service:</h2>
-                            <p>Fees based upon minimum guaranteed 6 months – 6 month initial commitment from date of launch. Agreement will renew annually for additional 6 months unless otherwise noted. Advertiser or Provider may cancel this agreement by providing 30 day written notice (including notice through email) at the time that initial contracted term is fulfilled. All elements of the campaign must be pre-paid in full each month for the campaign to run. If payment lapses, the campaign will be paused until payment is received. Prices include creative (two rounds of initial design, changes as needed (ads should run for at least 30 days without changes), campaign management and monthly reports. Branded Search Targeting packages include both desktop and mobile investments. Search management fee is $400 or 20%, whichever is greater. Targeted Online Display CPM is $12, with premium placement, $18</p>
-                        </div>
+
+            </t>                
+            <div class="dont_break_inside clear_shadow col-12">
+                <div class="termsOfServiceWrapper section_wrapper_subtle row">
+                    <div class="termsOfServices col-12">
+                        <h2 class="full center">Terms of Service:</h2>
+                        <p t-field="sale_order.note"/>
                     </div>
                 </div>
-            </t>
-            <t t-else="">
-                <div class="dont_break_inside clear_shadow col-12">
-                    <div class="termsOfServiceWrapper section_wrapper_subtle row">
-                        <div class="termsOfServices col-12">
-                            <h2 class="full center">Terms of Service:</h2>
-                            <p>Standard Length of Agreement is as selected above. After initial commitment, agreement becomes month to month. Advertiser may cancel this Order and Agreement upon 30 day written notice including notice via email. If cancelled prior to the agreement length, a retroactive setup fee of $250 may be charged. Should Advertiser exercise this right, Advertiser’s liability for further delivery of traffic shall be limited to only that traffic delivered during the 30-day notice period. Launch dates from the 1st-15th will be billed at a full month. Launch dates from the 15th-end of month will be billed a half month. CallChatter invoices are not prorated. Total monthly cost is inclusive of the management fee as defined in the National Preferred Vendor Agreement between Greystar and Conversion Logix.</p>
-                        </div>
-                    </div>
-                </div>
-            </t>
+            </div>
             
             <div t-if="sale_order.signature" class="mt32 ml64 mr4 signature">
                 <div t-attf-class="dont_break_inside clear_shadow col-5 offset-6 {{report_type}}signature">                
