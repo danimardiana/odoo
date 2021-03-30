@@ -8,6 +8,8 @@ from odoo.tools.misc import get_lang
 
 from odoo import api, fields, models, _
 
+terms_and_conditions_default = "Fees based upon minimum guaranteed 6 months. Agreement continues month to month until notice is given. Advertiser or Provider may cancel this agreement by providing 30 day written notice (including notice through email). Invoices are due upon receipt. Prices include creative (two rounds of initial design, changes as needed (ads should run for at least 30 days without changes), campaign management and monthly reports. Branded Search Targeting packages include both desktop and mobile investments."
+terms_and_conditions_gs = "Standard Length of Agreement is as selected above. After initial commitment, agreement becomes month to month. Advertiser may cancel this Order and Agreement upon 30 day written notice including notice via email. If cancelled prior to the agreement length, a retroactive setup fee of $250 may be charged. Should Advertiser exercise this right, Advertiser’s liability for further delivery of traffic shall be limited to only that traffic delivered during the 30-day notice period. Launch dates from the 1st-15th will be billed at a full month. Launch dates from the 15th-end of month will be billed a half month. CallChatter invoices are not prorated. Total monthly cost is inclusive of the management fee as defined in the National Preferred Vendor Agreement between Greystar and Conversion Logix."
 
 class ProductPriceCalculation(models.Model):
     _name = "product.price.calculation"
@@ -28,14 +30,14 @@ class SaleOrder(models.Model):
         'product.price.calculation', 'order_id', ondelete='cascade',
         readonly=True, string="Product Price")
     display_management_fee = fields.Boolean(string="Display Management Fee", default=True)
-    
+
     def web_base_url(self):
         return self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 
     def money_formatting(self, val):
         result_string = "${value:.2f}"
         # if result_string [0] != "$"
-        return result_string.format(value = val)
+        return result_string.format(value=val)
 
     def management_fee_calculation(self, price_unit, product, pricelist):
         pricelist_product = self.env['sale.subscription'].pricelist_determination(
@@ -72,6 +74,10 @@ class SaleOrder(models.Model):
                 # self.pricelist_id = contact.child_id.parent_id. \
                 #     property_product_pricelist.id
                 self.pricelist_id = contact.property_product_pricelist.id
+
+        self.note = terms_and_conditions_default
+        if (self.partner_id.management_company_type_id.name and self.partner_id.management_company_type_id.name.find('Greystar') > -1):
+            self.note = terms_and_conditions_gs
 
     def update_price(self):
         """ Add Update Price Method to Calculate

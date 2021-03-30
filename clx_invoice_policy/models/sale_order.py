@@ -7,7 +7,6 @@ from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_is_zero, float_compare
 from dateutil.relativedelta import relativedelta
 
-
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
@@ -55,6 +54,8 @@ class SaleOrder(models.Model):
     @api.onchange('partner_id')
     def onchange_partner_id(self):
         super(SaleOrder, self).onchange_partner_id()
+        self.payment_term_id = self.payment_term_id.id if self.payment_term_id.id else 1
+
         if self.partner_id:
             self.clx_invoice_policy_id = self.partner_id.clx_invoice_policy_id.id if \
                 self.partner_id.clx_invoice_policy_id else False
