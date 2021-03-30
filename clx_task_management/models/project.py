@@ -2,7 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, models, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, Warning
 import datetime
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
@@ -42,10 +42,10 @@ class ProjectProject(models.Model):
     ops_notes = fields.Text(related='partner_id.ops_notes')
     cat_notes = fields.Text(related='partner_id.cat_notes')
     
-    # Proofing Due Date
-    deadline = fields.Date(string='Deadline') 
-    # Client Launch Date
-    intended_launch_date = fields.Date(related="req_form_id.intended_launch_date", string='Intended Launch Date', store=True)
+    # Caluculated Proofing Due Date
+    deadline = fields.Date(string='Proof Deadline') 
+    # Analyst selected Client Launch Date
+    intended_launch_date = fields.Date(related="req_form_id.intended_launch_date", string='Intended Launch Date', store=False, readonly=False)
     
     priority = fields.Selection(
         [('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
@@ -97,6 +97,10 @@ class ProjectProject(models.Model):
         else:
             raise UserError(_("Please Complete All the Task First!!"))
 
+    @api.onchange('intended_launch_date')
+    def _onchange_intended_launch_date(self):
+        if self.deadline > self.intended_launch_date:
+              raise Warning("Launch date must be equal or greated than task proofing deadline dates.")  
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'
@@ -161,6 +165,9 @@ class ProjectTask(models.Model):
                               default=lambda self: self.env.uid,
                               index=True, tracking=True)
 
+    # Analyst selected Client Launch Date
+    intended_launch_date = fields.Date(related="project_id.intended_launch_date", string='Intended Launch Date', readonly=False)
+    
     @api.model
     def create(self, vals):
         new_task = super(ProjectTask, self).create(vals)
@@ -215,8 +222,8 @@ class ProjectTask(models.Model):
                 'clx_task_manager_id': self.project_id.clx_project_manager_id.id if self.project_id.clx_project_manager_id else False,
                 'clx_task_designer_id': self.project_id.clx_project_designer_id.id if self.project_id.clx_project_designer_id else False,
                 'ops_team_member_id': self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
-                'date_deadline': main_task and main_task.date_deadline
-                # 'intended_launch_date': 
+                'intended_launch_date': main_task and main_task.intended_launch_date,
+                'date_deadline': main_task and main_task.date_deadline 
             }
             return vals
 
@@ -279,6 +286,7 @@ class ProjectTask(models.Model):
                 'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,
                 'tag_ids': task.tag_ids.ids if task.tag_ids else False,
+                'intended_launch_date' : self.parent_id.intended_launch_date,
                 'date_deadline': self.parent_id.date_deadline,
                 'ops_team_member_id': self.ops_team_member_id.id if self.ops_team_member_id else False,
                 'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,

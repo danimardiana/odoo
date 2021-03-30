@@ -2,7 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, api, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError, Warning
 from dateutil.relativedelta import relativedelta
 import datetime
 from pytz import timezone
@@ -29,7 +29,7 @@ class RequestForm(models.Model):
 
     intended_launch_date = fields.Date(string='Intended Launch Date')
     # Proof Date
-    deadline_date = fields.Date('Proof Due Date', compute='set_proof_deadline_date')
+    deadline_date = fields.Date('Proof Due Date', default='', store=False)
     
     attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
     sale_order_id = fields.Many2many('sale.order', string="Sale Order")
@@ -42,24 +42,6 @@ class RequestForm(models.Model):
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one('project.project', string="Project")
     product_ids = fields.Many2many('product.product', string="Products")
-
-    # @api.multi
-    # @api.constraints('intended_launch_date','deadline_date')
-    def launch_date_constraints(self):
-        for rec in self:
-            if rec.intended_launch_date < rec.deadline_date:
-                raise ValidationError(_('Intended launch date must be equal or greater that proofing due date.'))
-
-    # TODO: get max proof deadline date from list of main project tasks
-    def set_proof_deadline_date(self):
-        proof_date = fields.Date.today()
-        print('INIT PROOF DATE: ', proof_date)
-        return proof_date
-
-    @api.onchange('intended_launch_date')
-    def onchange_intended_launch_date(self):
-        print('proof_deadline_date: ', self.deadline_date)
-        print('intended_launch_date: ', self.intended_launch_date)
 
     def open_active_subscription_line(self):
         """
@@ -195,11 +177,11 @@ class RequestForm(models.Model):
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
 
         # Proof Due Date/Deadline
-        current_date = self.calculated_date(line)
+        proof_deadline_date = self.calculated_date(line)
         
         # Client Wanted Launch Date
         # Must be after proof date deadline
-        launch_date = self.intended_launch_date if self.intended_launch_date > current_date else current_date
+        launch_date = self.intended_launch_date if self.intended_launch_date > proof_deadline_date else proof_deadline_date
         
         vals = {
             'name': line.task_id.name,
@@ -210,7 +192,7 @@ class RequestForm(models.Model):
             'req_type': line.task_id.req_type,
             'team_ids': line.task_id.team_ids.ids,
             'team_members_ids': line.task_id.team_members_ids.ids,
-            'date_deadline': current_date,
+            'date_deadline': proof_deadline_date,
             'intended_launch_date': launch_date, 
             'requirements': line.requirements,
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
@@ -236,6 +218,7 @@ class RequestForm(models.Model):
             'clx_state': 'new',
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
             'user_id': self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
+            'intended_launch_date': self.intended_launch_date if self.intended_launch_date else max_date,
             'deadline': max_date,
             'priority': self.priority,
             'clx_attachment_ids': self.clx_attachment_ids.ids
@@ -254,8 +237,16 @@ class RequestForm(models.Model):
         if email_template:
             email_template.with_context(context).send_mail(self.id, force_send=True)
 
+    @api.onchange('intended_launch_date')
+    def _onchange_intended_launch_date(self):
+        if self.deadline_date and self.deadline_date > self.intended_launch_date:
+            self.intended_launch_date = self.deadline_date
+            raise Warning("Launch date must be equal or greated than task proofing deadline dates.")          
+
     @api.onchange('priority')
     def _onchange_priority(self):
+        max_task_date = fields.Date.today()
+       
         for line in self.request_line:
             if hasattr(line , 'req_type'):
                 today = fields.Date.today() if fields.Date.today() else datetime.datetime.today()
@@ -298,7 +289,21 @@ class RequestForm(models.Model):
                     if weekday >= 5:  # sunday = 6, saturday = 5
                         continue
                     business_days_to_add -= 1
+
+                    # get the largest task date
+                    if current_date > max_task_date:
+                        max_task_date = current_date
+                        self.deadline_date = max_task_date
+                    else:
+                        self.deadline_date = current_date
+
+                    # launch date must be >= proof deadline 
+                    if self.intended_launch_date and self.deadline_date > self.intended_launch_date:
+                        self.intended_launch_date = self.deadline_date
+                        #raise Message(_("Launch date was modified. It must be equal or greater than proofing deadling dates."))
+                            
                 line.task_deadline = current_date
+                    
 
     def calculated_date(self, line):
         today = fields.Date.today()
@@ -493,11 +498,20 @@ class RequestFormLine(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
+    
     task_deadline = fields.Date(string='First Proof Due', readonly=True, copy=False, compute='_default_task_deadline')
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
     category_id = fields.Many2one('product.category', string="Products Category")
+
+    # def set_intended_launch_date(self):
+    #     self.intended_launch_date = datetime.datetime.today()
+    #     print('intended_launch_date: ', self.intended_launch_date)
+
+    # def set_proof_deadline_date(self):
+    #     self.deadline_date = datetime.datetime.today()
+    #     print('proof_deadline_date: ', self.deadline_date)
   
     def create_task_deadline_date(self):
         today = datetime.datetime.today()
@@ -542,13 +556,16 @@ class RequestFormLine(models.Model):
             business_days_to_add -= 1
         self.task_deadline = current_date
    
-    def _default_task_deadline(self):    
-        for line in self:
-            line.create_task_deadline_date()
-    
+    def _default_task_deadline(taskLineArray):
+        proof_deadline_date = taskLineArray.request_form_id.deadline_date
+        for taskLine in taskLineArray:
+            taskLine.create_task_deadline_date()
+            if not proof_deadline_date or taskLine.task_deadline > proof_deadline_date:
+                taskLineArray.request_form_id.deadline_date = taskLine.task_deadline
+
     @api.onchange('req_type')
-    def _onchange_req_type(self):
-        self.create_task_deadline_date()
+    def _onchange_req_type(taskLine):
+        taskLine.create_task_deadline_date()
 
     @api.onchange('task_id')
     def _onchange_task_id(self):
