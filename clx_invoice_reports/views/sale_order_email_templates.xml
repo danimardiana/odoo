@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-        <!--Email template -->
-        <record id="sale_order_clx_email_template" model="mail.template">
-            <field name="name">Sales Order: CLX email template</field>
-            <field name="email_from">${(object.user_id.email_formatted or user.email_formatted) | safe}</field>
-            <field name="subject">${object.company_id.name} ${object.state in ('draft', 'sent') and 'Quotation' or 'Order'} (Ref ${object.name or 'n/a' })</field>
-            <!-- <field name="partner_to">${object.partner_id.account_user_id.id}</field> -->
-            <field name="email_to">${object.partner_id.account_user_id.email}</field>
-            <!--  -->
-            <field name="model_id" eval="336"/>
-            <!-- 336 - model id for sales.order -->
-            <field name="auto_delete" eval="True"/>
-            <field name="lang">${object.partner_id.lang}</field>            
-            <field name="report_name">${(object.name or '').replace('/','_')}</field>
-            <field name="report_template" eval="388"/>
-            <field name="body_html"><![CDATA[
+    <!--Email template -->
+    <record id="sale_order_clx_email_template" model="mail.template">
+        <field name="name">Sales Order: CLX email template</field>
+        <field name="email_from">${(object.user_id.email_formatted or user.email_formatted) | safe}</field>
+        <field name="subject">${object.company_id.name} ${object.state in ('draft', 'sent') and 'Quotation' or 'Order'} (Ref ${object.name or 'n/a' })</field>
+        <!-- <field name="partner_to">${object.partner_id.account_user_id.id}</field> -->
+        <!-- <field name="email_to">${object.partner_id.account_user_id.email}</field> -->
+        <!--  -->
+        <field name="model_id" eval="336"/>
+        <!-- 336 - model id for sales.order -->
+        <field name="auto_delete" eval="True"/>
+        <field name="lang">${object.partner_id.lang}</field>
+        <field name="report_name">${(object.name or '').replace('/','_')}</field>
+        <field name="report_template" eval="388"/>
+        <field name="body_html"><![CDATA[
                <div style="font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;margin:0px;padding: 0px;">
     <p style="margin:0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;padding: 0px; font-size: 13px;">
         % set doc_name = 'quotation' if object.state in ('draft', 'sent') else 'order'
@@ -30,21 +30,29 @@
         <br>
     </p>
 </div>
-            ]]></field>
-        </record>
-<!-- Change the mail form template to eleminate the followers message  -->
-        <record model="ir.ui.view" id="email_compose_form_sale_order_form">
-            <field name="name">mail.compose.message.form.sale_order_form</field>
-            <field name="model">mail.compose.message</field>
-            <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//span[@name='document_followers_text']" position="replace">
+            ]]>        </field>
+    </record>
 
-                </xpath>
-                <xpath expr="//field[@name='partner_ids']" position="attributes">
-                    <attribute name="options">{'no_create_edit': True, 'no_create':True, 'no_open':True}</attribute>
-                    <attribute name="domain">[('company_type','=','person')]</attribute>
-                </xpath>                
-            </field>
-        </record>
+    <!-- Change the mail form template to eleminate the followers message  -->
+    <record model="ir.ui.view" id="email_compose_form_sale_order_form">
+        <field name="name">mail.compose.message.form.sale_order_form</field>
+        <field name="model">mail.compose.message</field>
+        <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//span[@name='document_followers_text']" position="replace">
+            </xpath>
+            <xpath expr="//field[@name='partner_ids']" position="replace">
+                <field name="allowed_partner_ids" invisible="1" />
+                <field name="partner_ids"  widget="many2many_tags_email" 
+                    placeholder="Add contacts to notify..." 
+                    domain="[('id', 'in', allowed_partner_ids)]"/>
+                <field name="email_to" placeholder="Add additional e-mails to notify..." />
+                <!-- <div t-attf-class="{{allowed_partner_ids}}"/> eval="ref('allowed_partner_ids')"-->
+            </xpath>
+            <xpath expr="//footer/button[@name='action_send_mail' and contains(@class,'o_mail_send')]" position="replace">
+                <button string="Send" attrs="{'invisible': [('is_log', '=', True)]}" name="action_send_mail_sales_order" type="object" class="btn-primary o_mail_send"/>    
+            </xpath>
+
+        </field>
+    </record>
 </odoo>
