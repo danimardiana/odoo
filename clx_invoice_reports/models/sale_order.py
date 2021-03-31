@@ -19,17 +19,8 @@ class SaleOrder(models.Model):
                                        selection=contract_lengths_const, default='1_m')
     intended_launch_date = fields.Date(string='Intended Launch Date')
     setup_fee = fields.Char(string="Setup Fee")
-    mail_compose_message_id  = fields.Many2many('mail.compose.message',  string="List of templates")   
-
-    @api.onchange('partner_id')
-    def onchange_partner_id(self):
-        super(SaleOrder, self).onchange_partner_id()
-
-        # If Greystar company pricing, default contact to 3 months
-        if ((self.partner_id) and (self.partner_id.property_product_pricelist.id == 2)):
-            self.contract_length = '3_m'
-        else:
-            self.contract_length = '1_m'
+    mail_compose_message_id = fields.Many2many(
+        'mail.compose.message',  string="List of templates")
 
     def get_text_contract_length(self):
         if not self.contract_length:
@@ -43,7 +34,7 @@ class SaleOrder(models.Model):
             [('name', '=', 'Sales Order: CLX email template')])
         lang = self.env.context.get('lang')
         template_id = template.id
-        contacts_billing = [];
+        contacts_billing = []
         for contact in self.partner_id.contact_child_ids:
             contacts_billing.append(contact.child_id.id)
         account_manager = self.partner_id.account_user_id.partner_id
@@ -58,15 +49,15 @@ class SaleOrder(models.Model):
             'default_use_template': bool(template_id),
             'default_template_id': template_id,
             'default_composition_mode': 'comment',
-            'default_partner_ids':[account_manager.id],
-            'default_email_to':'',
+            'default_partner_ids': [account_manager.id],
+            'default_email_to': '',
             'mark_so_as_sent': True,
             'custom_layout': "mail.mail_notification_paynow",
             'proforma': self.env.context.get('proforma', False),
             'force_email': True,
             'model_description': self.with_context(lang=lang).type_name,
             'report_name': (self.name or '').replace('/', '_')+'_000',
-            'default_allowed_partner_ids' : contacts_billing,
+            'default_allowed_partner_ids': contacts_billing,
         }
         return {
             'type': 'ir.actions.act_window',
