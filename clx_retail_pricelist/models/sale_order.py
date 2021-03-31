@@ -82,7 +82,6 @@ class SaleOrder(models.Model):
         # TOS text populating and Display Management Fee
         if (greystar_flag):
             self.note = terms_and_conditions_gs
-            self.display_management_fee = False
             self.contract_length = '3_m'
         else:
             self.note = terms_and_conditions_default
