@@ -29,6 +29,7 @@
                        'show_vat': True
                        }"
                        options="{'no_quick_create': True}"
+                       domain="[('company_type_rel','=','company')]"
                 />
                 <!-- Options for create edit buttons in autocomplete
                     no_quick_create - remove Create [client name] option.
