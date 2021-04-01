@@ -45,7 +45,9 @@
                 <field name="allowed_partner_ids" invisible="1" />
                 <field name="partner_ids"  widget="many2many_tags_email" 
                     placeholder="Add contacts to notify..." 
-                    domain="[('id', 'in', allowed_partner_ids)]"/>
+                    domain="[('id', 'in', allowed_partner_ids)]"
+                    options="{'no_create_edit': True}"/>
+
                 <field name="email_to" placeholder="Add additional e-mails to notify..." />
                 <!-- <div t-attf-class="{{allowed_partner_ids}}"/> eval="ref('allowed_partner_ids')"-->
             </xpath>
