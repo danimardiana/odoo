@@ -28,8 +28,8 @@ class RequestForm(models.Model):
     ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
 
     intended_launch_date = fields.Date(string='Intended Launch Date')
-    # Proof Date
-    deadline_date = fields.Date('Proof Due Date', default='', store=False)
+    # Caluculated date derived from the form's max task due date
+    max_proof_deadline_date = fields.Date(string='Project Due Date')
     
     attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
     sale_order_id = fields.Many2many('sale.order', string="Sale Order")
@@ -71,6 +71,9 @@ class RequestForm(models.Model):
             if req_form.state == 'submitted':
                 raise UserError(_('You can Not Delete Submitted Request Form'))
         return super(RequestForm, self).unlink()
+
+    def _computed_max_proof_date(self):
+        self.max_proof_deadline_date = fields.Date.today()
 
     def create_client_launch_task(self, project_id):
         """
@@ -239,13 +242,31 @@ class RequestForm(models.Model):
 
     @api.onchange('intended_launch_date')
     def _onchange_intended_launch_date(self):
-        if self.deadline_date and self.deadline_date > self.intended_launch_date:
-            self.intended_launch_date = self.deadline_date
-            raise Warning("Launch date must be equal or greated than task proofing deadline dates.")          
+        if self.max_proof_deadline_date and self.max_proof_deadline_date > self.intended_launch_date:
+            self.intended_launch_date = self.max_proof_deadline_date
+            raise UserError("Launch date must be equal or greated than task proofing deadline dates.")
 
+    @api.onchange('request_line')
+    def _onchange_request_line_type(self):
+        if len(self.request_line) > 0:
+            max_task_date = fields.Date.today()
+            self.max_proof_deadline_date = fields.Date.today()
+
+            for line in self.request_line:
+                if hasattr(line , 'req_type'):
+                    # get the largest task date
+                    if line.task_deadline > max_task_date:
+                        max_task_date = line.task_deadline
+                        self.max_proof_deadline_date = max_task_date
+
+            if self.intended_launch_date and self.intended_launch_date < max_task_date:
+                self.intended_launch_date = max_task_date        
+        
     @api.onchange('priority')
     def _onchange_priority(self):
         max_task_date = fields.Date.today()
+        if(len(self.request_line) > 0):
+            self.max_proof_deadline_date = fields.Date.today()
        
         for line in self.request_line:
             if hasattr(line , 'req_type'):
@@ -293,13 +314,13 @@ class RequestForm(models.Model):
                     # get the largest task date
                     if current_date > max_task_date:
                         max_task_date = current_date
-                        self.deadline_date = max_task_date
+                        self.max_proof_deadline_date = max_task_date
                     else:
-                        self.deadline_date = current_date
+                        self.max_proof_deadline_date = current_date
 
                     # launch date must be >= proof deadline 
-                    if self.intended_launch_date and self.deadline_date > self.intended_launch_date:
-                        self.intended_launch_date = self.deadline_date
+                    if self.intended_launch_date and self.max_proof_deadline_date > self.intended_launch_date:
+                        self.intended_launch_date = self.max_proof_deadline_date
                         #raise Message(_("Launch date was modified. It must be equal or greater than proofing deadling dates."))
                             
                 line.task_deadline = current_date
@@ -335,47 +356,6 @@ class RequestForm(models.Model):
             if weekday >= 5:  # sunday = 6, saturday = 5
                 continue
             business_days_to_add -= 1
-
-            # today = fields.Date.today()
-            # current_day_with_time = self.write_date
-            # user_tz = self.env.user.tz or 'US/Pacific'
-            # current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
-            # date_time_str = today.strftime("%d/%m/%y")
-            # date_time_str += ' 14:00:00'
-            # comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
-            # # if current_day_with_time after 2 pm:
-            # #     today + 1 day
-            # if current_day_with_time.time() > comparsion_date.time():
-            #     today = today + relativedelta(days=1)
-            #     if line.request_form_id.priority == 'high':
-            #         if line.req_type in ('update', 'budget'):
-            #             business_days_to_add = 1
-            #         else:
-            #             business_days_to_add = 3
-            #     else:
-            #         if line.req_type in ('update', 'budget'):
-            #             business_days_to_add = 3
-            #         else:
-            #             business_days_to_add = 5
-            # else:
-            #     if line.request_form_id.priority == 'high':
-            #         if line.req_type in ('update', 'budget'):
-            #             business_days_to_add = 0
-            #         else:
-            #             business_days_to_add = 2
-            #     else:
-            #         if line.req_type in ('update', 'budget'):
-            #             business_days_to_add = 2
-            #         else:
-            #             business_days_to_add = 4
-            # current_date = today
-            # # code for skip saturday and sunday for set deadline on task.
-            # while business_days_to_add > 0:
-            #     current_date += datetime.timedelta(days=1)
-            #     weekday = current_date.weekday()
-            #     if weekday >= 5:  # sunday = 6, saturday = 5
-            #         continue
-            #     business_days_to_add -= 1
 
         return current_date
 
@@ -499,19 +479,11 @@ class RequestFormLine(models.Model):
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
     
-    task_deadline = fields.Date(string='First Proof Due', readonly=True, copy=False, compute='_default_task_deadline')
+    task_deadline = fields.Date(string='Task Due Date', readonly=True, copy=False, compute='_default_task_deadline')
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
     category_id = fields.Many2one('product.category', string="Products Category")
-
-    # def set_intended_launch_date(self):
-    #     self.intended_launch_date = datetime.datetime.today()
-    #     print('intended_launch_date: ', self.intended_launch_date)
-
-    # def set_proof_deadline_date(self):
-    #     self.deadline_date = datetime.datetime.today()
-    #     print('proof_deadline_date: ', self.deadline_date)
   
     def create_task_deadline_date(self):
         today = datetime.datetime.today()
@@ -557,11 +529,11 @@ class RequestFormLine(models.Model):
         self.task_deadline = current_date
    
     def _default_task_deadline(taskLineArray):
-        proof_deadline_date = taskLineArray.request_form_id.deadline_date
+        proof_deadline_date = taskLineArray.request_form_id.max_proof_deadline_date
         for taskLine in taskLineArray:
             taskLine.create_task_deadline_date()
             if not proof_deadline_date or taskLine.task_deadline > proof_deadline_date:
-                taskLineArray.request_form_id.deadline_date = taskLine.task_deadline
+                taskLineArray.request_form_id.max_proof_deadline_date = taskLine.task_deadline
 
     @api.onchange('req_type')
     def _onchange_req_type(taskLine):

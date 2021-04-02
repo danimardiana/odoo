@@ -42,8 +42,10 @@ class ProjectProject(models.Model):
     ops_notes = fields.Text(related='partner_id.ops_notes')
     cat_notes = fields.Text(related='partner_id.cat_notes')
     
-    # Caluculated Proofing Due Date
-    deadline = fields.Date(string='Proof Deadline') 
+    # Caluculated Max Task Due Date
+    # which is set when the project and tasks
+    # are created during form submission
+    deadline = fields.Date(string='Project Due Date') 
     # Analyst selected Client Launch Date
     intended_launch_date = fields.Date(related="req_form_id.intended_launch_date", string='Intended Launch Date', store=False, readonly=False)
     
@@ -298,16 +300,6 @@ class ProjectTask(models.Model):
                 'category_id': self.parent_id.category_id.id if self.parent_id.category_id else False
             }
             return vals
-
-    #  update subtask deadline if main task deadline changes
-    @api.onchange('date_deadline')
-    def onchange_main_task_deadline(self):
-        for subtask in self.child_ids:
-            subtask.date_deadline = self.date_deadline
-            print(subtask.date_deadline)
-
-            # self._cr.execute("UPDATE project_task SET date_deadline = %s WHERE id = %s", [
-            #                         vals.get('active'), task.id])
 
     @api.onchange('repositary_task_id')
     def on_repository_change(self):
