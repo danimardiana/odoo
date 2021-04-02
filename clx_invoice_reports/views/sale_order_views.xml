@@ -28,7 +28,7 @@
                        'res_partner_search_mode': 'company',
                        'show_vat': True
                        }"
-                       options="{'no_quick_create': True}"
+                       options="{'no_create ': True}"
                        domain="[('company_type_rel','=','company')]"
                 />
                 <!-- Options for create edit buttons in autocomplete
@@ -37,6 +37,7 @@
                     no_create - no_quick_create and no_create_edit combined.
                 -->
             </xpath>
+
         </field>
     </record>
 </odoo>
