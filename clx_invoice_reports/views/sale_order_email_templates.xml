@@ -28,6 +28,7 @@
                <div style="font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;margin:0px;padding: 0px;">
                     <p style="margin:0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;padding: 0px; font-size: 13px;">
                         % set doc_name = 'quotation' if object.state in ('draft', 'sent') else 'order'
+                        % set secure_url = ctx.get('secure_url') 
                         Hello,
                         <br/><br/>
                         Your Conversion Logix quotation has been prepared. Please review the attached file for <strong style="font-weight:bolder;">${object.partner_id.name}</strong> in the amount of <strong style="font-weight:bolder;">${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong>. 
@@ -38,11 +39,11 @@
                         <br/><br/>
                         The Conversion Logix Team 
                         <br/>
-
+                    
                     </p>
                 </div>
                 <div t-if="is_online and not record._context.get('proforma')" style="margin: 32px 0px 32px 0px; text-align: center;">
-                    <a href="${object.access_url}"
+                        <a href="${secure_url}"
                         style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
                         Accept &amp; Sign Quotation
                     </a>
