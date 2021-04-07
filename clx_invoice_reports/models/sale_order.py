@@ -42,6 +42,7 @@ class SaleOrder(models.Model):
         if template.lang:
             lang = template._render_template(
                 template.lang, 'sale.order', self.ids[0])
+        secure_url = self._get_share_url(redirect=True, signup_partner=True)
         ctx = {
             'tpl_partners_only': True,
             'default_model': 'sale.order',
@@ -58,6 +59,7 @@ class SaleOrder(models.Model):
             'model_description': self.with_context(lang=lang).type_name,
             'report_name': (self.name or '').replace('/', '_')+'_000',
             'default_allowed_partner_ids': contacts_billing,
+            'secure_url': secure_url,
         }
         return {
             'type': 'ir.actions.act_window',

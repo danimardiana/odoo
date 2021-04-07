@@ -26,6 +26,7 @@ class MaleComposeMessage(models.TransientModel):
         string="List of contacts in JSON")
 
     def action_send_mail_sales_order(self):
+
         prepeared_values = {
             'email_to': self.email_to,
             'body_html': self.body,
@@ -35,5 +36,7 @@ class MaleComposeMessage(models.TransientModel):
             'email_from': self.email_from,
         }
         Mail = self.env['mail.mail'].create(prepeared_values)
+        sale_order = self.env[self.model].browse(self.res_id)
+        sale_order.state = 'sent'
         Mail.send()
         return {'type': 'ir.actions.act_window_close', 'infos': 'mail_sent'}
