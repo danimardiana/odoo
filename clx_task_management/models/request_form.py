@@ -434,7 +434,7 @@ class RequestForm(models.Model):
             future_lines = lines.filtered(lambda x: x.start_date and x.start_date >= today)
             if future_lines:
                 order_lines += future_lines
-            order_lines = order_lines.filtered(lambda x: x.subscription_id)
+            order_lines = order_lines.filtered(lambda x: x.subscription_id and x.product_id.is_task_create)
             for category in order_lines.mapped('product_id').mapped('categ_id'):
                 # task_id = main_task_obj.search([('product_ids', 'in', product.id), ('req_type', '=', 'update')])
                 line_id = req_line_obj.create({
