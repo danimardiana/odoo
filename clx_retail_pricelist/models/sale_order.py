@@ -99,6 +99,10 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
+    #these two fields not in use anymore just lft it for comability 
+    
+    management_price = fields.Float(string='Management Price')
+    wholesale_price = fields.Float(string='Wholesale Price')
     def update_price(self):
         """
         To Calculate Management Fees and Wholesale fees
