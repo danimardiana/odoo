@@ -13,41 +13,50 @@
         <field name="report_template" eval="388"/>
         <field name="body_html" type="html">
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: white; padding: 0; border-collapse:separate;">
-                <tr><td valign="middle">
-                    <span style="font-size: 10px;">Your Quotation</span><br/>
-                    <span style="font-size: 20px; font-weight: bold;">
+                <tr>
+                    <td valign="middle">
+                        <span style="font-size: 10px;">Your Quotation</span>
+                        <br/>
+                        <span style="font-size: 20px; font-weight: bold;">
                         ${object.name}
-                    </span>
-                </td><td valign="middle" align="right">
-                <img src="/logo.png?company=1" style="padding: 0px; margin: 0px; height: 48px;" alt="company.name"/>
-                </td></tr>
-                <tr><td colspan="2" style="text-align:center;">
-                    <hr width="100%" style="background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:4px 0px 32px 0px;"/>
-                </td></tr>
+                        </span>
+                    </td>
+                    <td valign="middle" align="right">
+                        <img src="/logo.png?company=1" style="padding: 0px; margin: 0px; height: 48px;" alt="company.name"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:center;">
+                        <hr width="100%" style="background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:4px 0px 32px 0px;"/>
+                    </td>
+                </tr>
             </table>
-               <div style="font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;margin:0px;padding: 0px;">
-                    <p style="margin:0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;padding: 0px; font-size: 13px;">
+            <div style="font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;margin:0px;padding: 0px;">
+                <p style="margin:0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;padding: 0px; font-size: 13px;">
                         % set doc_name = 'quotation' if object.state in ('draft', 'sent') else 'order'
                         % set secure_url = ctx.get('secure_url') 
                         Hello,
-                        <br/><br/>
+                    <br/>
+                    <br/>
                         Your Conversion Logix quotation has been prepared. Please review the attached file for <strong style="font-weight:bolder;">${object.partner_id.name}</strong> in the amount of <strong style="font-weight:bolder;">${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong>. 
-                        <br/>Please press <strong style="font-weight:bolder;">Accept &amp; Sign</strong> in order to review, e-sign, and submit confirmation for the community’s campaign. 
-                        <br/>If additional changes are made, your account manager is attached to this email and can make any needed edits. 
-                        <br/>
+                    <br/>
+Please press <strong style="font-weight:bolder;">Accept &amp; Sign</strong> in order to review, e-sign, and submit confirmation for the community’s campaign. 
+                    <br/>
+If additional changes are made, your account manager is attached to this email and can make any needed edits. 
+                    <br/>
                         Thank you, 
-                        <br/><br/>
+                    <br/>
+                    <br/>
                         The Conversion Logix Team 
-                        <br/>
-                    
-                    </p>
-                </div>
-                <div t-if="is_online and not record._context.get('proforma')" style="margin: 32px 0px 32px 0px; text-align: center;">
-                        <a href="${secure_url}"
-                        style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+                    <br/>
+
+                </p>
+            </div>
+            <div t-if="is_online and not record._context.get('proforma')" style="margin: 32px 0px 32px 0px; text-align: center;">
+                <a href="${secure_url}" style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
                         Accept &amp; Sign Quotation
-                    </a>
-                </div>
+                </a>
+            </div>
         </field>
         <field name="user_signature" eval="False"/>
     </record>
@@ -62,16 +71,13 @@
             </xpath>
             <xpath expr="//field[@name='partner_ids']" position="replace">
                 <field name="allowed_partner_ids" invisible="1" />
-                <field name="partner_ids"  widget="many2many_tags_email" 
-                    placeholder="Add contacts to notify..." 
-                    domain="[('id', 'in', allowed_partner_ids)]"
-                    options="{'no_create': True}"/>
+                <field name="partner_ids" widget="many2many_tags_email" placeholder="Add contacts to notify..." domain="[('id', 'in', allowed_partner_ids)]" options="{'no_create': True}"/>
 
                 <field name="email_to" placeholder="Add additional e-mails to notify..." />
                 <!-- <div t-attf-class="{{allowed_partner_ids}}"/> eval="ref('allowed_partner_ids')"-->
             </xpath>
             <xpath expr="//footer/button[@name='action_send_mail' and contains(@class,'o_mail_send')]" position="replace">
-                <button string="Send" attrs="{'invisible': [('is_log', '=', True)]}" name="action_send_mail_sales_order" type="object" class="btn-primary o_mail_send"/>    
+                <button string="Send" attrs="{'invisible': [('is_log', '=', True)]}" name="action_send_mail_sales_order" type="object" class="btn-primary o_mail_send"/>
             </xpath>
 
         </field>

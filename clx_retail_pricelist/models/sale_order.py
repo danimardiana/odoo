@@ -165,6 +165,7 @@ class SaleOrderLine(models.Model):
                 prod_tmpl_ids,
                 prod_ids,
                 categ_ids)
+            for rule in items:
                 if is_product_template:
                     if rule.product_tmpl_id and product.id != rule.product_tmpl_id.id:
                         continue
