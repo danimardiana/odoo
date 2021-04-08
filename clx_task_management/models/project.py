@@ -67,28 +67,54 @@ class ProjectProject(models.Model):
         remove_followers_non_clx(project)
         return project
 
+
+    def update_maintask_subtask_intended_launch_date(self):
+        if(self.task_ids):
+            for main_task in self.task_ids:
+                main_task.task_intended_launch_date = self.intended_launch_date
+                if(main_task.child_ids):
+                    for sub_task in main_task:
+                        sub_task.task_intended_launch_date = self.intended_launch_date
+    
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
+
+        self.update_maintask_subtask_intended_launch_date()
+
         if 'active' in vals:
             # self.task_ids.write({'active': vals.get('active', False)})
             for task in self.task_ids:
                 task.write({'active': vals.get('active', False)})
+
         if vals.get('clx_project_manager_id', False):
             cs_team = self.env['clx.team'].search([('team_name', '=', 'CS')])
             for task in self.task_ids:
                 if cs_team in task.team_ids:
                     task.clx_task_manager_id = self.clx_project_manager_id.id
             self.clx_state = 'in_progress'
+        
         if vals.get('ops_team_member_id', False):
             for task in self.task_ids:
                 task.ops_team_member_id = self.ops_team_member_id.id
+        
         if vals.get('clx_project_manager_id', False):
             for task in self.task_ids:
                 task.clx_task_manager_id = self.clx_project_manager_id.id
+        
         if vals.get('clx_project_designer_id', False):
             for task in self.task_ids:
                 task.clx_task_designer_id = self.clx_project_designer_id.id
+        
+        if vals.get('deadline', False):
+            if self.intended_launch_date < self.deadline:
+                self.intended_launch_date = self.deadline
+            for task in self.task_ids:
+                task.date_deadline = self.deadline
+                if task.task_intended_launch_date < self.deadline:
+                    task.task_intended_launch_date = self.deadline
+        
         remove_followers_non_clx(self)
+        
         return res
 
     def action_done_project(self):
@@ -102,7 +128,12 @@ class ProjectProject(models.Model):
     @api.onchange('intended_launch_date')
     def _onchange_intended_launch_date(self):
         if self.deadline > self.intended_launch_date:
-              raise Warning("Launch date must be equal or greated than task proofing deadline dates.")  
+              raise Warning("Launch date must be equal or greated than task proofing deadline dates.")
+        else:
+            for task in self.task_ids:
+                task.task_intended_launch_date = self.intended_launch_date
+                for subtask in task.sub_task_id:
+                    subtask.task_intended_launch_date = self.intended_launch_date
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'
@@ -168,7 +199,7 @@ class ProjectTask(models.Model):
                               index=True, tracking=True)
 
     # Analyst selected Client Launch Date
-    intended_launch_date = fields.Date(related="project_id.intended_launch_date", string='Intended Launch Date', readonly=False)
+    task_intended_launch_date = fields.Date(string='Intended Launch Date', readonly=False)
     
     @api.model
     def create(self, vals):
@@ -224,7 +255,7 @@ class ProjectTask(models.Model):
                 'clx_task_manager_id': self.project_id.clx_project_manager_id.id if self.project_id.clx_project_manager_id else False,
                 'clx_task_designer_id': self.project_id.clx_project_designer_id.id if self.project_id.clx_project_designer_id else False,
                 'ops_team_member_id': self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
-                'intended_launch_date': main_task and main_task.intended_launch_date,
+                'task_intended_launch_date': main_task and main_task.task_intended_launch_date,
                 'date_deadline': main_task and main_task.date_deadline 
             }
             return vals
@@ -288,7 +319,7 @@ class ProjectTask(models.Model):
                 'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,
                 'tag_ids': task.tag_ids.ids if task.tag_ids else False,
-                'intended_launch_date' : self.parent_id.intended_launch_date,
+                'task_intended_launch_date' : self.parent_id.intended_launch_date,
                 'date_deadline': self.parent_id.date_deadline,
                 'ops_team_member_id': self.ops_team_member_id.id if self.ops_team_member_id else False,
                 'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,
@@ -313,10 +344,20 @@ class ProjectTask(models.Model):
             raise UserError(
                 _("You Can not Complete the Task until the all Sub Task are completed"))
 
+    def update_subtask_intended_launch_date(self):
+        if(self.child_ids):
+            for subtask in self.child_ids:
+                if self.task_intended_launch_date:
+                    subtask.task_intended_launch_date = self.task_intended_launch_date
+
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
         today = fields.Date.today()
         current_date = today
+
+        if 'active' in vals and vals.get('active'):
+            self.update_subtask_intended_launch_date()
+
         if 'active' not in vals:
             current_day_with_time = self.write_date
             user_tz = self.env.user.tz or 'US/Pacific'
@@ -361,6 +402,8 @@ class ProjectTask(models.Model):
                 business_days_to_add -= 1
         complete_stage = self.env.ref(
             'clx_task_management.clx_project_stage_8')
+
+
         if 'active' in vals:
             for task in self.child_ids:
                 self._cr.execute("UPDATE project_task SET active = %s WHERE id = %s", [

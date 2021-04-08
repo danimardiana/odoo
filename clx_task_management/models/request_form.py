@@ -150,6 +150,8 @@ class RequestForm(models.Model):
         :return: dictionary for the sub task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        launch_date = self.intended_launch_date if self.intended_launch_date and self.intended_launch_date > self.max_proof_deadline_date else self.max_proof_deadline_date
+        
         if stage_id:
             vals = {
                 'name': sub_task.sub_task_name,
@@ -161,6 +163,7 @@ class RequestForm(models.Model):
                 'team_ids': sub_task.team_ids.ids,
                 'team_members_ids': sub_task.team_members_ids.ids,
                 'date_deadline': main_task.date_deadline,
+                'task_intended_launch_date': launch_date, 
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
                 'account_user_id': main_task.project_id.partner_id.account_user_id.id if main_task.project_id.partner_id.account_user_id else False,
                 'clx_priority': main_task.project_id.priority,
@@ -184,7 +187,7 @@ class RequestForm(models.Model):
         
         # Client Wanted Launch Date
         # Must be after proof date deadline
-        launch_date = self.intended_launch_date if self.intended_launch_date > proof_deadline_date else proof_deadline_date
+        launch_date = self.intended_launch_date if self.intended_launch_date and self.intended_launch_date > self.max_proof_deadline_date else self.max_proof_deadline_date
         
         vals = {
             'name': line.task_id.name,
@@ -196,7 +199,7 @@ class RequestForm(models.Model):
             'team_ids': line.task_id.team_ids.ids,
             'team_members_ids': line.task_id.team_members_ids.ids,
             'date_deadline': proof_deadline_date,
-            'intended_launch_date': launch_date, 
+            'task_intended_launch_date': launch_date, 
             'requirements': line.requirements,
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             'account_user_id': project_id.partner_id.account_user_id.id if project_id.partner_id.account_user_id else False,
@@ -214,6 +217,7 @@ class RequestForm(models.Model):
         :return : return dictionary
         """
         max_date = max(map(self.calculated_date,self.request_line))
+        launch_date = self.intended_launch_date if self.intended_launch_date and self.intended_launch_date > self.max_proof_deadline_date else self.max_proof_deadline_date
 
         vals = {
             'partner_id': partner_id.id,
@@ -221,7 +225,7 @@ class RequestForm(models.Model):
             'clx_state': 'new',
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
             'user_id': self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
-            'intended_launch_date': self.intended_launch_date if self.intended_launch_date else max_date,
+            'intended_launch_date': launch_date,
             'deadline': max_date,
             'priority': self.priority,
             'clx_attachment_ids': self.clx_attachment_ids.ids
@@ -366,9 +370,13 @@ class RequestForm(models.Model):
         """
         self.ensure_one()
         if self.request_line and self.intended_launch_date:
-            max_date = max(map(self.calculated_date,self.request_line))
-            if self.intended_launch_date < max_date:
+            # max_date = max(map(self.calculated_date,self.request_line))
+            if self.intended_launch_date < self.max_proof_deadline_date:
                 raise UserError('Please check Intended launch Date !!')
+
+        if not self.intended_launch_date:
+            self.intended_launch_date = self.max_proof_deadline_date        
+
         project_id = False
         project_obj = self.env['project.project']
         project_task_obj = self.env['project.task']
