@@ -102,15 +102,19 @@ class SaleOrder(models.Model):
         # return
         if template.id:
             #generate composition using the mail template
-            compose = self.with_context(ctx).message_post_with_template(
+            self.with_context(ctx).message_post_with_template(
                 template.id, composition_mode='comment', email_layout_xmlid="mail.mail_notification_light")
-            # prepeared_values = {
-            #     'email_to': compose.email_to,
-            #     'body_html': compose.body,
-            #     'attachment_ids': compose.attachment_ids,
-            #     'recipient_ids': compose.partner_ids,
-            #     'subject': compose.subject,
-            #     'email_from': compose.email_from,
-            # }
-            # Mail = self.env['mail.mail'].create(prepeared_values)
+            compose = self.env['mail.compose.message'].sudo().search(
+            [('res_id', '=', self.id)], limit=1, order='id desc')[0]
+            #sending  e-mail
+            prepeared_values = {
+                'email_to': compose.email_to,
+                'body_html': compose.body,
+                'attachment_ids': compose.attachment_ids,
+                'recipient_ids': compose.partner_ids,
+                'subject': compose.subject,
+                'email_from': compose.email_from,
+            }
+            Mail = self.env['mail.mail'].create(prepeared_values)
+            Mail.send()
         
