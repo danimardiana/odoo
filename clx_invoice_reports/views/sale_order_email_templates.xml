@@ -61,6 +61,40 @@ If additional changes are made, your account manager is attached to this email a
         <field name="user_signature" eval="False"/>
     </record>
 
+    <!-- Confirmation email template for signed contract -->
+    <record id="contract_confirmation_clx_email_template" model="mail.template">
+        <field name="name">Contract: Signing confirmation</field>
+        <field name="email_from">${(object.user_id.email_formatted or user.email_formatted) | safe}</field>
+        <field name="subject">${object.company_id.name} ${object.state in ('draft', 'sent') and 'Quotation' or 'Order'} (Ref ${object.name or 'n/a' })</field>
+        <field name="model_id" eval="336"/>
+        <!-- 336 - model id for sales.order -->
+        <field name="auto_delete" eval="True"/>
+        <field name="lang">${object.partner_id.lang}</field>
+        <field name="report_name">${(object.name or '').replace('/','_')}</field>
+        <field name="report_template" eval="388"/>
+        <field name="body_html" type="html">
+            <div style="font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;margin:0px;padding: 0px;">
+                <p style="margin:0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;padding: 0px; font-size: 13px;">
+                        % set doc_name = 'quotation' if object.state in ('draft', 'sent') else 'order'
+                        % set secure_url = ctx.get('secure_url') 
+                        Hello,
+                    <br/>
+                    <br/>
+                    Your quotation for <strong style="font-weight:bolder;">${object.partner_id.name}</strong> totalling <strong style="font-weight:bolder;">${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong> has been confirmed.
+                    <br/><br/>
+                    Thank you for your business!
+                    <br/><br/>
+                    Do not hesitate to contact us if you have any questions.  
+                    <br/><br/>
+                        The Conversion Logix Team 
+                    <br/>
+
+                </p>
+            </div>
+
+        </field>
+        <field name="user_signature" eval="False"/>
+    </record>
     <!-- Change the mail form template to eleminate the followers message  -->
     <record model="ir.ui.view" id="email_compose_form_sale_order_form">
         <field name="name">mail.compose.message.form.sale_order_form</field>
