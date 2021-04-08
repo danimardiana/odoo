@@ -408,10 +408,8 @@ class ProjectTask(models.Model):
             for task in self.child_ids:
                 self._cr.execute("UPDATE project_task SET active = %s WHERE id = %s", [
                                  vals.get('active'), task.id])
-        # if vals.get('date_deadline'):
-        #     for task in self.child_ids:
-        #         task.date_deadline = self.date_deadline
         sub_task_obj = self.env['sub.task']
+        
         if vals.get('req_type', False) and vals.get('repositary_task_id', False):
             repositary_main_task = self.env['main.task'].browse(
                 vals.get('repositary_task_id'))
@@ -432,7 +430,9 @@ class ProjectTask(models.Model):
                 self.ops_team_member_id = self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
 
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
+        
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
+        
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             if self.sub_task_id:
                 parent_task_main_task = self.project_id.task_ids.mapped(
@@ -460,12 +460,13 @@ class ProjectTask(models.Model):
                         if task.id not in self.parent_id.child_ids.mapped('sub_task_id').ids:
                             vals = self.create_sub_task(task, self.project_id)
                             self.create(vals)
+        
         if vals.get('stage_id', False) and self.parent_id and self.parent_id.child_ids:
             if all(line.stage_id.id == complete_stage.id for line in self.parent_id.child_ids):
                 self.parent_id.stage_id = complete_stage.id
+
             if all(task.stage_id.id == complete_stage.id for task in self.project_id.task_ids):
                 self.project_id.clx_state = 'done'
-
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
             params = self.env['ir.config_parameter'].sudo()
             auto_create_sub_task = bool(
@@ -478,16 +479,31 @@ class ProjectTask(models.Model):
                 for sub_task in sub_tasks:
                     vals = self.create_sub_task(sub_task, self.project_id)
                     self.create(vals)
+        
         if vals.get('ops_team_member_id', False):
             for task in self.child_ids:
                 task.ops_team_member_id = self.ops_team_member_id.id
+        
         if vals.get('clx_task_designer_id', False):
             for task in self.child_ids:
                 task.clx_task_designer_id = self.clx_task_designer_id.id
+        
         if vals.get('clx_task_manager_id', False):
             for task in self.child_ids:
                 task.clx_task_manager_id = self.clx_task_manager_id.id
+
+        if vals.get('date_deadline', False):
+            if self.task_intended_launch_date < self.date_deadline:
+                self.task_intended_launch_date = self.date_deadline
+            
+            if(self.child_ids):
+                for subtask in self.child_ids:
+                    subtask.date_deadline = self.date_deadline
+                    if subtask.task_intended_launch_date < self.date_deadline:
+                        subtask.task_intended_launch_date = self.date_deadline
+        
         remove_followers_non_clx(self)
+        
         return res
 
     def action_view_popup_task(self):
