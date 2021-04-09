@@ -26,7 +26,6 @@ class MaleComposeMessage(models.TransientModel):
         string="List of contacts in JSON")
 
     def action_send_mail_sales_order(self):
-
         prepeared_values = {
             'email_to': self.email_to,
             'body_html': self.body,
