@@ -128,7 +128,7 @@ class ProjectProject(models.Model):
     @api.onchange('intended_launch_date')
     def _onchange_intended_launch_date(self):
         if self.deadline > self.intended_launch_date:
-              raise UserError(_("Launch date must be equal or greated than task due date!"))
+              raise UserError(_("Launch date must be equal or greated than project due date!"))
       
 class ProjectTask(models.Model):
     _inherit = 'project.task'

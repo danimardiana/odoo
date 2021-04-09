@@ -248,7 +248,7 @@ class RequestForm(models.Model):
     def _onchange_intended_launch_date(self):
         if self.max_proof_deadline_date and self.max_proof_deadline_date > self.intended_launch_date:
             self.intended_launch_date = self.max_proof_deadline_date
-            raise UserError("Launch date must be equal or greated than task proofing deadline dates.")
+            raise UserError("Launch date must be equal or greated than project due date!")
 
     @api.onchange('request_line')
     def _onchange_request_line_type(self):
