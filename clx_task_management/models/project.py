@@ -128,7 +128,7 @@ class ProjectProject(models.Model):
     @api.onchange('intended_launch_date')
     def _onchange_intended_launch_date(self):
         if self.deadline > self.intended_launch_date:
-              raise UserError(_("Launch date must be equal or greated than task due date!"))
+              raise UserError(_("Launch date must be equal or greated than project due date!"))
       
 class ProjectTask(models.Model):
     _inherit = 'project.task'
@@ -304,6 +304,10 @@ class ProjectTask(models.Model):
         if stage_id:
             parent_id = self.project_id.task_ids.filtered(
                 lambda x: x.name == task.parent_id.name)
+
+            # launch date could be coming from project or main task so we need to account for both field names
+            launch_date = self.parent_id.intended_launch_date if hasattr(self.parent_id, 'intended_launch_date') else self.parent_id.task_intended_launch_date
+
             vals = {
                 'name': task.sub_task_name,
                 'project_id': project_id.id,
@@ -314,7 +318,7 @@ class ProjectTask(models.Model):
                 'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,
                 'tag_ids': task.tag_ids.ids if task.tag_ids else False,
-                'task_intended_launch_date' : self.parent_id.intended_launch_date,
+                'task_intended_launch_date' : launch_date,
                 'date_deadline': self.parent_id.date_deadline,
                 'ops_team_member_id': self.ops_team_member_id.id if self.ops_team_member_id else False,
                 'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,
