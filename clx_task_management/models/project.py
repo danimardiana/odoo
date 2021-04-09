@@ -66,20 +66,9 @@ class ProjectProject(models.Model):
         project = super(ProjectProject, self).create(vals)
         remove_followers_non_clx(project)
         return project
-
-
-    def update_maintask_subtask_intended_launch_date(self):
-        if(self.task_ids):
-            for main_task in self.task_ids:
-                main_task.task_intended_launch_date = self.intended_launch_date
-                if(main_task.child_ids):
-                    for sub_task in main_task:
-                        sub_task.task_intended_launch_date = self.intended_launch_date
     
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
-
-        self.update_maintask_subtask_intended_launch_date()
 
         if 'active' in vals:
             # self.task_ids.write({'active': vals.get('active', False)})
@@ -105,6 +94,17 @@ class ProjectProject(models.Model):
             for task in self.task_ids:
                 task.clx_task_designer_id = self.clx_project_designer_id.id
         
+        # If Project Launch changes update tasks and subtasks launch date
+        if vals.get('intended_launch_date', False):
+            if(self.task_ids):
+                for main_task in self.task_ids:
+                    main_task.task_intended_launch_date = self.intended_launch_date
+                    if(main_task.child_ids):
+                        for sub_task in main_task:
+                            sub_task.task_intended_launch_date = self.intended_launch_date
+
+        # If Project deadline changes update tasks and subtasks.
+        # Also update launch date if it is less than new deadline
         if vals.get('deadline', False):
             if self.intended_launch_date < self.deadline:
                 self.intended_launch_date = self.deadline
@@ -128,13 +128,8 @@ class ProjectProject(models.Model):
     @api.onchange('intended_launch_date')
     def _onchange_intended_launch_date(self):
         if self.deadline > self.intended_launch_date:
-              raise Warning("Launch date must be equal or greated than task proofing deadline dates.")
-        else:
-            for task in self.task_ids:
-                task.task_intended_launch_date = self.intended_launch_date
-                for subtask in task.sub_task_id:
-                    subtask.task_intended_launch_date = self.intended_launch_date
-
+              raise UserError(_("Launch date must be equal or greated than task due date!"))
+      
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
@@ -344,19 +339,15 @@ class ProjectTask(models.Model):
             raise UserError(
                 _("You Can not Complete the Task until the all Sub Task are completed"))
 
-    def update_subtask_intended_launch_date(self):
-        if(self.child_ids):
-            for subtask in self.child_ids:
-                if self.task_intended_launch_date:
-                    subtask.task_intended_launch_date = self.task_intended_launch_date
+    @api.onchange('task_intended_launch_date')
+    def _onchange_intended_launch_date(self):
+        if self.date_deadline > self.task_intended_launch_date:
+              raise UserError(_("Launch date must be equal or greated than task due date!"))
 
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
         today = fields.Date.today()
         current_date = today
-
-        if 'active' in vals and vals.get('active'):
-            self.update_subtask_intended_launch_date()
 
         if 'active' not in vals:
             current_day_with_time = self.write_date
@@ -492,6 +483,15 @@ class ProjectTask(models.Model):
             for task in self.child_ids:
                 task.clx_task_manager_id = self.clx_task_manager_id.id
 
+        # If maintask launch date changes update subtasks.
+        if vals.get('intended_launch_date', False):
+            if(self.child_ids):
+                for subtask in self.child_ids:
+                    if self.task_intended_launch_date:
+                        subtask.task_intended_launch_date = self.task_intended_launch_date
+
+        # If maintask deadline date changes update subtasks.
+        # Also update launch date if it is less than new deadline
         if vals.get('date_deadline', False):
             if self.task_intended_launch_date < self.date_deadline:
                 self.task_intended_launch_date = self.date_deadline
