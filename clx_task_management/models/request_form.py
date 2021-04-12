@@ -428,12 +428,7 @@ class RequestForm(models.Model):
         lines = self.env['sale.order.line'].search([('order_partner_id', '=', self.partner_id.id)])
         order_lines = False
         if lines:
-            order_lines = lines.filtered(
-                lambda x: (x.start_date and x.end_date and x.start_date <= today <= x.end_date)
-                          or (x.start_date and not x.end_date and x.start_date <= today))
-            future_lines = lines.filtered(lambda x: x.start_date and x.start_date >= today)
-            if future_lines:
-                order_lines += future_lines
+            order_lines = lines
             order_lines = order_lines.filtered(lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
             for category in order_lines.mapped('product_id').mapped('categ_id'):
                 # task_id = main_task_obj.search([('product_ids', 'in', product.id), ('req_type', '=', 'update')])
