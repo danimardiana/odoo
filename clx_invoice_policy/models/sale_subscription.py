@@ -56,10 +56,10 @@ class SaleSubscription(models.Model):
         pricelist_flat = self.pricelist_flatten(price_list)
         pricelist2process = {}
         tags = [str(price_list.id) + '_0_' + str(product.id),
-        str(price_list.id) + '_1_' + \
-            str(0 if 'product_tmpl_id' not in product else product.product_tmpl_id.id),
-        str(price_list.id) + '_2_' + str(product.categ_id.id),
-        str(price_list.id) + '_3', list(pricelist_flat.keys())[0]]
+                str(price_list.id) + '_1_' +
+                str(0 if 'product_tmpl_id' not in product else product.product_tmpl_id.id),
+                str(price_list.id) + '_2_' + str(product.categ_id.id),
+                str(price_list.id) + '_3', list(pricelist_flat.keys())[0]]
         for tag in tags:
             if tag in pricelist_flat:
                 pricelist2process = pricelist_flat[tag]
@@ -84,9 +84,9 @@ class SaleSubscription(models.Model):
             if price_list.is_percentage and price_list.percent_mgmt_price:
                 management_fee = round(
                     (price_list.percent_mgmt_price * retail) / 100, 2)
-        #but never less than minimum price 
+        # but never less than minimum price
         if management_fee < price_list.fixed_mgmt_price:
-            management_fee = price_list.fixed_mgmt_price 
+            management_fee = price_list.fixed_mgmt_price
         return {'management_fee': management_fee, 'wholesale_price': retail - management_fee}
 
     def pricelist_flatten(self, price_list):
@@ -142,7 +142,7 @@ class SaleSubscriptionLine(models.Model):
         if subscription_line.start_date <= end_date and (not subscription_line.end_date or (subscription_line.end_date and subscription_line.end_date >= start_date)):
             final_price = subscription_line.price_unit
             if start_date <= subscription_line.start_date and subscription_line.prorate_amount:
-                final_price = subscription_line.prorate_amount 
+                final_price = subscription_line.prorate_amount
             if subscription_line.prorate_end_amount and subscription_line.end_date <= end_date:
                 final_price = subscription_line.prorate_end_amount
         return final_price
@@ -157,7 +157,6 @@ class SaleSubscriptionLine(models.Model):
                  ('subscription_line_id', '=', self.id), '|', ('active', '=', False), ('active', '=', True)])
             if budget_lines:
                 budget_lines.write({
-                    'wholesale_price': 0.0,
                     'price': 0.0
                 })
             else:
@@ -185,7 +184,6 @@ class SaleSubscriptionLine(models.Model):
                             'subscription_id': self.analytic_account_id.id,
                             'product_id': self.product_id.id,
                             'price': self.price_unit,
-                            'wholesale_price': self.so_line_id.wholesale_price,
                             'status': self.so_line_id.order_id.subscription_management,
                             'budget_id': budget_lines[0].budget_id.id
                         }

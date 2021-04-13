@@ -6,6 +6,7 @@ from odoo.exceptions import UserError, Warning
 import datetime
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
+from odoo.addons.mail.models.mail_thread import MailThread
 
 
 def remove_followers_non_clx(object_clean):
@@ -555,3 +556,13 @@ class ProjectTask(models.Model):
         for record in self:
             record.child_ids.unlink()
         return super(ProjectTask, self).unlink()
+
+    def _message_get_suggested_recipients(self):
+        recipients = dict((res_id, []) for res_id in self.ids)
+        for task in self:
+            if task.partner_id:
+                continue
+            elif task.email_from:
+                task._message_add_suggested_recipient(
+                    recipients, email=task.email_from, reason=_('Customer Email'))
+        return recipients
