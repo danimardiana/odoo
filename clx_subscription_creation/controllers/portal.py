@@ -10,8 +10,21 @@ from odoo.http import request
 from odoo.addons.payment.controllers.portal import PaymentProcessing
 from odoo.addons.portal.controllers.mail import _message_post_helper
 # from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager, get_records_pager
-from odoo.addons.sale.controllers.portal import CustomerPortal 
+from odoo.addons.sale.controllers.portal import CustomerPortal
 from odoo.osv import expression
+
+
+
+def get_records_pager(ids, current):
+    if current.id in ids and (hasattr(current, 'website_url') or hasattr(current, 'access_url')):
+        attr_name = 'access_url' if hasattr(
+            current, 'access_url') else 'website_url'
+        idx = ids.index(current.id)
+        return {
+            'prev_record': idx != 0 and getattr(current.browse(ids[idx - 1]), attr_name),
+            'next_record': idx < len(ids) - 1 and getattr(current.browse(ids[idx + 1]), attr_name),
+        }
+    return {}
 
 
 class CustomerPortal(CustomerPortal):
@@ -49,7 +62,7 @@ class CustomerPortal(CustomerPortal):
         pdf = request.env.ref('sale.action_report_saleorder').sudo(
         ).render_qweb_pdf([order_sudo.id])[0]
 
-        #removin additional messaging
+        # removin additional messaging
         # _message_post_helper(
         #     'sale.order', order_sudo.id, _('Order signed by %s') % (name,),
         #     attachments=[('%s.pdf' % order_sudo.name, pdf)],
@@ -62,3 +75,120 @@ class CustomerPortal(CustomerPortal):
             'force_refresh': True,
             'redirect_url': order_sudo.get_portal_url(query_string=query_string),
         }
+
+    @http.route(['/my/orders/<int:order_id>'], type='http', auth="public", website=True)
+    def portal_order_page(self, order_id, report_type=None, access_token=None, message=False, download=False, **kw):
+        try:
+            order_sudo = self._document_check_access(
+                'sale.order', order_id, access_token=access_token)
+        except (AccessError, MissingError):
+            return request.redirect('/my')
+
+        if report_type in ('html', 'pdf', 'text'):
+            return self._show_report(model=order_sudo, report_type=report_type, report_ref='sale.action_report_saleorder', download=download)
+
+        # use sudo to allow accessing/viewing orders for public user
+        # only if he knows the private token
+        # Log only once a day
+        if order_sudo:
+            now = fields.Date.today().isoformat()
+            session_obj_date = request.session.get(
+                'view_quote_%s' % order_sudo.id)
+            if isinstance(session_obj_date, date):
+                session_obj_date = session_obj_date.isoformat()
+            if session_obj_date != now and request.env.user.share and access_token:
+                request.session['view_quote_%s' % order_sudo.id] = now
+                body = _(
+                    'Quotation viewed by customer %s') % order_sudo.partner_id.name
+                _message_post_helper(
+                    "sale.order",
+                    order_sudo.id,
+                    body,
+                    token=order_sudo.access_token,
+                    message_type="notification",
+                    subtype="mail.mt_note",
+                    partner_ids=order_sudo.user_id.sudo().partner_id.ids,
+                )
+
+        values = {
+            'sale_order': order_sudo,
+            'message': message,
+            'token': access_token,
+            'return_url': '/shop/payment/validate',
+            'bootstrap_formatting': True,
+            'partner_id': order_sudo.partner_id.id,
+            'report_type': 'html',
+            'action': order_sudo._get_portal_return_action(),
+        }
+        if order_sudo.company_id:
+            values['res_company'] = order_sudo.company_id
+
+        if order_sudo.has_to_be_paid():
+            domain = expression.AND([
+                ['&', ('state', 'in', ['enabled', 'test']),
+                 ('company_id', '=', order_sudo.company_id.id)],
+                ['|', ('country_ids', '=', False), ('country_ids',
+                                                    'in', [order_sudo.partner_id.country_id.id])]
+            ])
+            acquirers = request.env['payment.acquirer'].sudo().search(domain)
+
+            values['acquirers'] = acquirers.filtered(lambda acq: (acq.payment_flow == 'form' and acq.view_template_id) or
+                                                     (acq.payment_flow == 's2s' and acq.registration_view_template_id))
+            values['pms'] = request.env['payment.token'].search(
+                [('partner_id', '=', order_sudo.partner_id.id)])
+            values['acq_extra_fees'] = acquirers.get_acquirer_extra_fees(
+                order_sudo.amount_total, order_sudo.currency_id, order_sudo.partner_id.country_id.id)
+
+        if order_sudo.state in ('draft', 'sent', 'cancel'):
+            history = request.session.get('my_quotations_history', [])
+        else:
+            history = request.session.get('my_orders_history', [])
+        values.update(get_records_pager(
+            history, order_sudo))
+
+        values['modified_invoice_lines'] = []
+        for line in values['sale_order'].order_line:
+            line_to_add = {
+                # 'order_id': line.order_id,
+                'product_name': line.product_id.name,
+                'name': line.name,
+                'price_unit':  line.price_unit,
+                'category_name': line.product_id.categ_id.name,
+                'description': request.env['sale.subscription.line']._grouping_name_calc(line),#second level of grouping - budget wrapping
+                'contract_product_description': line.product_id.contract_product_description,
+                'display_type': line.display_type,
+                'prorate_amount': line.prorate_amount if line.prorate_amount else line.price_unit,
+                'product_template_id': line.product_template_id,
+                'management_fee_calculated': order_sudo.management_fee_calculation(line.price_unit, line.product_template_id, order_sudo.pricelist_id),
+            }
+            values['modified_invoice_lines'].append(line_to_add)
+
+        #first level of grouping - product set
+        request.env['res.partner'].grouping_by_product_set(values['modified_invoice_lines'])
+
+        #final grouping by description
+        final_values = {}
+        for product_individual in values['modified_invoice_lines']:
+            if product_individual['description'] not in final_values:
+                final_values[product_individual['description']] = {
+                    'product_name': product_individual['product_name'],
+                    'price_unit': product_individual['price_unit'],
+                    'description': product_individual['description'],
+                    'contract_product_description': product_individual['contract_product_description'],
+                    'name': product_individual['name'],
+                    'display_type': product_individual['display_type'],
+                    'prorate_amount': product_individual['prorate_amount'],
+                    'product_template_id': product_individual['product_template_id'],
+                    'management_fee_calculated': product_individual['management_fee_calculated'],
+                }
+            else:
+                final_values[product_individual['description']
+                             ]['price_unit'] += product_individual['price_unit']
+                final_values[product_individual['description']
+                             ]['prorate_amount'] += product_individual['prorate_amount']
+                final_values[product_individual['description']
+                             ]['management_fee_calculated'] += product_individual['management_fee_calculated']
+                # filter out all producs related to the combined group
+
+            values['modified_invoice_lines'] = list(final_values.values())
+        return request.render('sale.sale_order_portal_template', values)

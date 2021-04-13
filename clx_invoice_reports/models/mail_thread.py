@@ -6,14 +6,8 @@ from odoo import fields, models, api
 class MailThread(models.AbstractModel):
     _inherit = 'mail.thread'
 
-    #overwrite the followers getting function to not send to followers
+    # overwrite the followers getting function to not send to followers
     def _notify_compute_recipients(self, message, msg_vals):
-
-        return {
-            'partners': [],
-            'channels': [],
-        }
-
         """ Compute recipients to notify based on subtype and followers. This
         method returns data structured as expected for ``_notify_recipients``. """
         msg_sudo = message.sudo()
@@ -33,8 +27,8 @@ class MailThread(models.AbstractModel):
         }
         res = self.env['mail.followers']._get_recipient_data(
             self, message_type, subtype_id, pids, cids)
-        # if not res:
-        return recipient_data
+        if not res:
+            return recipient_data
 
         author_id = msg_vals.get('author_id') or message.author_id.id
         for pid, cid, active, pshare, ctype, notif, groups in res:
