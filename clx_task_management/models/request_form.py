@@ -16,7 +16,8 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Datetime('Request Submission Date', default=datetime.datetime.today(), copy=False)
+    request_date = fields.Datetime(
+        'Request Submission Date', default=datetime.datetime.today(), copy=False)
     description = fields.Text('Project Title',
                               help="Choose a title for this client’s project request")
     request_line = fields.One2many('request.form.line', 'request_form_id',
@@ -24,16 +25,20 @@ class RequestForm(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
                              default='draft', tracking=True)
-    is_create_client_launch = fields.Boolean('Is this a brand new media campaign launch or relaunch?')
-    ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
+    is_create_client_launch = fields.Boolean(
+        'Is this a brand new media campaign launch or relaunch?')
+    ads_link_ids = fields.One2many(
+        related='partner_id.ads_link_ids', string="Ads Link")
     intended_launch_date = fields.Date(string='Intended Launch Date')
-    attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
+    attachment_ids = fields.One2many(
+        'request.form.attachments', 'req_form_id', string="Attachments")
     sale_order_id = fields.Many2many('sale.order', string="Sale Order")
     clx_attachment_ids = fields.Many2many(
         "ir.attachment", 'att_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
     submitted_by_user_id = fields.Many2one("res.users", string="Submitted By")
-    priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    priority = fields.Selection(
+        [('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     update_all_products = fields.Boolean(string="Update All Products")
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one('project.project', string="Project")
@@ -44,9 +49,11 @@ class RequestForm(models.Model):
         this method is used for open Active sale order of the particular customer from the request form.
         :return: action of sale order
         """
-        action = self.env.ref('clx_task_management.action_sale_subscription_line').read()[0]
+        action = self.env.ref(
+            'clx_task_management.action_sale_subscription_line').read()[0]
         today = fields.Date.today()
-        subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
+        subscriptions = self.env['sale.subscription'].search(
+            [('partner_id', '=', self.partner_id.id)])
         if not subscriptions:
             raise UserError(_("No active Subscription for customer"))
         active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
@@ -76,7 +83,8 @@ class RequestForm(models.Model):
         project_task_obj = self.env['project.task']
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         if project_id:
-            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
+            client_launch_task = self.env.ref(
+                'clx_task_management.clx_client_launch_task')
             if client_launch_task:
                 vals = {
                     'name': client_launch_task.name,
@@ -112,7 +120,8 @@ class RequestForm(models.Model):
         :param project_id:
         :return:
         """
-        stages = self.env['project.task.type'].search([('demo_data', '=', True)])
+        stages = self.env['project.task.type'].search(
+            [('demo_data', '=', True)])
         for stage in stages:
             project_list = stage.project_ids.ids
             project_list.append(project_id.id)
@@ -173,7 +182,7 @@ class RequestForm(models.Model):
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
 
         current_date = self.calculated_date(line)
-        
+
         vals = {
             'name': line.task_id.name,
             'project_id': project_id.id,
@@ -200,7 +209,7 @@ class RequestForm(models.Model):
         :Param : partner_id : browsable object of the partner
         :return : return dictionary
         """
-        max_date = max(map(self.calculated_date,self.request_line))
+        max_date = max(map(self.calculated_date, self.request_line))
 
         vals = {
             'partner_id': partner_id.id,
@@ -215,53 +224,48 @@ class RequestForm(models.Model):
         return vals
 
     def _send_request_form_mail(self):
-        web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        action_id = self.env.ref('project.open_view_project_all', raise_if_not_found=False)
+        web_base_url = self.env['ir.config_parameter'].sudo(
+        ).get_param('web.base.url')
+        action_id = self.env.ref(
+            'project.open_view_project_all', raise_if_not_found=False)
         link = """{}/web#id={}&view_type=form&model=project.project&action={}""".format(web_base_url,
                                                                                         self.project_id.id,
                                                                                         action_id.id)
         context = self._context.copy() or {}
         context.update({'link': link})
-        email_template = self.env.ref('clx_task_management.mail_template_request_form', raise_if_not_found=False)
+        email_template = self.env.ref(
+            'clx_task_management.mail_template_request_form', raise_if_not_found=False)
         if email_template:
-            email_template.with_context(context).send_mail(self.id, force_send=True)
+            email_template.with_context(context).send_mail(
+                self.id, force_send=True)
 
     @api.onchange('priority')
     def _onchange_priority(self):
         for line in self.request_line:
-            if hasattr(line , 'req_type'):
+            if hasattr(line, 'req_type'):
                 today = fields.Date.today() if fields.Date.today() else datetime.datetime.today()
-                current_day_with_time = self.write_date if self.write_date else datetime.datetime.today() 
+                current_day_with_time = self.write_date if self.write_date else datetime.datetime.today()
                 user_tz = line.env.user.tz or 'US/Pacific'
-                current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+                current_day_with_time = timezone('UTC').localize(
+                    current_day_with_time).astimezone(timezone(user_tz))
                 date_time_str = today.strftime("%d/%m/%y")
                 date_time_str += ' 14:00:00'
-                comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+                comparsion_date = datetime.datetime.strptime(
+                    date_time_str, '%d/%m/%y %H:%M:%S')
                 # if current_day_with_time after 2 pm:
                 #     today + 1 day
-                if current_day_with_time.time() > comparsion_date.time():
-                    today = today + relativedelta(days=1)
-                    if self.priority == 'high':
-                        if line.req_type and line.req_type in ('update', 'budget'):             
-                            business_days_to_add = 1
-                        else:
-                            business_days_to_add = 3
-                    else:
-                        if line.req_type and line.req_type in ('update', 'budget'):
-                            business_days_to_add = 3
-                        else:
-                            business_days_to_add = 5
+                business_days_to_add = 0
+                if current_day_with_time.time() > comparsion_date.time() or today.weekday() > 4:
+                    business_days_to_add += 1
+
+                if line.request_form_id.priority != 'high':
+                    business_days_to_add += 2
+
+                if line.req_type in ('update', 'budget'):
+                    business_days_to_add += 0
                 else:
-                    if self.priority == 'high':
-                        if line.req_type and line.req_type in ('update', 'budget'):
-                            business_days_to_add = 0
-                        else:
-                            business_days_to_add = 2
-                    else:
-                        if line.req_type and line.req_type in ('update', 'budget'):
-                            business_days_to_add = 2
-                        else:
-                            business_days_to_add = 4
+                    business_days_to_add += 2
+
                 current_date = today
                 # code for skip saturday and sunday for set deadline on task.
                 while business_days_to_add > 0:
@@ -270,16 +274,19 @@ class RequestForm(models.Model):
                     if weekday >= 5:  # sunday = 6, saturday = 5
                         continue
                     business_days_to_add -= 1
+
                 line.task_deadline = current_date
 
     def calculated_date(self, line):
         today = fields.Date.today()
         current_day_with_time = self.write_date
         user_tz = self.env.user.tz or 'US/Pacific'
-        current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+        current_day_with_time = timezone('UTC').localize(
+            current_day_with_time).astimezone(timezone(user_tz))
         date_time_str = today.strftime("%d/%m/%y")
         date_time_str += ' 14:00:00'
-        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+        comparsion_date = datetime.datetime.strptime(
+            date_time_str, '%d/%m/%y %H:%M:%S')
         # if current_day_with_time after 2 pm:
         #     today + 1 day
         business_days_to_add = 0
@@ -303,47 +310,6 @@ class RequestForm(models.Model):
                 continue
             business_days_to_add -= 1
 
-            # today = fields.Date.today()
-            # current_day_with_time = self.write_date
-            # user_tz = self.env.user.tz or 'US/Pacific'
-            # current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
-            # date_time_str = today.strftime("%d/%m/%y")
-            # date_time_str += ' 14:00:00'
-            # comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
-            # # if current_day_with_time after 2 pm:
-            # #     today + 1 day
-            # if current_day_with_time.time() > comparsion_date.time():
-            #     today = today + relativedelta(days=1)
-            #     if line.request_form_id.priority == 'high':
-            #         if line.req_type in ('update', 'budget'):
-            #             business_days_to_add = 1
-            #         else:
-            #             business_days_to_add = 3
-            #     else:
-            #         if line.req_type in ('update', 'budget'):
-            #             business_days_to_add = 3
-            #         else:
-            #             business_days_to_add = 5
-            # else:
-            #     if line.request_form_id.priority == 'high':
-            #         if line.req_type in ('update', 'budget'):
-            #             business_days_to_add = 0
-            #         else:
-            #             business_days_to_add = 2
-            #     else:
-            #         if line.req_type in ('update', 'budget'):
-            #             business_days_to_add = 2
-            #         else:
-            #             business_days_to_add = 4
-            # current_date = today
-            # # code for skip saturday and sunday for set deadline on task.
-            # while business_days_to_add > 0:
-            #     current_date += datetime.timedelta(days=1)
-            #     weekday = current_date.weekday()
-            #     if weekday >= 5:  # sunday = 6, saturday = 5
-            #         continue
-            #     business_days_to_add -= 1
-
         return current_date
 
     def action_submit_form(self):
@@ -353,14 +319,15 @@ class RequestForm(models.Model):
         """
         self.ensure_one()
         if self.request_line and self.intended_launch_date:
-            max_date = max(map(self.calculated_date,self.request_line))
+            max_date = max(map(self.calculated_date, self.request_line))
             if self.intended_launch_date < max_date:
                 raise UserError('Please check Intended launch Date !!')
         project_id = False
         project_obj = self.env['project.project']
         project_task_obj = self.env['project.task']
         sub_task_obj = self.env['sub.task']
-        cl_task = self.env.ref('clx_task_management.clx_client_launch_sub_task_1', raise_if_not_found=False)
+        cl_task = self.env.ref(
+            'clx_task_management.clx_client_launch_sub_task_1', raise_if_not_found=False)
         if not self.description:
             raise UserError('Please add Project Title!!')
         if not self.request_line:
@@ -369,9 +336,11 @@ class RequestForm(models.Model):
             raise UserError(
                 'Please add some Instruction on every line If do not have description Please delete that line.')
 
-        subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
+        subscriptions = self.env['sale.subscription'].search(
+            [('partner_id', '=', self.partner_id.id)])
         if not subscriptions:
-            raise UserError('You can not submit request form there is no active sale for this customer!!')
+            raise UserError(
+                'You can not submit request form there is no active sale for this customer!!')
         if self.description and self.partner_id:
             vals = self.prepared_project_vals(self.description,
                                               self.partner_id)
@@ -390,9 +359,9 @@ class RequestForm(models.Model):
                             if main_task:
                                 dependency_sub_tasks = sub_task_obj. \
                                     search(
-                                    [('parent_id', '=', line.task_id.id),
-                                     '|', ('dependency_ids', '=', False),
-                                     ('dependency_ids', '=', cl_task and cl_task.id)])
+                                        [('parent_id', '=', line.task_id.id),
+                                         '|', ('dependency_ids', '=', False),
+                                         ('dependency_ids', '=', cl_task and cl_task.id)])
                                 for sub_task in dependency_sub_tasks:
                                     vals = self.prepared_sub_task_vals(
                                         sub_task, main_task, line)
@@ -407,13 +376,15 @@ class RequestForm(models.Model):
         req_line_obj = self.env['request.form.line']
         main_task_obj = self.env['main.task']
         if not self.is_create_client_launch:
-            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task', raise_if_not_found=False)
+            client_launch_task = self.env.ref(
+                'clx_task_management.clx_client_launch_task', raise_if_not_found=False)
             available_line = self.request_line.filtered(
                 lambda x: client_launch_task and x.task_id.id == client_launch_task.id)
             if available_line:
                 available_line.unlink()
         else:
-            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
+            client_launch_task = self.env.ref(
+                'clx_task_management.clx_client_launch_task')
             auto_tasks = self.env.user.company_id.auto_add_main_task_ids if self.env.user.company_id and self.env.user.company_id.auto_add_main_task_ids else False
             for a_task in auto_tasks:
                 vals = {
@@ -425,11 +396,13 @@ class RequestForm(models.Model):
                 form_line_id = req_line_obj.create(vals)
                 list_product.append(form_line_id.id)
         today = fields.Date.today()
-        lines = self.env['sale.order.line'].search([('order_partner_id', '=', self.partner_id.id)])
+        lines = self.env['sale.order.line'].search(
+            [('order_partner_id', '=', self.partner_id.id)])
         order_lines = False
         if lines:
             order_lines = lines
-            order_lines = order_lines.filtered(lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
+            order_lines = order_lines.filtered(
+                lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
             for category in order_lines.mapped('product_id').mapped('categ_id'):
                 # task_id = main_task_obj.search([('product_ids', 'in', product.id), ('req_type', '=', 'update')])
                 line_id = req_line_obj.create({
@@ -450,6 +423,7 @@ class RequestForm(models.Model):
                     line.description = self.update_products_des
                 line.req_type = 'update'
 
+
 class RequestFormLine(models.Model):
     _name = 'request.form.line'
     _description = 'Request Form Line'
@@ -460,45 +434,37 @@ class RequestFormLine(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
-    task_deadline = fields.Date(string='Deadline', readonly=True, copy=False, compute='_default_task_deadline')
+    task_deadline = fields.Date(
+        string='Deadline', readonly=True, copy=False, compute='_default_task_deadline')
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
-    category_id = fields.Many2one('product.category', string="Products Category")
-  
+    category_id = fields.Many2one(
+        'product.category', string="Products Category")
+
     def create_task_deadline_date(self):
-        today = datetime.datetime.today()
-        current_day_with_time = datetime.datetime.today()
+        today = fields.Date.today()
+        current_day_with_time = self.write_date or datetime.datetime.utcnow()
         user_tz = self.env.user.tz or 'US/Pacific'
         current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
         date_time_str = today.strftime("%d/%m/%y")
         date_time_str += ' 14:00:00'
-        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+        comparsion_date = datetime.datetime.strptime(
+            date_time_str, '%d/%m/%y %H:%M:%S')
         # if current_day_with_time after 2 pm:
         #     today + 1 day
-        if current_day_with_time.time() > comparsion_date.time():
-            today = today + relativedelta(days=1)
-            if self.request_form_id.priority == 'high':
-                if self.req_type in ('update', 'budget'):             
-                    business_days_to_add = 1
-                else:
-                    business_days_to_add = 3
-            else:
-                if self.req_type in ('update', 'budget'):
-                    business_days_to_add = 3
-                else:
-                    business_days_to_add = 5
+        business_days_to_add = 0
+        if current_day_with_time.time() > comparsion_date.time() or today.weekday() > 4:
+            business_days_to_add += 1
+
+        if self.request_form_id.priority != 'high':
+            business_days_to_add += 2
+
+        if self.req_type in ('update', 'budget'):
+            business_days_to_add += 0
         else:
-            if self.request_form_id.priority == 'high':
-                if self.req_type in ('update', 'budget'):
-                    business_days_to_add = 0
-                else:
-                    business_days_to_add = 2
-            else:
-                if self.req_type in ('update', 'budget'):
-                    business_days_to_add = 2
-                else:
-                    business_days_to_add = 4
+            business_days_to_add += 2
+
         current_date = today
         # code for skip saturday and sunday for set deadline on task.
         while business_days_to_add > 0:
@@ -507,13 +473,13 @@ class RequestFormLine(models.Model):
             if weekday >= 5:  # sunday = 6, saturday = 5
                 continue
             business_days_to_add -= 1
-        self.task_deadline = current_date
-   
 
-    def _default_task_deadline(self):    
+        self.task_deadline = current_date
+
+    def _default_task_deadline(self):
         for line in self:
             line.create_task_deadline_date()
-    
+
     @api.onchange('req_type')
     def _onchange_req_type(self):
         self.create_task_deadline_date()
@@ -537,10 +503,6 @@ class RequestFormLine(models.Model):
                                            ('pull_to_request_form', '=', True)]}}
         elif self.category_id:
             return {'domain': {'task_id': [('req_type', '=', self.req_type),
-                                           ('category_id', '=', self.category_id.id),
+                                           ('category_id', '=',
+                                            self.category_id.id),
                                            ('pull_to_request_form', '=', True)]}}
-
-   
-
-
-    
