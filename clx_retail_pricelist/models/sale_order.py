@@ -99,9 +99,10 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
+    #these two fields not in use anymore just lft it for comability 
+    
     management_price = fields.Float(string='Management Price')
     wholesale_price = fields.Float(string='Wholesale Price')
-
     def update_price(self):
         """
         To Calculate Management Fees and Wholesale fees
@@ -111,8 +112,6 @@ class SaleOrderLine(models.Model):
             vals = {
                 'product_id': order_line.product_id.id,
                 'retail_fees': order_line.price_unit,
-                'management_fees': order_line.management_price,
-                'wholesale': order_line.wholesale_price,
                 'sale_line_id': order_line.id,
             }
             existing_line = order_line.order_id.product_price_calculation_ids.filtered(
@@ -171,22 +170,6 @@ class SaleOrderLine(models.Model):
                 prod_ids,
                 categ_ids)
             for rule in items:
-                # Calculate management price
-                percentage_management_price = custom_management_price = 0.0
-                if rule.is_percentage:
-                    percentage_management_price = self.price_unit * (
-                        (rule.percent_mgmt_price or 0.0) / 100.0)
-                if rule.is_custom and self.price_unit > rule.min_retail_amount:
-                    custom_management_price = self.price_unit * (
-                        (rule.percent_mgmt_price or 0.0) / 100.0)
-                self.management_price = max(percentage_management_price,
-                                            custom_management_price,
-                                            rule.fixed_mgmt_price)
-                if rule.is_wholesale_percentage:
-                    self.wholesale_price = self.price_unit * (
-                        (rule.percent_wholesale_price or 0.0) / 100.0)
-                if rule.is_wholesale_formula:
-                    self.wholesale_price = self.price_unit - self.management_price
                 if is_product_template:
                     if rule.product_tmpl_id and product.id != rule.product_tmpl_id.id:
                         continue

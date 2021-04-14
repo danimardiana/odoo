@@ -42,6 +42,7 @@ class SaleOrder(models.Model):
         if template.lang:
             lang = template._render_template(
                 template.lang, 'sale.order', self.ids[0])
+        secure_url = self._get_share_url(redirect=True, signup_partner=True)
         ctx = {
             'tpl_partners_only': True,
             'default_model': 'sale.order',
@@ -58,6 +59,7 @@ class SaleOrder(models.Model):
             'model_description': self.with_context(lang=lang).type_name,
             'report_name': (self.name or '').replace('/', '_')+'_000',
             'default_allowed_partner_ids': contacts_billing,
+            'secure_url': secure_url,
         }
         return {
             'type': 'ir.actions.act_window',
@@ -68,3 +70,51 @@ class SaleOrder(models.Model):
             'target': 'new',
             'context': ctx,
         }
+
+    # overwriting the confirmation email sending function
+    def _send_order_confirmation_mail(self):
+        self.ensure_one()
+        template = self.env['mail.template'].sudo().search(
+            [('name', '=', 'Contract: Signing confirmation')])
+        # getting the previous mail to send confirmation to the same addresses
+        previous_mail = self.env['mail.compose.message'].sudo().search(
+            [('res_id', '=', self.id)], limit=1, order='id desc')[0]
+        lang = self.env.context.get('lang')
+        ctx = {
+            'tpl_par    tners_only': True,
+            'default_model': 'sale.order',
+            'default_res_id': self.ids[0],
+            'default_use_template': bool(template.id),
+            'default_template_id': template.id,
+            'default_composition_mode': 'comment',
+            'default_partner_ids': previous_mail.partner_ids,
+            'default_email_to': previous_mail.email_to,
+            'default_subject': previous_mail.subject,
+            'mark_so_as_sent': True,
+            'custom_layout': "mail.mail_notification_light",
+            'proforma': self.env.context.get('proforma', False),
+            'force_email': True,
+            'model_description': self.with_context(lang=lang).type_name,
+            'report_name': (self.name or '').replace('/', '_')+'_000',
+            'force_send': True,
+        }
+        
+        # return
+        if template.id:
+            #generate composition using the mail template
+            self.with_context(ctx).message_post_with_template(
+                template.id, composition_mode='comment', email_layout_xmlid="mail.mail_notification_light")
+            compose = self.env['mail.compose.message'].sudo().search(
+            [('res_id', '=', self.id)], limit=1, order='id desc')[0]
+            #sending  e-mail
+            prepeared_values = {
+                'email_to': compose.email_to,
+                'body_html': compose.body,
+                'attachment_ids': compose.attachment_ids,
+                'recipient_ids': compose.partner_ids,
+                'subject': compose.subject,
+                'email_from': compose.email_from,
+            }
+            Mail = self.env['mail.mail'].create(prepeared_values)
+            Mail.send()
+        

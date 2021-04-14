@@ -56,10 +56,10 @@ class SaleSubscription(models.Model):
         pricelist_flat = self.pricelist_flatten(price_list)
         pricelist2process = {}
         tags = [str(price_list.id) + '_0_' + str(product.id),
-        str(price_list.id) + '_1_' + \
-            str(0 if 'product_tmpl_id' not in product else product.product_tmpl_id.id),
-        str(price_list.id) + '_2_' + str(product.categ_id.id),
-        str(price_list.id) + '_3', list(pricelist_flat.keys())[0]]
+                str(price_list.id) + '_1_' +
+                str(0 if 'product_tmpl_id' not in product else product.product_tmpl_id.id),
+                str(price_list.id) + '_2_' + str(product.categ_id.id),
+                str(price_list.id) + '_3', list(pricelist_flat.keys())[0]]
         for tag in tags:
             if tag in pricelist_flat:
                 pricelist2process = pricelist_flat[tag]
@@ -84,9 +84,9 @@ class SaleSubscription(models.Model):
             if price_list.is_percentage and price_list.percent_mgmt_price:
                 management_fee = round(
                     (price_list.percent_mgmt_price * retail) / 100, 2)
-        #but never less than minimum price 
+        # but never less than minimum price
         if management_fee < price_list.fixed_mgmt_price:
-            management_fee = price_list.fixed_mgmt_price 
+            management_fee = price_list.fixed_mgmt_price
         return {'management_fee': management_fee, 'wholesale_price': retail - management_fee}
 
     def pricelist_flatten(self, price_list):
@@ -142,7 +142,7 @@ class SaleSubscriptionLine(models.Model):
         if subscription_line.start_date <= end_date and (not subscription_line.end_date or (subscription_line.end_date and subscription_line.end_date >= start_date)):
             final_price = subscription_line.price_unit
             if start_date <= subscription_line.start_date and subscription_line.prorate_amount:
-                final_price = subscription_line.prorate_amount 
+                final_price = subscription_line.prorate_amount
             if subscription_line.prorate_end_amount and subscription_line.end_date <= end_date:
                 final_price = subscription_line.prorate_end_amount
         return final_price
@@ -157,7 +157,6 @@ class SaleSubscriptionLine(models.Model):
                  ('subscription_line_id', '=', self.id), '|', ('active', '=', False), ('active', '=', True)])
             if budget_lines:
                 budget_lines.write({
-                    'wholesale_price': 0.0,
                     'price': 0.0
                 })
             else:
@@ -185,7 +184,6 @@ class SaleSubscriptionLine(models.Model):
                             'subscription_id': self.analytic_account_id.id,
                             'product_id': self.product_id.id,
                             'price': self.price_unit,
-                            'wholesale_price': self.so_line_id.wholesale_price,
                             'status': self.so_line_id.order_id.subscription_management,
                             'budget_id': budget_lines[0].budget_id.id
                         }
@@ -293,6 +291,20 @@ class SaleSubscriptionLine(models.Model):
                 format_date(fields.Date.to_string(date_start), {}),
                 format_date(fields.Date.to_string(date_end), {}))
 
+    def _grouping_name_calc(self, line):
+        description = line.product_id.categ_id.name
+        if line.order_id.partner_id.invoice_selection == 'sol':
+            if line.product_id.name != line.name:
+                description = line.name
+            else:
+                description = line.product_id.name
+                if line.order_id.partner_id.vertical in ('res', 'srl') and line.product_id.budget_wrapping:
+                    description = line.product_id.budget_wrapping
+                else:
+                    if line.product_id.budget_wrapping_auto_local:
+                        description = line.product_id.budget_wrapping_auto_local
+        return description
+
     def _prepare_invoice_line(self):
         """
         Prepare the dict of values to create the new invoice line.
@@ -379,7 +391,8 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(self.invoice_end_date), {}))
                 res.update({
                     'name': period_msg,
-                    'price_unit': self.price_unit * 12
+                    'price_unit': self.price_unit * 12,
+                    'description': self._grouping_name_calc(line),
                 })
                 self.with_context(skip=True).write(vals)
                 return res
@@ -441,18 +454,5 @@ class SaleSubscriptionLine(models.Model):
                     res.update({
                         'price_unit': new_price,
                     })
-        if line.order_id.partner_id.invoice_selection == 'sol':
-            if line.product_id.name != line.name:
-                res.update({'description': line.name})
-            else:
-                res.update({'description': line.product_id.name})
-                if line.order_id.partner_id.vertical in ('res', 'srl') and line.product_id.budget_wrapping:
-                    res.update(
-                        {'description': line.product_id.budget_wrapping})
-                else:
-                    if line.product_id.budget_wrapping_auto_local:
-                        res.update(
-                            {'description': line.product_id.budget_wrapping_auto_local})
-        else:
-            res.update({'description': line.product_id.categ_id.name})
+        res.update({'description': self._grouping_name_calc(line)})
         return res

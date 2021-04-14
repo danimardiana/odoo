@@ -115,8 +115,3 @@ class SaleSubscriptionLine(models.Model):
         ('upsell', 'Upsell'),
         ('downsell', 'Downsell')
     ], string='Origin', default='base')
-
-    management_price = fields.Float(
-        related="so_line_id.management_price", string='Management Price')
-    wholesale_price = fields.Float(
-        related="so_line_id.wholesale_price", string='Wholesale Price')
