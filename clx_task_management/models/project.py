@@ -19,6 +19,7 @@ class ProjectTaskType(models.Model):
     _inherit = 'project.task.type'
 
     demo_data = fields.Boolean()
+    active = fields.Boolean()
 
 
 class ProjectProject(models.Model):
@@ -50,6 +51,10 @@ class ProjectProject(models.Model):
     clx_attachment_ids = fields.Many2many(
         "ir.attachment", 'att_project_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
+
+    implementation_specialist_id = fields.Many2one(related="partner_id.implementation_specialist_id")
+    user_id = fields.Many2one('res.users', string='Account Manager', default=lambda self: self.env.user, tracking=True)
+    completion_date = fields.Datetime(string="Project Completion Date")
     implementation_specialist_id = fields.Many2one(
         related="partner_id.implementation_specialist_id")
     user_id = fields.Many2one('res.users', string='Account Manager',
@@ -90,6 +95,7 @@ class ProjectProject(models.Model):
             'clx_task_management.clx_project_stage_8')
         if all(task.stage_id.id == complete_stage.id for task in self.task_ids):
             self.clx_state = 'done'
+            self.completion_date = fields.Datetime.today()
         else:
             raise UserError(_("Please Complete All the Task First!!"))
 
@@ -156,6 +162,10 @@ class ProjectTask(models.Model):
                               string='Account Manager',
                               default=lambda self: self.env.uid,
                               index=True, tracking=True)
+    proof_return_count = fields.Integer(string="Proof Return Count", default=0)
+    proof_return_ids = fields.One2many('task.proof.return', 'task_id', string="Proof Return History")
+    task_complete_date = fields.Datetime(string="Task Complete Date")
+    sub_task_complate_date = fields.Datetime(string="Sub Task Complete Date")
 
     @api.model
     def create(self, vals):
@@ -300,6 +310,9 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
+        proof_rerurned_stge = self.env.ref('clx_task_management.clx_project_stage_6', raise_if_not_found=False)
+        if vals.get('stage_id', False) and self.stage_id.id == proof_rerurned_stge.id:
+            self.proof_return_count += 1
         today = fields.Date.today()
         current_date = today
         if 'active' not in vals:
@@ -376,6 +389,7 @@ class ProjectTask(models.Model):
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
+            self.task_complete_date = fields.Datetime.today()
             if self.sub_task_id:
                 parent_task_main_task = self.project_id.task_ids.mapped(
                     'sub_task_id').mapped('parent_id')
@@ -431,6 +445,19 @@ class ProjectTask(models.Model):
                 task.clx_task_manager_id = self.clx_task_manager_id.id
         remove_followers_non_clx(self)
         return res
+
+    def action_view_proof_return(self):
+        view_id = self.env.ref('clx_task_management.view_task_proof_return_form').id
+        context = dict(self._context or {})
+        context.update({'current_task': self.id})
+        return {'type': 'ir.actions.act_window',
+                'name': _('Proof Return'),
+                'res_model': 'task.proof.return',
+                'target': 'new',
+                'view_mode': 'form',
+                'views': [[view_id, 'form']],
+                'context': context
+                }
 
     def action_view_popup_task(self):
         sub_tasks = self.sub_repositary_task_ids
