@@ -291,6 +291,20 @@ class SaleSubscriptionLine(models.Model):
                 format_date(fields.Date.to_string(date_start), {}),
                 format_date(fields.Date.to_string(date_end), {}))
 
+    def _grouping_name_calc(self, line):
+        description = line.product_id.categ_id.name
+        if line.order_id.partner_id.invoice_selection == 'sol':
+            if line.product_id.name != line.name:
+                description = line.name
+            else:
+                description = line.product_id.name
+                if line.order_id.partner_id.vertical in ('res', 'srl') and line.product_id.budget_wrapping:
+                    description = line.product_id.budget_wrapping
+                else:
+                    if line.product_id.budget_wrapping_auto_local:
+                        description = line.product_id.budget_wrapping_auto_local
+        return description
+
     def _prepare_invoice_line(self):
         """
         Prepare the dict of values to create the new invoice line.
@@ -377,7 +391,8 @@ class SaleSubscriptionLine(models.Model):
                     format_date(fields.Date.to_string(self.invoice_end_date), {}))
                 res.update({
                     'name': period_msg,
-                    'price_unit': self.price_unit * 12
+                    'price_unit': self.price_unit * 12,
+                    'description': self._grouping_name_calc(line),
                 })
                 self.with_context(skip=True).write(vals)
                 return res
@@ -439,18 +454,5 @@ class SaleSubscriptionLine(models.Model):
                     res.update({
                         'price_unit': new_price,
                     })
-        if line.order_id.partner_id.invoice_selection == 'sol':
-            if line.product_id.name != line.name:
-                res.update({'description': line.name})
-            else:
-                res.update({'description': line.product_id.name})
-                if line.order_id.partner_id.vertical in ('res', 'srl') and line.product_id.budget_wrapping:
-                    res.update(
-                        {'description': line.product_id.budget_wrapping})
-                else:
-                    if line.product_id.budget_wrapping_auto_local:
-                        res.update(
-                            {'description': line.product_id.budget_wrapping_auto_local})
-        else:
-            res.update({'description': line.product_id.categ_id.name})
+        res.update({'description': self._grouping_name_calc(line)})
         return res
