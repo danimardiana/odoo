@@ -5,7 +5,6 @@ from odoo import fields, api, models, _
 from odoo.exceptions import UserError
 from dateutil.relativedelta import relativedelta
 import datetime
-import win32timezone
 from pytz import timezone
 
 
@@ -445,9 +444,9 @@ class RequestFormLine(models.Model):
 
     def create_task_deadline_date(self):
         today = fields.Date.today()
-        current_day_with_time = self.write_date
+        current_day_with_time = self.write_date or datetime.datetime.utcnow()
         user_tz = self.env.user.tz or 'US/Pacific'
-        current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz)) if current_day_with_time else win32timezone.utcnow()
+        current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
         date_time_str = today.strftime("%d/%m/%y")
         date_time_str += ' 14:00:00'
         comparsion_date = datetime.datetime.strptime(
