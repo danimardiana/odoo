@@ -330,7 +330,6 @@ class RequestForm(models.Model):
                             
                 line.task_deadline = current_date
                     
-
     def calculated_date(self, line):
         today = fields.Date.today()
         current_day_with_time = self.write_date

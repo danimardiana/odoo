@@ -48,6 +48,7 @@ class ProjectProject(models.Model):
     # are created during form submission
     deadline = fields.Date(string='Project Due Date') 
     # Analyst selected Client Launch Date
+
     intended_launch_date = fields.Date(string='Intended Launch Date', readonly=False)
     
     priority = fields.Selection(
