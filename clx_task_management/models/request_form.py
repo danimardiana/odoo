@@ -25,6 +25,7 @@ class RequestForm(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
                              default='draft', tracking=True)
+    
     is_create_client_launch = fields.Boolean(
         'Is this a brand new media campaign launch or relaunch?')
     ads_link_ids = fields.One2many(
@@ -221,7 +222,7 @@ class RequestForm(models.Model):
         :Param : partner_id : browsable object of the partner
         :return : return dictionary
         """
-
+        
         max_date = max(map(self.calculated_date,self.request_line))
         launch_date = self.intended_launch_date if self.intended_launch_date and self.intended_launch_date > self.max_proof_deadline_date else self.max_proof_deadline_date
 
@@ -315,7 +316,6 @@ class RequestForm(models.Model):
                     if weekday >= 5:  # sunday = 6, saturday = 5
                         continue
                     business_days_to_add -= 1
-
                     # get the largest task date
                     if current_date > max_task_date:
                         max_task_date = current_date
@@ -491,9 +491,7 @@ class RequestFormLine(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
-    
     task_deadline = fields.Date(string='Task Due Date', readonly=True, copy=False, compute='_default_task_deadline')
-
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')

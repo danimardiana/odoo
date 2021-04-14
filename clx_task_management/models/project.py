@@ -48,7 +48,8 @@ class ProjectProject(models.Model):
     # are created during form submission
     deadline = fields.Date(string='Project Due Date') 
     # Analyst selected Client Launch Date
-    intended_launch_date = fields.Date(related="req_form_id.intended_launch_date", string='Intended Launch Date', store=False, readonly=False)
+
+    intended_launch_date = fields.Date(string='Intended Launch Date', readonly=False)
     
     priority = fields.Selection(
         [('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
@@ -141,7 +142,9 @@ class ProjectTask(models.Model):
                                 string='Request Type')
     sub_task_id = fields.Many2one(
         'sub.task', string="Sub Task from Master Table")
-    team_ids = fields.Many2many('clx.team', string='Team')
+    team_ids = fields.Many2many('clx.team', string='Team')    
+    team_ids_flattened = fields.Text(string='Teams', compute='_compute_task_teams_flattened')
+    tag_ids_flattened = fields.Text(string='Tags', compute='_compute_task_tags_flattened')
     team_members_ids = fields.Many2many('res.users', string="Team Members")
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
     clx_sale_order_line_id = fields.Many2one(
@@ -203,6 +206,20 @@ class ProjectTask(models.Model):
         # remove followers not from CLX
         remove_followers_non_clx(new_task)
         return new_task
+
+    def _compute_task_teams_flattened(self):
+        for record in self:
+            team_list = []
+            for team in record.team_ids:
+                team_list.append(team.display_name)
+            record.team_ids_flattened = str(team_list).strip('[]').replace("'","")
+    
+    def _compute_task_tags_flattened(self):
+        for record in self:
+            tag_list = []
+            for tag in record.tag_ids:
+                tag_list.append(tag.display_name)
+            record.tag_ids_flattened = str(tag_list).strip('[]').replace("'","")
 
     def _compute_sub_task_project_ids(self):
         task_list = []
