@@ -2,7 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, models, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, Warning
 import datetime
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
@@ -43,7 +43,15 @@ class ProjectProject(models.Model):
     cs_notes = fields.Text(related='partner_id.cs_notes')
     ops_notes = fields.Text(related='partner_id.ops_notes')
     cat_notes = fields.Text(related='partner_id.cat_notes')
-    deadline = fields.Date(string='Deadline')
+    
+    # Caluculated Max Task Due Date
+    # which is set when the project and tasks
+    # are created during form submission
+    deadline = fields.Date(string='Project Due Date') 
+    # Analyst selected Client Launch Date
+
+    intended_launch_date = fields.Date(string='Intended Launch Date', readonly=False)
+    
     priority = fields.Selection(
         [('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     client_services_team = fields.Selection(related="partner_id.management_company_type_id.client_services_team",
@@ -65,29 +73,55 @@ class ProjectProject(models.Model):
         project = super(ProjectProject, self).create(vals)
         remove_followers_non_clx(project)
         return project
-
+    
     def write(self, vals):
         res = super(ProjectProject, self).write(vals)
+
         if 'active' in vals:
             # self.task_ids.write({'active': vals.get('active', False)})
             for task in self.task_ids:
                 task.write({'active': vals.get('active', False)})
+
         if vals.get('clx_project_manager_id', False):
             cs_team = self.env['clx.team'].search([('team_name', '=', 'CS')])
             for task in self.task_ids:
                 if cs_team in task.team_ids:
                     task.clx_task_manager_id = self.clx_project_manager_id.id
             self.clx_state = 'in_progress'
+        
         if vals.get('ops_team_member_id', False):
             for task in self.task_ids:
                 task.ops_team_member_id = self.ops_team_member_id.id
+        
         if vals.get('clx_project_manager_id', False):
             for task in self.task_ids:
                 task.clx_task_manager_id = self.clx_project_manager_id.id
+        
         if vals.get('clx_project_designer_id', False):
             for task in self.task_ids:
                 task.clx_task_designer_id = self.clx_project_designer_id.id
+        
+        # If Project Launch changes update tasks and subtasks launch date
+        if vals.get('intended_launch_date', False):
+            if(self.task_ids):
+                for main_task in self.task_ids:
+                    main_task.task_intended_launch_date = self.intended_launch_date
+                    if(main_task.child_ids):
+                        for sub_task in main_task:
+                            sub_task.task_intended_launch_date = self.intended_launch_date
+
+        # If Project deadline changes update tasks and subtasks.
+        # Also update launch date if it is less than new deadline
+        if vals.get('deadline', False):
+            if self.intended_launch_date < self.deadline:
+                self.intended_launch_date = self.deadline
+            for task in self.task_ids:
+                task.date_deadline = self.deadline
+                if task.task_intended_launch_date < self.deadline:
+                    task.task_intended_launch_date = self.deadline
+        
         remove_followers_non_clx(self)
+        
         return res
 
     def action_done_project(self):
@@ -99,7 +133,11 @@ class ProjectProject(models.Model):
         else:
             raise UserError(_("Please Complete All the Task First!!"))
 
-
+    @api.onchange('intended_launch_date')
+    def _onchange_intended_launch_date(self):
+        if self.deadline > self.intended_launch_date:
+              raise UserError(_("Launch date must be equal or greated than project due date!"))
+      
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
@@ -110,7 +148,9 @@ class ProjectTask(models.Model):
                                 string='Request Type')
     sub_task_id = fields.Many2one(
         'sub.task', string="Sub Task from Master Table")
-    team_ids = fields.Many2many('clx.team', string='Team')
+    team_ids = fields.Many2many('clx.team', string='Team')    
+    team_ids_flattened = fields.Text(string='Teams', compute='_compute_task_teams_flattened')
+    tag_ids_flattened = fields.Text(string='Tags', compute='_compute_task_tags_flattened')
     team_members_ids = fields.Many2many('res.users', string="Team Members")
     clx_sale_order_id = fields.Many2one('sale.order', string='Sale order')
     clx_sale_order_line_id = fields.Many2one(
@@ -167,12 +207,29 @@ class ProjectTask(models.Model):
     task_complete_date = fields.Datetime(string="Task Complete Date")
     sub_task_complate_date = fields.Datetime(string="Sub Task Complete Date")
 
+    # Analyst selected Client Launch Date
+    task_intended_launch_date = fields.Date(string='Intended Launch Date', readonly=False)
+    
     @api.model
     def create(self, vals):
         new_task = super(ProjectTask, self).create(vals)
         # remove followers not from CLX
         remove_followers_non_clx(new_task)
         return new_task
+
+    def _compute_task_teams_flattened(self):
+        for record in self:
+            team_list = []
+            for team in record.team_ids:
+                team_list.append(team.display_name)
+            record.team_ids_flattened = str(team_list).strip('[]').replace("'","")
+    
+    def _compute_task_tags_flattened(self):
+        for record in self:
+            tag_list = []
+            for tag in record.tag_ids:
+                tag_list.append(tag.display_name)
+            record.tag_ids_flattened = str(tag_list).strip('[]').replace("'","")
 
     def _compute_sub_task_project_ids(self):
         task_list = []
@@ -221,7 +278,8 @@ class ProjectTask(models.Model):
                 'clx_task_manager_id': self.project_id.clx_project_manager_id.id if self.project_id.clx_project_manager_id else False,
                 'clx_task_designer_id': self.project_id.clx_project_designer_id.id if self.project_id.clx_project_designer_id else False,
                 'ops_team_member_id': self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
-                'date_deadline': main_task and main_task.date_deadline
+                'task_intended_launch_date': main_task and main_task.task_intended_launch_date,
+                'date_deadline': main_task and main_task.date_deadline 
             }
             return vals
 
@@ -274,6 +332,10 @@ class ProjectTask(models.Model):
         if stage_id:
             parent_id = self.project_id.task_ids.filtered(
                 lambda x: x.name == task.parent_id.name)
+
+            # launch date could be coming from project or main task so we need to account for both field names
+            launch_date = self.parent_id.intended_launch_date if hasattr(self.parent_id, 'intended_launch_date') else self.parent_id.task_intended_launch_date
+
             vals = {
                 'name': task.sub_task_name,
                 'project_id': project_id.id,
@@ -284,6 +346,7 @@ class ProjectTask(models.Model):
                 'team_ids': task.team_ids.ids if task.team_ids else False,
                 'team_members_ids': task.team_members_ids.ids if task.team_members_ids else False,
                 'tag_ids': task.tag_ids.ids if task.tag_ids else False,
+                'task_intended_launch_date' : launch_date,
                 'date_deadline': self.parent_id.date_deadline,
                 'ops_team_member_id': self.ops_team_member_id.id if self.ops_team_member_id else False,
                 'clx_task_designer_id': self.clx_task_designer_id.id if self.clx_task_designer_id else False,
@@ -308,6 +371,11 @@ class ProjectTask(models.Model):
             raise UserError(
                 _("You Can not Complete the Task until the all Sub Task are completed"))
 
+    @api.onchange('task_intended_launch_date')
+    def _onchange_intended_launch_date(self):
+        if self.date_deadline > self.task_intended_launch_date:
+              raise UserError(_("Launch date must be equal or greated than task due date!"))
+
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
         proof_rerurned_stge = self.env.ref('clx_task_management.clx_project_stage_6', raise_if_not_found=False)
@@ -315,6 +383,7 @@ class ProjectTask(models.Model):
             self.proof_return_count += 1
         today = fields.Date.today()
         current_date = today
+
         if 'active' not in vals:
             current_day_with_time = self.write_date
             user_tz = self.env.user.tz or 'US/Pacific'
@@ -359,14 +428,14 @@ class ProjectTask(models.Model):
                 business_days_to_add -= 1
         complete_stage = self.env.ref(
             'clx_task_management.clx_project_stage_8')
+
+
         if 'active' in vals:
             for task in self.child_ids:
                 self._cr.execute("UPDATE project_task SET active = %s WHERE id = %s", [
                                  vals.get('active'), task.id])
-        # if vals.get('date_deadline'):
-        #     for task in self.child_ids:
-        #         task.date_deadline = self.date_deadline
         sub_task_obj = self.env['sub.task']
+        
         if vals.get('req_type', False) and vals.get('repositary_task_id', False):
             repositary_main_task = self.env['main.task'].browse(
                 vals.get('repositary_task_id'))
@@ -387,7 +456,9 @@ class ProjectTask(models.Model):
                 self.ops_team_member_id = self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
 
         stage_id = self.env['project.task.type'].browse(vals.get('stage_id'))
+        
         cancel_stage = self.env.ref('clx_task_management.clx_project_stage_9')
+        
         if vals.get('stage_id', False) and stage_id.id == complete_stage.id:
             self.task_complete_date = fields.Datetime.today()
             if self.sub_task_id:
@@ -416,12 +487,13 @@ class ProjectTask(models.Model):
                         if task.id not in self.parent_id.child_ids.mapped('sub_task_id').ids:
                             vals = self.create_sub_task(task, self.project_id)
                             self.create(vals)
+        
         if vals.get('stage_id', False) and self.parent_id and self.parent_id.child_ids:
             if all(line.stage_id.id == complete_stage.id for line in self.parent_id.child_ids):
                 self.parent_id.stage_id = complete_stage.id
+
             if all(task.stage_id.id == complete_stage.id for task in self.project_id.task_ids):
                 self.project_id.clx_state = 'done'
-
         elif vals.get('stage_id', False) and stage_id.id == cancel_stage.id:
             params = self.env['ir.config_parameter'].sudo()
             auto_create_sub_task = bool(
@@ -434,16 +506,40 @@ class ProjectTask(models.Model):
                 for sub_task in sub_tasks:
                     vals = self.create_sub_task(sub_task, self.project_id)
                     self.create(vals)
+        
         if vals.get('ops_team_member_id', False):
             for task in self.child_ids:
                 task.ops_team_member_id = self.ops_team_member_id.id
+        
         if vals.get('clx_task_designer_id', False):
             for task in self.child_ids:
                 task.clx_task_designer_id = self.clx_task_designer_id.id
+        
         if vals.get('clx_task_manager_id', False):
             for task in self.child_ids:
                 task.clx_task_manager_id = self.clx_task_manager_id.id
+
+        # If maintask launch date changes update subtasks.
+        if vals.get('intended_launch_date', False):
+            if(self.child_ids):
+                for subtask in self.child_ids:
+                    if self.task_intended_launch_date:
+                        subtask.task_intended_launch_date = self.task_intended_launch_date
+
+        # If maintask deadline date changes update subtasks.
+        # Also update launch date if it is less than new deadline
+        if vals.get('date_deadline', False):
+            if self.task_intended_launch_date < self.date_deadline:
+                self.task_intended_launch_date = self.date_deadline
+            
+            if(self.child_ids):
+                for subtask in self.child_ids:
+                    subtask.date_deadline = self.date_deadline
+                    if subtask.task_intended_launch_date < self.date_deadline:
+                        subtask.task_intended_launch_date = self.date_deadline
+        
         remove_followers_non_clx(self)
+        
         return res
 
     def action_view_proof_return(self):

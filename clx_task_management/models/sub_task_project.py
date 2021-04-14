@@ -16,6 +16,10 @@ class SubTaskProject(models.Model):
     tag_ids = fields.Many2many('project.tags', string="Tags")
     stage_id = fields.Many2one('project.task.type', string="Stage")
 
+    # Analyst selected Client Launch Date
+    # intended_launch_date = fields.Date(related="project_id.partner_id.intended_launch_date", string='Intended Launch Date', store=True)
+    
+
     def redirect_task(self):
         if self.task_id:
             view_id = self.env.ref('project.view_task_form2').id

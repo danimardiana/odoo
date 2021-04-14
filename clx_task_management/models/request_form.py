@@ -2,7 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, api, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError, Warning
 from dateutil.relativedelta import relativedelta
 import datetime
 from pytz import timezone
@@ -16,7 +16,8 @@ class RequestForm(models.Model):
 
     name = fields.Char(string='Name', copy=False)
     partner_id = fields.Many2one('res.partner', string='Customer')
-    request_date = fields.Datetime('Request Submission Date', default=datetime.datetime.today(), copy=False)
+    request_date = fields.Datetime(
+        'Request Submission Date', default=datetime.datetime.today(), copy=False)
     description = fields.Text('Project Title',
                               help="Choose a title for this client’s project request")
     request_line = fields.One2many('request.form.line', 'request_form_id',
@@ -24,16 +25,21 @@ class RequestForm(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('submitted', 'Submitted')],
                              string='state',
                              default='draft', tracking=True)
-    is_create_client_launch = fields.Boolean('Is this a brand new media campaign launch or relaunch?')
-    ads_link_ids = fields.One2many(related='partner_id.ads_link_ids', string="Ads Link")
+    
+    is_create_client_launch = fields.Boolean(
+        'Is this a brand new media campaign launch or relaunch?')
+    ads_link_ids = fields.One2many(
+        related='partner_id.ads_link_ids', string="Ads Link")
     intended_launch_date = fields.Date(string='Intended Launch Date')
-    attachment_ids = fields.One2many('request.form.attachments', 'req_form_id', string="Attachments")
+    attachment_ids = fields.One2many(
+        'request.form.attachments', 'req_form_id', string="Attachments")
     sale_order_id = fields.Many2many('sale.order', string="Sale Order")
     clx_attachment_ids = fields.Many2many(
         "ir.attachment", 'att_rel', 'attach_id', 'clx_id', string="Files", help="Upload multiple files here."
     )
     submitted_by_user_id = fields.Many2one("res.users", string="Submitted By")
-    priority = fields.Selection([('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
+    priority = fields.Selection(
+        [('high', 'High'), ('regular', 'Regular')], default='regular', string="Priority")
     update_all_products = fields.Boolean(string="Update All Products")
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one('project.project', string="Project")
@@ -44,9 +50,11 @@ class RequestForm(models.Model):
         this method is used for open Active sale order of the particular customer from the request form.
         :return: action of sale order
         """
-        action = self.env.ref('clx_task_management.action_sale_subscription_line').read()[0]
+        action = self.env.ref(
+            'clx_task_management.action_sale_subscription_line').read()[0]
         today = fields.Date.today()
-        subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
+        subscriptions = self.env['sale.subscription'].search(
+            [('partner_id', '=', self.partner_id.id)])
         if not subscriptions:
             raise UserError(_("No active Subscription for customer"))
         active_subscription_lines = subscriptions.recurring_invoice_line_ids.filtered(
@@ -68,6 +76,9 @@ class RequestForm(models.Model):
                 raise UserError(_('You can Not Delete Submitted Request Form'))
         return super(RequestForm, self).unlink()
 
+    def _computed_max_proof_date(self):
+        self.max_proof_deadline_date = fields.Date.today()
+
     def create_client_launch_task(self, project_id):
         """
         Create Client launch task is the is_create_client_launch is checked.
@@ -76,7 +87,8 @@ class RequestForm(models.Model):
         project_task_obj = self.env['project.task']
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
         if project_id:
-            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
+            client_launch_task = self.env.ref(
+                'clx_task_management.clx_client_launch_task')
             if client_launch_task:
                 vals = {
                     'name': client_launch_task.name,
@@ -112,7 +124,8 @@ class RequestForm(models.Model):
         :param project_id:
         :return:
         """
-        stages = self.env['project.task.type'].search([('demo_data', '=', True)])
+        stages = self.env['project.task.type'].search(
+            [('demo_data', '=', True)])
         for stage in stages:
             project_list = stage.project_ids.ids
             project_list.append(project_id.id)
@@ -143,6 +156,8 @@ class RequestForm(models.Model):
         :return: dictionary for the sub task
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
+        launch_date = self.intended_launch_date if self.intended_launch_date and self.intended_launch_date > self.max_proof_deadline_date else self.max_proof_deadline_date
+        
         if stage_id:
             vals = {
                 'name': sub_task.sub_task_name,
@@ -154,6 +169,7 @@ class RequestForm(models.Model):
                 'team_ids': sub_task.team_ids.ids,
                 'team_members_ids': sub_task.team_members_ids.ids,
                 'date_deadline': main_task.date_deadline,
+                'task_intended_launch_date': launch_date, 
                 'tag_ids': sub_task.tag_ids.ids if sub_task.tag_ids else False,
                 'account_user_id': main_task.project_id.partner_id.account_user_id.id if main_task.project_id.partner_id.account_user_id else False,
                 'clx_priority': main_task.project_id.priority,
@@ -172,7 +188,12 @@ class RequestForm(models.Model):
         """
         stage_id = self.env.ref('clx_task_management.clx_project_stage_1')
 
-        current_date = self.calculated_date(line)
+        # Proof Due Date/Deadline
+        proof_deadline_date = self.calculated_date(line)
+        
+        # Client Wanted Launch Date
+        # Must be after proof date deadline
+        launch_date = self.intended_launch_date if self.intended_launch_date and self.intended_launch_date > self.max_proof_deadline_date else self.max_proof_deadline_date
         
         vals = {
             'name': line.task_id.name,
@@ -183,7 +204,8 @@ class RequestForm(models.Model):
             'req_type': line.task_id.req_type,
             'team_ids': line.task_id.team_ids.ids,
             'team_members_ids': line.task_id.team_members_ids.ids,
-            'date_deadline': self.intended_launch_date if self.intended_launch_date else current_date,
+            'date_deadline': proof_deadline_date,
+            'task_intended_launch_date': launch_date, 
             'requirements': line.requirements,
             'tag_ids': line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             'account_user_id': project_id.partner_id.account_user_id.id if project_id.partner_id.account_user_id else False,
@@ -200,7 +222,9 @@ class RequestForm(models.Model):
         :Param : partner_id : browsable object of the partner
         :return : return dictionary
         """
+        
         max_date = max(map(self.calculated_date,self.request_line))
+        launch_date = self.intended_launch_date if self.intended_launch_date and self.intended_launch_date > self.max_proof_deadline_date else self.max_proof_deadline_date
 
         vals = {
             'partner_id': partner_id.id,
@@ -208,6 +232,7 @@ class RequestForm(models.Model):
             'clx_state': 'new',
             'clx_sale_order_ids': self.sale_order_id.ids if self.sale_order_id.ids else False,
             'user_id': self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
+            'intended_launch_date': launch_date,
             'deadline': max_date,
             'priority': self.priority,
             'clx_attachment_ids': self.clx_attachment_ids.ids
@@ -215,28 +240,60 @@ class RequestForm(models.Model):
         return vals
 
     def _send_request_form_mail(self):
-        web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        action_id = self.env.ref('project.open_view_project_all', raise_if_not_found=False)
+        web_base_url = self.env['ir.config_parameter'].sudo(
+        ).get_param('web.base.url')
+        action_id = self.env.ref(
+            'project.open_view_project_all', raise_if_not_found=False)
         link = """{}/web#id={}&view_type=form&model=project.project&action={}""".format(web_base_url,
                                                                                         self.project_id.id,
                                                                                         action_id.id)
         context = self._context.copy() or {}
         context.update({'link': link})
-        email_template = self.env.ref('clx_task_management.mail_template_request_form', raise_if_not_found=False)
+        email_template = self.env.ref(
+            'clx_task_management.mail_template_request_form', raise_if_not_found=False)
         if email_template:
-            email_template.with_context(context).send_mail(self.id, force_send=True)
+            email_template.with_context(context).send_mail(
+                self.id, force_send=True)
 
+    @api.onchange('intended_launch_date')
+    def _onchange_intended_launch_date(self):
+        if self.max_proof_deadline_date and self.max_proof_deadline_date > self.intended_launch_date:
+            self.intended_launch_date = self.max_proof_deadline_date
+            raise UserError("Launch date must be equal or greated than project due date!")
+
+    @api.onchange('request_line')
+    def _onchange_request_line_type(self):
+        if len(self.request_line) > 0:
+            max_task_date = fields.Date.today()
+            self.max_proof_deadline_date = fields.Date.today()
+
+            for line in self.request_line:
+                if hasattr(line , 'req_type'):
+                    # get the largest task date
+                    if line.task_deadline > max_task_date:
+                        max_task_date = line.task_deadline
+                        self.max_proof_deadline_date = max_task_date
+
+            if self.intended_launch_date and self.intended_launch_date < max_task_date:
+                self.intended_launch_date = max_task_date        
+        
     @api.onchange('priority')
     def _onchange_priority(self):
+        max_task_date = fields.Date.today()
+        if(len(self.request_line) > 0):
+            self.max_proof_deadline_date = fields.Date.today()
+       
         for line in self.request_line:
-            if hasattr(line , 'req_type'):
+            if hasattr(line, 'req_type'):
                 today = fields.Date.today() if fields.Date.today() else datetime.datetime.today()
-                current_day_with_time = self.write_date if self.write_date else datetime.datetime.today() 
+                current_day_with_time = self.write_date if self.write_date else datetime.datetime.today()
                 user_tz = line.env.user.tz or 'US/Pacific'
-                current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+                current_day_with_time = timezone('UTC').localize(
+                    current_day_with_time).astimezone(timezone(user_tz))
                 date_time_str = today.strftime("%d/%m/%y")
                 date_time_str += ' 14:00:00'
-                comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+                comparsion_date = datetime.datetime.strptime(
+                    date_time_str, '%d/%m/%y %H:%M:%S')
                 # if current_day_with_time after 2 pm:
                 #     today + 1 day
                 business_days_to_add = 0
@@ -259,17 +316,30 @@ class RequestForm(models.Model):
                     if weekday >= 5:  # sunday = 6, saturday = 5
                         continue
                     business_days_to_add -= 1
+                    # get the largest task date
+                    if current_date > max_task_date:
+                        max_task_date = current_date
+                        self.max_proof_deadline_date = max_task_date
+                    else:
+                        self.max_proof_deadline_date = current_date
 
+                    # launch date must be >= proof deadline 
+                    if self.intended_launch_date and self.max_proof_deadline_date > self.intended_launch_date:
+                        self.intended_launch_date = self.max_proof_deadline_date
+                        #raise Message(_("Launch date was modified. It must be equal or greater than proofing deadling dates."))
+                            
                 line.task_deadline = current_date
-
+                    
     def calculated_date(self, line):
         today = fields.Date.today()
         current_day_with_time = self.write_date
         user_tz = self.env.user.tz or 'US/Pacific'
-        current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
+        current_day_with_time = timezone('UTC').localize(
+            current_day_with_time).astimezone(timezone(user_tz))
         date_time_str = today.strftime("%d/%m/%y")
         date_time_str += ' 14:00:00'
-        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+        comparsion_date = datetime.datetime.strptime(
+            date_time_str, '%d/%m/%y %H:%M:%S')
         # if current_day_with_time after 2 pm:
         #     today + 1 day
         business_days_to_add = 0
@@ -302,14 +372,19 @@ class RequestForm(models.Model):
         """
         self.ensure_one()
         if self.request_line and self.intended_launch_date:
-            max_date = max(map(self.calculated_date,self.request_line))
-            if self.intended_launch_date < max_date:
+            # max_date = max(map(self.calculated_date,self.request_line))
+            if self.intended_launch_date < self.max_proof_deadline_date:
                 raise UserError('Please check Intended launch Date !!')
+
+        if not self.intended_launch_date:
+            self.intended_launch_date = self.max_proof_deadline_date        
+
         project_id = False
         project_obj = self.env['project.project']
         project_task_obj = self.env['project.task']
         sub_task_obj = self.env['sub.task']
-        cl_task = self.env.ref('clx_task_management.clx_client_launch_sub_task_1', raise_if_not_found=False)
+        cl_task = self.env.ref(
+            'clx_task_management.clx_client_launch_sub_task_1', raise_if_not_found=False)
         if not self.description:
             raise UserError('Please add Project Title!!')
         if not self.request_line:
@@ -318,9 +393,11 @@ class RequestForm(models.Model):
             raise UserError(
                 'Please add some Instruction on every line If do not have description Please delete that line.')
 
-        subscriptions = self.env['sale.subscription'].search([('partner_id', '=', self.partner_id.id)])
+        subscriptions = self.env['sale.subscription'].search(
+            [('partner_id', '=', self.partner_id.id)])
         if not subscriptions:
-            raise UserError('You can not submit request form there is no active sale for this customer!!')
+            raise UserError(
+                'You can not submit request form there is no active sale for this customer!!')
         if self.description and self.partner_id:
             vals = self.prepared_project_vals(self.description,
                                               self.partner_id)
@@ -339,9 +416,9 @@ class RequestForm(models.Model):
                             if main_task:
                                 dependency_sub_tasks = sub_task_obj. \
                                     search(
-                                    [('parent_id', '=', line.task_id.id),
-                                     '|', ('dependency_ids', '=', False),
-                                     ('dependency_ids', '=', cl_task and cl_task.id)])
+                                        [('parent_id', '=', line.task_id.id),
+                                         '|', ('dependency_ids', '=', False),
+                                         ('dependency_ids', '=', cl_task and cl_task.id)])
                                 for sub_task in dependency_sub_tasks:
                                     vals = self.prepared_sub_task_vals(
                                         sub_task, main_task, line)
@@ -356,13 +433,15 @@ class RequestForm(models.Model):
         req_line_obj = self.env['request.form.line']
         main_task_obj = self.env['main.task']
         if not self.is_create_client_launch:
-            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task', raise_if_not_found=False)
+            client_launch_task = self.env.ref(
+                'clx_task_management.clx_client_launch_task', raise_if_not_found=False)
             available_line = self.request_line.filtered(
                 lambda x: client_launch_task and x.task_id.id == client_launch_task.id)
             if available_line:
                 available_line.unlink()
         else:
-            client_launch_task = self.env.ref('clx_task_management.clx_client_launch_task')
+            client_launch_task = self.env.ref(
+                'clx_task_management.clx_client_launch_task')
             auto_tasks = self.env.user.company_id.auto_add_main_task_ids if self.env.user.company_id and self.env.user.company_id.auto_add_main_task_ids else False
             for a_task in auto_tasks:
                 vals = {
@@ -374,11 +453,13 @@ class RequestForm(models.Model):
                 form_line_id = req_line_obj.create(vals)
                 list_product.append(form_line_id.id)
         today = fields.Date.today()
-        lines = self.env['sale.order.line'].search([('order_partner_id', '=', self.partner_id.id)])
+        lines = self.env['sale.order.line'].search(
+            [('order_partner_id', '=', self.partner_id.id)])
         order_lines = False
         if lines:
             order_lines = lines
-            order_lines = order_lines.filtered(lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
+            order_lines = order_lines.filtered(
+                lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
             for category in order_lines.mapped('product_id').mapped('categ_id'):
                 # task_id = main_task_obj.search([('product_ids', 'in', product.id), ('req_type', '=', 'update')])
                 line_id = req_line_obj.create({
@@ -399,6 +480,7 @@ class RequestForm(models.Model):
                     line.description = self.update_products_des
                 line.req_type = 'update'
 
+
 class RequestFormLine(models.Model):
     _name = 'request.form.line'
     _description = 'Request Form Line'
@@ -409,20 +491,22 @@ class RequestFormLine(models.Model):
     req_type = fields.Selection([('new', 'New'), ('update', 'Update'), ('budget', 'Budget')],
                                 string='Request Type')
     task_id = fields.Many2one('main.task', string='Task')
-    task_deadline = fields.Date(string='Deadline', readonly=True, copy=False, compute='_default_task_deadline')
+    task_deadline = fields.Date(string='Task Due Date', readonly=True, copy=False, compute='_default_task_deadline')
     description = fields.Text(string='Instruction',
                               help='It will set as Task Description')
     requirements = fields.Text(string='Requirements')
-    category_id = fields.Many2one('product.category', string="Products Category")
-  
+    category_id = fields.Many2one(
+        'product.category', string="Products Category")
+
     def create_task_deadline_date(self):
         today = fields.Date.today()
-        current_day_with_time = self.write_date
+        current_day_with_time = self.write_date or datetime.datetime.utcnow()
         user_tz = self.env.user.tz or 'US/Pacific'
         current_day_with_time = timezone('UTC').localize(current_day_with_time).astimezone(timezone(user_tz))
         date_time_str = today.strftime("%d/%m/%y")
         date_time_str += ' 14:00:00'
-        comparsion_date = datetime.datetime.strptime(date_time_str, '%d/%m/%y %H:%M:%S')
+        comparsion_date = datetime.datetime.strptime(
+            date_time_str, '%d/%m/%y %H:%M:%S')
         # if current_day_with_time after 2 pm:
         #     today + 1 day
         business_days_to_add = 0
@@ -448,14 +532,16 @@ class RequestFormLine(models.Model):
 
         self.task_deadline = current_date
    
+    def _default_task_deadline(taskLineArray):
+        proof_deadline_date = taskLineArray.request_form_id.max_proof_deadline_date
+        for taskLine in taskLineArray:
+            taskLine.create_task_deadline_date()
+            if not proof_deadline_date or taskLine.task_deadline > proof_deadline_date:
+                taskLineArray.request_form_id.max_proof_deadline_date = taskLine.task_deadline
 
-    def _default_task_deadline(self):    
-        for line in self:
-            line.create_task_deadline_date()
-    
     @api.onchange('req_type')
-    def _onchange_req_type(self):
-        self.create_task_deadline_date()
+    def _onchange_req_type(taskLine):
+        taskLine.create_task_deadline_date()
 
     @api.onchange('task_id')
     def _onchange_task_id(self):
@@ -476,10 +562,6 @@ class RequestFormLine(models.Model):
                                            ('pull_to_request_form', '=', True)]}}
         elif self.category_id:
             return {'domain': {'task_id': [('req_type', '=', self.req_type),
-                                           ('category_id', '=', self.category_id.id),
+                                           ('category_id', '=',
+                                            self.category_id.id),
                                            ('pull_to_request_form', '=', True)]}}
-
-   
-
-
-    
