@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 {
     'name': 'CLX Task Management',
-    'version': '13.3.0.1.7',
+    'version': '13.3.0.1.6',
     'summary': 'CLX Task Management',
     'sequence': 1,
     'description': """ CLX Task Management """,
@@ -36,7 +36,6 @@
         'views/project_views.xml',
         'views/sale_order_views.xml',
         'views/product_product_views.xml',
-        'views/task_proof_return_views.xml',
         # 'views/product_category_views.xml',
         'views/sale_subscription_line_views.xml',
         'wizard/task_cancel_warning_wizard_views.xml',
