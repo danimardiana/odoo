@@ -506,7 +506,7 @@ class ProjectTask(models.Model):
                 task.clx_task_manager_id = self.clx_task_manager_id.id
 
         # If maintask launch date changes update subtasks.
-        if vals.get('intended_launch_date', False):
+        if vals.get('task_intended_launch_date', False):
             if(self.child_ids):
                 for subtask in self.child_ids:
                     if self.task_intended_launch_date:

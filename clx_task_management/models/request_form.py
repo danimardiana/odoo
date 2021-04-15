@@ -30,7 +30,11 @@ class RequestForm(models.Model):
         'Is this a brand new media campaign launch or relaunch?')
     ads_link_ids = fields.One2many(
         related='partner_id.ads_link_ids', string="Ads Link")
+    
     intended_launch_date = fields.Date(string='Intended Launch Date')
+      # Caluculated date derived from the form's max task due date
+    max_proof_deadline_date = fields.Date(string='Project Due Date')
+
     attachment_ids = fields.One2many(
         'request.form.attachments', 'req_form_id', string="Attachments")
     sale_order_id = fields.Many2many('sale.order', string="Sale Order")
