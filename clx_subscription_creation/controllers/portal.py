@@ -151,6 +151,7 @@ class CustomerPortal(CustomerPortal):
             line_to_add = {
                 # 'order_id': line.order_id,
                 'product_name': line.product_id.name,
+                'product_variant':line.product_id.product_template_attribute_value_ids.name or '',
                 'name': line.name,
                 'price_unit':  line.price_unit,
                 'category_name': line.product_id.categ_id.name,

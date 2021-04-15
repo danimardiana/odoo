@@ -146,6 +146,13 @@ class Partner(models.Model):
         return base_lines
 
     def grouping_by_product_set(self, product_lines, invoice_level=False):
+        def comparing_product_name(product_group, line):
+            category_name = self.env['product.category'].browse(line['category_id']).name
+            product_name = self.env['product.product'].browse(line['product_id']).name
+            sale_order_line_description = self.env['sale.order.line'].browse(line['sale_line_ids']).name
+            product_name_with_variant = '%s (%s)' % (product_name,self.env['sale.order.line'].browse(line['sale_line_ids']).product_id.product_template_attribute_value_ids.name or '')
+            return (product_group == category_name and (sale_order_line_description in (product_name,product_name_with_variant)))
+
         # regrouping followig the products_set_grouping_level table
         for grouping_rule in products_set_grouping_level:
             products_counter = len(grouping_rule['products_list'])
@@ -154,10 +161,10 @@ class Partner(models.Model):
             for product_group in grouping_rule['products_list']:
                 if invoice_level:
                     products_process[product_group] = list(filter(
-                        lambda x: (product_group == self.env['product.category'].browse(x['category_id']).name and self.env['product.product'].browse(x['product_id']).name == self.env['sale.order.line'].browse(x['sale_line_ids']).name), product_lines))
+                        lambda x: comparing_product_name(product_group,x), product_lines))
                 else:
                     products_process[product_group] = list(filter(
-                        lambda x: (product_group == x['category_name'] and x['product_name'] == x['name']), product_lines))
+                        lambda x: (product_group == x['category_name'] and x['name'] in (x['product_name'], '%s (%s)'%(x['product_name'],x['product_variant'])) ), product_lines))
                 if not len(products_process[product_group]):
                     matching_flag = False
             if matching_flag:
