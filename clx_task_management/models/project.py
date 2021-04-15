@@ -363,7 +363,7 @@ class ProjectTask(models.Model):
 
     @api.onchange('task_intended_launch_date')
     def _onchange_intended_launch_date(self):
-        if self.date_deadline > self.task_intended_launch_date:
+        if self.date_deadline and self.date_deadline > self.task_intended_launch_date:
               raise UserError(_("Launch date must be equal or greated than task due date!"))
 
     def write(self, vals):
