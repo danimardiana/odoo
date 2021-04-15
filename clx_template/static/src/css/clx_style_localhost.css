@@ -1,0 +1,21 @@
+.o_main_navbar {
+    position: relative;
+    height: 46px;
+    border-bottom: 1px solid #024200;
+    background: linear-gradient(-45deg, #721c02, #03552c, #00516e, #551101);
+    background-size: 400% 400%;
+    animation: gradient 30s ease infinite;
+    color: white;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
