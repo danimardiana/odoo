@@ -96,7 +96,7 @@ class BudgetReportWizard(models.TransientModel):
                     result_end_date = slider_start_date.replace(day=monthrange(
                         slider_start_date.year, slider_start_date.month)[1])
                     if sub_line.end_date and sub_line.end_date < result_end_date:
-                        result_end_date = sub_line.end_date 
+                        result_end_date = sub_line.end_date
                     result_table[slider_period][product_stamp] = {
                         'period': slider_period,
                         'start_date': result_start_date,
@@ -320,7 +320,8 @@ class qweb_sale_subscription_budgets_report(models.AbstractModel):
                  'management_fee': subscription.management_fee,
                  'start_date': subscription.start_date,
                  'end_date': subscription.end_date})
-
+            group_sales = self.env['res.groups'].search([('name', '=', 'CLX Sale Group')])
+            fees_allowed = self.env.user.id not in group_sales.users.ids
         docargs = {
             'doc_ids': docids,
             'doc_model': report.model,
@@ -328,6 +329,7 @@ class qweb_sale_subscription_budgets_report(models.AbstractModel):
             'all_periods': all_periods,
             'companies': subscriptions_gouped,
             'get_all': self.get_all,
+            'fees_allowed': fees_allowed,
             # 'print_data': self.print_data,
             # 'get_qty_done_sum': self.get_qty_done_sum,
         }

@@ -165,6 +165,7 @@ class Partner(models.Model):
                 else:
                     products_process[product_group] = list(filter(
                         lambda x: (product_group == x['category_name'] and x['name'] in (x['product_name'], '%s (%s)'%(x['product_name'],x['product_variant'])) ), product_lines))
+
                 if not len(products_process[product_group]):
                     matching_flag = False
             if matching_flag:
