@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="clx_assets_id" name="website assets for my module" inherit_id="website._assets_primary_variables">
+        <xpath expr="link[last()]" position="after">
+            <meta t-att-data="request.httprequest.url.find('localhost')" t-att-data2="request.httprequest.remote_addr" data3="111111"> 
+                <!-- <t t-set="session" t-value="json.dumps(session_info)"/> -->
+                <t t-raw="request.httprequest.path"/>           
+                <t t-raw="session_info"/>
+            </meta>
+            <t t-if="request.httprequest.url.find('staging-clx-vlad.odoo.com')>-1">
+                <link rel="stylesheet" href="/clx_template/static/src/css/clx_style_staging.css"/>
+            </t>
+            <t t-if="request.httprequest.url.find('localhost')>-1">
+                <link rel="stylesheet" href="/clx_template/static/src/css/clx_style_localhost.css"/>
+            </t>
+        </xpath>
+    </template>
+</odoo>
