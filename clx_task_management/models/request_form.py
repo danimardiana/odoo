@@ -198,9 +198,7 @@ class RequestForm(models.Model):
             "team_ids": line.task_id.team_ids.ids,
             "team_members_ids": line.task_id.team_members_ids.ids,
             "date_deadline": proof_deadline_date,
-            "task_intended_launch_date": self.intended_launch_date
-            if self.intended_launch_date
-            else main_task.date_deadline,
+            "task_intended_launch_date": self.intended_launch_date if self.intended_launch_date else proof_deadline_date,
             "requirements": line.requirements,
             "tag_ids": line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             "account_user_id": project_id.partner_id.account_user_id.id
@@ -371,9 +369,6 @@ class RequestForm(models.Model):
             if self.intended_launch_date < self.max_proof_deadline_date:
                 raise UserError("Please check Intended launch Date !!")
 
-        if not self.intended_launch_date:
-            self.intended_launch_date = self.max_proof_deadline_date
-
         project_id = False
         project_obj = self.env["project.project"]
         project_task_obj = self.env["project.task"]
@@ -417,6 +412,10 @@ class RequestForm(models.Model):
                                 for sub_task in dependency_sub_tasks:
                                     vals = self.prepared_sub_task_vals(sub_task, main_task, line)
                                     project_task_obj.create(vals)
+
+        if not self.intended_launch_date:
+            self.intended_launch_date = self.max_proof_deadline_date
+
         self.state = "submitted"
         self.submitted_by_user_id = self.env.uid
         self._send_request_form_mail()
