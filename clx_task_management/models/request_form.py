@@ -162,7 +162,9 @@ class RequestForm(models.Model):
                 "team_ids": sub_task.team_ids.ids,
                 "team_members_ids": sub_task.team_members_ids.ids,
                 "date_deadline": main_task.date_deadline,
-                "task_intended_launch_date": self.intended_launch_date if self.intended_launch_date else main_task.date_deadline,
+                "task_intended_launch_date": self.intended_launch_date
+                if self.intended_launch_date
+                else main_task.date_deadline,
                 "tag_ids": sub_task.tag_ids.ids if sub_task.tag_ids else False,
                 "account_user_id": main_task.project_id.partner_id.account_user_id.id
                 if main_task.project_id.partner_id.account_user_id
@@ -196,7 +198,9 @@ class RequestForm(models.Model):
             "team_ids": line.task_id.team_ids.ids,
             "team_members_ids": line.task_id.team_members_ids.ids,
             "date_deadline": proof_deadline_date,
-            "task_intended_launch_date": self.intended_launch_date if self.intended_launch_date else main_task.date_deadline,,
+            "task_intended_launch_date": self.intended_launch_date
+            if self.intended_launch_date
+            else main_task.date_deadline,
             "requirements": line.requirements,
             "tag_ids": line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             "account_user_id": project_id.partner_id.account_user_id.id
