@@ -5,7 +5,9 @@
 from odoo.exceptions import ValidationError
 
 from odoo import fields, models, api, _
+from . import grouping_data
 
+products_set_grouping_level = grouping_data.products_set_grouping_level
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
@@ -103,6 +105,81 @@ class SaleOrder(models.Model):
                 subscriptions.unlink()
         return super(SaleOrder, self).unlink()
 
+    def grouping_by_product_set(self, product_lines, invoice_level=False):
+        def comparing_product_name(product_group, line):
+            category_name = self.env['product.category'].browse(line['category_id']).name
+            product_name = self.env['product.product'].browse(line['product_id']).name
+            sale_order_line_description = self.env['sale.order.line'].browse(line['sale_line_ids']).name
+            product_name_with_variant = '%s (%s)' % (product_name,self.env['sale.order.line'].browse(line['sale_line_ids']).product_id.product_template_attribute_value_ids.name or '')
+            return (product_group == category_name and (sale_order_line_description in (product_name,product_name_with_variant)))
+
+        # regrouping followig the products_set_grouping_level table
+        for grouping_rule in products_set_grouping_level:
+            products_counter = len(grouping_rule['products_list'])
+            matching_flag = True
+            products_process = {}
+            for product_group in grouping_rule['products_list']:
+                if invoice_level:
+                    products_process[product_group] = list(filter(
+                        lambda x: comparing_product_name(product_group,x), product_lines))
+                else:
+                    products_process[product_group] = list(filter(
+                        lambda x: (product_group == x['category_name'] and x['name'] in (x['product_name'], '%s (%s)'%(x['product_name'],x['product_variant'])) ), product_lines))
+                if not len(products_process[product_group]):
+                    matching_flag = False
+            if matching_flag:
+                for product_group in grouping_rule['products_list']:
+                    for product_individual in products_process[product_group]:
+                        product_individual['description'] = grouping_rule['description']
+                        if not invoice_level:
+                            product_individual['contract_product_description'] = grouping_rule['contract_product_description']
+
+    def grouping_all_products(self):
+        modified_invoice_lines = []
+        for line in self.order_line:
+            line_to_add = {
+                # 'order_id': line.order_id,
+                'product_name': line.product_id.name,
+                'product_variant':line.product_id.product_template_attribute_value_ids.name or '',
+                'name': line.name,
+                'price_unit':  line.price_unit,
+                'category_name': line.product_id.categ_id.name,
+                'description': self.env['sale.subscription.line']._grouping_name_calc(line),#second level of grouping - budget wrapping
+                'contract_product_description': line.product_id.contract_product_description,
+                'display_type': line.display_type,
+                'prorate_amount': line.prorate_amount if line.prorate_amount else line.price_unit,
+                'product_template_id': line.product_template_id,
+                'management_fee_calculated': self.management_fee_calculation(line.price_unit, line.product_template_id, self.pricelist_id),
+            }
+            modified_invoice_lines.append(line_to_add)
+
+        #first level of grouping - product set
+        self.grouping_by_product_set(modified_invoice_lines)
+
+        #final grouping by description
+        final_values = {}
+        for product_individual in modified_invoice_lines:
+            if product_individual['description'] not in final_values:
+                final_values[product_individual['description']] = {
+                    'product_name': product_individual['product_name'],
+                    'price_unit': product_individual['price_unit'],
+                    'description': product_individual['description'],
+                    'contract_product_description': product_individual['contract_product_description'],
+                    'name': product_individual['name'],
+                    'display_type': product_individual['display_type'],
+                    'prorate_amount': product_individual['prorate_amount'],
+                    'product_template_id': product_individual['product_template_id'],
+                    'management_fee_calculated': product_individual['management_fee_calculated'],
+                }
+            else:
+                final_values[product_individual['description']
+                             ]['price_unit'] += product_individual['price_unit']
+                final_values[product_individual['description']
+                             ]['prorate_amount'] += product_individual['prorate_amount']
+                final_values[product_individual['description']
+                             ]['management_fee_calculated'] += product_individual['management_fee_calculated']
+                # filter out all producs related to the combined group
+        return list(final_values.values())
 
 class SaleOrderLine(models.Model):
     """
