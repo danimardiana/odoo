@@ -220,7 +220,7 @@ class Partner(models.Model):
                 'subscription_lines_ids': sub_lines.ids if sub_lines else False
             })
         # the regrouping lines
-        self.grouping_by_product_set(prepared_lines, True)
+        self.env['sale.order'].grouping_by_product_set(prepared_lines, True)
         account_id = False
         if not self._context.get('sol'):
             for line in prepared_lines:
