@@ -96,73 +96,80 @@
             }
         </style>
         <div class="report-budgets-wrapper">
-        <t t-foreach="companies" t-as="company_id">
-            
-            <t t-set="spk" t-value="companies[company_id]" />
-            <table class="report-budgets">
-                <thead>
-                    <tr>
-                        <th rowspan="2">Subscription</th>
-                        <t t-foreach="all_periods" t-as="period">
-                            <th colspan="5">
-                                <t t-esc="period"/>
-                            </th>
-                        </t>
-                    </tr>
-                    <tr>
-                        <t t-foreach="all_periods" t-as="period">
-                            <th>Retail</th>
-                            <th>Wholesale</th>
-                            <th>Management Fee</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                        </t>
-                    </tr>
-                </thead>
-                <tbody>
-                    <a target="_blank" t-attf-href="/web#id={{spk['partner_id']}}&amp;model=res.partner&amp;view_type=form&amp;cids=1&amp;menu_id=294">
-                        <div class="table-report-cap" t-esc="spk['company_name']" />
-                    </a>
-                    <t t-foreach="spk['subs']" t-as="line">
+            <t t-foreach="companies" t-as="company_id">
+                <t t-set="spk" t-value="companies[company_id]" />
+                <table class="report-budgets">
+                    <thead>
                         <tr>
-                            <td class="names">
-                                <!-- <div t-esc="spk['subs'][line]" /> -->
-                                <a target="_blank" t-attf-href="/web#id={{spk['subs'][line]['subscription_id']}}&amp;action=433&amp;model=sale.subscription&amp;view_type=form&amp;cids=1&amp;menu_id=294"><div t-esc="spk['subs'][line]['description']" /></a>
-                            </td>
+                            <th rowspan="2">Subscription</th>
                             <t t-foreach="all_periods" t-as="period">
-                                <!-- <div t-esc="spk['subs'][line]" /> -->
-                                <t t-if="period in spk['subs'][line]">
-                                    <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
-                                        <td class="moneys retail">
-                                            <div t-esc="sub_period['retail_price']" />
-                                        </td>
-                                        <td class="moneys">
-                                            <div t-esc="sub_period['wholesale_price']" />
-                                        </td>
-                                        <td class="moneys">
-                                            <div t-esc="sub_period['management_fee']" />
-                                        </td>
-                                        <td class="dates">
-                                            <div t-esc="sub_period['start_date']" />
-                                        </td>
-                                        <td class="dates">
-                                            <div t-esc="sub_period['end_date']" />
-                                        </td>
-                                    </t>
-                                </t>
-                                <t t-else="">
-                                    <td class="moneys"></td>
-                                    <td class="moneys"></td>
-                                    <td class="moneys"></td>
-                                    <td class="dates"></td>
-                                    <td class="dates"></td>
-                                </t>
+                                <th t-att-colspan="5 if fees_allowed else 3">
+                                    <t t-esc="period"/>
+                                </th>
                             </t>
                         </tr>
-                    </t>
-                </tbody>
-            </table>
-        </t>
+                        <tr>
+                            <t t-foreach="all_periods" t-as="period">
+                                <th>Retail</th>
+                                <t t-if="fees_allowed">
+                                    <th>Wholesale</th>
+                                    <th>Management Fee</th>
+                                </t>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                            </t>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <a target="_blank" t-attf-href="/web#id={{spk['partner_id']}}&amp;model=res.partner&amp;view_type=form&amp;cids=1&amp;menu_id=294">
+                            <div class="table-report-cap" t-esc="spk['company_name']" />
+                        </a>
+                        <t t-foreach="spk['subs']" t-as="line">
+                            <tr>
+                                <td class="names">
+                                    <!-- <div t-esc="spk['subs'][line]" /> -->
+                                    <a target="_blank" t-attf-href="/web#id={{spk['subs'][line]['subscription_id']}}&amp;action=433&amp;model=sale.subscription&amp;view_type=form&amp;cids=1&amp;menu_id=294">
+                                        <div t-esc="spk['subs'][line]['description']" />
+                                    </a>
+                                </td>
+                                <t t-foreach="all_periods" t-as="period">
+                                    <!-- <div t-esc="spk['subs'][line]" /> -->
+                                    <t t-if="period in spk['subs'][line]">
+                                        <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
+                                            <td class="moneys retail">
+                                                <div t-esc="sub_period['retail_price']" />
+                                            </td>
+                                            <t t-if="fees_allowed">
+                                                <td class="moneys">
+                                                    <div t-esc="sub_period['wholesale_price']" />
+                                                </td>
+                                                <td class="moneys">
+                                                    <div t-esc="sub_period['management_fee']" />
+                                                </td>
+                                            </t>
+                                            <td class="dates">
+                                                <div t-esc="sub_period['start_date']" />
+                                            </td>
+                                            <td class="dates">
+                                                <div t-esc="sub_period['end_date']" />
+                                            </td>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <td class="moneys"></td>
+                                        <t t-if="fees_allowed">
+                                            <td class="moneys"></td>
+                                            <td class="moneys"></td>
+                                        </t>
+                                        <td class="dates"></td>
+                                        <td class="dates"></td>
+                                    </t>
+                                </t>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
         </div>
     </template>
 
