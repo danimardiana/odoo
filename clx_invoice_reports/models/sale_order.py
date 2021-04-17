@@ -107,14 +107,14 @@ class SaleOrder(models.Model):
             compose = self.env['mail.compose.message'].sudo().search(
             [('res_id', '=', self.id)], limit=1, order='id desc')[0]
             #sending  e-mail
-            prepeared_values = {
-                'email_to': compose.email_to,
-                'body_html': compose.body,
-                'attachment_ids': compose.attachment_ids,
-                'recipient_ids': compose.partner_ids,
-                'subject': compose.subject,
-                'email_from': compose.email_from,
-            }
-            Mail = self.env['mail.mail'].create(prepeared_values)
-            Mail.send()
+            # prepeared_values = {
+            #     'email_to': compose.email_to,
+            #     'body_html': compose.body,
+            #     'attachment_ids': compose.attachment_ids,
+            #     'recipient_ids': compose.partner_ids,
+            #     'subject': compose.subject,
+            #     'email_from': compose.email_from,
+            # }
+            # Mail = self.env['mail.mail'].create(prepeared_values)
+            # Mail.send()
         
