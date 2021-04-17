@@ -1,4 +1,4 @@
-# descrive special sets of products starting from more complex (more products in set) to simpliest
+# describtion special sets of products starting from more complex (more products in set) to simpliest
 products_set_grouping_level = [
     {'products_list': ['Display', 'Paid Social'],
      'description': 'Targeted Online Display with Premium Placement',
