@@ -20,6 +20,9 @@ class MainTask(models.Model):
     tag_ids = fields.Many2many('project.tags', string="Tags")
     product_ids = fields.Many2many('product.product', string="Products")
     pull_to_request_form = fields.Boolean(string='Pull to the Request Form', default=True)
+   
+    # Analyst selected Client Launch Date
+    # intended_launch_date = fields.Date(related="project_id.partner_id.intended_launch_date", string='Intended Launch Date', store=True)
 
     # @api.onchange('team_ids')
     # def _onchange_team_ids(self):
