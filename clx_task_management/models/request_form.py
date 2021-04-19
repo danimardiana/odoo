@@ -198,7 +198,9 @@ class RequestForm(models.Model):
             "team_ids": line.task_id.team_ids.ids,
             "team_members_ids": line.task_id.team_members_ids.ids,
             "date_deadline": proof_deadline_date,
-            "task_intended_launch_date": self.intended_launch_date if self.intended_launch_date else proof_deadline_date,
+            "task_intended_launch_date": self.intended_launch_date
+            if self.intended_launch_date
+            else proof_deadline_date,
             "requirements": line.requirements,
             "tag_ids": line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             "account_user_id": project_id.partner_id.account_user_id.id
@@ -478,7 +480,6 @@ class RequestForm(models.Model):
                     line.description += "\n \n" + self.update_products_des
                 else:
                     line.description = self.update_products_des
-                line.req_type = "update"
 
 
 class RequestFormLine(models.Model):
