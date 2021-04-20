@@ -38,18 +38,18 @@
                         Hello,
                     <br/>
                     <br/>
-                        Your Conversion Logix quotation has been prepared. Please review the attached file for <strong style="font-weight:bolder;">${object.partner_id.name}</strong> in the amount of <strong style="font-weight:bolder;">${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong>. 
+                        Your contract for Conversion Logix Digital AdTech services is ready for signature. Please review the attached file for <strong style="font-weight:bolder;">${object.partner_id.name}</strong> in the amount of <strong style="font-weight:bolder;">${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong>. Press <strong style="font-weight:bolder;">Accept &amp; Sign</strong> in order to review, e-sign, and begin the launch of this campaign. 
                     <br/>
-Please press <strong style="font-weight:bolder;">Accept &amp; Sign</strong> in order to review, e-sign, and submit confirmation for the community’s campaign. 
+                    Once signed, a copy of the executed contract will be delivered to your email. 
                     <br/>
-If additional changes are made, your account manager is attached to this email and can make any needed edits. 
+If additional changes are made, your Conversion Logix Account Manager is copied on this email. 
                     <br/>
-                        Thank you, 
+                        Thank you for your partnership! 
                     <br/>
                     <br/>
                         The Conversion Logix Team 
                     <br/>
-
+                    <strong style="font-weight:bolder;">${object.partner_id.account_user_id.name}</strong>
                 </p>
             </div>
             <div t-if="is_online and not record._context.get('proforma')" style="margin: 32px 0px 32px 0px; text-align: center;">

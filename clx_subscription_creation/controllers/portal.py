@@ -143,52 +143,6 @@ class CustomerPortal(CustomerPortal):
             history = request.session.get('my_quotations_history', [])
         else:
             history = request.session.get('my_orders_history', [])
-        values.update(get_records_pager(
-            history, order_sudo))
+        values.update(get_records_pager(history, order_sudo))
 
-        values['modified_invoice_lines'] = []
-        for line in values['sale_order'].order_line:
-            line_to_add = {
-                # 'order_id': line.order_id,
-                'product_name': line.product_id.name,
-                'name': line.name,
-                'price_unit':  line.price_unit,
-                'category_name': line.product_id.categ_id.name,
-                'description': request.env['sale.subscription.line']._grouping_name_calc(line),#second level of grouping - budget wrapping
-                'contract_product_description': line.product_id.contract_product_description,
-                'display_type': line.display_type,
-                'prorate_amount': line.prorate_amount if line.prorate_amount else line.price_unit,
-                'product_template_id': line.product_template_id,
-                'management_fee_calculated': order_sudo.management_fee_calculation(line.price_unit, line.product_template_id, order_sudo.pricelist_id),
-            }
-            values['modified_invoice_lines'].append(line_to_add)
-
-        #first level of grouping - product set
-        request.env['res.partner'].grouping_by_product_set(values['modified_invoice_lines'])
-
-        #final grouping by description
-        final_values = {}
-        for product_individual in values['modified_invoice_lines']:
-            if product_individual['description'] not in final_values:
-                final_values[product_individual['description']] = {
-                    'product_name': product_individual['product_name'],
-                    'price_unit': product_individual['price_unit'],
-                    'description': product_individual['description'],
-                    'contract_product_description': product_individual['contract_product_description'],
-                    'name': product_individual['name'],
-                    'display_type': product_individual['display_type'],
-                    'prorate_amount': product_individual['prorate_amount'],
-                    'product_template_id': product_individual['product_template_id'],
-                    'management_fee_calculated': product_individual['management_fee_calculated'],
-                }
-            else:
-                final_values[product_individual['description']
-                             ]['price_unit'] += product_individual['price_unit']
-                final_values[product_individual['description']
-                             ]['prorate_amount'] += product_individual['prorate_amount']
-                final_values[product_individual['description']
-                             ]['management_fee_calculated'] += product_individual['management_fee_calculated']
-                # filter out all producs related to the combined group
-
-            values['modified_invoice_lines'] = list(final_values.values())
         return request.render('sale.sale_order_portal_template', values)

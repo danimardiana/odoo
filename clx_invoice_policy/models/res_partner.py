@@ -9,9 +9,9 @@ from odoo.exceptions import UserError
 from odoo import fields, models, api, _
 from dateutil import parser
 from calendar import monthrange
-from . import grouping_data
+# from . import grouping_data
 
-products_set_grouping_level = grouping_data.products_set_grouping_level
+# products_set_grouping_level = grouping_data.products_set_grouping_level
 
 
 class Partner(models.Model):
@@ -145,28 +145,6 @@ class Partner(models.Model):
                         line['subscription_lines_ids'])
         return base_lines
 
-    def grouping_by_product_set(self, product_lines, invoice_level=False):
-        # regrouping followig the products_set_grouping_level table
-        for grouping_rule in products_set_grouping_level:
-            products_counter = len(grouping_rule['products_list'])
-            matching_flag = True
-            products_process = {}
-            for product_group in grouping_rule['products_list']:
-                if invoice_level:
-                    products_process[product_group] = list(filter(
-                        lambda x: (product_group == self.env['product.category'].browse(x['category_id']).name and self.env['product.product'].browse(x['product_id']).name == self.env['sale.order.line'].browse(x['sale_line_ids']).name), product_lines))
-                else:
-                    products_process[product_group] = list(filter(
-                        lambda x: (product_group == x['category_name'] and x['product_name'] == x['name']), product_lines))
-                if not len(products_process[product_group]):
-                    matching_flag = False
-            if matching_flag:
-                for product_group in grouping_rule['products_list']:
-                    for product_individual in products_process[product_group]:
-                        product_individual['description'] = grouping_rule['description']
-                        if not invoice_level:
-                            product_individual['contract_product_description'] = grouping_rule['contract_product_description']
-
     def generate_advance_invoice(self, lines):
         """
         To calculate invoice lines for Advances Policy.
@@ -242,7 +220,7 @@ class Partner(models.Model):
                 'subscription_lines_ids': sub_lines.ids if sub_lines else False
             })
         # the regrouping lines
-        self.grouping_by_product_set(prepared_lines, True)
+        self.env['sale.order'].grouping_by_product_set(prepared_lines, True)
         account_id = False
         if not self._context.get('sol'):
             for line in prepared_lines:
