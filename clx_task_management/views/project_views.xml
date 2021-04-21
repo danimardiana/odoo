@@ -20,6 +20,9 @@
                 <field name="team_members_ids" widget="many2many_tags" optional="show"/>
                 <field name="clx_priority"/>
                 <field name="client_services_team"/>
+                <field name="create_date" string="Task Create Date" optional="hide"/>
+                <field name="task_complete_date" readonly="1" optional="hide"/>
+                <field name="task_duration" optional="hide"/>
             </xpath>
             <xpath expr="//field[@name='ops_team_member_id']" position="after">
                 <field name="tag_ids_flattened" optional="show"/>
@@ -45,9 +48,10 @@
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="deadline"/>
-                <field name="create_date"/>
                 <field name="priority"/>
                 <field name="client_services_team"/>
+                <field name="create_date" string="Project Create Date" optional="hide"/>
+                <field name="complete_date" optional="hide"/>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="attributes">
                 <attribute name="string">Account Manager</attribute>
@@ -132,6 +136,10 @@
                 <field name="priority"/>
                 <field name="client_services_team"/>
             </field>
+            <xpath expr="//field[@name='subtask_project_id']" position="after">
+                <field name="create_date" string="Project Create Date"/>
+                <field name="complete_date" readonly="1"/>
+            </xpath>
             <field name="message_follower_ids" position="after">
                 <field name="message_ids" widget="mail_thread"/>
             </field>
@@ -156,6 +164,8 @@
             <field name="tag_ids" position="after">
                 <field name="clx_priority"/>
                 <field name="client_services_team"/>
+                <field name="create_date" string="Task Create Date"/>
+                <field name="task_complete_date" readonly="1"/>
             </field>
             <field name="user_id" position="attributes">
                 <attribute name="invisible">1</attribute>
