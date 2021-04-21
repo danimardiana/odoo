@@ -192,9 +192,6 @@ class ProjectTask(models.Model):
             hours = "0"
             minutes = "0"
 
-            if record.id == 23674:
-                print("TASK")
-
             if (record.create_date and record.task_complete_date) and (record.create_date < record.task_complete_date):
                 created = fields.Datetime.from_string(record.create_date)
                 completed = fields.Datetime.from_string(record.task_complete_date)
