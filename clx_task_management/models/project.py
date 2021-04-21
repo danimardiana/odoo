@@ -3,8 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError, Warning
-import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 from odoo.addons.mail.models.mail_thread import MailThread
@@ -192,6 +191,10 @@ class ProjectTask(models.Model):
             days = "0"
             hours = "0"
             minutes = "0"
+
+            if record.id == 23674:
+                print("TASK")
+
             if (record.create_date and record.task_complete_date) and (record.create_date < record.task_complete_date):
                 created = fields.Datetime.from_string(record.create_date)
                 completed = fields.Datetime.from_string(record.task_complete_date)
@@ -202,9 +205,11 @@ class ProjectTask(models.Model):
                 days = str(dur_days)
                 hours = str((dur_days * 24 + dur_seconds // 3600) - (int(days) * 24))
                 minutes = str((dur_seconds % 3600) // 60)
-                # seconds = seconds % 60
 
-            record.task_duration = days + "d:" + hours + "h:" + minutes + "m"
+            if int(days) > 0 or int(hours) > 0 or int(minutes) > 0:
+                record.task_duration = days + "d:" + hours + "h:" + minutes + "m"
+            else:
+                record.task_duration = ""
 
     def _compute_task_teams_flattened(self):
         for record in self:
@@ -394,7 +399,7 @@ class ProjectTask(models.Model):
             current_day_with_time = timezone("UTC").localize(current_day_with_time).astimezone(timezone(user_tz))
             date_time_str = today.strftime("%d/%m/%y")
             date_time_str += " 14:00:00"
-            comparsion_date = datetime.datetime.strptime(date_time_str, "%d/%m/%y %H:%M:%S")
+            comparsion_date = datetime.strptime(date_time_str, "%d/%m/%y %H:%M:%S")
             # if current_day_with_time after 2 pm:
             #     today + 1 day
             if current_day_with_time.time() > comparsion_date.time():
@@ -423,7 +428,7 @@ class ProjectTask(models.Model):
             current_date = today
             # code for skip saturday and sunday for set deadline on task.
             while business_days_to_add > 0:
-                current_date += datetime.timedelta(days=1)
+                current_date += timedelta(days=1)
                 weekday = current_date.weekday()
                 if weekday >= 5:  # sunday = 6, saturday = 5
                     continue
@@ -470,7 +475,8 @@ class ProjectTask(models.Model):
         cancel_stage = self.env.ref("clx_task_management.clx_project_stage_9")
 
         if vals.get("stage_id", False) and stage_id.id == complete_stage.id:
-            self.task_complete_date = fields.Datetime.today()
+            complete_date_time = datetime.now()
+            self.task_complete_date = complete_date_time
             if self.sub_task_id:
                 parent_task_main_task = self.project_id.task_ids.mapped("sub_task_id").mapped("parent_id")
                 dependency_tasks = sub_task_obj.search(
