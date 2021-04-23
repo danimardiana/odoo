@@ -1,8 +1,55 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+
+    <!-- Projects Menu Button Action Handler -->
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="name">Projects</field>
+        <field name="res_model">project.project</field>
+        <field name="domain">[]</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" ref="project.view_project_kanban"/>
+        <field name="search_view_id" ref="project.view_project_project_filter"/>
+        <field name="target">main</field>
+    </record>
+
+    <!-- All Tasks (Parent Tasks) Menu Button Action Handler -->
+    <record id="action_view_parent_task" model="ir.actions.act_window">
+        <field name="name">All Tasks</field>
+        <field name="res_model">project.task</field>
+        <!-- <field name="view_mode">kanban,form,calendar,graph,activity</field> -->
+        <field name="domain">[('parent_id','=',False)]</field>
+        <field name="filter" eval="True"/>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="view_ids" eval="[(1, 0, 0), 
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_task_tree2_inherit_clx_task_management')}), 
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_task_form2_inherit_clx_task_management')}),                           
+                (0, 0, {'view_mode': 'kanban'})]"/>
+    </record>
+    <menuitem name="All Tasks" id="menu_parent_task" parent="project.menu_main_pm"
+            action="clx_task_management.action_view_parent_task" sequence="1"/>
+
+    <!-- All Subtask Menu Button Action Handler -->
+    <record id="project.action_view_task" model="ir.actions.act_window">
+        <field name="name">All SubTasks</field>
+        <field name="res_model">project.task</field>
+        <!-- <field name="view_mode">kanban,form,calendar,pivot,graph,activity</field> -->
+        <field name="context">{'search_default_my_tasks': 1,'search_default_team' : 1}</field>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="domain">[('parent_id','!=',False)]</field>
+        <field name="view_ids" eval="[(3, 0, 0), 
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_subtask_tree2_inherit_clx_task_management')}), 
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_task_form2_inherit_clx_task_management')}),                           
+                (0, 0, {'view_mode': 'kanban'})]"/>
+    </record>
+    <record model="ir.ui.menu" id="project.menu_project_management">
+        <field name="name">All Subtasks</field>
+    </record>
+
+    <!-- All 'Parent' Tasks List/Tree View -->
     <record id="view_task_tree2_inherit_clx_task_management" model="ir.ui.view">
-        <field name="name">project.task.tree</field>
+        <field name="name">project.task.tree.task</field>
         <field name="model">project.task</field>
+        <field name="priority" eval="1"/>
         <field name="inherit_id" ref="project.view_task_tree2"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='user_id']" position="after">
@@ -21,8 +68,43 @@
                 <field name="clx_priority"/>
                 <field name="client_services_team"/>
                 <field name="create_date" string="Task Create Date" optional="hide"/>
-                <field name="task_complete_date" readonly="1" optional="hide"/>
-                <field name="task_duration" optional="hide"/>
+                <field name="task_complete_date" string="Task Complete Date" optional="hide" readonly="1"/>    
+                <field name="task_duration" string="Task Duration" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='ops_team_member_id']" position="after">
+                <field name="tag_ids_flattened" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='tag_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- All Sub Task List/Tree View -->
+    <record id="view_subtask_tree2_inherit_clx_task_management" model="ir.ui.view">
+        <field name="name">project.task.tree.subtask</field>
+        <field name="model">project.task</field>
+        <field name="priority" eval="3"/>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="clx_task_manager_id"/>
+                <field name="clx_task_designer_id"/>
+                <field name="ops_team_member_id"/>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="string">Account Manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="partner_id"/>
+                <field name="parent_id"/>
+                <field name="team_ids_flattened" optional="show"/>
+                <field name="team_members_ids" widget="many2many_tags" optional="show"/>
+                <field name="clx_priority"/>
+                <field name="client_services_team"/>
+                <field name="create_date" string="SubTask Create Date" optional="hide"/>
+                <field name="task_complete_date" string="SubTask Complete Date" optional="hide" readonly="1"/>
+                <field name="task_duration" string="SubTask Duration" optional="hide"/>
             </xpath>
             <xpath expr="//field[@name='ops_team_member_id']" position="after">
                 <field name="tag_ids_flattened" optional="show"/>
@@ -164,8 +246,11 @@
             <field name="tag_ids" position="after">
                 <field name="clx_priority"/>
                 <field name="client_services_team"/>
-                <field name="create_date" string="Task Create Date"/>
-                <field name="task_complete_date" readonly="1"/>
+                <!-- Toggle Labels based on if field Task or SubTask -->
+                <field name="create_date" string="Task Create Date" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
+                <field name="task_complete_date" string="Task Complete Date" readonly="1" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
+                <field name="create_date" string="SubTask Create Date" attrs="{'invisible': [('parent_id', '=', False)]}"/>
+                <field name="task_complete_date" string="SubTask Complete Date" readonly="1" attrs="{'invisible': [('parent_id', '=', False)]}"/>
             </field>
             <field name="user_id" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -324,91 +409,5 @@
             </xpath>
         </field>
     </record>
-
-
-    <!--override action because of  show only parent task on when action is call -->
-    <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
-        <field name="name">Tasks</field>
-        <field name="res_model">project.task</field>
-        <field name="view_mode">kanban,tree,form,calendar,pivot,graph,activity</field>
-        <field name="context">{
-            'pivot_row_groupby': ['user_id'],
-            'search_default_project_id': [active_id],
-            'default_project_id': active_id,
-            }
-        </field>
-        <field name="search_view_id" ref="project.view_task_search_form"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Click <i>Create</i> to start a new task.
-            </p>
-            <p>
-                To get things done, use activities and status on tasks.
-                <br/>
-                Chat in real time or by email to collaborate efficiently.
-            </p>
-        </field>
-        <field name="domain">[('parent_id','=',False)]</field>
-    </record>
-
-    <record id="project.action_view_task" model="ir.actions.act_window">
-        <field name="name">All SubTasks</field>
-        <field name="res_model">project.task</field>
-        <field name="view_mode">kanban,tree,form,calendar,pivot,graph,activity</field>
-        <field name="context">{'search_default_my_tasks': 1,'search_default_team' : 1}</field>
-        <field name="search_view_id" ref="project.view_task_search_form"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Create a new task
-            </p>
-            <p>
-                Odoo's project management allows you to manage the pipeline of your tasks efficiently.
-                <br/>
-                You can track progress, discuss on tasks, attach documents, etc.
-            </p>
-        </field>
-        <field name="domain">[('parent_id','!=',False)]</field>
-    </record>
-    <record model="ir.ui.menu" id="project.menu_project_management">
-        <field name="name">All Subtasks</field>
-    </record>
-
-    <record id="action_view_parent_task" model="ir.actions.act_window">
-        <field name="name">All Tasks</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">project.task</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-    <record id="action_view_parent_task" model="ir.actions.act_window">
-        <field name="name">All Tasks</field>
-        <field name="res_model">project.task</field>
-        <field name="view_mode">kanban,tree,form,calendar,graph,activity</field>
-        <field name="domain">[('parent_id','=',False)]</field>
-        <field name="filter" eval="True"/>
-        <field name="search_view_id" ref="project.view_task_search_form"/>
-    </record>
-
-    <record id="project.open_view_project_all" model="ir.actions.act_window">
-        <field name="name">Projects</field>
-        <field name="res_model">project.project</field>
-        <field name="domain">[]</field>
-        <field name="view_mode">tree,kanban,form</field>
-        <field name="view_id" ref="project.view_project_kanban"/>
-        <field name="search_view_id" ref="project.view_project_project_filter"/>
-        <field name="target">main</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Create a new project
-            </p>
-            <p>
-                Or <a type="action" name="%(project.ir_actions_server_project_sample)d" tabindex="-1">activate a sample
-                project
-            </a> to play with.
-            </p>
-        </field>
-    </record>
-
-    <menuitem name="All Tasks" id="menu_parent_task" parent="project.menu_main_pm"
-              action="clx_task_management.action_view_parent_task" sequence="1"/>
+    
 </odoo>
