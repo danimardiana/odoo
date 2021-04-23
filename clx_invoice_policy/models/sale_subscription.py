@@ -455,4 +455,9 @@ class SaleSubscriptionLine(models.Model):
                         'price_unit': new_price,
                     })
         res.update({'description': self._grouping_name_calc(line)})
+        if self._context.get('co_op', False):
+            price_unit = (res['price_unit'] * self._context.get('percantage')) / 100
+            res.update({
+                'price_unit': price_unit
+            })
         return res

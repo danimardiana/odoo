@@ -23,8 +23,7 @@ class SaleSubscriptionWizard(models.TransientModel):
         res = super(SaleSubscriptionWizard, self).default_get(fields)
         subscription = self.env.context['active_id']
         subscription_id = self.env['sale.subscription'].browse(subscription)
-        product_id = subscription_id.sudo(
-        ).recurring_invoice_line_ids[-1].product_id
+        product_id = subscription_id.sudo().recurring_invoice_line_ids[-1].product_id
         if subscription_id and subscription_id.recurring_invoice_line_ids and product_id:
             res['option_lines'] = [(0, 0, {
                 'product_id': product_id.id,
@@ -40,10 +39,8 @@ class SaleSubscriptionWizard(models.TransientModel):
         res = super(SaleSubscriptionWizard, self).create_sale_order()
         if self.option_lines[0].price == 0:
             raise ValidationError(_("Please add Upsell Price!!"))
-        active_subscription = self.env['sale.subscription'].browse(
-            self._context.get('active_id'))
-        order_id = active_subscription.recurring_invoice_line_ids[0].mapped(
-            'so_line_id').order_id
+        active_subscription = self.env['sale.subscription'].browse(self._context.get('active_id'))
+        order_id = active_subscription.recurring_invoice_line_ids[0].mapped('so_line_id').order_id
         res_id = res.get('res_id', False)
         wholesale = 0.0
         management_fees = 0.0
@@ -58,10 +55,11 @@ class SaleSubscriptionWizard(models.TransientModel):
                 lambda x: x.product_id.id == self.option_lines[0].product_id.id)
             if sol_id:
                 price_list = so.pricelist_id
-                base_line = active_subscription.recurring_invoice_line_ids.filtered(
-                    lambda x: x.line_type == 'base')
-                price_unit = active_subscription.recurring_total + \
-                    self.option_lines[0].price
+                base_line = active_subscription.recurring_invoice_line_ids.filtered(lambda x: x.line_type == 'base')
+                price_unit = active_subscription.recurring_total + self.option_lines[0].price
+                if price_list:
+                    rule = price_list[0].item_ids.filtered(
+                        lambda x: x.categ_id.id == sol_id.product_id.categ_id.id)
                 price = self.option_lines[0].price
                 sol_id.write({
                     'price_unit': price,
@@ -74,7 +72,10 @@ class SaleSubscriptionWizard(models.TransientModel):
                 })
                 # sol_id.price_unit_change()
                 # so.update_price()
-                so.action_confirm()
+                so.is_ratio = order_id.is_ratio
+                if order_id.is_ratio:
+                    so.co_op_sale_order_partner_ids = order_id.co_op_sale_order_partner_ids.ids
+                # so.action_confirm()
         return res
 
 

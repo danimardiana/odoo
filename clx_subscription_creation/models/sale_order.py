@@ -16,23 +16,42 @@ class SaleOrder(models.Model):
 
     def _prepare_subscription_data(self, template):
         res = super(SaleOrder, self)._prepare_subscription_data(template)
-        if not self.is_ratio:
-            return res
-        if self.is_ratio:
+        if self._context.get('is_ratio'):
             partner_id = self._context.get('co_op_partner')
             res.update({
-                'partner_id': partner_id
+                'partner_id': partner_id,
+                'is_co_op': True,
+                'co_op_percentage': self._context.get('co_op_percentage'),
+                'active': False
             })
-            return res
+        return res
 
     def update_existing_subscriptions(self):
         """
         Call super method when upsell is created from the subscription
         otherwise override this method
         """
-        if self.subscription_management == "upsell":
-            return super(SaleOrder, self).update_existing_subscriptions()
-        return super(SaleOrder, self).update_existing_subscriptions()
+        # if self.subscription_management == "upsell":  
+        #     return super(SaleOrder, self).update_existing_subscriptions()
+        res = super(SaleOrder, self).update_existing_subscriptions()
+        if self.is_ratio:
+            print("_________")
+            origin = self.origin
+            subscription = self.env['sale.subscription'].search([('code', '=', origin)])
+            main_sale_order = subscription.recurring_invoice_line_ids[0].so_line_id.order_id
+            main_sale_order_line = main_sale_order.order_line.filtered(lambda x: x.product_id.id == self.order_line[0].product_id.id)
+            subscriptions = main_sale_order_line.clx_subscription_ids
+            for subscription in subscriptions:
+                line_values = self.order_line[0]._update_subscription_line_data(subscription)
+                subscription.write({'recurring_invoice_line_ids': line_values})
+
+        #     a = self.env['sale.subscription'].search([('active', '=', False), ('is_co_op', '=', True), (
+        #         'partner_id', 'in', self.co_op_sale_order_partner_ids.mapped('partner_id').ids)])
+        #     product_id = self.order_line[0].product_id
+        #     matched_order_line = main_sale_order.order_line.filtered(lambda x: x.product_id.id == product_id.id)
+        #     subscriptions = a.filtered(lambda x: x.id == matched_order_line.subscription_id.id)
+        #     print(subscriptions)
+        return res
 
     def create_subscriptions(self):
         """
@@ -256,6 +275,8 @@ class SaleOrderLine(models.Model):
             'so_line_id': self.id,
             'line_type': self.line_type
         })
+        if self._context.get('ratio', False):
+            res[0][-1].update({'active': False})
         return res
 
     def unlink(self):

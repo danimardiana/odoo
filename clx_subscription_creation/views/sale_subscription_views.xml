@@ -9,6 +9,8 @@
             <field name='team_id' position="after">
                 <field name="product_id"/>
                 <field name="is_active"/>
+                <field name="is_co_op"/>
+                <field name="co_op_percentage"/>
             </field>
             <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='price_unit']"
                    position="after">
