@@ -16,14 +16,20 @@
     <record id="action_view_parent_task" model="ir.actions.act_window">
         <field name="name">All Tasks</field>
         <field name="res_model">project.task</field>
-        <!-- <field name="view_mode">kanban,form,calendar,graph,activity</field> -->
+        <field name="view_mode">kanban,form,calendar,graph,activity</field>
         <field name="domain">[('parent_id','=',False)]</field>
         <field name="filter" eval="True"/>
         <field name="search_view_id" ref="project.view_task_search_form"/>
-        <field name="view_ids" eval="[(1, 0, 0), 
-                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_task_tree2_inherit_clx_task_management')}), 
-                (0, 0, {'view_mode': 'form', 'view_id': ref('view_task_form2_inherit_clx_task_management')}),                           
-                (0, 0, {'view_mode': 'kanban'})]"/>
+        <!-- <field name="view_ids" eval="[(1, 0, 0), 
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('clx_task_management.view_task_tree2_inherit_clx_task_management')}), 
+                (0, 0, {'view_mode': 'form', 'view_id': ref('clx_task_management.view_task_form2_inherit_clx_task_management')}),                           
+                (0, 0, {'view_mode': 'kanban'})]"/> -->
+    </record>
+    <record id="tree_id" model="ir.actions.act_window.view">
+        <field eval="3" name="sequence"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="clx_task_management.view_task_tree2_inherit_clx_task_management"/>
+        <field name="act_window_id" ref="action_view_parent_task"/>
     </record>
     <menuitem name="All Tasks" id="menu_parent_task" parent="project.menu_main_pm"
             action="clx_task_management.action_view_parent_task" sequence="1"/>
@@ -32,14 +38,20 @@
     <record id="project.action_view_task" model="ir.actions.act_window">
         <field name="name">All SubTasks</field>
         <field name="res_model">project.task</field>
-        <!-- <field name="view_mode">kanban,form,calendar,pivot,graph,activity</field> -->
+        <field name="view_mode">kanban,form,calendar,pivot,graph,activity</field>
         <field name="context">{'search_default_my_tasks': 1,'search_default_team' : 1}</field>
         <field name="search_view_id" ref="project.view_task_search_form"/>
         <field name="domain">[('parent_id','!=',False)]</field>
-        <field name="view_ids" eval="[(3, 0, 0), 
-                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_subtask_tree2_inherit_clx_task_management')}), 
-                (0, 0, {'view_mode': 'form', 'view_id': ref('view_task_form2_inherit_clx_task_management')}),                           
-                (0, 0, {'view_mode': 'kanban'})]"/>
+        <!-- <field name="view_ids" eval="[(3, 0, 0), 
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('clx_task_management.view_subtask_tree2_inherit_clx_task_management')}), 
+                (0, 0, {'view_mode': 'form', 'view_id': ref('clx_task_management.view_task_form2_inherit_clx_task_management')}),                           
+                (0, 0, {'view_mode': 'kanban'})]"/> -->
+    </record>
+    <record id="tree_id1" model="ir.actions.act_window.view">
+        <field eval="3" name="sequence"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="clx_task_management.view_subtask_tree2_inherit_clx_task_management"/>
+        <field name="act_window_id" ref="project.action_view_task"/>
     </record>
     <record model="ir.ui.menu" id="project.menu_project_management">
         <field name="name">All Subtasks</field>
