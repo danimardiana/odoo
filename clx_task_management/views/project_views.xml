@@ -307,13 +307,13 @@
         </field>
     </record>
 
-    <record id="project.project_task_action_from_partner" model="ir.actions.act_window">
+    <!-- <record id="project.project_task_action_from_partner" model="ir.actions.act_window">
         <field name="name">Tasks</field>
         <field name="res_model">project.task</field>
         <field name="view_mode">kanban,tree,form</field>
         <field name="search_view_id" ref="project.view_task_search_form"/>
         <field name="domain">[('parent_id','!=',False)]</field>
-    </record>
+    </record> -->
 
     <!--inherit search view for add group by team -->
     <record id="view_task_search_form_inherit_clx_task_management" model="ir.ui.view">
