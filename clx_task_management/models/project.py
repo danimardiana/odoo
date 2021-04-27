@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError, Warning
-import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 from odoo.addons.mail.models.mail_thread import MailThread
@@ -36,15 +36,6 @@ class ProjectProject(models.Model):
     cs_notes = fields.Text(related="partner_id.cs_notes")
     ops_notes = fields.Text(related="partner_id.ops_notes")
     cat_notes = fields.Text(related="partner_id.cat_notes")
-
-    # Caluculated Max Task Due Date
-    # which is set when the project and tasks
-    # are created during form submission
-    deadline = fields.Date(string="Project Due Date")
-    # Analyst selected Client Launch Date
-
-    intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
-
     priority = fields.Selection([("high", "High"), ("regular", "Regular")], default="regular", string="Priority")
     client_services_team = fields.Selection(
         related="partner_id.management_company_type_id.client_services_team", store=True
@@ -54,6 +45,13 @@ class ProjectProject(models.Model):
     )
     implementation_specialist_id = fields.Many2one(related="partner_id.implementation_specialist_id")
     user_id = fields.Many2one("res.users", string="Account Manager", default=lambda self: self.env.user, tracking=True)
+    # Caluculated Max Task Due Date
+    # which is set when the project and tasks
+    # are created during form submission
+    deadline = fields.Date(string="Project Due Date")
+    # Analyst selected Client Launch Date
+    intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
+    complete_date = fields.Datetime(string="Project Complete Date")
 
     @api.model
     def create(self, vals):
@@ -115,6 +113,7 @@ class ProjectProject(models.Model):
         complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
         if all(task.stage_id.id == complete_stage.id for task in self.task_ids):
             self.clx_state = "done"
+            self.complete_date = fields.Datetime.today()
         else:
             raise UserError(_("Please Complete All the Task First!!"))
 
@@ -177,6 +176,8 @@ class ProjectTask(models.Model):
     date_deadline = fields.Date(string="Task Due Date", readonly=False)
     # Analyst selected Client Launch Date
     task_intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
+    task_complete_date = fields.Datetime(string="Task Complete Date")
+    task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration")
 
     @api.model
     def create(self, vals):
@@ -184,6 +185,28 @@ class ProjectTask(models.Model):
         # remove followers not from CLX
         remove_followers_non_clx(new_task)
         return new_task
+
+    def _compute_task_duration(self):
+        for record in self:
+            days = "0"
+            hours = "0"
+            minutes = "0"
+
+            if (record.create_date and record.task_complete_date) and (record.create_date < record.task_complete_date):
+                created = fields.Datetime.from_string(record.create_date)
+                completed = fields.Datetime.from_string(record.task_complete_date)
+
+                duration = completed - created
+
+                dur_days, dur_seconds = duration.days, duration.seconds
+                days = str(dur_days)
+                hours = str((dur_days * 24 + dur_seconds // 3600) - (int(days) * 24))
+                minutes = str((dur_seconds % 3600) // 60)
+
+            if int(days) > 0 or int(hours) > 0 or int(minutes) > 0:
+                record.task_duration = days + "d:" + hours + "h:" + minutes + "m"
+            else:
+                record.task_duration = ""
 
     def _compute_task_teams_flattened(self):
         for record in self:
@@ -373,7 +396,7 @@ class ProjectTask(models.Model):
             current_day_with_time = timezone("UTC").localize(current_day_with_time).astimezone(timezone(user_tz))
             date_time_str = today.strftime("%d/%m/%y")
             date_time_str += " 14:00:00"
-            comparsion_date = datetime.datetime.strptime(date_time_str, "%d/%m/%y %H:%M:%S")
+            comparsion_date = datetime.strptime(date_time_str, "%d/%m/%y %H:%M:%S")
             # if current_day_with_time after 2 pm:
             #     today + 1 day
             if current_day_with_time.time() > comparsion_date.time():
@@ -402,7 +425,7 @@ class ProjectTask(models.Model):
             current_date = today
             # code for skip saturday and sunday for set deadline on task.
             while business_days_to_add > 0:
-                current_date += datetime.timedelta(days=1)
+                current_date += timedelta(days=1)
                 weekday = current_date.weekday()
                 if weekday >= 5:  # sunday = 6, saturday = 5
                     continue
@@ -449,6 +472,8 @@ class ProjectTask(models.Model):
         cancel_stage = self.env.ref("clx_task_management.clx_project_stage_9")
 
         if vals.get("stage_id", False) and stage_id.id == complete_stage.id:
+            complete_date_time = datetime.now()
+            self.task_complete_date = complete_date_time
             if self.sub_task_id:
                 parent_task_main_task = self.project_id.task_ids.mapped("sub_task_id").mapped("parent_id")
                 dependency_tasks = sub_task_obj.search(
