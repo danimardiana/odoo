@@ -374,6 +374,11 @@ class ProjectTask(models.Model):
 
     @api.onchange("stage_id")
     def onchange_stage_id(self):
+        """
+        Task and SubTask stage updates are
+        handled in the Task write method if the
+        pass the following condition
+        """
         complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
         if not self.parent_id and self.stage_id.id == complete_stage.id:
             raise UserError(_("You Can not Complete the Task until the all Sub Task are completed"))
@@ -389,6 +394,10 @@ class ProjectTask(models.Model):
         res = super(ProjectTask, self).write(vals)
         today = fields.Date.today()
         current_date = today
+
+        stage_id = self.env["project.task.type"].browse(vals.get("stage_id"))
+        complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
+        cancel_stage = self.env.ref("clx_task_management.clx_project_stage_9")
 
         if "active" not in vals:
             current_day_with_time = self.write_date
@@ -430,7 +439,6 @@ class ProjectTask(models.Model):
                 if weekday >= 5:  # sunday = 6, saturday = 5
                     continue
                 business_days_to_add -= 1
-        complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
 
         if "active" in vals:
             for task in self.child_ids:
@@ -466,14 +474,13 @@ class ProjectTask(models.Model):
                 self.ops_team_member_id = (
                     self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
                 )
-
-        stage_id = self.env["project.task.type"].browse(vals.get("stage_id"))
-
-        cancel_stage = self.env.ref("clx_task_management.clx_project_stage_9")
-
+        """
+        If task (parent task or subtask) stage is set to complete
+        """
         if vals.get("stage_id", False) and stage_id.id == complete_stage.id:
             complete_date_time = datetime.now()
             self.task_complete_date = complete_date_time
+
             if self.sub_task_id:
                 parent_task_main_task = self.project_id.task_ids.mapped("sub_task_id").mapped("parent_id")
                 dependency_tasks = sub_task_obj.search(
@@ -501,13 +508,21 @@ class ProjectTask(models.Model):
                         if task.id not in self.parent_id.child_ids.mapped("sub_task_id").ids:
                             vals = self.create_sub_task(task, self.project_id)
                             self.create(vals)
-
+        """
+        If task is subtask and there are sibling subtasks
+        """
         if vals.get("stage_id", False) and self.parent_id and self.parent_id.child_ids:
+
+            # If all sidbling subtasks are complete, then set parent task to complete
             if all(line.stage_id.id == complete_stage.id for line in self.parent_id.child_ids):
                 self.parent_id.stage_id = complete_stage.id
 
+            # If all tasks are complete set the project to done
             if all(task.stage_id.id == complete_stage.id for task in self.project_id.task_ids):
+                complete_date_time = datetime.now()
                 self.project_id.clx_state = "done"
+                self.project_id.complete_date = complete_date_time
+        # if parent task or subtask are cancelled
         elif vals.get("stage_id", False) and stage_id.id == cancel_stage.id:
             params = self.env["ir.config_parameter"].sudo()
             auto_create_sub_task = bool(params.get_param("auto_create_sub_task")) or False
@@ -519,6 +534,15 @@ class ProjectTask(models.Model):
                 for sub_task in sub_tasks:
                     vals = self.create_sub_task(sub_task, self.project_id)
                     self.create(vals)
+        """
+        If task is stage is not compete of cancel make sure 
+        parent task is equal to or less than the subtask stage
+        and that the project is in-progress
+        """
+        if vals.get("stage_id", False) and stage_id.id != cancel_stage.id and stage_id.id != complete_stage.id:
+            if self.parent_id and self.parent_id.stage_id.id > stage_id.id:
+                self.parent_id.stage_id = stage_id
+                self.parent_id.project_id.clx_stage = "in_progress"
 
         if vals.get("ops_team_member_id", False):
             for task in self.child_ids:
