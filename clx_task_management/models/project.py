@@ -542,7 +542,9 @@ class ProjectTask(models.Model):
         if vals.get("stage_id", False) and stage_id.id != cancel_stage.id and stage_id.id != complete_stage.id:
             if self.parent_id and self.parent_id.stage_id.id > stage_id.id:
                 self.parent_id.stage_id = stage_id
-                self.parent_id.project_id.clx_stage = "in_progress"
+                self.project_id.clx_state = "in_progress"
+            else:
+                self.project_id.clx_state = "in_progress"
 
         if vals.get("ops_team_member_id", False):
             for task in self.child_ids:
