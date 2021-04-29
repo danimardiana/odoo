@@ -192,6 +192,7 @@ class ProjectTask(models.Model):
             hours = "0"
             minutes = "0"
 
+            # Calculate the task duraction
             if (record.create_date and record.task_complete_date) and (record.create_date < record.task_complete_date):
                 created = fields.Datetime.from_string(record.create_date)
                 completed = fields.Datetime.from_string(record.task_complete_date)
@@ -203,8 +204,13 @@ class ProjectTask(models.Model):
                 hours = str((dur_days * 24 + dur_seconds // 3600) - (int(days) * 24))
                 minutes = str((dur_seconds % 3600) // 60)
 
+            # Set the task duration
             if int(days) > 0 or int(hours) > 0 or int(minutes) > 0:
                 record.task_duration = days + "d:" + hours + "h:" + minutes + "m"
+            elif (record.create_date and record.task_complete_date) and (
+                record.create_date < record.task_complete_date
+            ):
+                record.task_duration = "0d:0h:1m"
             else:
                 record.task_duration = ""
 
