@@ -132,7 +132,7 @@ class RequestForm(models.Model):
         :return: action of kanban view
 
         """
-        project_action = self.env.ref("project.action_view_task")
+        project_action = self.env.ref("clx_task_management.action_view_parent_task")
         project = self.env["project.project"].search([("req_form_id", "=", self.id)], limit=1)
         if project_action and project:
             action = project_action.read()[0]
