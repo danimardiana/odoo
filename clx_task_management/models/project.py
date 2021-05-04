@@ -178,6 +178,8 @@ class ProjectTask(models.Model):
     task_intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
     task_complete_date = fields.Datetime(string="Task Complete Date")
     task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration")
+    proof_return_count = fields.Integer(string="Proof Return Count", default=0)
+    proof_return_ids = fields.One2many("task.proof.return", "task_id", string="Proof Return History")
 
     @api.model
     def create(self, vals):
@@ -585,6 +587,21 @@ class ProjectTask(models.Model):
         remove_followers_non_clx(self)
 
         return res
+
+    # Used to set attribution from task kanban card
+    def action_view_proof_return(self):
+        view_id = self.env.ref("clx_task_management.view_task_proof_return_form_from_kanban").id
+        context = dict(self._context or {})
+        context.update({"current_task": self.id})
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Proof Return"),
+            "res_model": "task.proof.return",
+            "target": "new",
+            "view_mode": "form",
+            "views": [[view_id, "form"]],
+            "context": context,
+        }
 
     def action_view_popup_task(self):
         sub_tasks = self.sub_repositary_task_ids

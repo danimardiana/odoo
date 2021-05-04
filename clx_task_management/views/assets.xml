@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <odoo>
+    <template id="assets_backend_js" name="clx_task_management_js" inherit_id="web.assets_backend">
+        <xpath expr=".">
+            <script type="text/javascript" src="/clx_task_management/static/src/js/relational_fields.js"/>
+        </xpath>
+    </template>
     <template id="assets_backend" name="request line assets" inherit_id="web.assets_backend">
         <xpath expr="." position="inside">
             <link rel="stylesheet" type="text/css" href="/clx_task_management/static/src/css/custom_text.css"/>
