@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_task_proof_return_form" model="ir.ui.view">
+        <field name="name">Task Proof Return</field>
+        <field name="model">task.proof.return</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="task_id" invisible="1"/>
+                        <field name="team_id"/>
+                    </group>
+                    <footer>
+                        <button string="Confirm" name="create_dependent_task" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_task_proof_return_form_from_kanban" model="ir.ui.view">
+        <field name="name">Task Proof Return</field>
+        <field name="model">task.proof.return</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="task_id" invisible="1"/>
+                        <field name="team_id"/>
+                    </group>
+                    <footer>
+                        <button string="Confirm" name="create_dependent_task_from_kanban" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_task_proof_return" model="ir.actions.act_window">
+        <field name="name">Task Proof Return</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">task.proof.return</field>
+        <field name="view_mode">form</field>
+    </record>
+</odoo>
