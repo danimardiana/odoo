@@ -567,3 +567,33 @@ h3 {
     text-overflow: clip;
     word-break: break-all;
 }
+div#maskingLayer {
+    position: fixed;
+    bottom: 0px;
+    top: 0px;
+    left:0px;
+    width: 100%;
+    text-align: center;
+    background: RGBA(0,0,0,.5);
+    margin: auto;
+}
+div#maskingLayer>div{
+    color: white;
+    position: absolute;
+    font-size: xx-large;
+    top: 300px;
+    margin-left: 50%;
+    display: block;
+    animation-duration: 4s;
+    transform: translate(-50%, -50%);
+    -webkit-animation: waiting-blinking 8s infinite;
+    animation: waiting-blinking 8s infinite;
+    -moz-animation: waiting-blinking 8s infinite;
+}
+@keyframes waiting-blinking {
+    0%   {color:rgb(50, 50, 50); }
+    25%  {color:rgb(170, 170, 170); }
+    50%  {color:rgb(253, 253, 253); }
+    75%  {color:rgb(170, 170, 170); }
+    100% {color:rgb(50, 50, 50); }
+  }

@@ -65,7 +65,7 @@
                     <t t-set="modified_invoice_lines" t-value="sale_order.grouping_all_products()"/>
                     <t t-foreach="modified_invoice_lines" t-as="line">
                         <!-- section just for compatibly with original ones -->
-                        <section id="details" style="page-break-inside: auto;display:none;" class="mt32">
+                        <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
                             <t t-set="display_discount" t-value="True in [line['discount'] > 0 for line in sale_order.order_line]"/>
                             <table class="table table-sm" id="sales_order_table">
                                 <thead>
@@ -86,7 +86,7 @@
                         <t t-else="">
                             <div class="productLineWrapper row">
                                 <div class="topbar row valign-wrapper col-12">
-                                    <section id="details" class="productTitle col-7">
+                                    <section id="details" class="productTitle col-12 col-md-7">
                                         <t t-esc="line['display_type']" />
                                         <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line['display_type'] == 'line_section' else 'font-italic o_line_note' if line['display_type'] == 'line_note' else ''">
                                             <t t-if="not line['display_type']">
@@ -116,7 +116,7 @@
                                         </tr>
                                     </section>
                                     <t t-set="need_display_fee" t-value="line['name'].find('Search')>-1 and not sale_order.display_management_fee"/>
-                                    <div class="productTotalWrapperWrapper col-5">
+                                    <div class="productTotalWrapperWrapper col-12 col-md-5">
                                         <div class="productTotalWrapper">
                                             <div class="monthlyTotalText">Monthly Total:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
                                             </div>
@@ -173,7 +173,7 @@
             </div>
 
             <div class="pseudoPage short-upper-margin">
-                <div class="col-8 offset-2">
+                <div class="offset-md-2 col-12 col-md-8">
                     <div class="section_wrapper_subtle">
                         <h2 class="full center">Key Information</h2>
                         <div class="keyValueRow row">
@@ -209,7 +209,7 @@
                         <!-- REPLACEME - Ownership??? -->
                     </div>
                 </div>
-                <div class="dont_break_inside clear_shadow col-8 offset-2">
+                <div class="dont_break_inside clear_shadow offset-md-2 col-12 col-md-8">
                     <div class="section_wrapper_subtle">
                         <h2 class="full center">Length and Fees</h2>
                         <!-- Contract Length -->
@@ -235,7 +235,7 @@
                         <!-- Ad Change Fees -->
                     </div>
                 </div>
-                <div class="dont_break_inside clear_shadow col-8 offset-2">
+                <div class="dont_break_inside clear_shadow offset-md-2 col-12 col-md-8">
                     <div class="payment_details section_wrapper_subtle">
                         <h2 class="full center">Payment Details</h2>
                         <div class="keyValueRow row">
@@ -310,7 +310,7 @@
                                     <t t-if="not sale_order.signature">Accept &amp; Pay</t>
                                     <t t-else="">Pay Now</t>
                                 </a>
-                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                <div class="o_download_pdf btn-toolbar flex-md-nowrap">
                                     <div class="btn-group flex-grow-1 mr-1 mb-1">
                                         <a class="btn btn-secondary btn-block o_download_btn" t-att-href="sale_order.get_portal_url(report_type='pdf', download=True)" title="Download">
                                             <i class="fa fa-download"/>
@@ -411,7 +411,24 @@
                                     <t t-call="portal.signature_form">
                                         <t t-set="call_url" t-value="sale_order.get_portal_url(suffix='/accept')"/>
                                         <t t-set="default_name" t-value="sale_order.partner_id.name"/>
-                                    </t>
+                                    </t>    
+                                    <script>
+                                        window.signInterval = setInterval(()=>{ 
+                                                console.log($);
+                                                console.log(jQuery('button.o_portal_sign_submit'));
+                                                buttonSign = document.querySelector('button.o_portal_sign_submit')
+                                                if (buttonSign) {
+                                                    clearInterval( window.signInterval )
+                                                    buttonSign.onclick = (evt)=>{
+                                                        console.log('changed')
+                                                        if (!evt.target.disabled){
+                                                            console.log('changed1')
+                                                            $('form#accept').append('<div id="maskingLayer"><div>Wait, please...</div></div>')
+                                                            }
+                                                        } 
+                                                }
+                                                }, 3000);
+                                    </script>
                                 </main>
                             </form>
                         </div>
@@ -527,25 +544,25 @@
                     <div t-if="sale_order.has_to_be_signed(True) or sale_order.has_to_be_paid(True)" class="row justify-content-center text-center d-print-none pt-1 pb-4">
 
                         <t t-if="sale_order.has_to_be_signed(True)">
-                            <div class="col-sm-auto mt8">
+                            <div class="col-md-auto mt8">
                                 <a role="button" class="btn btn-primary" data-toggle="modal" data-target="#modalaccept" href="#">
                                     <i class="fa fa-check"/>
                                     <t t-if="sale_order.has_to_be_paid(True)"> Sign &amp; Pay</t>
                                     <t t-else=""> Accept &amp; Sign</t>
                                 </a>
                             </div>
-                            <div class="col-sm-auto mt8">
+                            <div class="col-md-auto mt8">
                                 <a role="button" class="btn btn-secondary" href="#discussion">
                                     <i class="fa fa-comment"/>
  Feedback</a>
                             </div>
-                            <div class="col-sm-auto mt8">
+                            <div class="col-md-auto mt8">
                                 <a role="button" class="btn btn-danger" data-toggle="modal" data-target="#modaldecline" href="#">
                                     <i class="fa fa-times"/>
  Reject</a>
                             </div>
                         </t>
-                        <div t-elif="sale_order.has_to_be_paid(True)" class="col-sm-auto mt8">
+                        <div t-elif="sale_order.has_to_be_paid(True)" class="col-md-auto mt8">
                             <a role="button" data-toggle="modal" data-target="#modalaccept" href="#" t-att-class="'%s' % ('btn btn-light' if sale_order.transaction_ids else 'btn btn-primary')">
                                 <i class="fa fa-check"/>
                                 <t t-if="not sale_order.signature">Accept &amp; Pay</t>
