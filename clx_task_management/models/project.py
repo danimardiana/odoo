@@ -177,7 +177,9 @@ class ProjectTask(models.Model):
     # Analyst selected Client Launch Date
     task_intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
     task_complete_date = fields.Datetime(string="Task Complete Date")
-    task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration")
+    task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration"
+    proof_return_count = fields.Integer(string="Proof Return Count", default=0)
+    proof_return_ids = fields.One2many("task.proof.return", "task_id", string="Proof Return History")
     task_in_progress_date = fields.Datetime(string="Task In Progress Date", readonly=False)
     task_proof_internal_date = fields.Datetime(string="Task Proof Internal Date", readonly=False)
 
@@ -194,6 +196,7 @@ class ProjectTask(models.Model):
             hours = "0"
             minutes = "0"
 
+            # Calculate the task duraction
             if (record.create_date and record.task_complete_date) and (record.create_date < record.task_complete_date):
                 created = fields.Datetime.from_string(record.create_date)
                 completed = fields.Datetime.from_string(record.task_complete_date)
@@ -205,8 +208,13 @@ class ProjectTask(models.Model):
                 hours = str((dur_days * 24 + dur_seconds // 3600) - (int(days) * 24))
                 minutes = str((dur_seconds % 3600) // 60)
 
+            # Set the task duration
             if int(days) > 0 or int(hours) > 0 or int(minutes) > 0:
                 record.task_duration = days + "d:" + hours + "h:" + minutes + "m"
+            elif (record.create_date and record.task_complete_date) and (
+                record.create_date < record.task_complete_date
+            ):
+                record.task_duration = "0d:0h:1m"
             else:
                 record.task_duration = ""
 
@@ -394,6 +402,11 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
+
+        proof_stage = self.env.ref("clx_task_management.clx_project_stage_6", raise_if_not_found=False)
+        if vals.get("stage_id", False) and self.stage_id.id == proof_stage.id:
+            self.proof_return_count += 1
+
         today = fields.Date.today()
         current_date = today
 
@@ -594,6 +607,21 @@ class ProjectTask(models.Model):
         remove_followers_non_clx(self)
 
         return res
+
+    # Used to set attribution from task kanban card
+    def action_view_proof_return(self):
+        view_id = self.env.ref("clx_task_management.view_task_proof_return_form_from_kanban").id
+        context = dict(self._context or {})
+        context.update({"current_task": self.id})
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Proof Return"),
+            "res_model": "task.proof.return",
+            "target": "new",
+            "view_mode": "form",
+            "views": [[view_id, "form"]],
+            "context": context,
+        }
 
     def action_view_popup_task(self):
         sub_tasks = self.sub_repositary_task_ids
