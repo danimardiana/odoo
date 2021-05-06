@@ -117,7 +117,7 @@
         </field>
     </record>
 
-    <!-- <record id="view_project_kanban_inherit_clx_task_management" model="ir.ui.view">
+    <record id="view_project_kanban_inherit_clx_task_management" model="ir.ui.view">
         <field name="name">view_project_inherit_kanban</field>
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project_kanban"/>
@@ -141,7 +141,7 @@
                 </div>
             </xpath>
         </field>
-    </record> -->
+    </record>
 
 
     <!-- Inherit Form View to add state for the project it -->
