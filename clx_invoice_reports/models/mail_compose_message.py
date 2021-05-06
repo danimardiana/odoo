@@ -33,6 +33,7 @@ class MaleComposeMessage(models.TransientModel):
             'recipient_ids': self.partner_ids,
             'subject': self.subject,
             'email_from': self.email_from,
+            'reply_to': self.reply_to,
         }
         Mail = self.env['mail.mail'].create(prepeared_values)
         sale_order = self.env[self.model].browse(self.res_id)
