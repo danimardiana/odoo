@@ -177,7 +177,7 @@ class ProjectTask(models.Model):
     # Analyst selected Client Launch Date
     task_intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
     task_complete_date = fields.Datetime(string="Task Complete Date")
-    task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration"
+    task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration")
     proof_return_count = fields.Integer(string="Proof Return Count", default=0)
     proof_return_ids = fields.One2many("task.proof.return", "task_id", string="Proof Return History")
     task_in_progress_date = fields.Datetime(string="Task In Progress Date", readonly=False)
