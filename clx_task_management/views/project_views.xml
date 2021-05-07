@@ -446,9 +446,9 @@
         <field name="view_ids" eval="[(5, 0, 0),
                                       (0, 0, {'view_mode': 'tree', 'view_id': ref('parent_task_tree')}),
                                       (0, 0, {'view_mode': 'form', 'view_id': ref('view_task_form2_inherit_clx_task_management')}),
-                                      (0, 0, {'view_mode': 'kanban', 'view_id': ref('clx_task_management_kanban')})]"/>
-    </record> 
-    <menuitem name="All Tasks" id="menu_parent_task" parent="project.menu_main_pm"
+                                      (0, 0, {'view_mode': 'kanban'})]"/>
+    </record>
+    <menuitem name="All Tasks" id="menu_parent_task_clx" parent="project.menu_main_pm"
             action="action_view_parent_task" sequence="1"/>
 
     <!-- All Subtask Menu Button Action Handler -->
@@ -463,7 +463,7 @@
                                       (0, 0, {'view_mode': 'form', 'view_id': ref('view_task_form2_inherit_clx_task_management')}),
                                       (0, 0, {'view_mode': 'kanban', 'view_id': ref('clx_task_management_kanban')})]"/>
     </record>
-    <menuitem name="All SubTasks" id="menu_sub_task" parent="project.menu_main_pm"
+    <menuitem name="All SubTasks" id="menu_sub_task_clx" parent="project.menu_main_pm"
             action="action_view_sub_task" sequence="2"/>
     
 </odoo>
