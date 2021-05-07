@@ -89,19 +89,26 @@
         </field>
     </record>
 
+    <!-- 
+        Add proof return attibution button to subtask kanban cards
+        when stage of subtask is Proof Return. Do not add to parent task
+     -->
     <record id="clx_task_management_kanban" model="ir.ui.view" >
         <field name="name">clx.project.task.kanban</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="type">kanban</field>
         <field name="arch" type="xml">
+             <xpath expr="//field[@name='user_id']" position="after">
+                <field name="parent_id" invisible="1"/>
+            </xpath>
             <xpath expr="//templates/t/div/div/div/div[@class='o_dropdown_kanban dropdown']" position="replace">
                 <div class="o_dropdown_kanban dropdown" t-if="!selection_mode" groups="base.group_user">
                     <a role="button" class="dropdown-toggle o-no-caret btn" data-toggle="dropdown" data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
                         <span class="fa fa-ellipsis-v"/>
                     </a>
                     <div class="dropdown-menu" role="menu">
-                        <div t-if="record.stage_id.value == 'Proof Returned'">
+                        <div t-if="record.stage_id.value == 'Proof Returned' and record.parent_id.value">
                             <a type="object" name="action_view_proof_return" class="dropdown-item">Return Attribution</a>
                             <div role="separator" class="dropdown-divider"/>
                         </div>
@@ -117,6 +124,7 @@
         </field>
     </record>
 
+    <!-- Add fields to project kanban cards -->
     <record id="view_project_kanban_inherit_clx_task_management" model="ir.ui.view">
         <field name="name">view_project_inherit_kanban</field>
         <field name="model">project.project</field>
@@ -142,7 +150,6 @@
             </xpath>
         </field>
     </record>
-
 
     <!-- Inherit Form View to add state for the project it -->
     <record id="edit_project_inherit_clx_project_management" model="ir.ui.view">
@@ -222,13 +229,21 @@
             <field name="tag_ids" position="after">
                 <field name="clx_priority"/>
                 <field name="client_services_team"/>
-                <field name="proof_return_count" readonly="1"/>
-                <!-- Toggle Labels based on Task or SubTask -->
+                <!-- 
+                    Toggle Labels based on Task or SubTask
+                 -->
                 <field name="create_date" string="Task Create Date" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
                 <field name="task_complete_date" string="Task Complete Date" readonly="1" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
                 <field name="create_date" string="SubTask Create Date" attrs="{'invisible': [('parent_id', '=', False)]}"/>
-                <field name="task_complete_date" string="SubTask Complete Date" readonly="1" attrs="{'invisible': [('parent_id', '=', False)]}"/>
+                  <field name="task_complete_date" string="SubTask Complete Date" readonly="1" attrs="{'invisible': [('parent_id', '=', False)]}"/>
             </field>
+            <xpath expr="//field[@name='create_date']" position="before">
+                <!-- 
+                    Toggle Labels based on Task or SubTask
+                 -->
+                <field name="proof_return_count" string="SubTasks Returned" readonly="1" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
+                <field name="proof_return_count" string="Proof Return Count" readonly="1" attrs="{'invisible': [('parent_id', '=', False)]}"/>
+            </xpath>
             <field name="user_id" position="attributes">
                 <attribute name="invisible">1</attribute>
             </field>
@@ -257,12 +272,8 @@
                   <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//header" position="inside">
-                <!-- <button type="object" name="action_view_proof_return" class="oe_stat_button"
-                        string="Proof Returned"/> -->
                 <button type="object" name="action_view_popup_task" class="oe_stat_button"
                         string="Complete" context="{'complete':'complete'}"/>
-                <!-- <button type="object" name="action_view_cancel_task" class="oe_stat_button"
-                        string="Cancel"/> -->
             </xpath>
             <xpath expr="//button[@name='action_open_parent_task']" position="after">
                 <field name="clx_sale_order_id" invisible="1"/>
@@ -319,9 +330,20 @@
                         <field name="fix"/>
                     </group>
                 </page>
-                <page name="proof_returned" string="Proof Return Attribution">
+                <page name="proof_returned" string="Proof Return Attribution" attrs="{'invisible': [('parent_id', '=', False)]}">
                     <group>
-                        <field name="proof_return_ids" nolabel="1">
+                        <!-- Show this field view to enable Proof Attribution Form popup-->
+                        <field name="proof_return_ids" nolabel="1" class="oe_edit_only">
+                            <tree>
+                                <field name="team_id"/>
+                                <field name="create_date"/>
+                                <field name="proof_return_count" string="Return Sequence"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group>
+                        <!-- Show this field view to disable Proof Attribution Form popup-->
+                        <field name="proof_return_ids" nolabel="1" class="oe_read_only" style="pointer-events:none;">
                             <tree>
                                 <field name="team_id"/>
                                 <field name="create_date"/>
