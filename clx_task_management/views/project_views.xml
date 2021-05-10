@@ -15,6 +15,7 @@
                 <field name="clx_priority" optional="show"/>
                 <field name="client_services_team" optional="show"/>
                 <field name="proof_return_count" optional="hide"/>
+                <field name="proof_return_ids_flattened" optional="hide"/>
                 <field name="create_date" string="Task Create Date" optional="hide"/>
                 <field name="date_deadline" string="Task Due Date" optional="hide"/>
                 <field name="task_complete_date" string="Task Complete Date" optional="hide" readonly="1"/>    
@@ -47,6 +48,7 @@
                 <field name="clx_priority" optional="show"/>
                 <field name="client_services_team" optional="show"/>
                 <field name="proof_return_count" optional="hide"/>
+                <field name="proof_return_ids_flattened" optional="hide"/>
                 <field name="create_date" string="SubTask Create Date" optional="hide"/>
                 <field name="date_deadline" string="SubTask Due Date" optional="hide"/>
                 <field name="task_complete_date" string="SubTask Complete Date" optional="hide" readonly="1"/>    
