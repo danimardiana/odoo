@@ -479,9 +479,9 @@
         <field name="res_model">proof.return.excel.report</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <!-- <field name="context">{'action_next':'sale_budget_report_action_qweb'}</field> -->
-    </record>
-    <menuitem id="proof_return_report" name="Proof Return Report" parent="project.menu_main_pm" 
-            action="action_proof_return_report" sequence="4"/> -->
+        </record>
+        <menuitem id="proof_return_report" name="Proof Return Report" parent="project.menu_main_pm" 
+            action="action_proof_return_report" sequence="4"/>
+    -->
     
 </odoo>
