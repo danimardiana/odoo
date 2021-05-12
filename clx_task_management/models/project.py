@@ -178,6 +178,11 @@ class ProjectTask(models.Model):
     task_intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
     task_complete_date = fields.Datetime(string="Task Complete Date")
     task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration")
+    proof_return_count = fields.Integer(string="Proof Return Count", default=0)
+    proof_return_ids = fields.One2many("task.proof.return", "task_id", string="Proof Return History")
+    proof_return_ids_flattened = fields.Text(string="Proof Return Teams", compute="_compute_proof_return_ids_flattened")
+    task_in_progress_date = fields.Datetime(string="Task In Progress Date", readonly=False)
+    task_proof_internal_date = fields.Datetime(string="Task Proof Internal Date", readonly=False)
 
     @api.model
     def create(self, vals):
@@ -213,6 +218,13 @@ class ProjectTask(models.Model):
                 record.task_duration = "0d:0h:1m"
             else:
                 record.task_duration = ""
+
+    def _compute_proof_return_ids_flattened(self):
+        for record in self:
+            proof_return_team_list = []
+            for team in record.proof_return_ids:
+                proof_return_team_list.append(team.team_id.display_name)
+            record.proof_return_ids_flattened = str(proof_return_team_list).strip("[]").replace("'", "")
 
     def _compute_task_teams_flattened(self):
         for record in self:
@@ -398,10 +410,20 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
+
+        proof_stage = self.env.ref("clx_task_management.clx_project_stage_6", raise_if_not_found=False)
+
+        # increment individual subtask return count and add to parent total subtask return count
+        if vals.get("stage_id", False) and self.stage_id.id == proof_stage.id and self.parent_id:
+            self.proof_return_count += 1
+            self.parent_id.proof_return_count += 1
+
         today = fields.Date.today()
         current_date = today
 
         stage_id = self.env["project.task.type"].browse(vals.get("stage_id"))
+        inprogress_stage = self.env.ref("clx_task_management.clx_project_stage_2")
+        proof_internal_stage = self.env.ref("clx_task_management.clx_project_stage_3")
         complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
         cancel_stage = self.env.ref("clx_task_management.clx_project_stage_9")
 
@@ -480,6 +502,16 @@ class ProjectTask(models.Model):
                 self.ops_team_member_id = (
                     self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
                 )
+
+        """
+        Mark time when task stage was set to in-progress or proof-internal
+        """
+        if vals.get("stage_id", False) and stage_id.id == inprogress_stage.id or stage_id.id == proof_internal_stage.id:
+            if stage_id.id == inprogress_stage.id and not self.task_in_progress_date:
+                self.task_in_progress_date = datetime.now()
+            elif stage_id.id == proof_internal_stage.id and not self.task_proof_internal_date:
+                self.task_proof_internal_date = datetime.now()
+
         """
         If task (parent task or subtask) stage is set to complete
         """
@@ -541,7 +573,7 @@ class ProjectTask(models.Model):
                     vals = self.create_sub_task(sub_task, self.project_id)
                     self.create(vals)
         """
-        If task is stage is not compete of cancel make sure 
+        If task stage is not compete or cancel make sure 
         parent task is equal to or less than the subtask stage
         and that the project is in-progress
         """
@@ -586,6 +618,21 @@ class ProjectTask(models.Model):
         remove_followers_non_clx(self)
 
         return res
+
+    # Used to set attribution from task kanban card
+    def action_view_proof_return(self):
+        view_id = self.env.ref("clx_task_management.view_task_proof_return_form_from_kanban").id
+        context = dict(self._context or {})
+        context.update({"current_task": self.id})
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Proof Return"),
+            "res_model": "task.proof.return",
+            "target": "new",
+            "view_mode": "form",
+            "views": [[view_id, "form"]],
+            "context": context,
+        }
 
     def action_view_popup_task(self):
         sub_tasks = self.sub_repositary_task_ids
