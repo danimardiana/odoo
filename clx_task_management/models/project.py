@@ -180,6 +180,7 @@ class ProjectTask(models.Model):
     task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration")
     proof_return_count = fields.Integer(string="Proof Return Count", default=0)
     proof_return_ids = fields.One2many("task.proof.return", "task_id", string="Proof Return History")
+    proof_return_ids_flattened = fields.Text(string="Proof Return Teams", compute="_compute_proof_return_ids_flattened")
     task_in_progress_date = fields.Datetime(string="Task In Progress Date", readonly=False)
     task_proof_internal_date = fields.Datetime(string="Task Proof Internal Date", readonly=False)
 
@@ -217,6 +218,13 @@ class ProjectTask(models.Model):
                 record.task_duration = "0d:0h:1m"
             else:
                 record.task_duration = ""
+
+    def _compute_proof_return_ids_flattened(self):
+        for record in self:
+            proof_return_team_list = []
+            for team in record.proof_return_ids:
+                proof_return_team_list.append(team.team_id.display_name)
+            record.proof_return_ids_flattened = str(proof_return_team_list).strip("[]").replace("'", "")
 
     def _compute_task_teams_flattened(self):
         for record in self:
@@ -404,8 +412,11 @@ class ProjectTask(models.Model):
         res = super(ProjectTask, self).write(vals)
 
         proof_stage = self.env.ref("clx_task_management.clx_project_stage_6", raise_if_not_found=False)
-        if vals.get("stage_id", False) and self.stage_id.id == proof_stage.id:
+
+        # increment individual subtask return count and add to parent total subtask return count
+        if vals.get("stage_id", False) and self.stage_id.id == proof_stage.id and self.parent_id:
             self.proof_return_count += 1
+            self.parent_id.proof_return_count += 1
 
         today = fields.Date.today()
         current_date = today

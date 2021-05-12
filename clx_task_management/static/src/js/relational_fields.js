@@ -16,8 +16,11 @@ odoo.define('clx_task_management.custom_stage_confirm', function (require) {
             e.stopPropagation();
             e.preventDefault();
 
-            // Only open proof return form if clicked status is proof return(18)
-            if ($(e.currentTarget).data('value') === 18) {
+            let is_subtask = self.record.data.parent_id.res_id ? true : false;
+
+            // Only open proof return attribution form if clicked status is
+            // proof return(18) and the task is a subtask (has parent task id)
+            if ($(e.currentTarget).data('value') === 18 && is_subtask) {
                 self._rpc({
                     model: 'ir.model.data',
                     method: 'xmlid_to_res_id',
