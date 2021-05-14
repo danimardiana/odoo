@@ -288,6 +288,7 @@ class ProjectTask(models.Model):
                         else False,
                         "tag_ids": repo_template.tag_ids.ids if repo_template.tag_ids else False,
                         "stage_id": subtask[0].stage_id.id if subtask else False,
+                        "project_id": self.project_id.id,
                     }
                     new_repo_link = sub_task_project_obj.create(vals)
                     repository_link_ids.append(new_repo_link.id)
