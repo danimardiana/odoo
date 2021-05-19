@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
+from odoo.tools.mail import email_send
 from odoo import fields, models, api
 import json
 
@@ -86,9 +87,10 @@ class SaleOrder(models.Model):
         previous_mail = (
             self.env["mail.compose.message"].sudo().search([("res_id", "=", self.id)], limit=1, order="id desc")[0]
         )
+
         lang = self.env.context.get("lang")
         ctx = {
-            "tpl_par    tners_only": True,
+            "tpl_partners_only": True,
             "default_model": "sale.order",
             "default_res_id": self.ids[0],
             "default_use_template": bool(template.id),
@@ -107,23 +109,29 @@ class SaleOrder(models.Model):
             "force_send": True,
         }
 
-        # return
+        # Create the composer
+        composer = self.env["mail.compose.message"].with_context(ctx).create({})
+        update_values = composer.onchange_template_id(template.id, "comment", self._name, self.ids[0])['value']
+        composer.write(update_values)
+
         if template.id:
-            # generate composition using the mail template
-            self.with_context(ctx).message_post_with_template(
-                template.id, composition_mode="comment", email_layout_xmlid="mail.mail_notification_light"
-            )
-            compose = (
-                self.env["mail.compose.message"].sudo().search([("res_id", "=", self.id)], limit=1, order="id desc")[0]
-            )
-            # sending  e-mail
-            # prepeared_values = {
-            #     'email_to': compose.email_to,
-            #     'body_html': compose.body,
-            #     'attachment_ids': compose.attachment_ids,
-            #     'recipient_ids': compose.partner_ids,
-            #     'subject': compose.subject,
-            #     'email_from': compose.email_from,
-            # }
-            # Mail = self.env['mail.mail'].create(prepeared_values)
-            # Mail.send()
+            body_html = template._render_template(template.body_html, "sale.order", self.id, post_process=False)
+            subject = template._render_template(template.subject, "sale.order", self.id, post_process=False)
+            email_from = template._render_template(template.email_from, "sale.order", self.id, post_process=False)
+            all_recepients = []
+            if previous_mail.partner_ids:
+                all_recepients += previous_mail.partner_ids.mapped("email")
+
+            if type(previous_mail.email_to) is str:
+                all_recepients += previous_mail.email_to.split(",")
+
+            for recipient in all_recepients:
+                prepeared_values = {
+                    "email_to": recipient,
+                    "body_html": body_html,
+                    "attachment_ids": [attach.id for attach in composer.attachment_ids],
+                    "subject": subject,
+                    "email_from": email_from,
+                }
+                Mail = self.env["mail.mail"].create(prepeared_values)
+                Mail.send()

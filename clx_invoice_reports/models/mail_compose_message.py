@@ -6,37 +6,45 @@ import json
 
 
 class MaleComposeMessage(models.TransientModel):
-    _inherit = 'mail.compose.message'
+    _inherit = "mail.compose.message"
 
     def get_allowed_ids(self):
         if not self.allowed_partner_ids_storage:
             return False
-        ids_process = self.env['res.partner'].search(
-            [('id', 'in', json.loads(self.allowed_partner_ids_storage))])
+        ids_process = self.env["res.partner"].search([("id", "in", json.loads(self.allowed_partner_ids_storage))])
         self.allowed_partner_ids = ids_process
 
     def set_allowed_ids(self):
-        self.allowed_partner_ids_storage = json.dumps(
-            list(map(lambda x: x.id, self.allowed_partner_ids)))
+        self.allowed_partner_ids_storage = json.dumps(list(map(lambda x: x.id, self.allowed_partner_ids)))
 
     email_to = fields.Char(string="Additional e-mails")
     allowed_partner_ids = fields.One2many(
-        'res.partner', compute='get_allowed_ids', inverse='set_allowed_ids', string="List of contacts")
-    allowed_partner_ids_storage = fields.Char(
-        string="List of contacts in JSON")
+        "res.partner", compute="get_allowed_ids", inverse="set_allowed_ids", string="List of contacts"
+    )
+    allowed_partner_ids_storage = fields.Char(string="List of contacts in JSON")
 
     def action_send_mail_sales_order(self):
         prepeared_values = {
-            'email_to': self.email_to,
-            'body_html': self.body,
-            'attachment_ids': self.attachment_ids,
-            'recipient_ids': self.partner_ids,
-            'subject': self.subject,
-            'email_from': self.email_from,
-            'reply_to': self.reply_to,
+            # 'email_to': self.email_to,
+            "body_html": self.body,
+            "attachment_ids": self.attachment_ids,
+            "recipient_ids": False,  # self.partner_ids,
+            "subject": self.subject,
+            "email_from": self.email_from,
+            "reply_to": self.reply_to,
         }
-        Mail = self.env['mail.mail'].create(prepeared_values)
-        sale_order = self.env[self.model].browse(self.res_id)
-        sale_order.state = 'sent'
-        Mail.send()
-        return {'type': 'ir.actions.act_window_close', 'infos': 'mail_sent'}
+        array_of_recipients = []
+        if type(self.email_to) is str:
+            array_of_recipients += self.email_to.split(",")
+
+        if self.partner_ids:
+            array_of_recipients += self.partner_ids.mapped("email")
+
+        for recipient in array_of_recipients:
+            prepeared_values["email_to"] = recipient.strip()
+            Mail = self.env["mail.mail"].create(prepeared_values)
+            sale_order = self.env[self.model].browse(self.res_id)
+            sale_order.state = "sent"
+            Mail.send()
+
+        return {"type": "ir.actions.act_window_close", "infos": "mail_sent"}
