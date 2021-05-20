@@ -588,7 +588,8 @@ class SaleSubscriptionLine(models.Model):
         if (
             management_company.is_flat_discount
             and management_company.clx_category_id
-            and self.analytic_account_id.product_id.category_id.id == management_company.clx_category_id.id
+            and "categ_id" in self.analytic_account_id.product_id
+            and self.analytic_account_id.product_id.categ_id.id == management_company.clx_category_id.id
         ):
             total_discount = flat_discount
         else:
