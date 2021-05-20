@@ -545,6 +545,7 @@
                             <field name="client_provided_tracking_email"/>
                             <field name="client_provided_utm_tracking_urls"/>
                             <field name="art_assets"/>
+                            <field name="lead_management_system"/>
                         </group>
                     </group>
                 </page>
