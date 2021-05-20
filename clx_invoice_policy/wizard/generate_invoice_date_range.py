@@ -20,9 +20,9 @@ class GenerateInvoiceDateRange(models.TransientModel):
     end_date = fields.Date('End Date')
 
     @api.onchange('start_date')
-    def onchange_enddate(self):
+    def onchange_startdate(self):
         self.onchange_date_validation()
-        if not self.end_date:
+        if self.start_date and not self.end_date:
             self.end_date=self.start_date + relativedelta(months=1) + relativedelta(days=-1)
 
     @api.onchange('end_date')
