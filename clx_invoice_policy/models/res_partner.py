@@ -86,8 +86,7 @@ class Partner(models.Model):
                 a = advance_lines.ids
                 for invoice_line in invoice_lines:
                     if "Invoicing period" in invoice_line.name:
-                        start_date = invoice_line.name.split(
-                            ':')[-1].split('-')[0]
+                        start_date = invoice_line.name.split(':')[-1].split('-')[0]
                         start_date = parser.parse(start_date)
                         new_line = advance_lines.filtered(
                             lambda x: x.product_id.categ_id.id == invoice_line.category_id.id
@@ -95,15 +94,12 @@ class Partner(models.Model):
                             and invoice_line.move_id.state == 'draft')
                         if new_line and new_line[0].id in a:
                             a.remove(new_line[0].id)
-                            start = new_line[0].invoice_start_date + \
-                                relativedelta(months=1)
-                            end = start.replace(day=monthrange(
-                                start.year, start.month)[1])
+                            start = new_line[0].invoice_start_date + relativedelta(months=1)
+                            end = start.replace(day=monthrange(start.year, start.month)[1])
                             new_line[0].invoice_start_date = start
                             new_line[0].invoice_end_date = end
                 if a:
-                    advance_lines = self.env['sale.subscription.line'].browse(
-                        a)
+                    advance_lines = self.env['sale.subscription.line'].browse(a)
             advance_lines = advance_lines + not_base_lines
             self.generate_advance_invoice(advance_lines)
 
@@ -123,6 +119,7 @@ class Partner(models.Model):
                 ad_lines += line
         return ad_lines
 
+    # remove when invoices moved
     def _merge_line_same_description(self, prepared_lines):
         base_lines = {}
         if prepared_lines:
@@ -838,6 +835,7 @@ class Partner(models.Model):
         except Exception as e:
             return False
     
+    # not used now, can be deleted
     def new_generate_invoice(self):
         customers = self.search([
             ('is_subscribed', '=', True),

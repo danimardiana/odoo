@@ -8,6 +8,7 @@
         <field name="arch" type="xml">
             <field name="company_id" position="after">
                 <field name="mgmt_company"/>
+                <field name="invoice_period_verbal"/>
             </field>
             <xpath expr="//field[@name='line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -75,7 +76,8 @@
         <field name="arch" type="xml">
 
             <xpath expr="//field[@name='invoice_date_due']" position="after">
-                <field name="invoices_month_year"/>
+                <field name="invoice_month_year" optional = "hide" />
+                <field name="invoice_period_verbal" optional = "show" />
             </xpath>
         </field>
     </record>
