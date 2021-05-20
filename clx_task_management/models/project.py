@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError, Warning
-import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 from odoo.addons.mail.models.mail_thread import MailThread
@@ -36,15 +36,6 @@ class ProjectProject(models.Model):
     cs_notes = fields.Text(related="partner_id.cs_notes")
     ops_notes = fields.Text(related="partner_id.ops_notes")
     cat_notes = fields.Text(related="partner_id.cat_notes")
-
-    # Caluculated Max Task Due Date
-    # which is set when the project and tasks
-    # are created during form submission
-    deadline = fields.Date(string="Project Due Date")
-    # Analyst selected Client Launch Date
-
-    intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
-
     priority = fields.Selection([("high", "High"), ("regular", "Regular")], default="regular", string="Priority")
     client_services_team = fields.Selection(
         related="partner_id.management_company_type_id.client_services_team", store=True
@@ -54,6 +45,13 @@ class ProjectProject(models.Model):
     )
     implementation_specialist_id = fields.Many2one(related="partner_id.implementation_specialist_id")
     user_id = fields.Many2one("res.users", string="Account Manager", default=lambda self: self.env.user, tracking=True)
+    # Caluculated Max Task Due Date
+    # which is set when the project and tasks
+    # are created during form submission
+    deadline = fields.Date(string="Project Due Date")
+    # Analyst selected Client Launch Date
+    intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
+    complete_date = fields.Datetime(string="Project Complete Date")
 
     @api.model
     def create(self, vals):
@@ -115,6 +113,7 @@ class ProjectProject(models.Model):
         complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
         if all(task.stage_id.id == complete_stage.id for task in self.task_ids):
             self.clx_state = "done"
+            self.complete_date = fields.Datetime.today()
         else:
             raise UserError(_("Please Complete All the Task First!!"))
 
@@ -177,6 +176,13 @@ class ProjectTask(models.Model):
     date_deadline = fields.Date(string="Task Due Date", readonly=False)
     # Analyst selected Client Launch Date
     task_intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
+    task_complete_date = fields.Datetime(string="Task Complete Date")
+    task_duration = fields.Text(string="Task Duration", compute="_compute_task_duration")
+    proof_return_count = fields.Integer(string="Proof Return Count", default=0)
+    proof_return_ids = fields.One2many("task.proof.return", "task_id", string="Proof Return History")
+    proof_return_ids_flattened = fields.Text(string="Proof Return Teams", compute="_compute_proof_return_ids_flattened")
+    task_in_progress_date = fields.Datetime(string="Task In Progress Date", readonly=False)
+    task_proof_internal_date = fields.Datetime(string="Task Proof Internal Date", readonly=False)
 
     @api.model
     def create(self, vals):
@@ -184,6 +190,41 @@ class ProjectTask(models.Model):
         # remove followers not from CLX
         remove_followers_non_clx(new_task)
         return new_task
+
+    def _compute_task_duration(self):
+        for record in self:
+            days = "0"
+            hours = "0"
+            minutes = "0"
+
+            # Calculate the task duraction
+            if (record.create_date and record.task_complete_date) and (record.create_date < record.task_complete_date):
+                created = fields.Datetime.from_string(record.create_date)
+                completed = fields.Datetime.from_string(record.task_complete_date)
+
+                duration = completed - created
+
+                dur_days, dur_seconds = duration.days, duration.seconds
+                days = str(dur_days)
+                hours = str((dur_days * 24 + dur_seconds // 3600) - (int(days) * 24))
+                minutes = str((dur_seconds % 3600) // 60)
+
+            # Set the task duration
+            if int(days) > 0 or int(hours) > 0 or int(minutes) > 0:
+                record.task_duration = days + "d:" + hours + "h:" + minutes + "m"
+            elif (record.create_date and record.task_complete_date) and (
+                record.create_date < record.task_complete_date
+            ):
+                record.task_duration = "0d:0h:1m"
+            else:
+                record.task_duration = ""
+
+    def _compute_proof_return_ids_flattened(self):
+        for record in self:
+            proof_return_team_list = []
+            for team in record.proof_return_ids:
+                proof_return_team_list.append(team.team_id.display_name)
+            record.proof_return_ids_flattened = str(proof_return_team_list).strip("[]").replace("'", "")
 
     def _compute_task_teams_flattened(self):
         for record in self:
@@ -351,6 +392,11 @@ class ProjectTask(models.Model):
 
     @api.onchange("stage_id")
     def onchange_stage_id(self):
+        """
+        Task and SubTask stage updates are
+        handled in the Task write method if the
+        pass the following condition
+        """
         complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
         if not self.parent_id and self.stage_id.id == complete_stage.id:
             raise UserError(_("You Can not Complete the Task until the all Sub Task are completed"))
@@ -364,8 +410,22 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
+
+        proof_stage = self.env.ref("clx_task_management.clx_project_stage_6", raise_if_not_found=False)
+
+        # increment individual subtask return count and add to parent total subtask return count
+        if vals.get("stage_id", False) and self.stage_id.id == proof_stage.id and self.parent_id:
+            self.proof_return_count += 1
+            self.parent_id.proof_return_count += 1
+
         today = fields.Date.today()
         current_date = today
+
+        stage_id = self.env["project.task.type"].browse(vals.get("stage_id"))
+        inprogress_stage = self.env.ref("clx_task_management.clx_project_stage_2")
+        proof_internal_stage = self.env.ref("clx_task_management.clx_project_stage_3")
+        complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
+        cancel_stage = self.env.ref("clx_task_management.clx_project_stage_9")
 
         if "active" not in vals:
             current_day_with_time = self.write_date
@@ -373,7 +433,7 @@ class ProjectTask(models.Model):
             current_day_with_time = timezone("UTC").localize(current_day_with_time).astimezone(timezone(user_tz))
             date_time_str = today.strftime("%d/%m/%y")
             date_time_str += " 14:00:00"
-            comparsion_date = datetime.datetime.strptime(date_time_str, "%d/%m/%y %H:%M:%S")
+            comparsion_date = datetime.strptime(date_time_str, "%d/%m/%y %H:%M:%S")
             # if current_day_with_time after 2 pm:
             #     today + 1 day
             if current_day_with_time.time() > comparsion_date.time():
@@ -402,12 +462,11 @@ class ProjectTask(models.Model):
             current_date = today
             # code for skip saturday and sunday for set deadline on task.
             while business_days_to_add > 0:
-                current_date += datetime.timedelta(days=1)
+                current_date += timedelta(days=1)
                 weekday = current_date.weekday()
                 if weekday >= 5:  # sunday = 6, saturday = 5
                     continue
                 business_days_to_add -= 1
-        complete_stage = self.env.ref("clx_task_management.clx_project_stage_8")
 
         if "active" in vals:
             for task in self.child_ids:
@@ -444,11 +503,22 @@ class ProjectTask(models.Model):
                     self.project_id.ops_team_member_id.id if self.project_id.ops_team_member_id else False,
                 )
 
-        stage_id = self.env["project.task.type"].browse(vals.get("stage_id"))
+        """
+        Mark time when task stage was set to in-progress or proof-internal
+        """
+        if vals.get("stage_id", False) and stage_id.id == inprogress_stage.id or stage_id.id == proof_internal_stage.id:
+            if stage_id.id == inprogress_stage.id and not self.task_in_progress_date:
+                self.task_in_progress_date = datetime.now()
+            elif stage_id.id == proof_internal_stage.id and not self.task_proof_internal_date:
+                self.task_proof_internal_date = datetime.now()
 
-        cancel_stage = self.env.ref("clx_task_management.clx_project_stage_9")
-
+        """
+        If task (parent task or subtask) stage is set to complete
+        """
         if vals.get("stage_id", False) and stage_id.id == complete_stage.id:
+            complete_date_time = datetime.now()
+            self.task_complete_date = complete_date_time
+
             if self.sub_task_id:
                 parent_task_main_task = self.project_id.task_ids.mapped("sub_task_id").mapped("parent_id")
                 dependency_tasks = sub_task_obj.search(
@@ -476,13 +546,21 @@ class ProjectTask(models.Model):
                         if task.id not in self.parent_id.child_ids.mapped("sub_task_id").ids:
                             vals = self.create_sub_task(task, self.project_id)
                             self.create(vals)
-
+        """
+        If task is subtask and there are sibling subtasks
+        """
         if vals.get("stage_id", False) and self.parent_id and self.parent_id.child_ids:
+
+            # If all sidbling subtasks are complete, then set parent task to complete
             if all(line.stage_id.id == complete_stage.id for line in self.parent_id.child_ids):
                 self.parent_id.stage_id = complete_stage.id
 
+            # If all tasks are complete set the project to done
             if all(task.stage_id.id == complete_stage.id for task in self.project_id.task_ids):
+                complete_date_time = datetime.now()
                 self.project_id.clx_state = "done"
+                self.project_id.complete_date = complete_date_time
+        # if parent task or subtask are cancelled
         elif vals.get("stage_id", False) and stage_id.id == cancel_stage.id:
             params = self.env["ir.config_parameter"].sudo()
             auto_create_sub_task = bool(params.get_param("auto_create_sub_task")) or False
@@ -494,6 +572,17 @@ class ProjectTask(models.Model):
                 for sub_task in sub_tasks:
                     vals = self.create_sub_task(sub_task, self.project_id)
                     self.create(vals)
+        """
+        If task stage is not compete or cancel make sure 
+        parent task is equal to or less than the subtask stage
+        and that the project is in-progress
+        """
+        if vals.get("stage_id", False) and stage_id.id != cancel_stage.id and stage_id.id != complete_stage.id:
+            if self.parent_id and self.parent_id.stage_id.id > stage_id.id:
+                self.parent_id.stage_id = stage_id
+                self.project_id.clx_state = "in_progress"
+            else:
+                self.project_id.clx_state = "in_progress"
 
         if vals.get("ops_team_member_id", False):
             for task in self.child_ids:
@@ -529,6 +618,21 @@ class ProjectTask(models.Model):
         remove_followers_non_clx(self)
 
         return res
+
+    # Used to set attribution from task kanban card
+    def action_view_proof_return(self):
+        view_id = self.env.ref("clx_task_management.view_task_proof_return_form_from_kanban").id
+        context = dict(self._context or {})
+        context.update({"current_task": self.id})
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Proof Return"),
+            "res_model": "task.proof.return",
+            "target": "new",
+            "view_mode": "form",
+            "views": [[view_id, "form"]],
+            "context": context,
+        }
 
     def action_view_popup_task(self):
         sub_tasks = self.sub_repositary_task_ids
