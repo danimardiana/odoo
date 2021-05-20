@@ -157,15 +157,16 @@ class SaleSubscription(models.Model):
         else:
             start_date = today
 
-        # if no ending dates in parameters calculate it basing on the partner's invoice policy
+        if "partner" not in kwargs and "partner_id" in kwargs:
+            partner = self.env["res.partner"].browse(kwargs["partner_id"])
+        else:
+            partner = kwargs["partner"]
+
+        # if no ending dates in parameters just take the same month
         if "end_date" in kwargs:
             end_date = kwargs["end_date"].replace(day=1) + relativedelta(months=1, days=-1)
         else:
-            partner = self.env["res.partner"].browse(kwargs["partner_id"])
-            if partner.clx_invoice_policy_id:
-                end_date = today + relativedelta(months=partner.clx_invoice_policy_id.num_of_month + 1)
-            else:
-                end_date = start_date + relativedelta(months=1, days=-1)
+            end_date = start_date + relativedelta(months=1, days=-1)
 
         difference_months = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
         parameters = kwargs.copy()
@@ -186,23 +187,19 @@ class SaleSubscription(models.Model):
         if "start_date" in kwargs:
             start_date = kwargs["start_date"].replace(day=1)
         else:
-            start_date = today
+            start_date = today.replace(day=1)
 
-        if "end_date" in kwargs:
-            end_date = kwargs["end_date"].replace(day=1) + relativedelta(months=1, days=-1)
+        if "partner_id" not in kwargs:
+            kwargs.update({"partner_id": kwargs["partner"].id})
+
+        if kwargs["partner"].clx_invoice_policy_id:
+            end_date = date.today() + relativedelta(months=kwargs["partner"].clx_invoice_policy_id.num_of_month + 1)
         else:
             end_date = start_date + relativedelta(months=1, days=-1)
 
-        difference_months = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
-        parameters = kwargs.copy()
-        results = []
-        for current_month in range(difference_months):
-            parameters.update(start_date=start_date, end_date=end_date)
-            results.append(self.invoicing_one_period(**parameters))
-            start_date += relativedelta(months=1)
-            end_date = start_date + relativedelta(months=1, days=-1)
+        kwargs.update({"end_date": end_date, "start_date": start_date})
 
-        return results
+        return self.invoicing_date_range(**kwargs)
 
     def invoicing_one_period(self, **kwargs):
         if (
@@ -243,26 +240,25 @@ class SaleSubscription(models.Model):
             ],
             limit=1,
         )
-        
-        #if total negative - create the credit note. Prepearing the variables
+
+        # if total negative - create the credit note. Prepearing the variables
         if total_invoice_value < 0:
-            #reverting valaues 
+            # reverting valaues
             for line in lines["invoice_lines"]:
                 line["price_unit"] = -line["price_unit"]
                 line["price_subtotal"] = -line["price_subtotal"]
 
             invoice_type_settings = {
-                    "ref": "Credit note",
-                    "type": "out_refund",
-                    "reversed_entry_id": posted_invoice.id,
-                }
+                "ref": "Credit note",
+                "type": "out_refund",
+                "reversed_entry_id": posted_invoice.id,
+            }
         else:
             invoice_type_settings = {
                 "ref": "Invoice",
                 "type": "out_invoice",
                 "reversed_entry_id": posted_invoice.id,
             }
-        
 
         if "draft_invoice" in lines:
             # updating the draft invoice

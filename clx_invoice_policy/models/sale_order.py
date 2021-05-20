@@ -28,21 +28,18 @@ class SaleOrder(models.Model):
 
         # TODO: replacing the SB's invoicing functions and check the period to invoice
 
-        start_date = date.today().replace(day=1)
-        end_date = start_date + relativedelta(months=self.clx_invoice_policy_id.num_of_month + 1)
-        end_date = end_date - relativedelta(days=1)
+        start_date = self.contract_start_date.replace(day=1)
         if self.is_ratio:
-            partner_ids = list(self.co_op_sale_order_partner_ids.mapped("partner_id.id"))
+            partner_ids = list(self.co_op_sale_order_partner_ids.mapped("partner_id"))
         else:
-            partner_ids = [self.partner_id.id]
+            partner_ids = [self.partner_id]
 
-        for partner_id in partner_ids:
-            self.env["sale.subscription"].invoicing_date_range(
+        for partner in partner_ids:
+            self.env["sale.subscription"].invoicing_invoice_policy_range(
                 **{
-                    "start_date": start_date,
-                    "end_date": end_date,
-                    "partner_id": partner_id,
+                    "partner": partner,
                     "order_id": False if self.subscription_management in ("upsell", "downsell") else self.id,
+                    "start_date":start_date
                 }
             )
         return res
