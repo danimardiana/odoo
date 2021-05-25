@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!--Email template -->
+    <record id="account_move_clx_email_template" model="mail.template">
+        <field name="name">Invoice: CLX email template</field>
+        <field name="email_from">${(object.user_id.email_formatted or user.email_formatted) | safe}</field>
+        <field name="subject">${object.company_id.name} (Ref *${str(object.id)})</field>
+        <field name="reply_to">${object.partner_id.account_user_id.partner_id.email}</field>
+        <field name="model_id" eval="259"/>
+        <field name="partner_to"/>
+        <!-- 336 - model id for sales.order -->
+        <field name="auto_delete" eval="True"/>
+        <field name="lang">${object.partner_id.lang}</field>
+        <field name="report_name">Invoice_${(object.name or '').replace('/','_')}${object.state == 'draft' and '_draft' or ''}</field>
+        <field name="report_template" eval="268"/>
+        <field name="body_html" type="html">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: white; padding: 0; border-collapse:separate;">
+                <tr>
+                    <td valign="middle">
+                        % set doc_name = 'Ref: *' + str(object.id)
+                        % set secure_url = object.type_name + ctx.get('secure_url') 
+                        <span style="font-size: 10px;">${doc_name}</span>
+                        <br/>
+                        <span style="font-size: 20px; font-weight: bold;">${(object.type_name+": "+object.name) if object.name != '/'}</span>
+                    </td>
+                    <td valign="middle" align="right">
+                        <img src="/logo.png?company=1" style="padding: 0px; margin: 0px; height: 48px;" alt="company.name"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align:center;">
+                        <hr width="100%" style="background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:4px 0px 32px 0px;"/>
+                    </td>
+                </tr>
+            </table>
+
+            <div style="font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;margin:0px;padding: 0px;">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: lightgray;border-collapse:separate;background: lightgrey;text-align: center;margin:  0.5cm auto;padding: 0.6cm;"> 
+                    <tr style="font-size: 1.3em;margin: .1em;"> 
+                        <td>Due: ${object.invoice_date_due.strftime("%m/%d/%Y")}</td>
+                    </tr>
+                    <tr  style="font-size: 3.3em;margin: .1em;">
+                        <td><strong style="font-weight:bolder;">$${object.amount_total}</strong> </td>
+                    </tr>
+                </table>
+                <p style="margin:0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;padding: 0px; font-size: 13px;">
+                        Dear ${object.partner_id.name}
+
+                    <br/>           
+                    Attached is your recent invoice. Please review for dates of service and terms specific to your account.
+                    <br/>        
+                    To avoid interruption of your campaign(s) and/or other services such as Live Chat or The Conversion Cloud, we need to receive payment prior to the service date
+                    <br/>        
+                    To make a one-time Credit or Debit Card payment, click the “Review and pay” button, enter your credit/debit card information and click "Pay".
+                    <br/>        
+                    If you prefer to pay by Check, our mailing address is <strong style="font-weight:bolder;">17921 Bothell-Everett Hwy, #105 Bothell, WA 98012</strong>
+                    <br/>        
+                    To submit payment by Bank Transfer/ACH, click the "Review and pay" button and enter your banking information in the Bank Transfer tab then click "Pay".
+                    <br/>        
+                    If you prefer to pay each month by Credit Card, simply complete the below credit card link and we will charge your card prior to the launch date of your campaign(s).
+                    <br/>        
+                    • Credit Card - <a href="https://conversionlogix.com/cc-authorization/"> https://conversionlogix.com/cc-authorization/ </a>
+                    <br/>        
+                    If you have any questions, please contact us at <a href="mailto:accounting@clxmedia.com">accounting@clxmedia.com. </a>
+                    <br/><br/>        
+                    Thank you for your business.<br/> 
+                    <strong style="font-weight:bolder;">${object.partner_id.account_user_id.name}</strong>
+                    <br/>
+                    <hr/>
+                    <div style="text-align:center;">
+                        <span>
+                        Conversion Logix, LLC
+                        17921 Bothell-Everett Hwy, #105 Bothell, WA 98012 US
+                        (866) 297-4914</span>
+                    </div>
+                    <hr/>
+                    <a href="${secure_url}" style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+                        Review
+                    </a>
+                    <br/>
+
+                    <br/>
+                    
+                </p>
+            </div>
+        </field>
+        <!-- <field name="user_signature" eval="False"/> -->
+        <!-- <field name="auto_delete" eval="True"/> -->
+    </record>
+
+</odoo>
