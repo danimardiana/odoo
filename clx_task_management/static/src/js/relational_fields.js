@@ -16,7 +16,7 @@ odoo.define('clx_task_management.custom_stage_confirm', function (require) {
             e.stopPropagation();
             e.preventDefault();
 
-            let is_subtask = self.record.data.parent_id.res_id ? true : false;
+            let is_subtask = self.record.data.parent_id && self.record.data.parent_id.res_id ? true : false;
 
             // Only open proof return attribution form if clicked status is
             // proof return(18) and the task is a subtask (has parent task id)
