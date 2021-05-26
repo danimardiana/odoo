@@ -8,16 +8,13 @@ from collections import OrderedDict
 from datetime import timedelta
 import calendar
 
-
 class AccountMove(models.Model):
     _inherit = "account.move"
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
     subscription_line_ids = fields.Many2many("sale.subscription.line", "account_id", string="Subscription Lines")
     invoice_month_year = fields.Char(string="Invoicing Period")
-    invoice_period_verbal = fields.Char(
-        compute="compute_invoice_period_verbal", string="Invoicing Period Verbal", store=False
-    )
+    invoice_period_verbal = fields.Char(compute="compute_invoice_period_verbal", string="Invoicing Period Verbal", store=False)
 
     def post(self):
         res = super(AccountMove, self).post()
@@ -40,11 +37,13 @@ class AccountMove(models.Model):
         for invoice in self:
             if invoice.invoice_month_year:
                 year, day = invoice.invoice_month_year.split("-")
-                # check for correct data
-                if len(year) == 4 and len(day) == 2:
-                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)], year)
+                #check for correct data
+                if len(year)==4 and len(day)==2:
+                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)],year)
                 else:
-                    invoice.invoice_month_year = " "
+                    invoice.invoice_period_verbal = "-"
+            else:
+                invoice.invoice_period_verbal = "-"
 
     def unlink(self):
         for record in self:

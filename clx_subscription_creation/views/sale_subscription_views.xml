@@ -9,6 +9,9 @@
             <field name='team_id' position="after">
                 <field name="product_id"/>
                 <field name="is_active"/>
+                <field name="is_co_op"/>
+                <field name="initial_sale_order_id"/>
+                <!-- <field name="co_op_percentage"/> -->
             </field>
             <xpath expr="//field[@name='recurring_invoice_line_ids']/tree/field[@name='price_unit']"
                    position="after">
@@ -39,7 +42,16 @@
                    position="attributes">
                 <attribute name="readonly">1</attribute>
             </xpath>
-
+            <xpath expr="//page[@id='other_info']/group" position="after">
+                <group>
+                    <field name="co_opp_partner_ids" readonly="1">
+                        <tree editable="bottom">
+                            <field name="partner_id"/>
+                            <field name="ratio"/>
+                        </tree>
+                    </field>
+                </group>
+            </xpath>
         </field>
     </record>
 
@@ -64,11 +76,19 @@
         <field name="inherit_id" ref="sale_subscription.sale_subscription_view_list"/>
         <field name="arch" type="xml">
 
-            <xpath expr="//field[@name='user_id']" position="after">
+            <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="product_id"/>
                 <field name="is_active" readonly="1"/>
             </xpath>
 
         </field>
+    </record>
+
+    <record id="sale_subscription.sale_subscription_action" model="ir.actions.act_window">
+        <field name="name">Subscriptions</field>
+        <field name="res_model">sale.subscription</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph,cohort,activity</field>
+        <field name="context">{"search_default_my_subscriptions":1}</field>
+        <field name="domain">[]</field>
     </record>
 </odoo>

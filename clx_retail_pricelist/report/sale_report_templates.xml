@@ -62,7 +62,7 @@
                     <t t-set="first_month_subtotal" t-value="0.0"/>
                     <t t-set="fee_subtotal" t-value="0.0"/>
                     <t t-set="current_subtotal" t-value="0.0"/>
-                    <t t-set="modified_invoice_lines" t-value="sale_order.grouping_all_products()"/>
+                    <t t-set="modified_invoice_lines" t-value="sale_order._grouping_wrapper()"/>
                     <t t-foreach="modified_invoice_lines" t-as="line">
                         <!-- section just for compatibly with original ones -->
                         <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
