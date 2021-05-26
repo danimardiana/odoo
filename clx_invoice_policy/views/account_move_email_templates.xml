@@ -47,7 +47,7 @@
                 <p style="margin:0px;font-size:13px;font-family:&quot;Lucida Grande&quot;, Helvetica, Verdana, Arial, sans-serif;padding: 0px; font-size: 13px;">
                     <p style="margin: 0 0 10px;">    Dear ${object.partner_id.name}</p>
                     ${email_text}
-                    </p><p style="margin: 0 0 10px;">   
+                    <p style="margin: 0 0 10px;">   
                     To make a one-time Credit or Debit Card payment, click the “Review and pay” button, enter your credit/debit card information and click "Pay".
                     </p><p style="margin: 0 0 10px;">        
                     If you prefer to pay by Check, our mailing address is <strong style="font-weight:bolder;">17921 Bothell-Everett Hwy, #105 Bothell, WA 98012</strong>
