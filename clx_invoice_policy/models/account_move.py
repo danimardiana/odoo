@@ -109,6 +109,66 @@ class AccountMove(models.Model):
                                     sub.invoice_end_date = end_date.date()
         return res
 
+    # rewriting the eamil sending function
+    def action_invoice_sent(self, reminder=False):
+        self.ensure_one()
+        # template = self.env["mail.template"].sudo().search([("name", "=", "Invoice: Send by email")])
+
+        template = self.env["mail.template"].sudo().search([("name", "=", "Invoice: CLX email template")])
+        template_id = template.id
+        contacts_billing = []
+        for contact in self.partner_id.contact_child_ids:
+            contacts_billing.append(contact.child_id.id)
+        account_manager = self.partner_id.account_user_id.partner_id
+        contacts_billing.append(account_manager.id)
+        if template.lang:
+            lang = template._render_template(template.lang, "account.move", self.ids[0])
+        self.get_portal_url()
+        secure_url = self._get_share_url(redirect=True, signup_partner=True)
+        if reminder :            
+            email_text = """ Attached is your recent invoice. Please review for dates of service and terms specific to your account.</p><p>To avoid interruption of your campaign(s) and/or other services such as Live Chat or The Conversion Cloud, we need to receive payment prior to the service date"""
+
+        else:            
+            email_text = " To ensure your campaign runs as planned, please be reminded to ensure we receive payment by May 31, 2021. Payment in full is required to start or continue service. Attached is the invoice for your reference."
+
+
+        ctx = {
+            "tpl_partners_only": True,
+            "default_model": "account.move",
+            "default_res_id": self.ids[0],
+            "default_use_template": bool(template_id),
+            "default_template_id": template_id,
+            "default_composition_mode": "comment",
+            "default_partner_ids": [account_manager.id],
+            "default_email_to": "",
+            "default_reply_to": "",
+            "mark_so_as_sent": True,
+            "custom_layout": "mail.mail_notification_paynow",
+            "proforma": self.env.context.get("proforma", False),
+            "force_email": True,
+            "model_description": self.with_context(lang=lang).type_name,
+            "report_name": (self.name or "").replace("/", "_") + "_000",
+            "default_allowed_partner_ids": contacts_billing,
+            "secure_url": secure_url,
+            "email_text": email_text,
+        }
+        return {
+            "type": "ir.actions.act_window",
+            "view_mode": "form",
+            "res_model": "mail.compose.message",
+            "views": [(False, "form")],
+            "view_id": False,
+            "target": "new",
+            "context": ctx,
+        }
+
+    def action_reminder_sent(self):
+        return self.action_invoice_sent(True)
+
+    # no status for mail sending
+    def email_send_postprocess(self):
+        return
+
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
