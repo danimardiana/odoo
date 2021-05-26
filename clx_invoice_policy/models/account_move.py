@@ -6,6 +6,7 @@ from odoo import fields, models, api, _
 from dateutil import parser
 from collections import OrderedDict
 from datetime import timedelta
+import calendar
 
 
 class AccountMove(models.Model):
@@ -43,7 +44,7 @@ class AccountMove(models.Model):
                 if len(year) == 4 and len(day) == 2:
                     invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)], year)
                 else:
-                    invoice.invoices_month_year = " "
+                    invoice.invoice_month_year = " "
 
     def unlink(self):
         for record in self:

@@ -78,8 +78,7 @@
                             <div class="row" id="so_date"/>
                             <div id="informations"/>
                         </section>
-                        <t t-esc="line['product_name']"/>
-                        <t t-if="line['product_name']=='Setup Fee'">
+                        <t t-if="line['product_id'] == setup_fee_product">
                             <span t-set="fee_subtotal" t-value="fee_subtotal + line['price_unit']"/>
                             <t t-set="first_month_subtotal" t-value="first_month_subtotal + line['price_unit']"/>
                         </t>

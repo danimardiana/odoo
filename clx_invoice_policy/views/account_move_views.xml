@@ -82,7 +82,7 @@
         <field name="arch" type="xml">
 
             <xpath expr="//field[@name='invoice_date_due']" position="after">
-                <field name="invoices_month_year"/>
+                <field name="invoice_month_year"/>
             </xpath>
         </field>
     </record>

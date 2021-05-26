@@ -140,6 +140,7 @@ class SaleOrder(models.Model):
             line_to_add = {
                 # 'order_id': line.order_id,
                 'product_name': line.product_id.name,
+                'product_id': line.product_id.id,
                 'product_variant':line.product_id.product_template_attribute_value_ids.name or '',
                 'name': line.name,
                 'price_unit':  line.price_unit,
@@ -161,6 +162,7 @@ class SaleOrder(models.Model):
         for product_individual in modified_invoice_lines:
             if product_individual['description'] not in final_values:
                 final_values[product_individual['description']] = {
+                    'product_id': product_individual['product_id'],
                     'product_name': product_individual['product_name'],
                     'price_unit': product_individual['price_unit'],
                     'description': product_individual['description'],
