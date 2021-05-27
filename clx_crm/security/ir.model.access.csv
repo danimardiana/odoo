@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_clx_crm_clx_crm,clx_crm.clx_crm,model_clx_crm_clx_crm,base.group_user,1,1,1,1
