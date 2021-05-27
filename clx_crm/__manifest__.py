@@ -9,7 +9,7 @@
     "depends": [
         "crm",
     ],
-    "data": [],
+    "data": ["views/crm_lead_views.xml"],
     "demo": [],
     "css": ["static/src/css/crm.css"],
     "installable": True,
