@@ -592,6 +592,13 @@ class SaleSubscriptionLine(models.Model):
             and self.analytic_account_id.product_id.categ_id.id == management_company.clx_category_id.id
         ):
             total_discount = flat_discount
+        elif (
+            management_company.is_percent_discount
+            and management_company.percent_discount_category_id
+            and "categ_id" in self.analytic_account_id.product_id
+            and self.analytic_account_id.product_id.categ_id.id == management_company.percent_discount_category_id.id
+        ):
+            total_discount = (price * management_company.percent_discount) / 100
         else:
             total_discount = (price * management_company.discount_on_order_line) / 100
 
