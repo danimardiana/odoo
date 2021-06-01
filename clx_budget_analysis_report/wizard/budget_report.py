@@ -159,12 +159,12 @@ class BudgetReportWizard(models.TransientModel):
                     partner_percent = companies_list[partner_line]["percent"]
                     company = companies_list[partner_line]["company"]
                     company_name = company.name
+                    description = subscribtion_total["description"]
+                    if partner_percent != 1.0:
+                        description += (" (%s%%) " % (str(int(partner_percent * 100))))
                     subscribtion_total.update(
                         {
-                            "description": subscribtion_total["description"]
-                            + (" (%s%%) " % (str(int(partner_percent * 100))))
-                            if partner_percent != 1.0
-                            else "",
+                            "description": description,
                             "partner_id": company.id,
                             "wholesale_price": partner_percent * sale_line_write["wholesale_price"],
                             "management_fee": partner_percent * sale_line_write["management_fee"],
