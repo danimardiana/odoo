@@ -605,7 +605,11 @@ class SaleSubscriptionLine(models.Model):
         return total_discount
 
     # calculation price for period. Taking into account proration
-    def period_price_calc(self, start_date, partner_id):
+    def period_price_calc(self, start_date, partner_id, dont_prorate=False):
+        end_date_for_period = start_date + relativedelta(months=1) + relativedelta(days=-1)
+        if end_date_for_period<self["start_date"] or (self["end_date"] and start_date>self["end_date"]):
+            return 0.0
+
         price_calculated = self["price_unit"]
         if (
             start_date.month == self["start_date"].month
@@ -622,7 +626,7 @@ class SaleSubscriptionLine(models.Model):
             price_calculated = self["prorate_end_amount"]
         co_op_coef = 1
         co_op_list = self.analytic_account_id.initial_sale_order_id.co_op_sale_order_partner_ids
-        if partner_id and len(co_op_list) and self.analytic_account_id.is_co_op:
+        if partner_id and len(co_op_list) and self.analytic_account_id.is_co_op and not dont_prorate:
             co_op_coef = next(filter(lambda line: line.partner_id.id == partner_id, co_op_list)).ratio / 100
         if co_op_coef > 1:
             co_op_coef /= 100

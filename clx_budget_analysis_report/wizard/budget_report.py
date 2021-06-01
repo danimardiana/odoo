@@ -38,6 +38,7 @@ class BudgetReportWizard(models.TransientModel):
         return result
 
     def get_budget_report(self):
+        # clean up the previous report data
         self._cr.execute("DELETE FROM sale_subscription_report_data")
         report_data_table = self.env["sale.subscription.report.data"]
         params = self.env["ir.config_parameter"].sudo()
@@ -45,6 +46,10 @@ class BudgetReportWizard(models.TransientModel):
         # TODO: update with co-op information
         subscription_lines = self.env["sale.subscription.line"].search(
             [
+                "|",
+                "&",
+                ("analytic_account_id.is_co_op", "=", True),
+                ("analytic_account_id.co_opp_partner_ids.partner_id", "in", self.partner_ids.ids),
                 ("analytic_account_id.partner_id", "in", self.partner_ids.ids),
                 ("start_date", "!=", False),
                 # ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly'),
@@ -63,12 +68,22 @@ class BudgetReportWizard(models.TransientModel):
         result_table = {}
         price_list = {}
         price_list_processed = []
+        partner_id = self.env["res.partner"].browse(self.partner_ids.ids[0])
+        companies_list = {partner_id.id: {"company": partner_id, "percent": 1.0}}
         while True:
             result_table[slider_period] = {}
             for sub_line in subscription_lines:
-                # check if our sub_line intersect with period
-                retail_price = sub_line.period_price_calc(slider_start_date, sub_line.so_line_id.order_id.partner_id.id)
+                if sub_line.analytic_account_id.is_co_op:
+                    for co_op_line in sub_line.analytic_account_id.co_opp_partner_ids:
+                        companies_list[co_op_line.partner_id.id] = {
+                            "company": co_op_line.partner_id,
+                            "percent": co_op_line.ratio / 100,
+                        }
 
+                # check if our sub_line intersect with period and get full price for subscription based on main company
+                retail_price = sub_line.period_price_calc(
+                    slider_start_date, sub_line.so_line_id.order_id.partner_id.id, True
+                )
                 # just pass sub.line if no spending this month
                 if not retail_price:
                     continue
@@ -78,7 +93,10 @@ class BudgetReportWizard(models.TransientModel):
                     price_list.update(self.env["sale.subscription"].pricelist_flatten(price_list_id))
                     price_list_processed.append(price_list_id)
 
-                product_stamp = str(sub_line.so_line_id.order_id.partner_id.id) + "_" + str(sub_line.product_id.id)
+                product_stamp = (
+                    str(sub_line.so_line_id.order_id.partner_id.id) + "_" + str(sub_line.analytic_account_id.id)
+                )
+
                 if product_stamp in result_table[slider_period]:
                     result_table[slider_period][product_stamp]["retail_price"] += retail_price
                 else:
@@ -128,12 +146,33 @@ class BudgetReportWizard(models.TransientModel):
         for period in result_table.keys():
             for subscription in result_table[period].keys():
                 sale_line_write = result_table[period][subscription]
+
                 result_table[period][subscription].update(
                     self.env["sale.subscription"].subscription_wholesale_period(
                         sale_line_write["retail_price"], sale_line_write["wholesale_price"]
                     )
                 )
-                report_data_table.create(sale_line_write)
+
+                # pass thru all the companies related to the subscription
+                for partner_line in companies_list.keys():
+                    subscribtion_total = sale_line_write.copy()
+                    partner_percent = companies_list[partner_line]["percent"]
+                    company = companies_list[partner_line]["company"]
+                    company_name = company.name
+                    subscribtion_total.update(
+                        {
+                            "description": subscribtion_total["description"]
+                            + (" (%s%%) " % (str(int(partner_percent * 100))))
+                            if partner_percent != 1.0
+                            else "",
+                            "partner_id": company.id,
+                            "wholesale_price": partner_percent * sale_line_write["wholesale_price"],
+                            "management_fee": partner_percent * sale_line_write["management_fee"],
+                            "retail_price": partner_percent * sale_line_write["retail_price"],
+                            "company_name": company_name,
+                        }
+                    )
+                    report_data_table.create(subscribtion_total)
 
         # action = self.env.ref(
         #     'clx_budget_analysis_report.'+self.env.context['action_next']).read()[0]
