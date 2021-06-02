@@ -360,6 +360,30 @@ class RequestForm(models.Model):
 
         return current_date
 
+    def action_check_warn_open_project(self):
+        open_projects = self.env["project.project"].search(
+            ["&", ("partner_id", "=", self.partner_id.id), ("clx_state", "!=", "done")]
+        )
+
+        # Project creation is not allowed if there is already one open
+        # for this client. Popup a dialog and let the user know
+        if len(open_projects) > 0:
+            title = "Existing Project Warning"
+            message = "IMPORTANT: One or more projects is open for this client. Please add any new task request to the existing project"
+            res_model = "clx.project.exists.warning.dialog"
+            dialog_box = self.env["clx.existing.project.warning.wizard"].create(
+                {
+                    "title": title,
+                    "message": message,
+                }
+            )
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": "clx.existing.project.warning.wizard",
+                "view_type": "form",
+                "target": "new",
+            }
+
     def action_submit_form(self):
         """
         when request form is submitted create project and task and subtask from the Master table.
@@ -389,38 +413,66 @@ class RequestForm(models.Model):
         if not subscriptions:
             raise UserError("You can not submit request form there is no active sale for this customer!!")
         if self.description and self.partner_id:
+
+            open_projects = self.env["project.project"].search(
+                ["&", ("partner_id", "=", self.partner_id.id), ("clx_state", "!=", "done")]
+            )
+            # Project creation is not allowed if there is already one open
+            # for this client. Popup a dialog and let the user know
+            if len(open_projects) > 0:
+                title = "Existing Project Warning"
+                message = "IMPORTANT: One or more projects is open for this client. Please add any new task request to the existing project"
+                res_model = "clx.existing.project.warning.wizard"
+                context = dict(self._context or {})
+                dialog_box = self.env[res_model].create(
+                    {
+                        "name": title,
+                        "message": message,
+                    }
+                )
+                return {
+                    "name": "Existing Project Warning",
+                    "type": "ir.actions.act_window",
+                    "res_model": res_model,
+                    "view_mode": "form",
+                    "target": "new",
+                    # "views": [[dialog_box.id, "form"]],
+                    # "context": context,
+                }
+
             vals = self.prepared_project_vals(self.description, self.partner_id)
             if vals:
-                project_id = project_obj.create(vals)
-                if project_id:
-                    project_id.req_form_id = self.id
-                    self.project_id = project_id.id
-                    self.assign_stage_project(project_id)
-                    # if self.is_create_client_launch:
-                    #     self.create_client_launch_task(project_id)
-                    for line in self.request_line:
-                        if line.task_id:
-                            vals = self.prepared_task_vals(line, project_id)
-                            main_task = project_task_obj.create(vals)
-                            if main_task:
-                                dependency_sub_tasks = sub_task_obj.search(
-                                    [
-                                        ("parent_id", "=", line.task_id.id),
-                                        "|",
-                                        ("dependency_ids", "=", False),
-                                        ("dependency_ids", "=", cl_task and cl_task.id),
-                                    ]
-                                )
-                                for sub_task in dependency_sub_tasks:
-                                    vals = self.prepared_sub_task_vals(sub_task, main_task, line)
-                                    project_task_obj.create(vals)
+                print("HAS VALS")
+            #     project_id = project_obj.create(vals)
+            #     if project_id:
+            #         project_id.req_form_id = self.id
+            #         self.project_id = project_id.id
+            #         self.assign_stage_project(project_id)
+            #         # if self.is_create_client_launch:
+            #         #     self.create_client_launch_task(project_id)
+            #         for line in self.request_line:
+            #             if line.task_id:
+            #                 vals = self.prepared_task_vals(line, project_id)
+            #                 main_task = project_task_obj.create(vals)
+            #                 if main_task:
+            #                     dependency_sub_tasks = sub_task_obj.search(
+            #                         [
+            #                             ("parent_id", "=", line.task_id.id),
+            #                             "|",
+            #                             ("dependency_ids", "=", False),
+            #                             ("dependency_ids", "=", cl_task and cl_task.id),
+            #                         ]
+            #                     )
+            #                     for sub_task in dependency_sub_tasks:
+            #                         vals = self.prepared_sub_task_vals(sub_task, main_task, line)
+            #                         project_task_obj.create(vals)
 
         if not self.intended_launch_date:
             self.intended_launch_date = self.max_proof_deadline_date
-
-        self.state = "submitted"
-        self.submitted_by_user_id = self.env.uid
-        self._send_request_form_mail()
+        print("SUBMITTED")
+        # self.state = "submitted"
+        # self.submitted_by_user_id = self.env.uid
+        # self._send_request_form_mail()
 
     @api.onchange("partner_id", "is_create_client_launch")
     def _onchange_partner_id(self):

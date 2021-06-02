@@ -33,6 +33,7 @@
         # 'views/product_category_views.xml',
         "views/sale_subscription_line_views.xml",
         "wizard/task_cancel_warning_wizard_views.xml",
+        "wizard/existing_project_warning_wizard_view.xml",
         "views/assets.xml",
     ],
     "demo": [],

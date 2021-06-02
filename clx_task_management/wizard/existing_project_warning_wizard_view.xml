@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<odoo>
+  <data>
+    <record id="clx_existing_project_warning_form_wiz" model="ir.ui.view">
+      <field name="name">clx.existing.project.warning.form.wiz</field>
+      <field name="model">clx.existing.project.warning.wizard</field>
+      <field name="arch" type="xml">
+        <form>
+          <div>
+            <h2><field name="name" /></h2>
+            <group>
+              <p><field name="message" />IMPORTANT: One or more projects is open for this client. Please add any new task request to the existing project</p>
+            </group>
+          </div>
+
+          <footer>
+            <button string="Open Exising Project" type="object" name="open_existing_project"/>
+            <button special="cancel" string="Ok" class="oe_highlight" />
+          </footer>
+        </form>
+      </field>
+    </record>
+    
+    <record id="action_clx_existing_project_warning" model="ir.actions.act_window">
+        <field name="name">Existing Project Warning</field>
+        <field name="res_model">clx.existing.project.warning.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+  </data>
+</odoo>
