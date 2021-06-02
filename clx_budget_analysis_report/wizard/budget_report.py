@@ -70,6 +70,7 @@ class BudgetReportWizard(models.TransientModel):
         price_list_processed = []
         partner_id = self.env["res.partner"].browse(self.partner_ids.ids[0])
         companies_list = {partner_id.id: {"company": partner_id, "percent": 1.0}}
+        category_show_params = {}
         while True:
             result_table[slider_period] = {}
             for sub_line in subscription_lines:
@@ -88,29 +89,33 @@ class BudgetReportWizard(models.TransientModel):
                 if not retail_price:
                     continue
                 price_list_id = sub_line.so_line_id.order_id.pricelist_id
-                # pricelist needed to calculate wholesale only
-                if not price_list_id in price_list_processed:
-                    price_list.update(self.env["sale.subscription"].pricelist_flatten(price_list_id))
-                    price_list_processed.append(price_list_id)
 
                 product_stamp = (
                     str(sub_line.so_line_id.order_id.partner_id.id) + "_" + str(sub_line.analytic_account_id.id)
                 )
 
+                # pricelist needed to calculate wholesale only
+                # if not price_list_id in price_list_processed:
+                #     price_list.update(self.env["sale.subscription"].pricelist_flatten(price_list_id))
+                #     price_list_processed.append(price_list_id)
                 if product_stamp in result_table[slider_period]:
                     result_table[slider_period][product_stamp]["retail_price"] += retail_price
                 else:
-                    tags = [
-                        str(price_list_id.id) + "_0_" + str(sub_line.product_id.id),
-                        str(price_list_id.id) + "_1_" + str(sub_line.product_id.product_tmpl_id.id),
-                        str(price_list_id.id) + "_2_" + str(sub_line.product_id.categ_id.id),
-                        str(price_list_id.id) + "_3",
-                        list(price_list.keys())[0],
-                    ]
-                    for tag in tags:
-                        if tag in price_list:
-                            pricelist2process = price_list[tag]
-                            break
+                    # tags = [
+                    #     str(price_list_id.id) + "_0_" + str(sub_line.product_id.id),
+                    #     str(price_list_id.id) + "_1_" + str(sub_line.product_id.product_tmpl_id.id),
+                    #     str(price_list_id.id) + "_2_" + str(sub_line.product_id.categ_id.id),
+                    #     str(price_list_id.id) + "_3",
+                    #     list(price_list.keys())[0],
+                    # ]
+                    # for tag in tags:
+                    #     if tag in price_list:
+                    #         pricelist2process = price_list[tag]
+                    #         break
+                    pricelist2process = sub_line.analytic_account_id.pricelist_determination(
+                        sub_line.product_id, price_list_id
+                    )
+
                     result_start_date = (
                         slider_start_date if slider_start_date >= sub_line.start_date else sub_line.start_date
                     )
@@ -134,6 +139,10 @@ class BudgetReportWizard(models.TransientModel):
                         "category": sub_line.product_id.categ_id.id,
                         "company_name": sub_line.so_line_id.order_id.partner_id.name,
                     }
+                    category_show_params [sub_line.product_id.categ_id.id] = {
+                        "show_mgmnt_fee": sub_line.product_id.categ_id.management_fee,
+                        "show_wholesale": sub_line.product_id.categ_id.wholesale
+                        }
 
             slider_start_date += relativedelta(months=1)
             slider_end_date = slider_start_date.replace(
@@ -149,7 +158,7 @@ class BudgetReportWizard(models.TransientModel):
 
                 result_table[period][subscription].update(
                     self.env["sale.subscription"].subscription_wholesale_period(
-                        sale_line_write["retail_price"], sale_line_write["wholesale_price"]
+                        sale_line_write["retail_price"], sale_line_write["wholesale_price"], category_show_params[ sale_line_write["category"]]
                     )
                 )
 
@@ -161,13 +170,17 @@ class BudgetReportWizard(models.TransientModel):
                     company_name = company.name
                     description = subscribtion_total["description"]
                     if partner_percent != 1.0:
-                        description += (" (%s%%) " % (str(int(partner_percent * 100))))
+                        description += " (%s%%) " % (str(int(partner_percent * 100)))
                     subscribtion_total.update(
                         {
                             "description": description,
                             "partner_id": company.id,
-                            "wholesale_price": partner_percent * sale_line_write["wholesale_price"],
-                            "management_fee": partner_percent * sale_line_write["management_fee"],
+                            "wholesale_price": partner_percent * sale_line_write["wholesale_price"]
+                            if sale_line_write["wholesale_price"] > 0
+                            else sale_line_write["wholesale_price"],
+                            "management_fee": partner_percent * sale_line_write["management_fee"]
+                            if sale_line_write["management_fee"] > 0
+                            else sale_line_write["management_fee"],
                             "retail_price": partner_percent * sale_line_write["retail_price"],
                             "company_name": company_name,
                         }

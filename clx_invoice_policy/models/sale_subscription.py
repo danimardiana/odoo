@@ -60,13 +60,13 @@ class SaleSubscription(models.Model):
 
     def pricelist_determination(self, product, price_list):
         pricelist_flat = self.pricelist_flatten(price_list)
-        pricelist2process = {}
+        pricelist2process = False
         tags = [
             str(price_list.id) + "_0_" + str(product.id),
             str(price_list.id) + "_1_" + str(0 if "product_tmpl_id" not in product else product.product_tmpl_id.id),
             str(price_list.id) + "_2_" + str(product.categ_id.id),
             str(price_list.id) + "_3",
-            list(pricelist_flat.keys())[0],
+            # list(pricelist_flat.keys())[0], not need to assign any pricelist
         ]
         for tag in tags:
             if tag in pricelist_flat:
@@ -74,26 +74,40 @@ class SaleSubscription(models.Model):
                 break
         return pricelist2process
 
-    def subscription_wholesale_period(self, retail, price_list):
-        management_fee = 0.0
-        if price_list.is_custom:
+    def subscription_wholesale_period(self, retail, price_list, show_flags = {"show_mgmnt_fee": True,"show_wholesale": True}):
+
+        if not price_list:
+            return {"management_fee": -2, "wholesale_price": -2}
+
+        management_fee  = 0.0 if show_flags["show_mgmnt_fee"] else False
+        wholesale  = 0.0 if show_flags["show_wholesale"] else False
+        
+        if price_list.is_custom and management_fee:
             if retail <= price_list.min_retail_amount:
                 management_fee = price_list.fixed_mgmt_price
             else:
                 management_fee = round((price_list.percent_mgmt_price * retail) / 100, 2)
         else:
             # if management fee fixed
-            if price_list.is_fixed and price_list.fixed_mgmt_price:
-                if retail > price_list.fixed_mgmt_price:
-                    management_fee = price_list.fixed_mgmt_price
+            if price_list.is_fixed and price_list.fixed_mgmt_price and management_fee and retail > price_list.fixed_mgmt_price:
+                management_fee = price_list.fixed_mgmt_price
 
             # if management fee percentage
-            if price_list.is_percentage and price_list.percent_mgmt_price:
+            if price_list.is_percentage and price_list.percent_mgmt_price and management_fee:
                 management_fee = round((price_list.percent_mgmt_price * retail) / 100, 2)
+
+            # if wholesale fee percentage
+            if price_list.is_wholesale_percentage and price_list.percent_wholesale_price and wholesale:
+                wholesale = round((price_list.percent_wholesale_price * retail) / 100, 2)
+
         # but never less than minimum price
         if management_fee < price_list.fixed_mgmt_price:
             management_fee = price_list.fixed_mgmt_price
-        return {"management_fee": management_fee, "wholesale_price": retail - management_fee}
+        
+        if wholesale == 0.0:
+            wholesale = retail - management_fee
+
+        return {"management_fee": management_fee if management_fee else -1, "wholesale_price": wholesale if wholesale else -1}
 
     def pricelist_flatten(self, price_list):
         mapped = {}
@@ -607,7 +621,7 @@ class SaleSubscriptionLine(models.Model):
     # calculation price for period. Taking into account proration
     def period_price_calc(self, start_date, partner_id, dont_prorate=False):
         end_date_for_period = start_date + relativedelta(months=1) + relativedelta(days=-1)
-        if end_date_for_period<self["start_date"] or (self["end_date"] and start_date>self["end_date"]):
+        if end_date_for_period < self["start_date"] or (self["end_date"] and start_date > self["end_date"]):
             return 0.0
 
         price_calculated = self["price_unit"]
