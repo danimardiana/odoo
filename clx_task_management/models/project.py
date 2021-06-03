@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 from odoo.addons.mail.models.mail_thread import MailThread
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def remove_followers_non_clx(object_clean):
@@ -330,12 +333,13 @@ class ProjectTask(models.Model):
                     self.env["sub.task.project"].search([("id", "=", repo_link.id)]).unlink()
                     repo_records_deleted += 1
 
-            print(
+            _logger.info(
                 "REPO LINK CLEANUP - "
                 + str(repo_records_deleted)
                 + " repo link records deleted for project ID "
                 + str(self.project_id.id)
             )
+
         return temp_repo_link_dict
 
     def prepared_sub_task_vals(self, sub_task, main_task):
