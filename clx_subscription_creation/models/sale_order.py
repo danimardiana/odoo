@@ -189,6 +189,7 @@ class SaleOrder(models.Model):
                 "product_name": line.product_id.name,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
+                "product_id": line.product_id.id,
                 "price_unit": line.price_unit,
                 "category_name": line.product_id.categ_id.name,
                 "description": line._grouping_name_calc(line),  # second level of grouping - budget wrapping
@@ -205,6 +206,7 @@ class SaleOrder(models.Model):
 
         def last_order_data(product_individual):
             return {
+                "product_id": product_individual["product_id"],
                 "product_name": product_individual["product_name"],
                 "price_unit": product_individual["price_unit"],
                 "description": product_individual["description"],
