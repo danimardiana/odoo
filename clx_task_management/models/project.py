@@ -334,10 +334,13 @@ class ProjectTask(models.Model):
                     repo_records_deleted += 1
 
             _logger.info(
-                "REPO LINK CLEANUP - "
+                "REPOSITORY LINK CLEANUP - "
                 + str(repo_records_deleted)
-                + " repo link records deleted for project ID "
+                + " repo SubTask link records deleted for ParentTask("
+                + str(self.id)
+                + ") of Project("
                 + str(self.project_id.id)
+                + ")"
             )
 
         return temp_repo_link_dict
