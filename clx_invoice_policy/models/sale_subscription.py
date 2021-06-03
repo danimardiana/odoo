@@ -247,7 +247,8 @@ class SaleSubscription(models.Model):
         lines = self.subscription_lines_collection_for_invoicing(
             partner, order_id, kwargs["start_date"], kwargs["end_date"]
         )
-        if not lines or not lines["related_subscriptions"]:
+        #not create invoices if no lines to invoice or all have 0
+        if not lines or not lines["related_subscriptions"] or not(any(list(map(lambda l: l['price_unit'],lines["invoice_lines"])))):
             return False
 
         last_order = sorted(
@@ -655,7 +656,11 @@ class SaleSubscriptionLine(models.Model):
         co_op_coef = 1
         co_op_list = self.analytic_account_id.initial_sale_order_id.co_op_sale_order_partner_ids
         if partner_id and len(co_op_list) and self.analytic_account_id.is_co_op and not dont_prorate:
-            co_op_coef = next(filter(lambda line: line.partner_id.id == partner_id, co_op_list)).ratio / 100
+            coop_line_filter = filter(lambda line: line.partner_id.id == partner_id, co_op_list)
+            if len(list(coop_line_filter))==0:
+                co_op_coef = 0
+            else:
+                co_op_coef = next(filter(lambda line: line.partner_id.id == partner_id, co_op_list)).ratio / 100
         if co_op_coef > 1:
             co_op_coef /= 100
         price_calculated = co_op_coef * price_calculated
