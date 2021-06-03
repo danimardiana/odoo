@@ -14,7 +14,13 @@ class AccountMove(models.Model):
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
     subscription_line_ids = fields.Many2many('sale.subscription.line', 'account_id', string="Subscription Lines")
     invoices_month_year = fields.Char(string="Invoicing Period", compute="set_invoices_month", store=False)
-
+    state = fields.Selection(selection=[
+        ('draft', 'Draft'),
+        ('approved_draft', 'Approved Draft'),
+        ('posted', 'Posted'),
+        ('cancel', 'Cancelled')
+    ], string='Status', required=True, readonly=True, copy=False, tracking=True,
+        default='draft')
     def post(self):
         res = super(AccountMove, self).post()
         sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
@@ -93,6 +99,10 @@ class AccountMove(models.Model):
                                     sub.invoice_start_date = start_date.date()
                                     sub.invoice_end_date = end_date.date()
         return res
+
+    def button_approve_invoice(self):
+        for rec in self.filtered(lambda x: x.state == 'draft'):
+            rec.state = 'approved_draft'
 
 
 class AccountMoveLine(models.Model):
