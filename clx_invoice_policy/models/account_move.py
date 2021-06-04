@@ -21,6 +21,11 @@ class AccountMove(models.Model):
         ('cancel', 'Cancelled')
     ], string='Status', required=True, readonly=True, copy=False, tracking=True,
         default='draft')
+    invoice_status = fields.Selection(
+        [("sent_manager_acct", "Invoice Sent to Account Manager"),
+         ("approved_manager_acct", "Invoice Approved by Account Manager")], string="Invoice Status"
+    )
+
     def post(self):
         res = super(AccountMove, self).post()
         sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
@@ -102,8 +107,15 @@ class AccountMove(models.Model):
 
     def button_approve_invoice(self):
         for rec in self.filtered(lambda x: x.state == 'draft'):
+            rec.invoice_status = 'approved_manager_acct'
             rec.state = 'approved_draft'
 
+    # def send_and_print_action(self):
+    #     for rec in self.filtered(lambda x: x.state in ['draft','posted'] ):
+    #         rec.invoice_status = 'sent_manager_acct'
+    #     res = super(AccountMove, self).send_and_print_action()
+    #     print("================================================================")
+    #     return res
 
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
