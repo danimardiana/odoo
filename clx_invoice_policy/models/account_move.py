@@ -110,13 +110,6 @@ class AccountMove(models.Model):
             rec.invoice_status = 'approved_manager_acct'
             rec.state = 'approved_draft'
 
-    # def send_and_print_action(self):
-    #     for rec in self.filtered(lambda x: x.state in ['draft','posted'] ):
-    #         rec.invoice_status = 'sent_manager_acct'
-    #     res = super(AccountMove, self).send_and_print_action()
-    #     print("================================================================")
-    #     return res
-
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
