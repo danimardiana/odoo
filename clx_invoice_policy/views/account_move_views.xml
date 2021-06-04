@@ -87,6 +87,36 @@
             </xpath>
         </field>
     </record>
+<!--    Add the Custom Filters for verticals-->
+    <record id="clx_view_account_invoice_filter_invoice_table_filter" model="ir.ui.view">
+        <field name="name">clx.account.invoice.select.invoice.table.filter</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <filter name="duedate" position="after">
+                <separator/>
+                <filter name="clx_vertical_auto" string="Vertical - Auto" domain="[('partner_id.vertical', '=', 'auto')]"/>
+                <filter name="clx_vertical_local" string="Vertical - Local" domain="[('partner_id.vertical', '=', 'local')]"/>
+                <filter name="clx_vertical_res" string="Vertical - Residential" domain="[('partner_id.vertical', '=', 'res')]"/>
+                <filter name="clx_vertical_srl" string="Vertical - Senior Living" domain="[('partner_id.vertical', '=', 'srl')]"/>
+                <separator/>
+                <filter name="clx_email_sent_status" string="Email sent to Account Manager" domain="[('invoice_status', '=', 'sent_manager_acct')]"/>
+                <filter name="clx_inv_approved" string="Invoice Approved by Account Manager" domain="[('state', '=', 'approved_draft')]"/>
+            </filter>
+        </field>
+    </record>
+
+<!--    Add custom invoice_status field to invoice form view-->
+    <record id="clx_account_move_form_invoice_manager_status" model="ir.ui.view">
+        <field name="name">clx.account.move.form.invoice.manager.status</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <field name="ref" position="after">
+                <field name="invoice_status"/>
+            </field>
+        </field>
+    </record>
 
     <record model="ir.actions.server" id="action_move_approve_by_sales">
             <field name="name">Approve invoice</field>

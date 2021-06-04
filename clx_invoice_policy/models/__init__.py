@@ -2,6 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
+from . import account_send_invoice
 from . import account_move
 from . import clx_invoice_policy
 from . import policy_history
