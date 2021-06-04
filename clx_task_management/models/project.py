@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 from odoo.addons.mail.models.mail_thread import MailThread
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def remove_followers_non_clx(object_clean):
@@ -301,15 +304,16 @@ class ProjectTask(models.Model):
 
     def _get_dedup_repo_link_records(self):
         temp_repo_link_dict = {}
-        # Check sub_task_project repository to see if link records
-        # have been created for this project task's subtask(s)
-        # and deduplicate, taking the oldest record and deleting
-        # the newer ones from the database which were created by mistake
+        """
+         Check sub_task_project repository to see if link records
+         have been created for this project task's subtask(s)
+         and deduplicate, taking the oldest record and deleting
+         the newer ones from the database which were created by mistake
+        """
         if self.child_ids:
             exist_subtask_repo_link_ids = self.env["sub.task.project"].search(
                 ["|", ("task_id", "in", self.child_ids.ids), ("project_id", "=", self.project_id.id)]
             )
-            # existing_repo_task_list = self.env["sub.task.project"].search([("task_id", "in", self.child_ids.ids)])
             for rep_task in exist_subtask_repo_link_ids:
                 # if the repo task is in the dict then compare dates.
                 if rep_task.sub_task_id.id and rep_task.sub_task_id.id in temp_repo_link_dict:
@@ -317,11 +321,27 @@ class ProjectTask(models.Model):
                     if rep_task.create_date < dict_obj.create_date:
                         # Keep older version.
                         temp_repo_link_dict[rep_task.sub_task_id.id] = rep_task
-                    else:
-                        # Delete newer version from DB
-                        self.env["sub.task.project"].search([("id", "=", dict_obj.id)]).unlink()
                 elif rep_task.sub_task_id.id:
                     temp_repo_link_dict[rep_task.sub_task_id.id] = rep_task
+
+            # Delete repo link reords no longer needed for this project's tasks
+            project_records = set(temp_repo_link_dict.values())
+            repo_records_deleted = 0
+            for repo_link in exist_subtask_repo_link_ids:
+                contains = repo_link in project_records
+                if not contains:
+                    self.env["sub.task.project"].search([("id", "=", repo_link.id)]).unlink()
+                    repo_records_deleted += 1
+
+            _logger.info(
+                "REPOSITORY LINK CLEANUP - "
+                + str(repo_records_deleted)
+                + " repo SubTask link records deleted for ParentTask("
+                + str(self.id)
+                + ") of Project("
+                + str(self.project_id.id)
+                + ")"
+            )
 
         return temp_repo_link_dict
 
