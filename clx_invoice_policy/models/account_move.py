@@ -148,11 +148,6 @@ class AccountMove(models.Model):
 
         url = self.get_portal_url()
 
-        access_action = self.with_context(force_website=True).get_access_action()
-        is_online = access_action and access_action["type"] == "ir.actions.act_url"
-        base_url = self.get_base_url()
-
-        secure_url = self._get_share_url(redirect=True, signup_partner=True)
         if reminder:
             email_text = """ Attached is your recent invoice. Please review for dates of service and terms specific to your account.</p><p>To avoid interruption of your campaign(s) and/or other services such as Live Chat or The Conversion Cloud, we need to receive payment prior to the service date"""
 
@@ -176,7 +171,7 @@ class AccountMove(models.Model):
             "model_description": self.with_context(lang=lang).type_name,
             "report_name": (self.name or "").replace("/", "_") + "_000",
             "default_allowed_partner_ids": contacts_billing,
-            "secure_url": secure_url,
+            "secure_url": url,
             "email_text": email_text,
         }
         return {
