@@ -36,7 +36,7 @@ class AccountMove(models.Model):
                 lambda contact: "Billing Contact" in contact.contact_type_ids.mapped("name"), self.related_contact_ids
             ),
         )
-        self.related_contact_ids2 = [(6, 0, list(billing_list))]
+        self.related_billing_contact_ids = [(6, 0, list(billing_list))]
 
     def post(self):
         res = super(AccountMove, self).post()

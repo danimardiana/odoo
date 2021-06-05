@@ -57,6 +57,7 @@
                             </tree>
                     </field>
                 </page>
+                <page string="Billing Contacts" name="billing_contacts">   
                     <field name="related_billing_contact_ids">     
                         <tree>
                             <field name="name"/>
