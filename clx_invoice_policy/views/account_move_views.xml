@@ -57,6 +57,14 @@
                             </tree>
                     </field>
                 </page>
+                    <field name="related_billing_contact_ids">     
+                        <tree>
+                            <field name="name"/>
+                            <field name="contact_type_ids" widget="many2many_tags"/>
+                            <field name="email"/>
+                        </tree>
+                    </field>            
+                </page>                
             </xpath>
         </field>
     </record>

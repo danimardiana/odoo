@@ -8,13 +8,35 @@ from collections import OrderedDict
 from datetime import timedelta
 import calendar
 
+
 class AccountMove(models.Model):
     _inherit = "account.move"
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
     subscription_line_ids = fields.Many2many("sale.subscription.line", "account_id", string="Subscription Lines")
     invoice_month_year = fields.Char(string="Invoicing Period")
-    invoice_period_verbal = fields.Char(compute="compute_invoice_period_verbal", string="Invoicing Period Verbal", store=False)
+    invoice_period_verbal = fields.Char(
+        compute="compute_invoice_period_verbal", string="Invoice Period Verbal", store=False
+    )
+
+    related_contact_ids = fields.One2many(
+        related="partner_id.contact_child_ids",
+        string="Billing Contacts",
+        store=False,
+    )
+
+    related_billing_contact_ids = fields.Many2many(
+        "res.partner.clx.child", compute="compute_billing_contacts", string="Billing Contacts2", store=False
+    )
+
+    def compute_billing_contacts(self):
+        billing_list = map(
+            lambda item: item.id,
+            filter(
+                lambda contact: "Billing Contact" in contact.contact_type_ids.mapped("name"), self.related_contact_ids
+            ),
+        )
+        self.related_contact_ids2 = [(6, 0, list(billing_list))]
 
     def post(self):
         res = super(AccountMove, self).post()
@@ -37,9 +59,9 @@ class AccountMove(models.Model):
         for invoice in self:
             if invoice.invoice_month_year:
                 year, day = invoice.invoice_month_year.split("-")
-                #check for correct data
-                if len(year)==4 and len(day)==2:
-                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)],year)
+                # check for correct data
+                if len(year) == 4 and len(day) == 2:
+                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)], year)
                 else:
                     invoice.invoice_period_verbal = "-"
             else:
@@ -123,14 +145,19 @@ class AccountMove(models.Model):
         contacts_billing.append(account_manager.id)
         if template.lang:
             lang = template._render_template(template.lang, "account.move", self.ids[0])
-        self.get_portal_url()
+
+        url = self.get_portal_url()
+
+        access_action = self.with_context(force_website=True).get_access_action()
+        is_online = access_action and access_action["type"] == "ir.actions.act_url"
+        base_url = self.get_base_url()
+
         secure_url = self._get_share_url(redirect=True, signup_partner=True)
-        if reminder :            
+        if reminder:
             email_text = """ Attached is your recent invoice. Please review for dates of service and terms specific to your account.</p><p>To avoid interruption of your campaign(s) and/or other services such as Live Chat or The Conversion Cloud, we need to receive payment prior to the service date"""
 
-        else:            
+        else:
             email_text = " To ensure your campaign runs as planned, please be reminded to ensure we receive payment by May 31, 2021. Payment in full is required to start or continue service. Attached is the invoice for your reference."
-
 
         ctx = {
             "tpl_partners_only": True,
