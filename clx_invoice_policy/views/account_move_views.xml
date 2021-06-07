@@ -55,6 +55,10 @@
                         groups="account.group_account_invoice"
                         attrs="{'invisible': [('state', '!=', 'draft')]}"/>
             </xpath>
+            <xpath expr="//header//button[@name='button_draft']" position="attributes">
+                <attribute name="attrs">{'invisible' : ['|', ('restrict_mode_hash_table', '=', True),
+                ('state', 'not in', ('approved_draft','email_sent','posted', 'cancel'))]}</attribute>
+            </xpath>
             <xpath expr="//header//button[@name='action_post']" position="attributes">
                 <attribute name="attrs">{'invisible': [('state', 'not in', ('approved_draft'))]}</attribute>
             </xpath>
@@ -103,18 +107,6 @@
                 <filter name="clx_email_sent_status" string="Email sent to Account Manager" domain="[('invoice_status', '=', 'sent_manager_acct')]"/>
                 <filter name="clx_inv_approved" string="Invoice Approved by Account Manager" domain="[('state', '=', 'approved_draft')]"/>
             </filter>
-        </field>
-    </record>
-
-<!--    Add custom invoice_status field to invoice form view-->
-    <record id="clx_account_move_form_invoice_manager_status" model="ir.ui.view">
-        <field name="name">clx.account.move.form.invoice.manager.status</field>
-        <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_move_form"/>
-        <field name="arch" type="xml">
-            <field name="ref" position="after">
-                <field name="invoice_status"/>
-            </field>
         </field>
     </record>
 
