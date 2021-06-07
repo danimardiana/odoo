@@ -17,14 +17,11 @@ class AccountMove(models.Model):
     state = fields.Selection(selection=[
         ('draft', 'Draft'),
         ('approved_draft', 'Approved Draft'),
+        ('email_sent', 'Email Sent'),
         ('posted', 'Posted'),
         ('cancel', 'Cancelled')
     ], string='Status', required=True, readonly=True, copy=False, tracking=True,
         default='draft')
-    invoice_status = fields.Selection(
-        [("sent_manager_acct", "Invoice Sent to Account Manager"),
-         ("approved_manager_acct", "Invoice Approved by Account Manager")], string="Invoice Status"
-    )
 
     def post(self):
         res = super(AccountMove, self).post()
@@ -107,7 +104,6 @@ class AccountMove(models.Model):
 
     def button_approve_invoice(self):
         for rec in self.filtered(lambda x: x.state == 'draft'):
-            rec.invoice_status = 'approved_manager_acct'
             rec.state = 'approved_draft'
 
 class AccountMoveLine(models.Model):
