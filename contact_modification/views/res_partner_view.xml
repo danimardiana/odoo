@@ -164,10 +164,7 @@
 
             <!-- Company Type Radio Buttons -->
              <xpath expr="//field[@name='company_type']" position="attributes">
-                <attribute name="attrs">{'invisible': ['|','|','|',('company_type','=','person'),
-                                                                  ('company_type','=','company'),
-                                                                  ('company_type','=','owner'),
-                                                                  ('company_type','=','management')]}
+                <attribute name="attrs">{'readonly': [('company_type', 'in', ('person', 'company', 'owner', 'management'))]}
                 </attribute>
             </xpath>
 
@@ -545,6 +542,7 @@
                             <field name="client_provided_tracking_email"/>
                             <field name="client_provided_utm_tracking_urls"/>
                             <field name="art_assets"/>
+                            <field name="lead_management_system"/>
                         </group>
                     </group>
                 </page>

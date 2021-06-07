@@ -26,6 +26,7 @@ def get_records_pager(ids, current):
     return {}
 
 
+# when quotation signing happened
 class CustomerPortal(CustomerPortal):
     @http.route(["/my/orders/<int:order_id>/accept"], type="json", auth="public", website=True)
     def portal_quote_accept(self, order_id, access_token=None, name=None, signature=None):

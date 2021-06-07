@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 from odoo.addons.mail.models.mail_thread import MailThread
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def remove_followers_non_clx(object_clean):
@@ -240,28 +243,107 @@ class ProjectTask(models.Model):
                 tag_list.append(tag.display_name)
             record.tag_ids_flattened = str(tag_list).strip("[]").replace("'", "")
 
+    """
+    Get SubTask Repository Link Records for a Project's SubTasks.
+    Each subtask should have 1 associated repository record which 
+    contains sequence and dependancy info for the subtask 
+    """
+
     def _compute_sub_task_project_ids(self):
-        task_list = []
+        repository_link_ids = []
+        repo_link_dict = self._get_dedup_repo_link_records()
+
         if not self.parent_id and self.repositary_task_id:
-            sub_tasks = self.env["sub.task"].search([("parent_id", "=", self.repositary_task_id.id)])
+            subtask_repo_templates = self.env["sub.task"].search([("parent_id", "=", self.repositary_task_id.id)])
             sub_task_project_obj = self.env["sub.task.project"]
-            child_task = self.child_ids
-            for sub_task in sub_tasks:
-                child_task_id = child_task.filtered(
-                    lambda x: x.sub_task_id.id == sub_task.id and x.parent_id.id == self.id
-                )
-                vals = {
-                    "sub_task_id": sub_task.id,
-                    "task_id": child_task_id[0].id if child_task_id else False,
-                    "sub_task_name": sub_task.sub_task_name,
-                    "team_ids": sub_task.team_ids.ids if sub_task.team_ids else False,
-                    "team_members_ids": sub_task.team_members_ids.ids if sub_task.team_members_ids else False,
-                    "tag_ids": sub_task.tag_ids.ids if sub_task.tag_ids else False,
-                    "stage_id": child_task_id[0].stage_id.id if child_task_id else False,
-                }
-                task_id = sub_task_project_obj.create(vals)
-                task_list.append(task_id.id)
-        self.sub_task_project_ids = [(6, 0, task_list)]
+            project_subtasks = self.child_ids
+            for repo_template in subtask_repo_templates:
+                dict_record = repo_link_dict.get(repo_template.id)
+
+                # process subtask template without project subtask repo link record
+                if repo_template.id not in repo_link_dict:
+                    subtask = project_subtasks.filtered(
+                        lambda x: x.sub_task_id.id == repo_template.id and x.parent_id.id == self.id
+                    )
+                    vals = {
+                        "sub_task_id": repo_template.id,
+                        "task_id": subtask[0].id if subtask else False,
+                        "sub_task_name": repo_template.sub_task_name,
+                        "team_ids": repo_template.team_ids.ids if repo_template.team_ids else False,
+                        "team_members_ids": repo_template.team_members_ids.ids
+                        if repo_template.team_members_ids
+                        else False,
+                        "tag_ids": repo_template.tag_ids.ids if repo_template.tag_ids else False,
+                        "stage_id": subtask[0].stage_id.id if subtask else False,
+                        "project_id": self.project_id.id,
+                    }
+                    new_repo_link = sub_task_project_obj.create(vals)
+                    repository_link_ids.append(new_repo_link.id)
+
+                # process project subtask repo link records without associated subtask
+                elif dict_record and not dict_record.task_id:
+                    repo_link_obj = self.env["sub.task.project"].search([("id", "=", dict_record.id)])
+                    subtask = project_subtasks.filtered(
+                        lambda x: x.sub_task_id.id == repo_template.id and x.parent_id.id == self.id
+                    )
+                    if subtask:
+                        repo_link_obj.write({"task_id": subtask[0].id})
+                        repo_link_obj.write({"stage_id": subtask[0].stage_id.id})
+                    repository_link_ids.append(repo_link_obj.id)
+
+                # process project subtask repo link records that are associated with a task
+                else:
+                    exist_repo_link = repo_link_dict.get(repo_template.id)
+                    repo_link_obj = self.env["sub.task.project"].search([("id", "=", exist_repo_link.id)])
+                    repo_link_obj.write({"task_id": exist_repo_link.task_id.id})
+                    repo_link_obj.write({"stage_id": exist_repo_link.task_id.stage_id.id})
+                    repo_link_obj.write({"project_id": self.project_id.id})
+                    repository_link_ids.append(exist_repo_link.id)
+
+        self.sub_task_project_ids = [(6, 0, repository_link_ids)]
+
+    def _get_dedup_repo_link_records(self):
+        temp_repo_link_dict = {}
+        """
+         Check sub_task_project repository to see if link records
+         have been created for this project task's subtask(s)
+         and deduplicate, taking the oldest record and deleting
+         the newer ones from the database which were created by mistake
+        """
+        if self.child_ids:
+            exist_subtask_repo_link_ids = self.env["sub.task.project"].search(
+                ["|", ("task_id", "in", self.child_ids.ids), ("project_id", "=", self.project_id.id)]
+            )
+            for rep_task in exist_subtask_repo_link_ids:
+                # if the repo task is in the dict then compare dates.
+                if rep_task.sub_task_id.id and rep_task.sub_task_id.id in temp_repo_link_dict:
+                    dict_obj = temp_repo_link_dict.get(rep_task.sub_task_id.id)
+                    if rep_task.create_date < dict_obj.create_date:
+                        # Keep older version.
+                        temp_repo_link_dict[rep_task.sub_task_id.id] = rep_task
+                elif rep_task.sub_task_id.id:
+                    temp_repo_link_dict[rep_task.sub_task_id.id] = rep_task
+
+            # Delete repo link reords no longer needed for this project's tasks
+            project_records = set(temp_repo_link_dict.values())
+            repo_records_deleted = 0
+            for repo_link in exist_subtask_repo_link_ids:
+                contains = repo_link in project_records
+                if not contains:
+                    self.env["sub.task.project"].search([("id", "=", repo_link.id)]).unlink()
+                    repo_records_deleted += 1
+
+            _logger.info(
+                "REPOSITORY LINK CLEANUP - "
+                + str(repo_records_deleted)
+                + " repo SubTask link records deleted for ParentTask("
+                + str(self.id)
+                + ") of Project("
+                + str(self.project_id.id)
+                + ")"
+            )
+
+        return temp_repo_link_dict
 
     def prepared_sub_task_vals(self, sub_task, main_task):
         """

@@ -84,10 +84,11 @@ class SaleOrder(models.Model):
         self.ensure_one()
         template = self.env["mail.template"].sudo().search([("name", "=", "Contract: Signing confirmation")])
         # getting the previous mail to send confirmation to the same addresses
-        previous_mail = (
-            self.env["mail.compose.message"].sudo().search([("res_id", "=", self.id)], limit=1, order="id desc")[0]
+        previous_mail_array = (
+            self.env["mail.compose.message"].sudo().search([("res_id", "=", self.id)], order="id desc")
         )
 
+        # as previous emails will have one recepient only we have to collect them all
         lang = self.env.context.get("lang")
         ctx = {
             "tpl_partners_only": True,
@@ -96,10 +97,10 @@ class SaleOrder(models.Model):
             "default_use_template": bool(template.id),
             "default_template_id": template.id,
             "default_composition_mode": "comment",
-            "default_partner_ids": previous_mail.partner_ids,
-            "default_email_to": previous_mail.email_to,
-            "default_reply_to": previous_mail.reply_to,
-            "default_subject": previous_mail.subject,
+            "default_partner_ids": previous_mail_array[0].partner_ids,
+            "default_email_to": previous_mail_array[0].email_to,
+            "default_reply_to": previous_mail_array[0].reply_to,
+            "default_subject": previous_mail_array[0].subject,
             "mark_so_as_sent": True,
             "custom_layout": "mail.mail_notification_light",
             "proforma": self.env.context.get("proforma", False),
@@ -111,7 +112,7 @@ class SaleOrder(models.Model):
 
         # Create the composer
         composer = self.env["mail.compose.message"].with_context(ctx).create({})
-        update_values = composer.onchange_template_id(template.id, "comment", self._name, self.ids[0])['value']
+        update_values = composer.onchange_template_id(template.id, "comment", self._name, self.ids[0])["value"]
         composer.write(update_values)
 
         if template.id:
@@ -119,11 +120,18 @@ class SaleOrder(models.Model):
             subject = template._render_template(template.subject, "sale.order", self.id, post_process=False)
             email_from = template._render_template(template.email_from, "sale.order", self.id, post_process=False)
             all_recepients = []
-            if previous_mail.partner_ids:
-                all_recepients += previous_mail.partner_ids.mapped("email")
+            for previous_mail in previous_mail_array:
+                if previous_mail.partner_ids:
+                    all_recepients += previous_mail.partner_ids.mapped("email")
 
-            if type(previous_mail.email_to) is str:
-                all_recepients += previous_mail.email_to.split(",")
+                if type(previous_mail.email_to) is str:
+                    all_recepients += previous_mail.email_to.split(",")
+
+            # Account Manager mandratory
+            all_recepients += [self.partner_id.account_user_id.email]
+
+            # removing duplicates
+            all_recepients = list(dict.fromkeys(all_recepients))
 
             for recipient in all_recepients:
                 prepeared_values = {
