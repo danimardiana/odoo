@@ -8,7 +8,6 @@ from collections import OrderedDict
 from datetime import timedelta
 import calendar
 
-
 class AccountMove(models.Model):
     _inherit = "account.move"
 
@@ -134,15 +133,17 @@ class AccountMove(models.Model):
     # rewriting the eamil sending function
     def action_invoice_sent(self, reminder=False):
         self.ensure_one()
-        # template = self.env["mail.template"].sudo().search([("name", "=", "Invoice: Send by email")])
 
         template = self.env["mail.template"].sudo().search([("name", "=", "Invoice: CLX email template")])
         template_id = template.id
-        contacts_billing = []
+        account_manager = self.partner_id.account_user_id.partner_id
+        contacts_billing = [account_manager.id]
+        default_partner_ids = [account_manager.id]
         for contact in self.partner_id.contact_child_ids:
             contacts_billing.append(contact.child_id.id)
-        account_manager = self.partner_id.account_user_id.partner_id
-        contacts_billing.append(account_manager.id)
+            if 'Billing Contact' in contact.contact_type_ids.mapped('name') :
+                default_partner_ids.append(contact.child_id.id)
+
         if template.lang:
             lang = template._render_template(template.lang, "account.move", self.ids[0])
 
@@ -161,7 +162,7 @@ class AccountMove(models.Model):
             "default_use_template": bool(template_id),
             "default_template_id": template_id,
             "default_composition_mode": "comment",
-            "default_partner_ids": [account_manager.id],
+            "default_partner_ids": default_partner_ids,
             "default_email_to": "",
             "default_reply_to": "",
             "mark_so_as_sent": True,
