@@ -104,7 +104,7 @@
                 <filter name="clx_vertical_res" string="Vertical - Residential" domain="[('partner_id.vertical', '=', 'res')]"/>
                 <filter name="clx_vertical_srl" string="Vertical - Senior Living" domain="[('partner_id.vertical', '=', 'srl')]"/>
                 <separator/>
-                <filter name="clx_email_sent_status" string="Email sent to Account Manager" domain="[('invoice_status', '=', 'sent_manager_acct')]"/>
+                <filter name="clx_email_sent_status" string="Email sent to Account Manager" domain="[('state', '=', 'email_sent')]"/>
                 <filter name="clx_inv_approved" string="Invoice Approved by Account Manager" domain="[('state', '=', 'approved_draft')]"/>
             </filter>
         </field>
