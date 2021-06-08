@@ -19,13 +19,26 @@ class GenerateInvoiceDateRange(models.TransientModel):
     start_date = fields.Date('Start Date')
     end_date = fields.Date('End Date')
 
-    @api.onchange('start_date', 'end_date')
+    @api.onchange('start_date')
+    def onchange_startdate(self):
+        self.onchange_date_validation()
+        if self.start_date and not self.end_date:
+            self.end_date=self.start_date + relativedelta(months=1) + relativedelta(days=-1)
+
+    @api.onchange('end_date')
+    def onchange_enddate(self):
+        self.onchange_date_validation()
+    
     def onchange_date_validation(self):
         if self.start_date and self.end_date and \
                 self.start_date >= self.end_date:
             raise UserError(_("Invalid date range."))
 
     def generate_invoice(self):
+        self.env['sale.subscription'].invoicing_date_range(partner_id=self._context.get('active_id'),
+                start_date = self.start_date,
+                end_date = self.end_date)
+        return
         partner_id = self.env['res.partner'].search([('id', '=', self._context.get('active_id'))])
         lines = []
         if partner_id:

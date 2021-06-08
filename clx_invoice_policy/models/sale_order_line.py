@@ -50,8 +50,7 @@ class SaleOrderLine(models.Model):
                 date_start = fields.Date.today().replace(day=1)
                 date_end = date_start + relativedelta(months=num_of_month, days=-1)
                 qty = self.calculate_qty(today, num_of_month)
-                end_date = today + relativedelta(
-                    months=num_of_month, days=-1)
+                end_date = today + relativedelta(months=num_of_month, days=-1)
                 num_of_month = (end_date.year - self.start_date.year) * 12 + (end_date.month - self.start_date.month)
                 period_msg = _("Invoicing period: %s - %s") % (
                     format_date(fields.Date.to_string(date_start), {}),
@@ -123,3 +122,25 @@ class SaleOrderLine(models.Model):
                 'name': base_line[0].name if base_line else self.name
             })
         return res
+
+    @staticmethod
+    def _grouping_by_product_logic(product, partner, line_name):
+        if product.name != line_name:
+            description = line_name
+        else:
+            description = product.name
+            if partner.vertical in ("res", "srl") and product.budget_wrapping:
+                description = product.budget_wrapping
+            else:
+                if product.budget_wrapping_auto_local:
+                    description = product.budget_wrapping_auto_local
+        return description
+
+    def _grouping_name_calc(self, line):
+        description = line.product_id.categ_id.name
+        partner_id = line.order_id.partner_id
+        product_id = line.product_id
+        if partner_id.invoice_selection == "sol":
+            description = self._grouping_by_product_logic(product_id, partner_id, line.name)
+
+        return description

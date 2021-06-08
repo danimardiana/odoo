@@ -23,7 +23,7 @@ class MaleComposeMessage(models.TransientModel):
     )
     allowed_partner_ids_storage = fields.Char(string="List of contacts in JSON")
 
-    def action_send_mail_sales_order(self):
+    def clx_action_send_mail(self):
         prepeared_values = {
             # 'email_to': self.email_to,
             "body_html": self.body,
@@ -43,8 +43,8 @@ class MaleComposeMessage(models.TransientModel):
         for recipient in array_of_recipients:
             prepeared_values["email_to"] = recipient.strip()
             Mail = self.env["mail.mail"].create(prepeared_values)
-            sale_order = self.env[self.model].browse(self.res_id)
-            sale_order.state = "sent"
+            object_source = self.env[self.model].browse(self.res_id)
+            object_source.email_send_postprocess();
             Mail.send()
 
         return {"type": "ir.actions.act_window_close", "infos": "mail_sent"}

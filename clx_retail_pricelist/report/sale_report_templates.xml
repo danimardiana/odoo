@@ -62,7 +62,7 @@
                     <t t-set="first_month_subtotal" t-value="0.0"/>
                     <t t-set="fee_subtotal" t-value="0.0"/>
                     <t t-set="current_subtotal" t-value="0.0"/>
-                    <t t-set="modified_invoice_lines" t-value="sale_order.grouping_all_products()"/>
+                    <t t-set="modified_invoice_lines" t-value="sale_order._grouping_wrapper(sale_order.contract_start_date)"/>
                     <t t-foreach="modified_invoice_lines" t-as="line">
                         <!-- section just for compatibly with original ones -->
                         <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
@@ -78,8 +78,7 @@
                             <div class="row" id="so_date"/>
                             <div id="informations"/>
                         </section>
-
-                        <t t-if="line['product_name']=='Setup Fee'">
+                        <t t-if="line['product_id'] == setup_fee_product">
                             <span t-set="fee_subtotal" t-value="fee_subtotal + line['price_unit']"/>
                             <t t-set="first_month_subtotal" t-value="first_month_subtotal + line['price_unit']"/>
                         </t>
@@ -131,7 +130,7 @@
                                             </div>
                                         </div>
                                         <t t-set="management_fee_calculated" t-value="line['management_fee_calculated']" />
-                                        <div t-if="management_fee_calculated and not need_display_fee" class="productTotalWrapper">
+                                        <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
                                             <div style="display:inline-block;">Monthly Fee: </div>
                                             <div class="productTotal">
                                                 <span t-esc="sale_order.money_formatting(management_fee_calculated)"/>
