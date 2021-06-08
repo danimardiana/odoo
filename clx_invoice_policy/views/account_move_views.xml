@@ -13,6 +13,13 @@
                 <button name="action_reminder_sent" type="object" string="Email Reminder"  class="oe_highlight" groups="base.group_user"/> 
                 <!-- attrs="{'invisible':['|', '|', ('state', '!=', 'posted'), ('invoice_sent', '=', True), ('type', 'not in', ('out_invoice', 'out_refund'))]}" -->
             </xpath>
+            <xpath expr="//button[@name='action_reminder_sent']" position="attributes">
+                <attribute name="attrs">{'invisible': [('state', 'not in', ('invoice_sent'))]}</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_invoice_sent']" position="attributes">
+                <attribute name="attrs">{'invisible': [('state', 'in', ('invoice_sent'))]}</attribute>
+            </xpath>
             <field name="company_id" position="after">
                 <field name="mgmt_company"/>
                 <field name="invoice_period_verbal"/>
