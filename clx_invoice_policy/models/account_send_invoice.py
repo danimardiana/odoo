@@ -9,7 +9,7 @@ class AccountSendInvoice(models.TransientModel):
     _description = 'account.invoice.send'
 
     def send_and_print_action(self):
-        for rec in self.invoice_ids.filtered(lambda x: x.state not in ['cancel','email_sent'] ):
-            rec.state = 'email_sent'
+        for rec in self.invoice_ids.filtered(lambda x: x.state not in ['cancel','invoice_sent'] ):
+            rec.state = 'invoice_sent'
         res = super(AccountSendInvoice, self).send_and_print_action()
         return res

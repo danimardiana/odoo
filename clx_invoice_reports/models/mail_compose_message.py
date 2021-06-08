@@ -47,4 +47,8 @@ class MaleComposeMessage(models.TransientModel):
             object_source.email_send_postprocess();
             Mail.send()
 
+        invoice_ids = self.env["account.move"].browse(self._context.get("active_ids", []))
+        for rec in invoice_ids:
+            rec.state = "invoice_sent"
+
         return {"type": "ir.actions.act_window_close", "infos": "mail_sent"}

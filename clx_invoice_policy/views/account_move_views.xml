@@ -74,7 +74,7 @@
             </xpath>
             <xpath expr="//header//button[@name='button_draft']" position="attributes">
                 <attribute name="attrs">{'invisible' : ['|', ('restrict_mode_hash_table', '=', True),
-                ('state', 'not in', ('approved_draft','email_sent','posted', 'cancel'))]}</attribute>
+                ('state', 'not in', ('approved_draft','invoice_sent','posted', 'cancel'))]}</attribute>
             </xpath>
             <xpath expr="//header//button[@name='action_post']" position="attributes">
                 <attribute name="attrs">{'invisible': [('state', 'not in', ('approved_draft'))]}</attribute>
@@ -122,7 +122,7 @@
                 <filter name="clx_vertical_res" string="Vertical - Residential" domain="[('partner_id.vertical', '=', 'res')]"/>
                 <filter name="clx_vertical_srl" string="Vertical - Senior Living" domain="[('partner_id.vertical', '=', 'srl')]"/>
                 <separator/>
-                <filter name="clx_email_sent_status" string="Email sent to Account Manager" domain="[('state', '=', 'email_sent')]"/>
+                <filter name="clx_email_sent_status" string="Email sent to Account Manager" domain="[('state', '=', 'invoice_sent')]"/>
                 <filter name="clx_inv_approved" string="Invoice Approved by Account Manager" domain="[('state', '=', 'approved_draft')]"/>
             </filter>
         </field>

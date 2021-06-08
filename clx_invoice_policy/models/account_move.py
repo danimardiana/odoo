@@ -21,7 +21,7 @@ class AccountMove(models.Model):
     state = fields.Selection(selection=[
         ('draft', 'Draft'),
         ('approved_draft', 'Approved Draft'),
-        ('email_sent', 'Email Sent'),
+        ('invoice_sent', 'Invoice Sent'),
         ('posted', 'Posted'),
         ('cancel', 'Cancelled')
     ], string='Status', required=True, readonly=True, copy=False, tracking=True,
@@ -139,7 +139,7 @@ class AccountMove(models.Model):
                                     sub.invoice_end_date = end_date.date()
         return res
 
-    # rewriting the eamil sending function
+    # rewriting the email sending function
     def action_invoice_sent(self, reminder=False):
         self.ensure_one()
 
