@@ -60,13 +60,13 @@ class SaleSubscription(models.Model):
 
     def pricelist_determination(self, product, price_list):
         pricelist_flat = self.pricelist_flatten(price_list)
-        pricelist2process = {}
+        pricelist2process = False
         tags = [
             str(price_list.id) + "_0_" + str(product.id),
             str(price_list.id) + "_1_" + str(0 if "product_tmpl_id" not in product else product.product_tmpl_id.id),
             str(price_list.id) + "_2_" + str(product.categ_id.id),
             str(price_list.id) + "_3",
-            list(pricelist_flat.keys())[0],
+            # list(pricelist_flat.keys())[0], not need to assign any pricelist
         ]
         for tag in tags:
             if tag in pricelist_flat:
@@ -74,26 +74,54 @@ class SaleSubscription(models.Model):
                 break
         return pricelist2process
 
-    def subscription_wholesale_period(self, retail, price_list):
-        management_fee = 0.0
-        if price_list.is_custom:
+    def subscription_wholesale_period(
+        self, retail, price_list, show_flags={"show_mgmnt_fee": True, "show_wholesale": True}
+    ):
+
+        if not price_list:
+            return {"management_fee": -2, "wholesale_price": -2}
+
+        management_fee = 0.0 if show_flags["show_mgmnt_fee"] else False
+        wholesale = 0.0 if show_flags["show_wholesale"] else False
+
+        if price_list.is_custom and management_fee:
             if retail <= price_list.min_retail_amount:
                 management_fee = price_list.fixed_mgmt_price
             else:
                 management_fee = round((price_list.percent_mgmt_price * retail) / 100, 2)
         else:
             # if management fee fixed
-            if price_list.is_fixed and price_list.fixed_mgmt_price:
-                if retail > price_list.fixed_mgmt_price:
-                    management_fee = price_list.fixed_mgmt_price
+            if (
+                price_list.is_fixed
+                and price_list.fixed_mgmt_price
+                and show_flags["show_mgmnt_fee"]
+                and retail > price_list.fixed_mgmt_price
+            ):
+                management_fee = price_list.fixed_mgmt_price
 
             # if management fee percentage
-            if price_list.is_percentage and price_list.percent_mgmt_price:
+            if price_list.is_percentage and price_list.percent_mgmt_price and show_flags["show_mgmnt_fee"]:
                 management_fee = round((price_list.percent_mgmt_price * retail) / 100, 2)
+
+            # if wholesale fee percentage
+            if (
+                price_list.is_wholesale_percentage
+                and price_list.percent_wholesale_price
+                and show_flags["show_wholesale"]
+            ):
+                wholesale = round((price_list.percent_wholesale_price * retail) / 100, 2)
+
         # but never less than minimum price
         if management_fee < price_list.fixed_mgmt_price:
             management_fee = price_list.fixed_mgmt_price
-        return {"management_fee": management_fee, "wholesale_price": retail - management_fee}
+
+        if wholesale == 0.0:
+            wholesale = retail - management_fee
+
+        return {
+            "management_fee": management_fee if management_fee else -1,
+            "wholesale_price": wholesale if wholesale else -1,
+        }
 
     def pricelist_flatten(self, price_list):
         mapped = {}
@@ -157,15 +185,16 @@ class SaleSubscription(models.Model):
         else:
             start_date = today
 
-        # if no ending dates in parameters calculate it basing on the partner's invoice policy
+        if "partner" not in kwargs and "partner_id" in kwargs:
+            partner = self.env["res.partner"].browse(kwargs["partner_id"])
+        else:
+            partner = kwargs["partner"]
+
+        # if no ending dates in parameters just take the same month
         if "end_date" in kwargs:
             end_date = kwargs["end_date"].replace(day=1) + relativedelta(months=1, days=-1)
         else:
-            partner = self.env["res.partner"].browse(kwargs["partner_id"])
-            if partner.clx_invoice_policy_id:
-                end_date = today + relativedelta(months=partner.clx_invoice_policy_id.num_of_month + 1)
-            else:
-                end_date = start_date + relativedelta(months=1, days=-1)
+            end_date = start_date + relativedelta(months=1, days=-1)
 
         difference_months = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
         parameters = kwargs.copy()
@@ -186,23 +215,19 @@ class SaleSubscription(models.Model):
         if "start_date" in kwargs:
             start_date = kwargs["start_date"].replace(day=1)
         else:
-            start_date = today
+            start_date = today.replace(day=1)
 
-        if "end_date" in kwargs:
-            end_date = kwargs["end_date"].replace(day=1) + relativedelta(months=1, days=-1)
+        if "partner_id" not in kwargs:
+            kwargs.update({"partner_id": kwargs["partner"].id})
+
+        if kwargs["partner"].clx_invoice_policy_id:
+            end_date = date.today() + relativedelta(months=kwargs["partner"].clx_invoice_policy_id.num_of_month + 1)
         else:
             end_date = start_date + relativedelta(months=1, days=-1)
 
-        difference_months = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month) + 1
-        parameters = kwargs.copy()
-        results = []
-        for current_month in range(difference_months):
-            parameters.update(start_date=start_date, end_date=end_date)
-            results.append(self.invoicing_one_period(**parameters))
-            start_date += relativedelta(months=1)
-            end_date = start_date + relativedelta(months=1, days=-1)
+        kwargs.update({"end_date": end_date, "start_date": start_date})
 
-        return results
+        return self.invoicing_date_range(**kwargs)
 
     def invoicing_one_period(self, **kwargs):
         if (
@@ -222,7 +247,8 @@ class SaleSubscription(models.Model):
         lines = self.subscription_lines_collection_for_invoicing(
             partner, order_id, kwargs["start_date"], kwargs["end_date"]
         )
-        if not lines or not lines["related_subscriptions"]:
+        #not create invoices if no lines to invoice or all have 0
+        if not lines or not lines["related_subscriptions"] or not(any(list(map(lambda l: l['price_unit'],lines["invoice_lines"])))):
             return False
 
         last_order = sorted(
@@ -243,26 +269,25 @@ class SaleSubscription(models.Model):
             ],
             limit=1,
         )
-        
-        #if total negative - create the credit note. Prepearing the variables
+
+        # if total negative - create the credit note. Prepearing the variables
         if total_invoice_value < 0:
-            #reverting valaues 
+            # reverting valaues
             for line in lines["invoice_lines"]:
                 line["price_unit"] = -line["price_unit"]
                 line["price_subtotal"] = -line["price_subtotal"]
 
             invoice_type_settings = {
-                    "ref": "Credit note",
-                    "type": "out_refund",
-                    "reversed_entry_id": posted_invoice.id,
-                }
+                "ref": "Credit note",
+                "type": "out_refund",
+                "reversed_entry_id": posted_invoice.id,
+            }
         else:
             invoice_type_settings = {
                 "ref": "Invoice",
                 "type": "out_invoice",
                 "reversed_entry_id": posted_invoice.id,
             }
-        
 
         if "draft_invoice" in lines:
             # updating the draft invoice
@@ -592,16 +617,28 @@ class SaleSubscriptionLine(models.Model):
         if (
             management_company.is_flat_discount
             and management_company.clx_category_id
-            and self.analytic_account_id.product_id.category_id.id == management_company.clx_category_id.id
+            and "categ_id" in self.analytic_account_id.product_id
+            and self.analytic_account_id.product_id.categ_id.id == management_company.clx_category_id.id
         ):
             total_discount = flat_discount
+        elif (
+            management_company.is_percent_discount
+            and management_company.percent_discount_category_id
+            and "categ_id" in self.analytic_account_id.product_id
+            and self.analytic_account_id.product_id.categ_id.id == management_company.percent_discount_category_id.id
+        ):
+            total_discount = (price * management_company.percent_discount) / 100
         else:
             total_discount = (price * management_company.discount_on_order_line) / 100
 
         return total_discount
 
     # calculation price for period. Taking into account proration
-    def period_price_calc(self, start_date, partner_id):
+    def period_price_calc(self, start_date, partner_id, dont_prorate=False):
+        end_date_for_period = start_date + relativedelta(months=1) + relativedelta(days=-1)
+        if end_date_for_period < self["start_date"] or (self["end_date"] and start_date > self["end_date"]):
+            return 0.0
+
         price_calculated = self["price_unit"]
         if (
             start_date.month == self["start_date"].month
@@ -618,8 +655,12 @@ class SaleSubscriptionLine(models.Model):
             price_calculated = self["prorate_end_amount"]
         co_op_coef = 1
         co_op_list = self.analytic_account_id.initial_sale_order_id.co_op_sale_order_partner_ids
-        if partner_id and len(co_op_list) and self.analytic_account_id.is_co_op:
-            co_op_coef = next(filter(lambda line: line.partner_id.id == partner_id, co_op_list)).ratio / 100
+        if partner_id and len(co_op_list) and self.analytic_account_id.is_co_op and not dont_prorate:
+            coop_line_filter = filter(lambda line: line.partner_id.id == partner_id, co_op_list)
+            if len(list(coop_line_filter))==0:
+                co_op_coef = 0
+            else:
+                co_op_coef = next(filter(lambda line: line.partner_id.id == partner_id, co_op_list)).ratio / 100
         if co_op_coef > 1:
             co_op_coef /= 100
         price_calculated = co_op_coef * price_calculated

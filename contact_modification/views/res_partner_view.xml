@@ -164,10 +164,7 @@
 
             <!-- Company Type Radio Buttons -->
              <xpath expr="//field[@name='company_type']" position="attributes">
-                <attribute name="attrs">{'invisible': ['|','|','|',('company_type','=','person'),
-                                                                  ('company_type','=','company'),
-                                                                  ('company_type','=','owner'),
-                                                                  ('company_type','=','management')]}
+                <attribute name="attrs">{'readonly': [('company_type', 'in', ('person', 'company', 'owner', 'management'))]}
                 </attribute>
             </xpath>
 
@@ -545,6 +542,28 @@
                             <field name="client_provided_tracking_email"/>
                             <field name="client_provided_utm_tracking_urls"/>
                             <field name="art_assets"/>
+                            <field name="lead_management_system"/>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+            <notebook position="inside">
+                <page string="Rebates" attrs="{'invisible': [('company_type', 'not in', ('management'))]}">
+                    <group>
+                        <group>
+                            <field name="discount_on_order_line"
+                                groups="product.group_discount_per_so_line"
+                            />
+                        </group>
+                        <group>
+                            <field name="is_flat_discount" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
+                            <field name="flat_discount" attrs="{'invisible':[('is_flat_discount','=',False)]}"/>
+                            <field name="clx_category_id" attrs="{'invisible':[('is_flat_discount','=',False)]}"/>
+                        </group>
+                        <group>
+                            <field name="is_percent_discount" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
+                            <field name="percent_discount" attrs="{'invisible':[('is_percent_discount','=',False)]}"/>
+                            <field name="percent_discount_category_id" attrs="{'invisible':[('is_percent_discount','=',False)]}"/>
                         </group>
                     </group>
                 </page>
@@ -579,13 +598,6 @@
                 <field name="submitted_platform_id" invisible="1"/>
                 <field name="client_services_team" attrs="{'invisible': [('company_type', 'not in', ('management'))],
                                                            'required': [('company_type', 'in', ('management'))]}"/>
-                <field name="is_flat_discount" attrs="{'invisible': [('company_type', 'not in', ('management'))]}"/>
-                <field name="flat_discount" attrs="{'invisible':[('is_flat_discount','=',False)]}"/>
-                <field name="clx_category_id" attrs="{'invisible':[('is_flat_discount','=',False)]}"/>
-                <field name="discount_on_order_line"
-                       attrs="{'invisible': [('company_type', 'not in', ('management'))]}"
-                       groups="product.group_discount_per_so_line"
-                />
             </field>
         </field>
     </record>

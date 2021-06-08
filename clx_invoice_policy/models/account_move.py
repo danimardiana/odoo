@@ -12,10 +12,40 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
+
     subscription_line_ids = fields.Many2many("sale.subscription.line", "account_id", string="Subscription Lines")
     invoice_month_year = fields.Char(string="Invoicing Period")
-    invoice_period_verbal = fields.Char(compute="compute_invoice_period_verbal", string="Invoicing Period Verbal", store=False)
+    invoice_period_verbal = fields.Char(
+        compute="compute_invoice_period_verbal", string="Invoice Period Verbal", store=False
+    )
+    state = fields.Selection(selection=[
+        ('draft', 'Draft'),
+        ('approved_draft', 'Approved Draft'),
+        ('email_sent', 'Email Sent'),
+        ('posted', 'Posted'),
+        ('cancel', 'Cancelled')
+    ], string='Status', required=True, readonly=True, copy=False, tracking=True,
+        default='draft')
 
+    related_contact_ids = fields.One2many(
+        related="partner_id.contact_child_ids",
+        string="Billing Contacts",
+        store=False,
+    )
+
+    related_billing_contact_ids = fields.Many2many(
+        "res.partner.clx.child", compute="compute_billing_contacts", string="Billing Contacts2", store=False
+    )
+
+    def compute_billing_contacts(self):
+        billing_list = map(
+            lambda item: item.id,
+            filter(
+                lambda contact: "Billing Contact" in contact.contact_type_ids.mapped("name"), self.related_contact_ids
+            ),
+        )
+        self.related_billing_contact_ids = [(6, 0, list(billing_list))]
+    
     def post(self):
         res = super(AccountMove, self).post()
         sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
@@ -37,9 +67,9 @@ class AccountMove(models.Model):
         for invoice in self:
             if invoice.invoice_month_year:
                 year, day = invoice.invoice_month_year.split("-")
-                #check for correct data
-                if len(year)==4 and len(day)==2:
-                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)],year)
+                # check for correct data
+                if len(year) == 4 and len(day) == 2:
+                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)], year)
                 else:
                     invoice.invoice_period_verbal = "-"
             else:
@@ -109,6 +139,71 @@ class AccountMove(models.Model):
                                     sub.invoice_end_date = end_date.date()
         return res
 
+    # rewriting the eamil sending function
+    def action_invoice_sent(self, reminder=False):
+        self.ensure_one()
+
+        template = self.env["mail.template"].sudo().search([("name", "=", "Invoice: CLX email template")])
+        template_id = template.id
+        account_manager = self.partner_id.account_user_id.partner_id
+        contacts_billing = [account_manager.id]
+        default_partner_ids = [account_manager.id]
+        for contact in self.partner_id.contact_child_ids:
+            contacts_billing.append(contact.child_id.id)
+            if 'Billing Contact' in contact.contact_type_ids.mapped('name') :
+                default_partner_ids.append(contact.child_id.id)
+
+        if template.lang:
+            lang = template._render_template(template.lang, "account.move", self.ids[0])
+
+        url = self.get_portal_url()
+
+        if reminder:
+            email_text = """ Attached is your recent invoice. Please review for dates of service and terms specific to your account.</p><p>To avoid interruption of your campaign(s) and/or other services such as Live Chat or The Conversion Cloud, we need to receive payment prior to the service date"""
+
+        else:
+            email_text = " To ensure your campaign runs as planned, please be reminded to ensure we receive payment by May 31, 2021. Payment in full is required to start or continue service. Attached is the invoice for your reference."
+
+        ctx = {
+            "tpl_partners_only": True,
+            "default_model": "account.move",
+            "default_res_id": self.ids[0],
+            "default_use_template": bool(template_id),
+            "default_template_id": template_id,
+            "default_composition_mode": "comment",
+            "default_partner_ids": default_partner_ids,
+            "default_email_to": "",
+            "default_reply_to": "",
+            "mark_so_as_sent": True,
+            "custom_layout": "mail.mail_notification_paynow",
+            "proforma": self.env.context.get("proforma", False),
+            "force_email": True,
+            "model_description": self.with_context(lang=lang).type_name,
+            "report_name": (self.name or "").replace("/", "_") + "_000",
+            "default_allowed_partner_ids": contacts_billing,
+            "secure_url": url,
+            "email_text": email_text,
+        }
+        return {
+            "type": "ir.actions.act_window",
+            "view_mode": "form",
+            "res_model": "mail.compose.message",
+            "views": [(False, "form")],
+            "view_id": False,
+            "target": "new",
+            "context": ctx,
+        }
+
+    def action_reminder_sent(self):
+        return self.action_invoice_sent(True)
+
+    # no status for mail sending
+    def email_send_postprocess(self):
+        return
+      
+    def button_approve_invoice(self):
+        for rec in self.filtered(lambda x: x.state == 'draft'):
+            rec.state = 'approved_draft'
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"

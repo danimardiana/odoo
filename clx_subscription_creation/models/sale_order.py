@@ -189,6 +189,7 @@ class SaleOrder(models.Model):
                 "product_name": line.product_id.name,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
+                "product_id": line.product_id.id,
                 "price_unit": line.price_unit,
                 "category_name": line.product_id.categ_id.name,
                 "description": line._grouping_name_calc(line),  # second level of grouping - budget wrapping
@@ -199,12 +200,13 @@ class SaleOrder(models.Model):
                 "management_fee_calculated": self.management_fee_calculation(
                     line.price_unit, line.product_template_id, self.pricelist_id
                 ),
-                "discount":0.0,
-                "tax_ids":[],
+                "discount": 0.0,
+                "tax_ids": [],
             }
 
         def last_order_data(product_individual):
             return {
+                "product_id": product_individual["product_id"],
                 "product_name": product_individual["product_name"],
                 "price_unit": product_individual["price_unit"],
                 "description": product_individual["description"],
@@ -246,15 +248,18 @@ class SaleOrder(models.Model):
             # combine the lines contains the same description, tax and discount
             combined_signature = (
                 product_individual["description"]
-                + ",".join(map(lambda tax:str(tax),product_individual["tax_ids"]))
+                + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
                 + str(product_individual["discount"])
             )
             if combined_signature not in final_values:
                 final_values[combined_signature] = last_obj_set(product_individual)
             else:
                 final_values[combined_signature] = last_obj_update(final_values[combined_signature], product_individual)
-                for unset_fields in ["product_name", "product_id", "name", "category_id"]:
-                    if final_values[combined_signature][unset_fields] != product_individual[unset_fields]:
+                for unset_fields in ["product_name", "product_id", "category_id"]:
+                    if (
+                        unset_fields in final_values[combined_signature]
+                        and final_values[combined_signature][unset_fields] != product_individual[unset_fields]
+                    ):
                         final_values[combined_signature][unset_fields] = False
 
         return list(final_values.values())
