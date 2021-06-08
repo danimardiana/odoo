@@ -10,4 +10,4 @@ class CoOpSaleOrderPartner(models.Model):
 
     partner_id = fields.Many2one('res.partner', string='Customer')
     ratio = fields.Float(string="Ratio (%)")
-    sale_order_id = fields.Many2one('sale.order', string='Sale Order')
+    sale_order_line_id = fields.Many2one('sale.order.line', string='Sale Order')

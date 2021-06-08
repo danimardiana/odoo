@@ -14,16 +14,6 @@
             <xpath expr="//field[@name='validity_date']" position="after">
                 <field name="is_ratio"/>
             </xpath>
-            <xpath expr="//notebook" position="inside">
-                <page string="Ratio" name="ratio_partner" attrs="{'invisible': [('is_ratio', '=', False)]}">
-                    <field name="co_op_sale_order_partner_ids">
-                        <tree editable="bottom">
-                            <field name="partner_id"/>
-                            <field name="ratio"/>
-                        </tree>
-                    </field>
-                </page>
-            </xpath>
 
         </field>
     </record>

@@ -5,35 +5,36 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from dateutil.relativedelta import relativedelta
 
+
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    is_ratio = fields.Boolean('Co - Op')
-    co_op_sale_order_partner_ids = fields.One2many('co.op.sale.order.partner', 'sale_order_id', string="Co op Customer")
-
     def action_co_op_create_invoices(self):
         if self.is_ratio:
-            if self.subscription_management in ('upsell', 'downsell'):
+            if self.subscription_management in ("upsell", "downsell"):
                 return
-            so_lines = self.env['sale.subscription.line'].search([
-                ('so_line_id.order_id', '=', self.id),
-            ])
+            so_lines = self.env["sale.subscription.line"].search(
+                [
+                    ("so_line_id.order_id", "=", self.id),
+                ]
+            )
             current_month_start_day = fields.Date.today()
             end_date = current_month_start_day.replace(day=1) + relativedelta(
-                months=self.clx_invoice_policy_id.num_of_month + 1)
+                months=self.clx_invoice_policy_id.num_of_month + 1
+            )
             end_date = end_date - relativedelta(days=1)
             lines = so_lines.filtered(lambda x: x.start_date and x.start_date < end_date)
             count = self.clx_invoice_policy_id.num_of_month + 1
             if fields.Date.today().day >= 23:
                 count += 1
+
+            # co-op change!!!!
             for co_op_partner in self.co_op_sale_order_partner_ids:
                 for i in range(0, count):
-                    if co_op_partner.partner_id.invoice_selection == 'sol':
-                        co_op_partner.partner_id.with_context(sol=True,
-                                                              partner_id=co_op_partner.partner_id.id,
-                                                              percantage=co_op_partner.ratio,
-                                                              co_op=True).generate_advance_invoice_co_op(
-                            so_lines)
+                    if co_op_partner.partner_id.invoice_selection == "sol":
+                        co_op_partner.partner_id.with_context(
+                            sol=True, partner_id=co_op_partner.partner_id.id, percantage=co_op_partner.ratio, co_op=True
+                        ).generate_advance_invoice_co_op(so_lines)
                     else:
                         print("create category wise invoice")
                     # so_lines = lines.filtered(
@@ -41,24 +42,6 @@ class SaleOrder(models.Model):
                     #               or
                     #               (x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
                     # )
-
-    @api.onchange('co_op_sale_order_partner_ids')
-    def onchange_co_op_sale_order_partner_ids(self):
-        ratio = 0
-        for line in self.co_op_sale_order_partner_ids:
-            ratio += line.ratio
-        if ratio > 100:
-            raise UserError(_("You Can not add more than 100% !!"))
-
-    @api.onchange('is_ratio')
-    def onchange_is_ratio(self):
-        co_op = self.env['co.op.sale.order.partner']
-        if self.partner_id:
-            vals = {
-                'partner_id': self.partner_id.id
-            }
-            co_op_partner_id = co_op.create(vals)
-            self.co_op_sale_order_partner_ids = [(6, 0, co_op_partner_id.ids)]
 
     # def action_open_subscriptions(self):
     #     res = super(SaleOrder, self).action_open_subscriptions()
@@ -93,5 +76,26 @@ class SaleOrder(models.Model):
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
+    co_op_sale_order_line_partner_ids = fields.One2many(
+        "co.op.sale.order.partner", "sale_order_line_id", string="Co op Customer"
+    )
 
-    clx_subscription_ids = fields.Many2many('sale.subscription', copy=False)
+    clx_subscription_ids = fields.Many2many("sale.subscription", copy=False)
+
+    @api.onchange("co_op_sale_order_line_partner_ids")
+    def onchange_co_op_sale_order_partner_ids(self):
+        ratio = 0
+        for line in self.co_op_sale_order_line_partner_ids:
+            ratio += line.ratio
+        if ratio > 100:
+            raise UserError(_("You Can not add more than 100% !!"))
+
+    # @api.onchange('is_ratio')
+    # def onchange_is_ratio(self):
+    #     co_op = self.env['co.op.sale.order.partner']
+    #     if self.partner_id:
+    #         vals = {
+    #             'partner_id': self.partner_id.id
+    #         }
+    #         co_op_partner_id = co_op.create(vals)
+    #         self.co_op_sale_order_partner_ids = [(6, 0, co_op_partner_id.ids)]

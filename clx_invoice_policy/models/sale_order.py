@@ -29,10 +29,11 @@ class SaleOrder(models.Model):
         # TODO: replacing the SB's invoicing functions and check the period to invoice
 
         start_date = self.contract_start_date.replace(day=1)
-        if self.is_ratio:
-            partner_ids = list(self.co_op_sale_order_partner_ids.mapped("partner_id"))
-        else:
-            partner_ids = [self.partner_id]
+        #co-op change!!!!
+        # if self.is_ratio:
+        #     partner_ids = list(self.co_op_sale_order_partner_ids.mapped("partner_id"))
+        # else:
+        partner_ids = [self.partner_id]
 
         for partner in partner_ids:
             self.env["sale.subscription"].invoicing_invoice_policy_range(

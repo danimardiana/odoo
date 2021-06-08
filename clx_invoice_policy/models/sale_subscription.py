@@ -408,7 +408,8 @@ class SaleSubscription(models.Model):
         search_args += [
             "|",
             ("so_line_id.order_id.partner_id", "child_of", partner.id),
-            ("analytic_account_id.co_opp_partner_ids.partner_id", "in", [partner.id]),
+            #co-op change!!!!
+            #("analytic_account_id.co_opp_partner_ids.partner_id", "in", [partner.id]),
             # ("so_line_id.order_id.co_op_sale_order_partner_ids", "in", [partner.id]),
         ]
 
