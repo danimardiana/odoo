@@ -26,6 +26,7 @@ def get_records_pager(ids, current):
     return {}
 
 
+# when quotation signing happened
 class CustomerPortal(CustomerPortal):
     @http.route(["/my/orders/<int:order_id>/accept"], type="json", auth="public", website=True)
     def portal_quote_accept(self, order_id, access_token=None, name=None, signature=None):
@@ -119,6 +120,10 @@ class CustomerPortal(CustomerPortal):
         }
         if order_sudo.company_id:
             values["res_company"] = order_sudo.company_id
+
+        params = request.env["ir.config_parameter"].sudo()
+        setup_fee_product = int(params.get_param("contract_management_fee_product", False)) or False
+        values["setup_fee_product"] = setup_fee_product
 
         if order_sudo.has_to_be_paid():
             domain = expression.AND(

@@ -81,3 +81,7 @@ class MailThread(models.AbstractModel):
                     {'id': partner.id, 'share': True, 'active': True, 'notif': 'email', 'type': 'channel_email', 'groups': []})
 
         return recipient_data
+
+    #overwriting the mail.thread metod to eliminate any assignment notification
+    def _message_auto_subscribe_followers(self, updated_values, default_subtype_ids):
+        return []
