@@ -84,7 +84,7 @@
                 ('state', 'not in', ('approved_draft','invoice_sent','posted', 'cancel'))]}</attribute>
             </xpath>
             <xpath expr="//header//button[@name='action_post']" position="attributes">
-                <attribute name="attrs">{'invisible': [('state', 'not in', ('approved_draft'))]}</attribute>
+                <attribute name="attrs">{'invisible': [('state', 'not in', ('approved_draft', 'invoice_sent'))]}</attribute>
             </xpath>
         </field>
     </record>
