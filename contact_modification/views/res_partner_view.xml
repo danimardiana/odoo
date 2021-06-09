@@ -146,7 +146,6 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="website.view_partner_form_inherit_website"/>
         <field name="arch" type="xml">
-
             <xpath expr="//group[@name='misc']/field[@name='company_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
@@ -163,8 +162,8 @@
             </xpath>
 
             <!-- Company Type Radio Buttons -->
-             <xpath expr="//field[@name='company_type']" position="attributes">
-                <attribute name="attrs">{'readonly': [('company_type', 'in', ('person', 'company', 'owner', 'management'))]}
+            <xpath expr="//field[@name='company_type']" position="attributes">
+                <attribute name="attrs">{'invisible': [('company_type_hidden', '=', True)]}
                 </attribute>
             </xpath>
 
@@ -291,6 +290,7 @@
                 <field name="is_vendor" invisible="1"/>
                 <field name="is_company" invisible="1"/>
                  <field name="is_greystar_company" invisible="1"/>
+                 <field name="company_type_hidden" invisible="1"/>
             </xpath>
 
             <xpath expr="//field[@name='parent_id']" position="replace">
