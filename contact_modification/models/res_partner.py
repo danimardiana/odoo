@@ -41,6 +41,7 @@ class Partner(models.Model):
     company_type = fields.Selection(
         string="Company Type",
         store=True,
+        compute="_compute_company_type",
         selection_add=[("company", "Customer Company"), ("owner", "Owner"), ("management", "Management")],
         inverse="_write_company_type",
     )
@@ -139,6 +140,7 @@ class Partner(models.Model):
     implementation_specialist_id = fields.Many2one("res.users", string="Implementation Specialist - Customer Success")
     legal_name = fields.Char(string="Legal Name")
     lead_management_system = fields.Many2one("lead.management.system", string="Lead Management System")
+    company_type_hidden = fields.Boolean(string="Is radio button hidden", compute="_compute_company_type_hidden")
 
     def open_submitted_req_form(self):
         request_forms = self.env["request.form"].search([("partner_id", "=", self.id), ("state", "=", "submitted")])
@@ -200,21 +202,29 @@ class Partner(models.Model):
             else:
                 rec.contact_display_kanban = ""
 
+    # Override the inherited method
     # On new contact creationg do not set company_type
     # by default. User is required to make the selection
     @api.depends("is_company", "is_owner", "is_management")
     def _compute_company_type(self):
         for partner in self:
-            if partner.is_company and not partner.is_owner and not partner.is_management and not partner.is_vendor:
+            if partner.is_company and not partner.is_owner and not partner.is_management:
                 partner.company_type = "company"
-            elif partner.is_owner and not partner.is_management and not partner.is_vendor:
+            elif partner.is_owner and not partner.is_management:
                 partner.company_type = "owner"
-            elif partner.is_management and not partner.is_owner and not partner.is_vendor:
+            elif partner.is_management and not partner.is_owner:
                 partner.company_type = "management"
-            elif partner.is_vendor and not partner.is_owner and not partner.is_management:
-                partner.company_type = "vendor"
-            # else:
-            #     partner.company_type = 'person'
+
+    def _compute_company_type_hidden(self):
+        if (
+            self.company_type == "person"
+            or self.company_type == "company"
+            or self.company_type == "management"
+            or self.company_type == "owner"
+        ):
+            self.company_type_hidden = True
+        else:
+            self.company_type_hidden = False
 
     def properties_owner(self):
         self.ensure_one()
