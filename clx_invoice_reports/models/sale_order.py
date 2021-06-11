@@ -143,3 +143,6 @@ class SaleOrder(models.Model):
                 }
                 Mail = self.env["mail.mail"].create(prepeared_values)
                 Mail.send()
+
+    def email_send_postprocess(self):
+        self.state = "sent"
