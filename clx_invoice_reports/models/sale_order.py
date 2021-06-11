@@ -97,10 +97,10 @@ class SaleOrder(models.Model):
             "default_use_template": bool(template.id),
             "default_template_id": template.id,
             "default_composition_mode": "comment",
-            "default_partner_ids": previous_mail_array[0].partner_ids,
-            "default_email_to": previous_mail_array[0].email_to,
-            "default_reply_to": previous_mail_array[0].reply_to,
-            "default_subject": previous_mail_array[0].subject,
+            # "default_partner_ids": previous_mail_array[0].partner_ids,
+            # "default_email_to": previous_mail_array[0].email_to,
+            # "default_reply_to": previous_mail_array[0].reply_to,
+            # "default_subject": previous_mail_array[0].subject,
             "mark_so_as_sent": True,
             "custom_layout": "mail.mail_notification_light",
             "proforma": self.env.context.get("proforma", False),
@@ -140,6 +140,7 @@ class SaleOrder(models.Model):
                     "attachment_ids": [attach.id for attach in composer.attachment_ids],
                     "subject": subject,
                     "email_from": email_from,
+                    "reply_to":email_from,
                 }
                 Mail = self.env["mail.mail"].create(prepeared_values)
                 Mail.send()
