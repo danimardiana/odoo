@@ -47,9 +47,11 @@ class BudgetReportWizard(models.TransientModel):
         subscription_lines = self.env["sale.subscription.line"].search(
             [
                 "|",
-                "&",
-                ("analytic_account_id.is_co_op", "=", True),
-                ("analytic_account_id.co_opp_partner_ids.partner_id", "in", self.partner_ids.ids),
+                # "&",
+                # !!! COOP rebuild
+                # ("analytic_account_id.is_co_op", "=", True),
+                # ("analytic_account_id.co_opp_partner_ids.partner_id", "in", self.partner_ids.ids),
+                ("analytic_account_id.co_op_partner_ids.partner_id", "in", self.partner_ids.ids),
                 ("analytic_account_id.partner_id", "in", self.partner_ids.ids),
                 ("start_date", "!=", False),
                 # ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly'),
@@ -69,14 +71,16 @@ class BudgetReportWizard(models.TransientModel):
         price_list = {}
         price_list_processed = []
         partner_id = self.env["res.partner"].browse(self.partner_ids.ids[0])
-        companies_list = {partner_id.id: {"company": partner_id, "percent": 1.0}}
+        companies_list = {}
         category_show_params = {}
         while True:
             result_table[slider_period] = {}
             for sub_line in subscription_lines:
-                if sub_line.analytic_account_id.is_co_op:
-                    for co_op_line in sub_line.analytic_account_id.co_opp_partner_ids:
-                        companies_list[co_op_line.partner_id.id] = {
+                companies_list ["%s|%s"%(str(partner_id.id),str(sub_line.analytic_account_id.id))]= {"company": partner_id, "percent": 1.0}
+                if len(sub_line.analytic_account_id.co_op_partner_ids):
+                    for co_op_line in sub_line.analytic_account_id.co_op_partner_ids:
+                        sub_company_signature = "%s|%s"%(str(co_op_line.partner_id.id),str(sub_line.analytic_account_id.id))
+                        companies_list[sub_company_signature] = {
                             "company": co_op_line.partner_id,
                             "percent": co_op_line.ratio / 100,
                         }
@@ -163,7 +167,9 @@ class BudgetReportWizard(models.TransientModel):
                 )
 
                 # pass thru all the companies related to the subscription
-                for partner_line in companies_list.keys():
+                subscription_id = subscription.split("_")[1]
+                subscription_related_list = list(filter(lambda signature:signature.split("|")[1] == subscription_id ,companies_list.keys()))
+                for partner_line in subscription_related_list:
                     subscribtion_total = sale_line_write.copy()
                     partner_percent = companies_list[partner_line]["percent"]
                     company = companies_list[partner_line]["company"]
