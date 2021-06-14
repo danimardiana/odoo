@@ -456,6 +456,8 @@ class SaleSubscription(models.Model):
         rebate_total = 0.0
         grouped_invoice_lines = []
         for line in grouped_sub_lines:
+            if line["price_unit"] == 0:
+                continue
             grouped_invoice_lines.append(
                 {
                     "name": period_msg,
@@ -479,6 +481,7 @@ class SaleSubscription(models.Model):
                     "price_subtotal": -rebate_total,
                 }
             )
+        
         response.update({"invoice_lines": grouped_invoice_lines, "related_subscriptions": sub_lines})
         return response
 
