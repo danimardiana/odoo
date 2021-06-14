@@ -1,30 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<odoo>
+<odoo>   
+
+    <!-- Inherit Form View to Modify it -->
+    <record id="co_op_saleorder_tree" model="ir.ui.view">
+            <field name="name">co.op.sale.order.partner.view.tree</field>
+            <field name="model">co.op.sale.order.partner</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml"> 
+                <tree string="Sales Order Currency Lines" editable="bottom" create="1" delete="1" import="0" duplicate="1">
+                    <!-- <control>
+                        <create string="Add a product" />
+                    </control> -->
+                    <field name="partner_id" />
+                    <field name="ratio" />
+                    <field name="sale_order_line_id" invisible="1"/>     
+                    <button type="object" icon="fa-trash-o" name="unlink" string="Unlink" class="btn-secondary"/>
+                </tree>     
+            </field>
+    </record>
+
     <!-- Inherit Form View to Modify it -->
     <record id="view_order_form_inherit_clx_ration_invoice" model="ir.ui.view">
         <field name="name">sale.order.form</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//header" position="inside">
-                <button type="object" name="action_co_op_create_invoices"
-                        string="Create Co - Op Invocies"
-                        attrs="{'invisible': [('is_ratio', '=', False),('state','=','sale')]}"/>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="after">
+                <field name="flag_for_coop_view" invisible="True"/>
+                    <button icon="fa-circle-o" name="sale_order_line_action" string="CO-OP Companies" context="{'default_sale_order_line_id': id}" type="object" attrs="{'invisible':[('flag_for_coop_view', '=', True)]}" ></button>
+                    <button icon="fa-adjust" name="sale_order_line_action" string="CO-OP Companies" context="{'default_sale_order_line_id': id}" type="object" attrs="{'invisible':[('flag_for_coop_view', '=', False)]}"></button>
             </xpath>
-            <xpath expr="//field[@name='validity_date']" position="after">
-                <field name="is_ratio"/>
-            </xpath>
-            <xpath expr="//notebook" position="inside">
-                <page string="Ratio" name="ratio_partner" attrs="{'invisible': [('is_ratio', '=', False)]}">
-                    <field name="co_op_sale_order_partner_ids">
-                        <tree editable="bottom">
-                            <field name="partner_id"/>
-                            <field name="ratio"/>
-                        </tree>
-                    </field>
-                </page>
-            </xpath>
-
         </field>
     </record>
+
 </odoo>
