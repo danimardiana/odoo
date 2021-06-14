@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_co_op_partner,co_op_sale_order_partner,model_co_op_sale_order_partner,,1,1,1,1
+access_co_op_partner_saleorder,co_op_sale_order_partner,model_co_op_sale_order_partner,,1,1,1,1
+access_co_op_partner_subscribe,co_op_subscription_partner,model_co_op_subscription_partner,,1,1,1,1

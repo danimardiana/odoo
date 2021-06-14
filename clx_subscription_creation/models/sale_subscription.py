@@ -15,8 +15,8 @@ class SaleSubscription(models.Model):
     # co_op_percentage = fields.Float(string="Co Op Percentage")
     active = fields.Boolean(string="Active", default=True)
     #co-op change!!!!
-    co_opp_partner_ids = fields.One2many(
-        related="initial_sale_order_id.co_op_sale_order_partner_ids", string="Co-Op Customers"
+    co_op_partner_ids = fields.One2many(
+        "co.op.subscription.partner",'subscription_id', string="Co-Op Customers"
     )
 
     def deactivate_finished_subscriptins(self):
