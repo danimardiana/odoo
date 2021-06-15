@@ -8,41 +8,42 @@ from dateutil.relativedelta import relativedelta
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
+    is_co_op = fields.Boolean(string="Co-op opt in")
 
-    #no more needed !!!
-    #def action_co_op_create_invoices(self):
-        # if self.is_ratio:
-        #     if self.subscription_management in ("upsell", "downsell"):
-        #         return
-        #     so_lines = self.env["sale.subscription.line"].search(
-        #         [
-        #             ("so_line_id.order_id", "=", self.id),
-        #         ]
-        #     )
-        #     current_month_start_day = fields.Date.today()
-        #     end_date = current_month_start_day.replace(day=1) + relativedelta(
-        #         months=self.clx_invoice_policy_id.num_of_month + 1
-        #     )
-        #     end_date = end_date - relativedelta(days=1)
-        #     lines = so_lines.filtered(lambda x: x.start_date and x.start_date < end_date)
-        #     count = self.clx_invoice_policy_id.num_of_month + 1
-        #     if fields.Date.today().day >= 23:
-        #         count += 1
+    # no more needed !!!
+    # def action_co_op_create_invoices(self):
+    # if self.is_ratio:
+    #     if self.subscription_management in ("upsell", "downsell"):
+    #         return
+    #     so_lines = self.env["sale.subscription.line"].search(
+    #         [
+    #             ("so_line_id.order_id", "=", self.id),
+    #         ]
+    #     )
+    #     current_month_start_day = fields.Date.today()
+    #     end_date = current_month_start_day.replace(day=1) + relativedelta(
+    #         months=self.clx_invoice_policy_id.num_of_month + 1
+    #     )
+    #     end_date = end_date - relativedelta(days=1)
+    #     lines = so_lines.filtered(lambda x: x.start_date and x.start_date < end_date)
+    #     count = self.clx_invoice_policy_id.num_of_month + 1
+    #     if fields.Date.today().day >= 23:
+    #         count += 1
 
-            # co-op change!!!!
-            # for co_op_partner in self.co_op_sale_order_partner_ids:
-            #     for i in range(0, count):
-            #         if co_op_partner.partner_id.invoice_selection == "sol":
-            #             co_op_partner.partner_id.with_context(
-            #                 sol=True, partner_id=co_op_partner.partner_id.id, percantage=co_op_partner.ratio, co_op=True
-            #             ).generate_advance_invoice_co_op(so_lines)
-            #         else:
-            #             print("create category wise invoice")
-            # so_lines = lines.filtered(
-            #     lambda x: (not x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
-            #               or
-            #               (x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
-            # )
+    # co-op change!!!!
+    # for co_op_partner in self.co_op_sale_order_partner_ids:
+    #     for i in range(0, count):
+    #         if co_op_partner.partner_id.invoice_selection == "sol":
+    #             co_op_partner.partner_id.with_context(
+    #                 sol=True, partner_id=co_op_partner.partner_id.id, percantage=co_op_partner.ratio, co_op=True
+    #             ).generate_advance_invoice_co_op(so_lines)
+    #         else:
+    #             print("create category wise invoice")
+    # so_lines = lines.filtered(
+    #     lambda x: (not x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
+    #               or
+    #               (x.end_date and x.invoice_start_date and x.invoice_start_date < end_date)
+    # )
 
     # def action_open_subscriptions(self):
     #     res = super(SaleOrder, self).action_open_subscriptions()
@@ -80,7 +81,8 @@ class SaleOrderLine(models.Model):
     co_op_sale_order_line_partner_ids = fields.One2many(
         "co.op.sale.order.partner", "sale_order_line_id", string="CO-OP Customers"
     )
-    flag_for_coop_view = fields.Boolean(compute="showing_flag_for_coop", store=False)
+    total_coop_percenage = fields.Integer(compute="calculate_total_coop_percenage", store=False, string="co-op %")
+    is_co_op = fields.Boolean(related="order_id.is_co_op", store=False)
 
     # clx_subscription_ids = fields.Many2many("sale.subscription", copy=False)
 
@@ -101,10 +103,12 @@ class SaleOrderLine(models.Model):
             "target": "new",
             "context": {"default_sale_order_line_id": self.id},
         }
-
-    def showing_flag_for_coop(self):
+        
+    @api.model
+    def calculate_total_coop_percenage(self):
         for line in self:
-            line.flag_for_coop_view = True if len(line.co_op_sale_order_line_partner_ids)>0 else False
+            line.total_coop_percenage = int(sum(line.co_op_sale_order_line_partner_ids.mapped('ratio') ))
+
 
     # @api.onchange('is_ratio')
     # def onchange_is_ratio(self):

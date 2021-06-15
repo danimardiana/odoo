@@ -8,9 +8,6 @@
             <field name="type">tree</field>
             <field name="arch" type="xml"> 
                 <tree string="Sales Order Currency Lines" editable="bottom" create="1" delete="1" import="0" duplicate="1">
-                    <!-- <control>
-                        <create string="Add a product" />
-                    </control> -->
                     <field name="partner_id" />
                     <field name="ratio" />
                     <field name="sale_order_line_id" invisible="1"/>     
@@ -24,11 +21,16 @@
         <field name="name">sale.order.form</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
+        
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="is_co_op"/>
+
+            </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="after">
-                <field name="flag_for_coop_view" invisible="True"/>
-                    <button icon="fa-circle-o" name="sale_order_line_action" string="CO-OP Companies" context="{'default_sale_order_line_id': id}" type="object" attrs="{'invisible':[('flag_for_coop_view', '=', True)]}" ></button>
-                    <button icon="fa-adjust" name="sale_order_line_action" string="CO-OP Companies" context="{'default_sale_order_line_id': id}" type="object" attrs="{'invisible':[('flag_for_coop_view', '=', False)]}"></button>
+                <field name="is_co_op" invisible="True"/>
+                <field name="total_coop_percenage" attrs="{'column_invisible':[('parent.is_co_op', '=', False)]}"/>
+                <button  name="sale_order_line_action" string="co-op" context="{'default_sale_order_line_id': id}" type="object" attrs="{'invisible':[('is_co_op', '=', False)]}" class="oe_inline oe_stat_button" style="background:rgba(46, 210, 162, 0.2);"/>
             </xpath>
         </field>
     </record>
