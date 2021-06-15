@@ -29,10 +29,11 @@ class SaleOrder(models.Model):
         # TODO: replacing the SB's invoicing functions and check the period to invoice
 
         start_date = self.contract_start_date.replace(day=1)
-        # co-op changed!!!!
+
         partner_ids = []
-        for line in self.order_line:
-            partner_ids += line.co_op_sale_order_line_partner_ids.mapped("partner_id")
+        if self.is_co_op:
+            for line in self.order_line:
+                partner_ids += line.co_op_sale_order_line_partner_ids.mapped("partner_id")
         partner_ids += [self.partner_id]
 
         for partner in partner_ids:
