@@ -238,8 +238,8 @@
                     <div class="payment_details section_wrapper_subtle">
                         <h2 class="full center">Payment Details</h2>
                         <div class="keyValueRow row">
-                            <div class="col-5">Payment Method:</div>
-                            <div class="col-6 offset-1">Direct Bill</div>
+                            <div class="col-5">Payment Terms:</div>
+                            <div class="col-6 offset-1"><span t-esc="sale_order.payment_term_id.name"/></div>
                         </div>
                     </div>
                 </div>
