@@ -17,7 +17,7 @@ class ExistingProjectWarningWizard(models.TransientModel):
         if len(open_projects) > 0:
             res.update(
                 {
-                    "message": "One or more projects is open for this customer. Please add any new task request to an existing project",
+                    "message": "One or more projects are open for this customer. Please contact CS to add any new task request to the existing project",
                     "open_project_ids": open_projects.ids,
                 }
             )
