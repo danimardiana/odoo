@@ -42,11 +42,10 @@ class SaleOrder(models.Model):
         template = self.env["mail.template"].sudo().search([("name", "=", "Sales Order: CLX email template")])
         lang = self.env.context.get("lang")
         template_id = template.id
-        contacts_billing = []
-        for contact in self.partner_id.contact_child_ids:
-            contacts_billing.append(contact.child_id.id)
         account_manager = self.partner_id.account_user_id.partner_id
-        contacts_billing.append(account_manager.id)
+
+        contacts_billing = [account_manager.id] + self.partner_id.contacts_to_notify(group_name="Billing Contact").mapped("id")
+
         if template.lang:
             lang = template._render_template(template.lang, "sale.order", self.ids[0])
         secure_url = self._get_share_url(redirect=True, signup_partner=True)

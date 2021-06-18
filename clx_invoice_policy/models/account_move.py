@@ -8,6 +8,7 @@ from collections import OrderedDict
 from datetime import timedelta
 import calendar
 
+
 class AccountMove(models.Model):
     _inherit = "account.move"
 
@@ -137,12 +138,8 @@ class AccountMove(models.Model):
         template = self.env["mail.template"].sudo().search([("name", "=", "Invoice: CLX email template")])
         template_id = template.id
         account_manager = self.partner_id.account_user_id.partner_id
-        contacts_billing = [account_manager.id]
-        default_partner_ids = [account_manager.id]
-        for contact in self.partner_id.contact_child_ids:
-            contacts_billing.append(contact.child_id.id)
-            if 'Billing Contact' in contact.contact_type_ids.mapped('name') :
-                default_partner_ids.append(contact.child_id.id)
+        default_partner_ids = [account_manager.id] + self.partner_id.contacts_to_notify().mapped("id")
+        contacts_billing = [account_manager.id] + self.partner_id.contacts_to_notify(group_name="Billing Contact").mapped("id")
 
         if template.lang:
             lang = template._render_template(template.lang, "account.move", self.ids[0])
@@ -162,7 +159,7 @@ class AccountMove(models.Model):
             "default_use_template": bool(template_id),
             "default_template_id": template_id,
             "default_composition_mode": "comment",
-            "default_partner_ids": default_partner_ids,
+            "default_partner_ids": contacts_billing,
             "default_email_to": "",
             "default_reply_to": "",
             "mark_so_as_sent": True,
@@ -171,7 +168,7 @@ class AccountMove(models.Model):
             "force_email": True,
             "model_description": self.with_context(lang=lang).type_name,
             "report_name": (self.name or "").replace("/", "_") + "_000",
-            "default_allowed_partner_ids": contacts_billing,
+            "default_allowed_partner_ids": default_partner_ids,
             "secure_url": url,
             "email_text": email_text,
         }
