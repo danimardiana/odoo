@@ -35,6 +35,7 @@ class SaleSubscription(models.Model):
         to take the partial recurring period into account"""
         order_line_obj = self.env["sale.order.line"]
         ratio, message, period_msg = self._partial_recurring_invoice_ratio(date_from=date_from)
+
         if message != "":
             sale_order.message_post(body=message)
         _discount = (1 - ratio) * 100

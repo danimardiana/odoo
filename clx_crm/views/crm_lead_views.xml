@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<odoo> 
+    <record id="clx_crm_lead_view_form" model="ir.ui.view">
+        <field name="name">clx.crm.lead.inherited</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+           <xpath expr="//field[@name='partner_name']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

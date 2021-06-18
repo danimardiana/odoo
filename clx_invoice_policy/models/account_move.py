@@ -13,11 +13,20 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     mgmt_company = fields.Many2one(related="partner_id.management_company_type_id", store=True)
+
     subscription_line_ids = fields.Many2many("sale.subscription.line", "account_id", string="Subscription Lines")
     invoice_month_year = fields.Char(string="Invoicing Period")
     invoice_period_verbal = fields.Char(
         compute="compute_invoice_period_verbal", string="Invoice Period Verbal", store=False
     )
+    state = fields.Selection(selection=[
+        ('draft', 'Draft'),
+        ('approved_draft', 'Approved Draft'),
+        ('email_sent', 'Email Sent'),
+        ('posted', 'Posted'),
+        ('cancel', 'Cancelled')
+    ], string='Status', required=True, readonly=True, copy=False, tracking=True,
+        default='draft')
 
     related_contact_ids = fields.One2many(
         related="partner_id.contact_child_ids",
@@ -37,7 +46,7 @@ class AccountMove(models.Model):
             ),
         )
         self.related_billing_contact_ids = [(6, 0, list(billing_list))]
-
+    
     def post(self):
         res = super(AccountMove, self).post()
         sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
@@ -188,7 +197,10 @@ class AccountMove(models.Model):
     # no status for mail sending
     def email_send_postprocess(self):
         return
-
+      
+    def button_approve_invoice(self):
+        for rec in self.filtered(lambda x: x.state == 'draft'):
+            rec.state = 'approved_draft'
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"

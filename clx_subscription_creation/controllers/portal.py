@@ -25,9 +25,6 @@ def get_records_pager(ids, current):
             "next_record": idx < len(ids) - 1 and getattr(current.browse(ids[idx + 1]), attr_name),
         }
     return {}
-
-
-# These fake objects created to avoid the real lines creation  in the DB just for report generation
 class CustomerPortal(CustomerPortal):
     @http.route(["/my/orders/<int:order_id>/accept"], type="json", auth="public", website=True)
     def portal_quote_accept(self, order_id, access_token=None, name=None, signature=None):
