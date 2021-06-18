@@ -26,7 +26,6 @@ def get_records_pager(ids, current):
         }
     return {}
 
-
 # These fake objects created to avoid the real lines creation  in the DB just for report generation
 class FakeSaleOrderLine:
     def __init__(self, sol, ratio):
@@ -57,6 +56,7 @@ class FakeSaleOrder:
         self.signature = False
         self.pricelist_id = so.pricelist_id
         # self.money_formatting = so.money_formatting
+
 
 
 class CustomerPortal(CustomerPortal):
