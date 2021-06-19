@@ -919,3 +919,14 @@ class Partner(models.Model):
                     elif adv_line.product_id.subscription_template_id.recurring_rule_type == "yearly":
                         advance_lines -= adv_line
                 start_date = start_date + relativedelta(months=1)
+
+    # returning the array of contacts
+    # Could be filtered by group_name: 'Billing Contact', 'Proofing Contact'...
+    def contacts_to_notify(self, **kwargs):
+        if "group_name" in kwargs:
+            contacts = self.contact_child_ids.filtered(
+                lambda contact: kwargs["group_name"] in contact.contact_type_ids.mapped("name")
+            )
+        else:
+            contacts = self.contact_child_ids
+        return contacts.mapped("child_id")
