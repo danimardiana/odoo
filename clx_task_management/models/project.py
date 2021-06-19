@@ -56,7 +56,7 @@ class ProjectProject(models.Model):
     intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
     complete_date = fields.Datetime(string="Project Complete Date")
     proofing_contacts_emails = fields.Char(
-        compute="_proofing_contacts_emails", string="Proofing Contact Emails")
+        compute="_proofing_contacts_emails", string="Proofing Contacts")
 
     def _proofing_contacts_emails(self):
         setup_fee_product = self.env["ir.config_parameter"].get_param("proofing_email_default", '')
@@ -193,7 +193,7 @@ class ProjectTask(models.Model):
     task_in_progress_date = fields.Datetime(string="Task In Progress Date", readonly=False)
     task_proof_internal_date = fields.Datetime(string="Task Proof Internal Date", readonly=False)
     proofing_contacts_emails = fields.Char(
-        related="project_id.proofing_contacts_emails", string="Proofing Contact Emails")
+        related="project_id.proofing_contacts_emails", string="Proofing Contacts")
 
     @api.model
     def create(self, vals):
