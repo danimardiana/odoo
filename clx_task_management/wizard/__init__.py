@@ -3,3 +3,4 @@
 # See LICENSE file for full copyright & licensing details.
 from . import task_cancel_warning_wizard
 from . import proof_return_excel_report
+from . import existing_project_warning_wizard
