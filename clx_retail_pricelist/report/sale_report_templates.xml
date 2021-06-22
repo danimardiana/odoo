@@ -173,7 +173,9 @@
         </div>
 
             <!-- COMMUNITIES BLOCK -->
+            <t t-set="communities" t-value="list(sale_order.build_communities().values())"/>
             <t t-foreach="communities" t-as="sale_order_com">
+            <div class="pseudoPage">
                 <div class="communityName row justify-content-center mt32">
                     <h2><span t-esc="sale_order_com.partner_id.name"/></h2><br/>
                 </div>
@@ -287,44 +289,68 @@
                         </div>
                     </div>
                 </div> -->
+            </div>
             </t>
 
+            
             </div>
-
             <div class="pseudoPage short-upper-margin">
                 <div class="offset-md-2 col-12 col-md-8">
                     <div class="section_wrapper_subtle">
                         <h2 class="full center">Key Information</h2>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Community Name:</div>
-                            <span class="col-7" t-esc="sale_order.partner_invoice_id.name"/>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Legal Name:</div>
-                            <span class="col-7" t-esc="sale_order.partner_invoice_id.legal_name "/>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Community Address:</div>
-                            <span class="col-7" t-esc="', '.join([str(sale_order.partner_invoice_id.street)+str(sale_order.partner_invoice_id.street2 if sale_order.partner_invoice_id.street2 else ''),str(sale_order.partner_invoice_id.city),str(sale_order.partner_invoice_id.state_id.name),str(sale_order.partner_invoice_id.zip),str(sale_order.partner_invoice_id.country_id.name)])"/>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Website:</div>
-                            <span class="col-7 website_url" t-esc="sale_order.partner_invoice_id.website"/>
-                        </div>
-                        <t t-if="greystar_flag">
-                            <div class="keyValueRow row">
-                                <div class="col-5 leftKey">Master ID:</div>
-                                <span class="col-7" t-esc="sale_order.partner_invoice_id.master_id"/>
-                            </div>
-                            <div class="keyValueRow row">
-                                <div class="col-5 leftKey">Yardi ID:</div>
-                                <span class="col-7" t-esc="sale_order.partner_invoice_id.yardi_code"/>
+                        <t t-foreach="communities+[sale_order]" t-as="company_key">
+                            <div class="communityBlock">
+                                <div class="keyValueRow row">
+                                    <div class="col-5 leftKey">Community Name:</div>
+                                    <span class="col-7" t-esc="company_key.partner_id.name"/>
+                                </div>
+                                <div class="keyValueRow row">
+                                    <div class="col-5 leftKey">Legal Name:</div>
+                                    <span class="col-7" t-esc="company_key.partner_id.legal_name "/>
+                                </div>
+                                <t t-set="street" t-value="[]"/>
+                                <t t-if="company_key.partner_id.street">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.street]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.street2">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.street2]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.city">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.city]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.state_id.name">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.state_id.name]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.zip">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.zip]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.country_id.name">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.country_id.name]"/>
+                                </t>
+                                <div class="keyValueRow row">
+                                    <div class="col-5 leftKey">Community Address:</div>
+                                    <span class="col-7" t-esc="', '.join(street)"/>
+                                </div>
+                                <div class="keyValueRow row">
+                                    <div class="col-5 leftKey">Website:</div>
+                                    <span class="col-7 website_url" t-esc="company_key.partner_id.website"/>
+                                </div>
+                                <t t-if="greystar_flag">
+                                    <div class="keyValueRow row">
+                                        <div class="col-5 leftKey">Master ID:</div>
+                                        <span class="col-7" t-esc="company_key.partner_id.master_id"/>
+                                    </div>
+                                    <div class="keyValueRow row">
+                                        <div class="col-5 leftKey">Yardi ID:</div>
+                                        <span class="col-7" t-esc="company_key.partner_id.yardi_code"/>
+                                    </div>
+                                </t>
+                                <div t-if="company_key.partner_id.ownership_company_type_id" class="keyValueRow row">
+                                    <div class="col-5 leftKey">Ownership Group:</div>
+                                    <span class="col-7" t-esc="company_key.partner_id.ownership_company_type_id.name"/>
+                                </div>
                             </div>
                         </t>
-                        <div t-if="sale_order.partner_invoice_id.ownership_company_type_id" class="keyValueRow row">
-                            <div class="col-5 leftKey">Ownership Group:</div>
-                            <span class="col-7" t-esc="sale_order.partner_invoice_id.ownership_company_type_id.name"/>
-                        </div>
                         <!-- REPLACEME - Ownership??? -->
                     </div>
                 </div>
