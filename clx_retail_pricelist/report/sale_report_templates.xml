@@ -116,7 +116,7 @@
                                     </div>
                                 </tr>
                             </section>
-                            <t t-set="need_display_fee" t-value="line['name'].find('Search')>-1 and not sale_order.display_management_fee"/>
+                            <t t-set="need_display_fee" t-value="not sale_order.display_management_fee"/>
                             <div class="productTotalWrapperWrapper col-12 col-md-5">
                                 <div class="productTotalWrapper">
                                     <div class="monthlyTotalText">Monthly Total:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
