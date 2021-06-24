@@ -180,6 +180,7 @@
                         <field name="cs_notes"/>
                         <field name="ops_notes"/>
                         <field name="cat_notes"/>
+                        <field name="proofing_contacts_emails" widget="copyable" />
                     </group>
                 </page>
                 <page name="attachments" string="Attachments">
@@ -313,6 +314,7 @@
                         <field name="ops_notes"/>
                         <field name="cat_notes"/>
                         <field name="art_assets"/>
+                        <field name="proofing_contacts_emails" widget="copyable" />
                     </group>
                 </page>
                 <page name="ads_link" string="Ads Link">
