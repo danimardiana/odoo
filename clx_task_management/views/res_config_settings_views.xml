@@ -44,6 +44,13 @@
 
                     </div>
                 </div>
+                <h2>Default Email Setting</h2>
+                <div class="row mt16 o_settings_container" id="auto_create_sub_task">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <label for="proofing_email_default"/>   
+                        <field name="proofing_email_default" class="oe_inline"/>
+                    </div>
+                </div>
             </xpath>
         </field>
     </record>
