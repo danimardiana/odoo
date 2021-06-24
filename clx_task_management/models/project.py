@@ -59,8 +59,15 @@ class ProjectProject(models.Model):
         compute="_proofing_contacts_emails", string="Proofing Contacts")
 
     def _proofing_contacts_emails(self):
-        setup_fee_product = self.env["ir.config_parameter"].sudo().get_param("proofing_email_default", '')
-        self.proofing_contacts_emails = ", ".join(self.partner_id.contacts_to_notify(group_name = 'Proofing Contact').mapped("email")+ [setup_fee_product,self.partner_id.account_user_id.email])
+        emails_list = []
+        default_emails = self.env["ir.config_parameter"].sudo().get_param("proofing_email_default", "")
+        for email in self.partner_id.contacts_to_notify(group_name="Proofing Contact").mapped("email") + [
+            default_emails,
+            self.partner_id.account_user_id.email,
+        ]:
+            if email:
+                emails_list.append(email)
+        self.proofing_contacts_emails = ", ".join(emails_list)
 
     @api.model
     def create(self, vals):
