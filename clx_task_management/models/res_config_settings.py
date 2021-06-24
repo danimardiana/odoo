@@ -34,7 +34,6 @@ class ResConfigSettings(models.TransientModel):
         res.update(is_create_auto_task=bool(params.get_param("auto_create_sub_task", "")) or False)
         return res
 
-
 class ResConfigSettingsProof(models.TransientModel):
     _inherit = "res.config.settings"
 

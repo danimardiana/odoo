@@ -108,6 +108,7 @@ class Partner(models.Model):
             ("Autodata@conversionlogix.com", "Autodata@conversionlogix.com"),
             ("RESanalytics@clxmedia.com", "RESanalytics@clxmedia.com"),
             ("Resanalytics2@clxmedia.com", "Resanalytics2@clxmedia.com"),
+            ("Resanalytics3@clxmedia.com", "Resanalytics3@clxmedia.com"),
             ("reporting@conversionlogix.com", "reporting@conversionlogix.com"),
             ("reporting1@conversionlogix.com", "reporting1@conversionlogix.com"),
             ("reporting2@conversionlogix.com", "reporting2@conversionlogix.com"),
@@ -126,11 +127,11 @@ class Partner(models.Model):
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
     is_flat_discount = fields.Boolean(string="Is Flat Discount")
-    clx_category_id = fields.Many2one('product.category', string="Category for Flat Discount")
+    clx_category_id = fields.Many2one("product.category", string="Category for Flat Discount")
     flat_discount = fields.Float(string="Flat Discount")
-    is_percent_discount = fields.Boolean(string="Is Percent Discount") 
+    is_percent_discount = fields.Boolean(string="Is Percent Discount")
     percent_discount = fields.Float(string="Percent Discount")
-    percent_discount_category_id = fields.Many2one('product.category', string="Category for Percent Discount")
+    percent_discount_category_id = fields.Many2one("product.category", string="Category for Percent Discount")
     discount_on_order_line = fields.Float(string="Discount on Sale Order Line (%)")
     client_services_team = fields.Selection(
         [("emerging_accounts", "Emerging Accounts"), ("national_accounts", "National Accounts")],
