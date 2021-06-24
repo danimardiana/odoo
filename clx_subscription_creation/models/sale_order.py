@@ -9,6 +9,36 @@ from . import grouping_data
 
 products_set_grouping_level = grouping_data.products_set_grouping_level
 
+class FakeSaleOrderLine:
+    def __init__(self, sol, ratio):
+        self.order_id = sol.order_id
+        self.product_id = sol.product_id
+        self.price_unit = sol.price_unit * ratio / 100
+        self.name = sol.name
+        self.partner_id = sol.product_id
+        self.prorate_amount = sol.prorate_amount * ratio / 100
+        self.display_type = sol.display_type
+        self.product_template_id = sol.product_template_id
+        self.product_type = sol.product_type
+        self.discount = 0
+        self._grouping_name_calc = sol.env["sale.order.line"]._grouping_name_calc
+
+
+class FakeSaleOrder:
+    def append_sale_order_line(self, line, ratio):
+        self.order_line.append(FakeSaleOrderLine(line, ratio))
+
+    def __init__(self, so, partner_id):
+        self.partner_id = partner_id
+        self.partner_invoice_id = so.partner_invoice_id
+        self._grouping_wrapper = so.env["sale.order"]._grouping_wrapper
+        self.contract_start_date = so.contract_start_date
+        self.order_line = []
+        self.display_management_fee = False
+        self.signature = False
+        self.pricelist_id = so.pricelist_id
+        # self.money_formatting = so.money_formatting
+
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
@@ -26,8 +56,6 @@ class SaleOrder(models.Model):
                 {
                     "partner_id": partner_id,
                     "initial_sale_order_id": self,
-                    # "is_co_op": partner_id.co,
-                    # "co_op_percentage": self._context.get("co_op_percentage"),
                     "active": False,
                 }
             )
@@ -81,6 +109,15 @@ class SaleOrder(models.Model):
                 values["initial_sale_order_id"] = self.id
                 values["recurring_invoice_line_ids"] = line._prepare_subscription_line_data()
                 subscription = sale_subscription_obj.create(values)
+                # create corresponding co-op lines if exist
+                if line.is_co_op and len(line.co_op_sale_order_line_partner_ids) > 0:
+                    for coop in line.co_op_sale_order_line_partner_ids:
+                        coop_subscription_record = {
+                            "partner_id": coop.partner_id.id,
+                            "ratio": coop.ratio,
+                            "subscription_id": subscription.id,
+                        }
+                        self.env["co.op.subscription.partner"].create(coop_subscription_record)
                 res.append(subscription.id)
                 subscription.message_post_with_view(
                     "mail.message_origin_link",
@@ -229,6 +266,18 @@ class SaleOrder(models.Model):
         return self.grouping_all_products(
             source_lines, partner_id, initial_order_data, last_order_data, last_order_update
         )
+
+    def build_communities(self):
+        communities = {}
+
+        for so_line in self.order_line:
+            if self.is_co_op and len(so_line.co_op_sale_order_line_partner_ids) > 0:
+                for community in so_line.co_op_sale_order_line_partner_ids:
+                    if community.partner_id.id not in communities:
+                        fake_order = FakeSaleOrder(self, community.partner_id)
+                        communities[community.partner_id.id] = fake_order
+                    communities[community.partner_id.id].append_sale_order_line(so_line, community.ratio)
+        return communities
 
     # main grouping function
     # partner_id - the client we calculating values for (for co-op)

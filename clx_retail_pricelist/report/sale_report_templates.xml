@@ -53,91 +53,211 @@
                 <div class="communityLogoWrapper row">
                     <img class="col-4 offset-4" t-if="sale_order.partner_id.management_company_type_id.image_1920" t-att-src="'data:image/png;base64,%s' % to_text(sale_order.partner_id.management_company_type_id.image_1920)"/>
                 </div>
-                <div class="communityName row justify-content-center">
-                    <h2>
-                        <span t-esc="sale_order.partner_invoice_id.name"/>
- - Proposal of Services</h2>
+                <t t-set="parent_sale_order" t-value="sale_order"/>
+                
+        <!-- MAIN COMPANY BLOCK -->
+
+        <div class="communityName row justify-content-center">
+            <h2><span t-esc="sale_order.partner_invoice_id.name"/>- Proposal of Services</h2>
+        </div>
+        <div class="contractedServicesWrapper">
+            <t t-set="first_month_subtotal" t-value="0.0"/>
+            <t t-set="fee_subtotal" t-value="0.0"/>
+            <t t-set="current_subtotal" t-value="0.0"/>
+            <t t-set="modified_invoice_lines" t-value="sale_order._grouping_wrapper(sale_order.contract_start_date)"/>
+            <t t-foreach="modified_invoice_lines" t-as="line">
+                <!-- section just for compatibly with original ones -->
+                <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
+                    <t t-set="display_discount" t-value="True in [line['discount'] > 0 for line in sale_order.order_line]"/>
+                    <table class="table table-sm" id="sales_order_table">
+                        <thead>
+                            <tr>
+                            </tr>
+                        </thead>
+                    </table>
+                    <section t-if="sale_order.signature" id="signature" name="Signature"/>
+                    <div id="quote_qty"/>
+                    <div class="row" id="so_date"/>
+                    <div id="informations"/>
+                </section>
+                <t t-if="line['product_id'] == setup_fee_product">
+                    <span t-set="fee_subtotal" t-value="fee_subtotal + line['price_unit']"/>
+                    <t t-set="first_month_subtotal" t-value="first_month_subtotal + line['price_unit']"/>
+                </t>
+                <t t-else="">
+                    <div class="productLineWrapper row">
+                        <div class="topbar row valign-wrapper col-12">
+                            <section id="details" class="productTitle col-12 col-md-7">
+                                <t t-esc="line['display_type']" />
+                                <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line['display_type'] == 'line_section' else 'font-italic o_line_note' if line['display_type'] == 'line_note' else ''">
+                                    <t t-if="not line['display_type']">
+                                        <td id="product_name">
+                                            <span t-raw="line['description']"/>
+                                        </td>
+                                    </t>
+                                    <t t-if="line['display_type'] == 'line_section'">
+                                        <td colspan="99">
+                                            <span t-raw="line['description']"/>
+                                        </td>
+                                        <t t-set="current_section" t-value="line"/>
+                                        <t t-set="current_subtotal" t-value="0"/>
+                                    </t>
+                                    <t t-if="line['display_type'] == 'line_note'">
+                                        <td colspan="99">
+                                            <span t-raw="line['description']"/>
+                                        </td>
+                                    </t>
+                                    <div class="descriptionWrapper">
+                                        <div class="description col-12">
+                                            <td id="product_name">
+                                                <span t-raw="line['contract_product_description']"/>
+                                            </td>
+                                        </div>
+                                    </div>
+                                </tr>
+                            </section>
+                            <t t-set="need_display_fee" t-value="not sale_order.display_management_fee"/>
+                            <div class="productTotalWrapperWrapper col-12 col-md-5">
+                                <div class="productTotalWrapper">
+                                    <div class="monthlyTotalText">Monthly Total:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                    </div>
+                                    <div class="productTotal">
+                                        <span t-esc="parent_sale_order.money_formatting(line['price_unit'])"/>
+                                    </div>
+                                </div>
+                                <div t-if="line['prorate_amount'] and line['prorate_amount'] != line['price_unit']" class="productTotalWrapper">
+                                    <div style="display:inline-block;">First Month Total: </div>
+                                    <div class="productTotal">
+                                        <span t-esc="parent_sale_order.money_formatting(line['prorate_amount'])"/>
+                                    </div>
+                                </div>
+                                <t t-set="management_fee_calculated" t-value="line['management_fee_calculated']" />
+                                <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
+                                    <div style="display:inline-block;">Monthly Fee: </div>
+                                    <div class="productTotal">
+                                        <span t-esc="parent_sale_order.money_formatting(management_fee_calculated)"/>
+                                    </div>
+                                </div>
+                                <t t-set="first_month_subtotal" t-value="first_month_subtotal + (line['prorate_amount'] if line['prorate_amount'] else line['price_unit'])"/>
+                                <t t-set="current_subtotal" t-value="current_subtotal + line['price_unit']"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+
+            <t t-if="current_section and (line_last or sale_order.order_line[line_index+1]['display_type'] == 'line_section')">
+                <tr class="is-subtotal text-right">
+                    <td colspan="99">
+                        <strong class="mr16">Subtotal</strong>
+                        <span t-esc="parent_sale_order.money_formatting(current_subtotal)"/>
+                    </td>
+                </tr>
+            </t>
+        </div>
+        <div class="monthlyTotalWrappersWrapper dont_break_inside row">
+            <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
+                <div class="firstMonthlyTotalWrapper">
+                    <div class="">First Month Spend: </div>
+                    <div class="monthlyTotal">
+                        <span t-esc="parent_sale_order.money_formatting(first_month_subtotal)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="offset-2 col-4 monthlyTotalWrapper totals">
+                <div class="">Recurring Monthly Spend: </div>
+                <div class="monthlyTotal">
+                    <span t-esc="parent_sale_order.money_formatting(current_subtotal)"/>
+                </div>
+            </div>
+        </div>
+
+            <!-- COMMUNITIES BLOCK -->
+            <t t-set="communities" t-value="list(sale_order.build_communities().values())"/>
+            <t t-foreach="communities" t-as="sale_order_com">
+            <div class="pseudoPage">
+                <div class="communityName row justify-content-center mt32">
+                    <h2><span t-esc="sale_order_com.partner_id.name"/></h2><br/>
+                </div>
+                <div class="row justify-content-center">
+                    <div>Budget Allocation from Cooperative Total.</div>
                 </div>
                 <div class="contractedServicesWrapper">
                     <t t-set="first_month_subtotal" t-value="0.0"/>
                     <t t-set="fee_subtotal" t-value="0.0"/>
                     <t t-set="current_subtotal" t-value="0.0"/>
-                    <t t-set="modified_invoice_lines" t-value="sale_order._grouping_wrapper(sale_order.contract_start_date)"/>
-                    <t t-foreach="modified_invoice_lines" t-as="line">
+                    <t t-set="modified_invoice_lines_com" t-value="sale_order_com._grouping_wrapper(sale_order_com.contract_start_date, sale_order_com.order_line)"/>
+                    <t t-foreach="modified_invoice_lines_com" t-as="line_com">
                         <!-- section just for compatibly with original ones -->
                         <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
-                            <t t-set="display_discount" t-value="True in [line['discount'] > 0 for line in sale_order.order_line]"/>
+                            <t t-set="display_discount" t-value="True in [line.discount > 0 for line in sale_order_com.order_line]"/>
                             <table class="table table-sm" id="sales_order_table">
                                 <thead>
                                     <tr>
                                     </tr>
                                 </thead>
                             </table>
-                            <section t-if="sale_order.signature" id="signature" name="Signature"/>
-                            <div id="quote_qty"/>
-                            <div class="row" id="so_date"/>
-                            <div id="informations"/>
                         </section>
-                        <t t-if="line['product_id'] == setup_fee_product">
-                            <span t-set="fee_subtotal" t-value="fee_subtotal + line['price_unit']"/>
-                            <t t-set="first_month_subtotal" t-value="first_month_subtotal + line['price_unit']"/>
+                        <t t-if="line_com['product_id'] == setup_fee_product">
+                            <!-- <span t-set="fee_subtotal" t-value="fee_subtotal + line['price_unit']"/> -->
+                            <t t-set="first_month_subtotal" t-value="first_month_subtotal + line_com['price_unit']"/>
                         </t>
                         <t t-else="">
                             <div class="productLineWrapper row">
                                 <div class="topbar row valign-wrapper col-12">
                                     <section id="details" class="productTitle col-12 col-md-7">
-                                        <t t-esc="line['display_type']" />
-                                        <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line['display_type'] == 'line_section' else 'font-italic o_line_note' if line['display_type'] == 'line_note' else ''">
-                                            <t t-if="not line['display_type']">
+                                        <t t-esc="line_com['display_type']" />
+                                        <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line_com['display_type'] == 'line_section' else 'font-italic o_line_note' if line_com['display_type'] == 'line_note' else ''">
+                                            <t t-if="not line_com['display_type']">
                                                 <td id="product_name">
-                                                    <span t-raw="line['description']"/>
+                                                    <span t-raw="line_com['description']"/>
                                                 </td>
                                             </t>
-                                            <t t-if="line['display_type'] == 'line_section'">
+                                            <t t-if="line_com['display_type'] == 'line_section'">
                                                 <td colspan="99">
-                                                    <span t-raw="line['description']"/>
+                                                    <span t-raw="line_com['description']"/>
                                                 </td>
-                                                <t t-set="current_section" t-value="line"/>
+                                                <t t-set="current_section" t-value="line_com"/>
                                                 <t t-set="current_subtotal" t-value="0"/>
                                             </t>
-                                            <t t-if="line['display_type'] == 'line_note'">
+                                            <t t-if="line_com['display_type'] == 'line_note'">
                                                 <td colspan="99">
-                                                    <span t-raw="line['description']"/>
+                                                    <span t-raw="line_com['description']"/>
                                                 </td>
                                             </t>
                                             <div class="descriptionWrapper">
                                                 <div class="description col-12">
                                                     <td id="product_name">
-                                                        <span t-raw="line['contract_product_description']"/>
+                                                        <span t-raw="line_com['contract_product_description']"/>
                                                     </td>
                                                 </div>
                                             </div>
                                         </tr>
                                     </section>
-                                    <t t-set="need_display_fee" t-value="line['name'].find('Search')>-1 and not sale_order.display_management_fee"/>
+                                    <t t-set="need_display_fee" t-value="line_com['name'].find('Search')>-1 and not sale_order_com.display_management_fee"/>
                                     <div class="productTotalWrapperWrapper col-12 col-md-5">
                                         <div class="productTotalWrapper">
                                             <div class="monthlyTotalText">Monthly Total:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
                                             </div>
                                             <div class="productTotal">
-                                                <span t-esc="sale_order.money_formatting(line['price_unit'])"/>
+                                                <span t-esc="parent_sale_order.money_formatting(line_com['price_unit'])"/>
                                             </div>
                                         </div>
-                                        <div t-if="line['prorate_amount'] and line['prorate_amount'] != line['price_unit']" class="productTotalWrapper">
+                                        <div t-if="line_com['prorate_amount'] and line_com['prorate_amount'] != line_com['price_unit']" class="productTotalWrapper">
                                             <div style="display:inline-block;">First Month Total: </div>
                                             <div class="productTotal">
-                                                <span t-esc="sale_order.money_formatting(line['prorate_amount'])"/>
+                                                <span t-esc="parent_sale_order.money_formatting(line_com['prorate_amount'])"/>
                                             </div>
                                         </div>
-                                        <t t-set="management_fee_calculated" t-value="line['management_fee_calculated']" />
+                                        <t t-set="management_fee_calculated" t-value="line_com['management_fee_calculated']" />
                                         <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
                                             <div style="display:inline-block;">Monthly Fee: </div>
                                             <div class="productTotal">
-                                                <span t-esc="sale_order.money_formatting(management_fee_calculated)"/>
+                                                <span t-esc="parent_sale_order.money_formatting(management_fee_calculated)"/>
                                             </div>
                                         </div>
-                                        <t t-set="first_month_subtotal" t-value="first_month_subtotal + (line['prorate_amount'] if line['prorate_amount'] else line['price_unit'])"/>
-                                        <t t-set="current_subtotal" t-value="current_subtotal + line['price_unit']"/>
+                                        <t t-set="first_month_subtotal" t-value="first_month_subtotal + (line_com['prorate_amount'] if line_com['prorate_amount'] else line_com['price_unit'])"/>
+                                        <t t-set="current_subtotal" t-value="current_subtotal + line_com['price_unit']"/>
                                     </div>
                                 </div>
                             </div>
@@ -148,63 +268,89 @@
                         <tr class="is-subtotal text-right">
                             <td colspan="99">
                                 <strong class="mr16">Subtotal</strong>
-                                <span t-esc="sale_order.money_formatting(current_subtotal)"/>
+                                <span t-esc="parent_sale_order.money_formatting(current_subtotal)"/>
                             </td>
                         </tr>
                     </t>
                 </div>
-                <div class="monthlyTotalWrappersWrapper dont_break_inside row">
+                <!-- <div class="monthlyTotalWrappersWrapper dont_break_inside row">
                     <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
                         <div class="firstMonthlyTotalWrapper">
                             <div class="">First Month Spend: </div>
                             <div class="monthlyTotal">
-                                <span t-esc="sale_order.money_formatting(first_month_subtotal)"/>
+                                <span t-esc="parent_sale_order.money_formatting(first_month_subtotal)"/>
                             </div>
                         </div>
                     </div>
                     <div class="offset-2 col-4 monthlyTotalWrapper">
                         <div class="">Recurring Monthly Spend: </div>
                         <div class="monthlyTotal">
-                            <span t-esc="sale_order.money_formatting(current_subtotal)"/>
+                            <span t-esc="parent_sale_order.money_formatting(current_subtotal)"/>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
+            </t>
 
+            
+            </div>
             <div class="pseudoPage short-upper-margin">
                 <div class="offset-md-2 col-12 col-md-8">
                     <div class="section_wrapper_subtle">
                         <h2 class="full center">Key Information</h2>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Community Name:</div>
-                            <span class="col-7" t-esc="sale_order.partner_invoice_id.name"/>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Legal Name:</div>
-                            <span class="col-7" t-esc="sale_order.partner_invoice_id.legal_name "/>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Community Address:</div>
-                            <span class="col-7" t-esc="', '.join([str(sale_order.partner_invoice_id.street)+str(sale_order.partner_invoice_id.street2 if sale_order.partner_invoice_id.street2 else ''),str(sale_order.partner_invoice_id.city),str(sale_order.partner_invoice_id.state_id.name),str(sale_order.partner_invoice_id.zip),str(sale_order.partner_invoice_id.country_id.name)])"/>
-                        </div>
-                        <div class="keyValueRow row">
-                            <div class="col-5 leftKey">Website:</div>
-                            <span class="col-7 website_url" t-esc="sale_order.partner_invoice_id.website"/>
-                        </div>
-                        <t t-if="greystar_flag">
-                            <div class="keyValueRow row">
-                                <div class="col-5 leftKey">Master ID:</div>
-                                <span class="col-7" t-esc="sale_order.partner_invoice_id.master_id"/>
-                            </div>
-                            <div class="keyValueRow row">
-                                <div class="col-5 leftKey">Yardi ID:</div>
-                                <span class="col-7" t-esc="sale_order.partner_invoice_id.yardi_code"/>
+                        <t t-foreach="communities+[sale_order]" t-as="company_key">
+                            <div class="communityBlock">
+                                <div class="keyValueRow row">
+                                    <div class="col-5 leftKey">Community Name:</div>
+                                    <span class="col-7" t-esc="company_key.partner_id.name"/>
+                                </div>
+                                <div class="keyValueRow row">
+                                    <div class="col-5 leftKey">Legal Name:</div>
+                                    <span class="col-7" t-esc="company_key.partner_id.legal_name "/>
+                                </div>
+                                <t t-set="street" t-value="[]"/>
+                                <t t-if="company_key.partner_id.street">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.street]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.street2">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.street2]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.city">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.city]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.state_id.name">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.state_id.name]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.zip">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.zip]"/>
+                                </t>
+                                <t t-if="company_key.partner_id.country_id.name">
+                                    <t t-set="street" t-value="street+[company_key.partner_id.country_id.name]"/>
+                                </t>
+                                <div class="keyValueRow row">
+                                    <div class="col-5 leftKey">Community Address:</div>
+                                    <span class="col-7" t-esc="', '.join(street)"/>
+                                </div>
+                                <div class="keyValueRow row">
+                                    <div class="col-5 leftKey">Website:</div>
+                                    <span class="col-7 website_url" t-esc="company_key.partner_id.website"/>
+                                </div>
+                                <t t-if="greystar_flag">
+                                    <div class="keyValueRow row">
+                                        <div class="col-5 leftKey">Master ID:</div>
+                                        <span class="col-7" t-esc="company_key.partner_id.master_id"/>
+                                    </div>
+                                    <div class="keyValueRow row">
+                                        <div class="col-5 leftKey">Yardi ID:</div>
+                                        <span class="col-7" t-esc="company_key.partner_id.yardi_code"/>
+                                    </div>
+                                </t>
+                                <div t-if="company_key.partner_id.ownership_company_type_id" class="keyValueRow row">
+                                    <div class="col-5 leftKey">Ownership Group:</div>
+                                    <span class="col-7" t-esc="company_key.partner_id.ownership_company_type_id.name"/>
+                                </div>
                             </div>
                         </t>
-                        <div t-if="sale_order.partner_invoice_id.ownership_company_type_id" class="keyValueRow row">
-                            <div class="col-5 leftKey">Ownership Group:</div>
-                            <span class="col-7" t-esc="sale_order.partner_invoice_id.ownership_company_type_id.name"/>
-                        </div>
                         <!-- REPLACEME - Ownership??? -->
                     </div>
                 </div>
@@ -238,8 +384,8 @@
                     <div class="payment_details section_wrapper_subtle">
                         <h2 class="full center">Payment Details</h2>
                         <div class="keyValueRow row">
-                            <div class="col-5">Payment Method:</div>
-                            <div class="col-6 offset-1">Direct Bill</div>
+                            <div class="col-5">Payment Terms:</div>
+                            <div class="col-6 offset-1"><span t-esc="sale_order.payment_term_id.name"/></div>
                         </div>
                     </div>
                 </div>
@@ -312,13 +458,11 @@
                                 <div class="o_download_pdf btn-toolbar flex-md-nowrap">
                                     <div class="btn-group flex-grow-1 mr-1 mb-1">
                                         <a class="btn btn-secondary btn-block o_download_btn" t-att-href="sale_order.get_portal_url(report_type='pdf', download=True)" title="Download">
-                                            <i class="fa fa-download"/>
- Download</a>
+                                            <i class="fa fa-download"/>Download</a>
                                     </div>
                                     <div class="btn-group flex-grow-1 mb-1">
                                         <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="sale_order.get_portal_url(report_type='pdf')" id="print_invoice_report" title="Print" target="_blank">
-                                            <i class="fa fa-print"/>
- Print</a>
+                                            <i class="fa fa-print"/>Print</a>
                                     </div>
                                 </div>
                             </li>
@@ -351,8 +495,7 @@
                                     </t>
                                     <t t-else="">
                                         <h4 t-field="sale_order.amount_untaxed" class="text-success mb-0" data-id="total_untaxed"/>
-                                        <small>(                                            <span t-field="sale_order.amount_total" data-id="total_amount"/>
- Incl. tax)</small>
+                                        <small>(                                            <span t-field="sale_order.amount_total" data-id="total_amount"/>Incl. tax)</small>
                                     </t>
                                 </li>
                             </t>
@@ -522,16 +665,14 @@
                         <button type="button" class="close" data-dismiss="alert" aria-label="close">&amp;times;</button>
                         <strong>This quotation has been canceled.</strong>
                         <a role="button" href="#discussion">
-                            <i class="fa fa-comment"/>
- Contact us to get a new quotation.</a>
+                            <i class="fa fa-comment"/>Contact us to get a new quotation.</a>
                     </div>
 
                     <div t-if="sale_order.is_expired" class="alert alert-warning alert-dismissable d-print-none" role="alert">
                         <button type="button" class="close" data-dismiss="alert" aria-label="close">&amp;times;</button>
                         <strong>This offer expired!</strong>
                         <a role="button" href="#discussion">
-                            <i class="fa fa-comment"/>
- Contact us to get a new quotation.</a>
+                            <i class="fa fa-comment"/>Contact us to get a new quotation.</a>
                     </div>
 
                     <!-- main content -->
@@ -552,13 +693,11 @@
                             </div>
                             <div class="col-md-auto mt8">
                                 <a role="button" class="btn btn-secondary" href="#discussion">
-                                    <i class="fa fa-comment"/>
- Feedback</a>
+                                    <i class="fa fa-comment"/>Feedback</a>
                             </div>
                             <div class="col-md-auto mt8">
                                 <a role="button" class="btn btn-danger" data-toggle="modal" data-target="#modaldecline" href="#">
-                                    <i class="fa fa-times"/>
- Reject</a>
+                                    <i class="fa fa-times"/>Reject</a>
                             </div>
                         </t>
                         <div t-elif="sale_order.has_to_be_paid(True)" class="col-md-auto mt8">
@@ -587,7 +726,7 @@
     </template>
 
     <template id="sale.report_saleorder">
-        <!-- just overwrite the Odoo built-in template -->
+        <!-- just overwrite the Odoo built-in template. PDF generation for emails-->
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
                 <t t-esc="doc.web_base_url()"/>
@@ -1115,17 +1254,18 @@
                 of this Section.
 </p>
 </div>
-<div class="pseudoPage short-upper-margin msa-block">
-<p>
-<B>14.8. Cumulative Rights; Construction; Amendment; Counterparts. </B>The rights and remedies of the Parties under
-                this Agreement are cumulative, and either Party may enforce any of its rights or remedies under this Agreement or
-                other rights and remedies available to it at law or in equity. No modification or amendment of this Agreement is
-                binding unless it is in writing and signed by both Parties. This Agreement may be executed by electronic or digital
-                means and in counterparts, each of which (including signature pages) will be deemed an original, but all of which
-                together will constitute one and the same instrument. Each person who signs this Agreement on behalf of a Party
-                represents and warrants that he or she has the authority to enter into this Agreement on behalf of the Party and
-                bind the Party in accordance with its terms.
-</p>
-</div>
+    <div class="pseudoPage short-upper-margin msa-block">
+        <p>
+        <B>14.8. Cumulative Rights; Construction; Amendment; Counterparts. </B>The rights and remedies of the Parties under
+                        this Agreement are cumulative, and either Party may enforce any of its rights or remedies under this Agreement or
+                        other rights and remedies available to it at law or in equity. No modification or amendment of this Agreement is
+                        binding unless it is in writing and signed by both Parties. This Agreement may be executed by electronic or digital
+                        means and in counterparts, each of which (including signature pages) will be deemed an original, but all of which
+                        together will constitute one and the same instrument. Each person who signs this Agreement on behalf of a Party
+                        represents and warrants that he or she has the authority to enter into this Agreement on behalf of the Party and
+                        bind the Party in accordance with its terms.
+        </p>
+    </div>
 </template>
+
 </odoo>

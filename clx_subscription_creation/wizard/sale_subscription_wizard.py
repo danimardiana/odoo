@@ -75,6 +75,15 @@ class SaleSubscriptionWizard(models.TransientModel):
                         "line_type": "downsell" if price < 0 else "upsell",
                     }
                 )
+                # copy proration from  the source subscription
+                if len(active_subscription.co_op_partner_ids):
+                    for line in active_subscription.co_op_partner_ids:
+                        coop_object = {
+                            "partner_id": line.partner_id.id,
+                            "ratio": line.ratio,
+                            "sale_order_line_id": sol_id.id,
+                        }
+                        self.env["co.op.sale.order.partner"].create(coop_object)
                 # sol_id.price_unit_change()
                 # so.update_price()
                 # so.is_ratio = order_id.is_ratio
