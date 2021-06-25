@@ -141,4 +141,18 @@ if records:
     action = records.button_approve_invoice()
             </field>
     </record>
+
+    <act_window
+        name="Send &amp; print"
+        id="account.invoice_send"
+        res_model="account.invoice.send"
+        binding_model="account.move"
+        binding_views="list"
+        view_mode="form"
+        target="new"
+        context="{
+            'default_template_id': ref('clx_invoice_policy.account_move_clx_email_template'),
+            'mark_invoice_as_sent': True,
+        }"
+        groups="account.group_account_invoice"/>
 </odoo>

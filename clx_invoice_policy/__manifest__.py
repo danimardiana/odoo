@@ -29,6 +29,7 @@
         'views/product_product_views.xml',
         'views/account_move_email_templates.xml',
         'views/sale_subscription_views.xml',
+        'views/invoice_email_template.xml',
         'wizard/generate_invoice_date_range_views.xml',
         'wizard/sale_make_invoice_advance_views.xml'
     ],
