@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!--form view-->
+    <record id="client_cancellation_details" model="ir.ui.view">
+        <field name="name">client.cancellation.details.form.view</field>
+        <field name="model">client.cancellation.details</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="user_id"/>
+                <field name="reason" />
+            </form>
+        </field>
+    </record>
+</odoo>

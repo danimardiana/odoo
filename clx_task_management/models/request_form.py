@@ -41,6 +41,9 @@ class RequestForm(models.Model):
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one("project.project", string="Project")
     product_ids = fields.Many2many("product.product", string="Products")
+    # -----------------------------
+    client_cancellation_details = fields.Many2one("client.cancellation.details", sting="Cancellation Details")
+    client_cancellation = fields.Boolean(string="Client Cancellation")
 
     def open_active_subscription_line(self):
         """
@@ -74,45 +77,6 @@ class RequestForm(models.Model):
 
     def _computed_max_proof_date(self):
         self.max_proof_deadline_date = fields.Date.today()
-
-    def create_client_launch_task(self, project_id):
-        """
-        Create Client launch task is the is_create_client_launch is checked.
-        :return:
-        """
-        project_task_obj = self.env["project.task"]
-        stage_id = self.env.ref("clx_task_management.clx_project_stage_1")
-        if project_id:
-            client_launch_task = self.env.ref("clx_task_management.clx_client_launch_task")
-            if client_launch_task:
-                vals = {
-                    "name": client_launch_task.name,
-                    "project_id": project_id.id,
-                    "stage_id": stage_id.id,
-                    "repositary_task_id": client_launch_task.id,
-                    "req_type": client_launch_task.req_type,
-                    "team_ids": client_launch_task.team_ids.ids,
-                    "team_members_ids": client_launch_task.team_members_ids.ids,
-                    "tag_ids": client_launch_task.tag_ids.ids if client_launch_task.tag_ids else False,
-                }
-                main_task = project_task_obj.create(vals)
-                sub_tasks = self.env["sub.task"].search(
-                    [("parent_id", "=", client_launch_task.id), ("dependency_ids", "=", False)]
-                )
-                if sub_tasks:
-                    for sub_task in sub_tasks:
-                        sub_task_vals = {
-                            "name": sub_task.sub_task_name,
-                            "project_id": project_id.id,
-                            "stage_id": stage_id.id,
-                            "sub_repositary_task_ids": sub_task.dependency_ids.ids,
-                            "team_ids": sub_task.team_ids.ids,
-                            "team_members_ids": sub_task.team_members_ids.ids,
-                            "parent_id": main_task.id,
-                            "sub_task_id": sub_task.id,
-                            "tag_ids": sub_task.tag_ids.ids if sub_task.tag_ids else False,
-                        }
-                        project_task_obj.create(sub_task_vals)
 
     def assign_stage_project(self, project_id):
         """
@@ -411,16 +375,17 @@ class RequestForm(models.Model):
             vals = self.prepared_project_vals(self.description, self.partner_id)
             if vals:
                 project_id = project_obj.create(vals)
+
                 if project_id:
                     project_id.req_form_id = self.id
                     self.project_id = project_id.id
                     self.assign_stage_project(project_id)
-                    # if self.is_create_client_launch:
-                    #     self.create_client_launch_task(project_id)
+
                     for line in self.request_line:
                         if line.task_id:
                             vals = self.prepared_task_vals(line, project_id)
                             main_task = project_task_obj.create(vals)
+
                             if main_task:
                                 dependency_sub_tasks = sub_task_obj.search(
                                     [
@@ -436,17 +401,51 @@ class RequestForm(models.Model):
 
         if not self.intended_launch_date:
             self.intended_launch_date = self.max_proof_deadline_date
-        print("SUBMITTED")
+
         self.state = "submitted"
         self.submitted_by_user_id = self.env.uid
         self._send_request_form_mail()
 
-    @api.onchange("partner_id", "is_create_client_launch")
+    @api.onchange("update_all_products")
+    def _onchange_update_all_products(self):
+        if self.update_all_products:
+            self.client_cancellation = False
+
+    @api.onchange("partner_id", "is_create_client_launch", "client_cancellation")
     def _onchange_partner_id(self):
         list_product = []
         req_line_obj = self.env["request.form.line"]
         main_task_obj = self.env["main.task"]
-        if not self.is_create_client_launch:
+
+        # if client cancel request, set Project Title
+        # and hide other options.
+        if self.client_cancellation:
+            client_cancellation_main_task = self.env.ref("clx_task_management.client_cancellation_task")
+            client_cancellation_obj = self.env["client.cancellation.details"]
+            list_product = []
+
+            if self.partner_id.name:
+                self.description = "CANCELLATION - " + self.partner_id.name
+            else:
+                self.description = "CANCELLATION"
+
+            self.is_create_client_launch = False
+            self.update_all_products = False
+
+            cancellation_vals = {"req_form_id": self.id, "user_id": self.partner_id.account_user_id.id}
+
+            client_cancellation_obj.create(cancellation_vals)
+
+            cancellation_main_task_vals = {
+                "req_type": client_cancellation_main_task.req_type,
+                "task_id": client_cancellation_main_task.id,
+                "requirements": client_cancellation_main_task.requirements,
+                "description": client_cancellation_main_task.requirements,
+            }
+            form_line_id = req_line_obj.create(cancellation_main_task_vals)
+            list_product.append(form_line_id.id)
+
+        elif not self.is_create_client_launch:
             client_launch_task = self.env.ref("clx_task_management.clx_client_launch_task", raise_if_not_found=False)
             available_line = self.request_line.filtered(
                 lambda x: client_launch_task and x.task_id.id == client_launch_task.id
@@ -454,7 +453,7 @@ class RequestForm(models.Model):
             if available_line:
                 available_line.unlink()
         else:
-            client_launch_task = self.env.ref("clx_task_management.clx_client_launch_task")
+            self.client_cancellation = False
             auto_tasks = (
                 self.env.user.company_id.auto_add_main_task_ids
                 if self.env.user.company_id and self.env.user.company_id.auto_add_main_task_ids
@@ -470,21 +469,26 @@ class RequestForm(models.Model):
                 form_line_id = req_line_obj.create(vals)
                 list_product.append(form_line_id.id)
         today = fields.Date.today()
+
         lines = self.env["sale.order.line"].search([("order_partner_id", "=", self.partner_id.id)])
         order_lines = False
-        if lines:
+
+        if lines and not self.client_cancellation:
             order_lines = lines
             order_lines = order_lines.filtered(lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
+
+            if self.description and "CANCELLATION" in self.description:
+                self.description = self.partner_id.name if self.partner_id.name else ""
+
             for category in order_lines.mapped("product_id").mapped("categ_id"):
-                # task_id = main_task_obj.search([('product_ids', 'in', product.id), ('req_type', '=', 'update')])
                 line_id = req_line_obj.create(
                     {
                         "category_id": category.id,
                         "req_type": "update",
-                        # 'task_id': task_id[0].id if task_id else False
                     }
                 )
                 list_product.append(line_id.id)
+
         self.update(
             {
                 "request_line": [(6, 0, list_product)],
