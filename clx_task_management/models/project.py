@@ -186,6 +186,7 @@ class ProjectTask(models.Model):
     proof_return_ids_flattened = fields.Text(string="Proof Return Teams", compute="_compute_proof_return_ids_flattened")
     task_in_progress_date = fields.Datetime(string="Task In Progress Date", readonly=False)
     task_proof_internal_date = fields.Datetime(string="Task Proof Internal Date", readonly=False)
+    cancel_client = fields.Boolean(string="Client Cancellation")
 
     @api.model
     def create(self, vals):

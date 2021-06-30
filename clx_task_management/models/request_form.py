@@ -176,6 +176,8 @@ class RequestForm(models.Model):
                 else False,
                 "clx_priority": main_task.project_id.priority,
                 "description": line.description,
+                "requirements": line.requirements,
+                "cancel_client": self.cancel_client,
                 "clx_attachment_ids": self.clx_attachment_ids.ids,
                 "category_id": line.category_id.id if line.category_id else False,
             }
@@ -194,7 +196,8 @@ class RequestForm(models.Model):
         proof_deadline_date = self.calculated_date(line)
 
         if self.cancel_client:
-            # Get Select Field Options
+            # Set the requirements field in all Tasks with the informtion
+            # collected from the Client Cancellation Questionaire
             cancel_client_type_vals = dict(self._fields["cancel_client_type"].selection)
             cancel_reason_vals = dict(self._fields["cancel_reason"].selection)
             cancel_reports_vals = dict(self._fields["cancel_reports"].selection)
@@ -206,7 +209,10 @@ class RequestForm(models.Model):
             billing = cancel_billing_vals.get(self.cancel_billing)
 
             line.requirements = (
-                "Preferred Client Type:  "
+                line.requirements
+                + os.linesep
+                + os.linesep
+                + "Preferred Client Type:  "
                 + client_type
                 + os.linesep
                 + os.linesep
@@ -240,6 +246,7 @@ class RequestForm(models.Model):
             if self.intended_launch_date
             else proof_deadline_date,
             "requirements": line.requirements,
+            "cancel_client": self.cancel_client,
             "tag_ids": line.task_id.tag_ids.ids if line.task_id.tag_ids else False,
             "account_user_id": project_id.partner_id.account_user_id.id
             if project_id.partner_id.account_user_id
@@ -508,9 +515,9 @@ class RequestForm(models.Model):
             list_product = []
 
             if self.partner_id.name:
-                self.description = "CANCELLATION - " + self.partner_id.name
+                self.description = "CLIENT CANCELLATION - " + self.partner_id.name
             else:
-                self.description = "CANCELLATION"
+                self.description = "CLIENT CANCELLATION"
 
             self.is_create_client_launch = False
             self.update_all_products = False
