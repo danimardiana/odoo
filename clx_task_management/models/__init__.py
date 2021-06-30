@@ -16,4 +16,3 @@ from . import res_company
 from . import mail_thread
 from . import product_product
 from . import task_proof_return
-from . import client_cancellation_details

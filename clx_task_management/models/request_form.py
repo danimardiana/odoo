@@ -5,6 +5,7 @@ from odoo import fields, api, models, _
 from odoo.exceptions import UserError, ValidationError, Warning
 from dateutil.relativedelta import relativedelta
 import datetime
+import os
 from pytz import timezone
 
 
@@ -41,9 +42,49 @@ class RequestForm(models.Model):
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one("project.project", string="Project")
     product_ids = fields.Many2many("product.product", string="Products")
-    # -----------------------------
-    client_cancellation_details = fields.Many2one("client.cancellation.details", sting="Cancellation Details")
-    client_cancellation = fields.Boolean(string="Client Cancellation")
+    # Client Cancellation Fields
+    cancel_client = fields.Boolean(string="Client Cancellation")
+    cancel_service_date = fields.Date(string="Last Day of Service")
+    cancel_user_id = fields.Many2one("res.users", string="Account Manager")
+    cancel_client_type = fields.Selection(
+        [
+            ("other", "Other"),
+            ("greystar", "Greystar"),
+            ("ave5", "Avenue 5"),
+        ],
+        string="Preferred Client Type",
+    )
+    cancel_reason = fields.Selection(
+        [
+            ("stabilized_asset", "Stabilized Asset"),
+            ("perf_issue", "Performance Issue"),
+            ("loss_of_mgmt", "Loss of Management"),
+            ("owner_dissatisfiled", "Ownership Dissatisfiled"),
+            ("mgmt_dissatisfiled", "Management Dissatisfiled"),
+            ("comp_loss", "Lost to a Competitor"),
+            ("budget_constraints", "Budget Constraints"),
+            ("term_notice", "Notice of Termination"),
+            ("clx_other", "Other (CLX Lost Contract)"),
+            ("na", "N/A"),
+        ],
+        string="Cancellation Reason",
+    )
+    cancel_reason_detail = fields.Text(string="Cancellation Reason Detail")
+    cancel_reports = fields.Selection(
+        [
+            ("delete_today", "Delete reporting today."),
+            ("delete_weekly_today", "Delete weekly reports today. Delete monthly reports after final reports issue."),
+            ("delete_after_final", "Delete reporting after final reports issue."),
+        ],
+        string="Cancel - Automated Reports",
+    )
+    cancel_billing = fields.Selection(
+        [
+            ("full_month", "Spend a full month's budget in the remaining month."),
+            ("half_month", "Spend a 1/2 month's budget in the remaining prorated month."),
+        ],
+        string="Cancel - Final Billing",
+    )
 
     def open_active_subscription_line(self):
         """
@@ -151,6 +192,39 @@ class RequestForm(models.Model):
 
         # Proof Due Date/Deadline
         proof_deadline_date = self.calculated_date(line)
+
+        if self.cancel_client:
+            # Get Select Field Options
+            cancel_client_type_vals = dict(self._fields["cancel_client_type"].selection)
+            cancel_reason_vals = dict(self._fields["cancel_reason"].selection)
+            cancel_reports_vals = dict(self._fields["cancel_reports"].selection)
+            cancel_billing_vals = dict(self._fields["cancel_billing"].selection)
+
+            client_type = cancel_client_type_vals.get(self.cancel_client_type)
+            reason = cancel_reason_vals.get(self.cancel_reason)
+            reports = cancel_reports_vals.get(self.cancel_reports)
+            billing = cancel_billing_vals.get(self.cancel_billing)
+
+            line.requirements = (
+                "Preferred Client Type:  "
+                + client_type
+                + os.linesep
+                + os.linesep
+                + "Cancellation Reason:  "
+                + reason
+                + os.linesep
+                + os.linesep
+                + "Cancellation Detail:  "
+                + self.cancel_reason_detail
+                + os.linesep
+                + os.linesep
+                + "Cancel - Automated Reports:  "
+                + reports
+                + os.linesep
+                + os.linesep
+                + "Cancel - Final Billing:  "
+                + billing
+            )
 
         vals = {
             "name": line.task_id.name,
@@ -409,19 +483,28 @@ class RequestForm(models.Model):
     @api.onchange("update_all_products")
     def _onchange_update_all_products(self):
         if self.update_all_products:
-            self.client_cancellation = False
+            self.cancel_client = False
 
-    @api.onchange("partner_id", "is_create_client_launch", "client_cancellation")
+    @api.onchange("partner_id", "is_create_client_launch", "cancel_client")
     def _onchange_partner_id(self):
         list_product = []
         req_line_obj = self.env["request.form.line"]
         main_task_obj = self.env["main.task"]
 
-        # if client cancel request, set Project Title
-        # and hide other options.
-        if self.client_cancellation:
+        # Reset all cancellation fields if cancel deselected
+        if not self.cancel_client:
+            self.cancel_user_id = False
+            self.cancel_client_type = False
+            self.cancel_reports = False
+            self.cancel_reason = False
+            self.cancel_reason_detail = False
+            self.cancel_service_date = False
+            self.cancel_billing = False
+            self.description = False
+
+        # if client cancel request, set Project Title and hide other options.
+        if self.cancel_client:
             client_cancellation_main_task = self.env.ref("clx_task_management.client_cancellation_task")
-            client_cancellation_obj = self.env["client.cancellation.details"]
             list_product = []
 
             if self.partner_id.name:
@@ -431,10 +514,7 @@ class RequestForm(models.Model):
 
             self.is_create_client_launch = False
             self.update_all_products = False
-
-            cancellation_vals = {"req_form_id": self.id, "user_id": self.partner_id.account_user_id.id}
-
-            client_cancellation_obj.create(cancellation_vals)
+            self.cancel_user_id = self.partner_id.account_user_id.id
 
             cancellation_main_task_vals = {
                 "req_type": client_cancellation_main_task.req_type,
@@ -453,7 +533,7 @@ class RequestForm(models.Model):
             if available_line:
                 available_line.unlink()
         else:
-            self.client_cancellation = False
+            self.cancel_client = False
             auto_tasks = (
                 self.env.user.company_id.auto_add_main_task_ids
                 if self.env.user.company_id and self.env.user.company_id.auto_add_main_task_ids
@@ -473,7 +553,7 @@ class RequestForm(models.Model):
         lines = self.env["sale.order.line"].search([("order_partner_id", "=", self.partner_id.id)])
         order_lines = False
 
-        if lines and not self.client_cancellation:
+        if lines and not self.cancel_client:
             order_lines = lines
             order_lines = order_lines.filtered(lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
 

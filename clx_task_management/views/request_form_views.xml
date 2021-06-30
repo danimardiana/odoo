@@ -39,11 +39,11 @@
                     </group>
                     <group>
                         <field name="description"/>
-                        <field name="is_create_client_launch" attrs="{'invisible': [('client_cancellation', '=', True)]}"/>
+                        <field name="is_create_client_launch" attrs="{'invisible': [('cancel_client', '=', True)]}"/>
                         <field name="sale_order_id" widget="many2many_tags" invisible="1"
                                context="{'active_sale_order': True,'req_partner_id': partner_id}"/>
-                        <field name="update_all_products" attrs="{'invisible': [('client_cancellation', '=', True)]}"/>
-                        <field name="client_cancellation" attrs="{'invisible': ['|',('is_create_client_launch', '=', True), ('update_all_products', '=', True)]}"/>
+                        <field name="update_all_products" attrs="{'invisible': [('cancel_client', '=', True)]}"/>
+                        <field name="cancel_client" attrs="{'invisible': ['|',('is_create_client_launch', '=', True), ('update_all_products', '=', True)]}"/>
                         <field name="update_products_des" attrs="{'invisible': [('update_all_products', '=', False)]}"/>
                         <div attrs="{'invisible': [('update_all_products', '=', False)]}">
                             <button name="update_description" string="Update Descriptions" icon="fa-long-arrow-right"
@@ -52,19 +52,6 @@
                     </group>
                 </group>
                 <notebook>
-                  <page string="Cancellation Details" attrs="{'invisible': [('client_cancellation', '!=', True)]}">
-                        <field name="client_cancellation_details" >
-                          
-                                <group>
-                                    <field name="preferred_client_type"/>
-                                </group>
-                                <group>
-                                    <field name="reason"/>
-                                    <field name="reason_detail"/>
-                                </group>
-                           
-                        </field>
-                    </page>
                     <page string="Line Item Details" name="line_item_details">
                         <field name="request_line" widget="section_and_note_one2many">
                             <tree editable="bottom">
@@ -92,6 +79,34 @@
                                 </group>
                             </form>
                         </field>
+                    </page>
+                     <page string="Client Cancellation" attrs="{'invisible': [('cancel_client', '!=', True)]}">
+                        <form>
+                            <div style="display: flex">
+                                <div style="flex: 1, max-width: 600px">
+                                    <group>
+                                        <field  name="cancel_user_id"/>
+                                        <field  name="cancel_service_date" attrs="{'required': [('cancel_client', '=', True)]}"/>
+                                        <field  name="cancel_client_type" attrs="{'required': [('cancel_client', '=', True)]}"/>
+                                    </group>
+                                </div>
+                                <div style="flex: 1, max-width: 600px">
+                                    <group>    
+                                        <field  name="cancel_reason" attrs="{'required': [('cancel_client', '=', True)]}"/>
+                                        <field name="cancel_reason_detail" 
+                                               string="Client comments and Details" 
+                                               attrs="{'invisible': [('cancel_reason', 'in', ('comp_loss'))], 
+                                                       'required': [('cancel_client', '=', True)]}"/>
+                                        <field name="cancel_reason_detail" 
+                                               string="Agency or Service / Client comments and Details" 
+                                               attrs="{'invisible': [('cancel_reason', 'not in', ('comp_loss'))], 
+                                                       'required': [('cancel_client', '=', True)]}"/>
+                                        <field  name="cancel_reports" attrs="{'required': [('cancel_client', '=', True)]}"/>
+                                        <field  name="cancel_billing" attrs="{'required': [('cancel_client', '=', True)]}"/>
+                                    </group>
+                                </div>
+                            </div>
+                        </form>
                     </page>
                     <page string="Ads Link">
                         <field name="ads_link_ids">
