@@ -237,7 +237,8 @@
                 <field name="create_date" string="Task Create Date" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
                 <field name="task_complete_date" string="Task Complete Date" readonly="1" attrs="{'invisible': [('parent_id', '!=', False)]}"/>
                 <field name="create_date" string="SubTask Create Date" attrs="{'invisible': [('parent_id', '=', False)]}"/>
-                  <field name="task_complete_date" string="SubTask Complete Date" readonly="1" attrs="{'invisible': [('parent_id', '=', False)]}"/>
+                <field name="task_complete_date" string="SubTask Complete Date" readonly="1" attrs="{'invisible': [('parent_id', '=', False)]}"/>
+                <field name="cancel_client" attrs="{'invisible': True}"/>
             </field>
             <xpath expr="//field[@name='create_date']" position="before">
                 <!-- 
@@ -298,7 +299,13 @@
             </field>
 
             <xpath expr="//page[@name='description_page']" position="after">
-                <page name="requirements" string="Requirements">
+                <!-- Toggel label on Requirments tab if client cancellation project -->
+                <page name="requirements" string="Cancellation Requirements" attrs="{'invisible': [('cancel_client', '=', False)]}">
+                    <group>
+                        <field name="requirements"/>
+                    </group>
+                </page>
+                <page name="requirements" string="Requirements" attrs="{'invisible': [('cancel_client', '=', True)]}">
                     <group>
                         <field name="requirements"/>
                     </group>
