@@ -32,7 +32,7 @@
                     <group>
                         <field name="partner_id" required="1" domain="[('company_type','=','company')]"/>
                         <field name="request_date"/>
-                        <field name="intended_launch_date" options="{'datepicker': {'minDate': 'now'}}"/>
+                        <field name="intended_launch_date" options="{'datepicker': {'minDate': 'now', 'defaultDate' : 'now'}}"/>
                         <field name="max_proof_deadline_date" invisible="0" readonly="1" force_save="1"/>
                         <field name="submitted_by_user_id" readonly="1"/>
                         <field name="priority"/>
