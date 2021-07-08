@@ -88,6 +88,7 @@
                                         <field  name="cancel_user_id"/>
                                         <field  name="cancel_service_date" attrs="{'required': [('cancel_client', '=', True)]}"/>
                                         <field  name="cancel_client_type" attrs="{'required': [('cancel_client', '=', True)]}"/>
+                                        <field  name="cancel_vertical" attrs="{'required': [('cancel_client', '=', True)]}"/>
                                     </group>
                                 </div>
                                 <div style="flex: 1, max-width: 600px">

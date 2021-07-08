@@ -54,6 +54,15 @@ class RequestForm(models.Model):
         ],
         string="Preferred Client Type",
     )
+    cancel_vertical = fields.Selection(
+        [
+            ("res", "RES"),
+            ("srl", "SRL"),
+            ("local", "Local"),
+            ("auto", "Auto"),
+        ],
+        string="Vertical",
+    )
     cancel_reason = fields.Selection(
         [
             ("stabilized_asset", "Stabilized Asset"),
@@ -199,11 +208,13 @@ class RequestForm(models.Model):
             # Set the requirements field in all Tasks with the informtion
             # collected from the Client Cancellation Questionaire
             cancel_client_type_vals = dict(self._fields["cancel_client_type"].selection)
+            cancel_vertical_vals = dict(self._fields["cancel_vertical"].selection)
             cancel_reason_vals = dict(self._fields["cancel_reason"].selection)
             cancel_reports_vals = dict(self._fields["cancel_reports"].selection)
             cancel_billing_vals = dict(self._fields["cancel_billing"].selection)
 
             client_type = cancel_client_type_vals.get(self.cancel_client_type)
+            client_vertical = cancel_vertical_vals.get(self.cancel_vertical)
             reason = cancel_reason_vals.get(self.cancel_reason)
             reports = cancel_reports_vals.get(self.cancel_reports)
             billing = cancel_billing_vals.get(self.cancel_billing)
@@ -214,6 +225,10 @@ class RequestForm(models.Model):
                 + os.linesep
                 + "Preferred Client Type:  "
                 + client_type
+                + os.linesep
+                + os.linesep
+                + "Verical:  "
+                + client_vertical
                 + os.linesep
                 + os.linesep
                 + "Cancellation Reason:  "
