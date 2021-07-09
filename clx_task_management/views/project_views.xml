@@ -164,14 +164,13 @@
             </field>
             <xpath expr="//notebook" position="inside">
                 <page string="Ads Link" name="ads_link">
-                    <group>
                         <field name="project_ads_link_ids">
                             <tree editable="bottom">
-                                <field name="product_id"/>
+                                <field name="category_id" options="{'no_open':True,'no_create':1,'no_create_edit':1}"/>
+                                <field name="description"/>
                                 <field name="link"/>
                             </tree>
                         </field>
-                    </group>
                 </page>
                 <page name="extra_details" string="Extra Info">
                     <group>
@@ -318,14 +317,13 @@
                     </group>
                 </page>
                 <page name="ads_link" string="Ads Link">
-                    <group>
                         <field name="project_ads_link_ids">
                             <tree editable="bottom">
-                                <field name="product_id"/>
+                                <field name="category_id" options="{'no_open':True,'no_create':1,'no_create_edit':1}"/>
+                                <field name="description"/>
                                 <field name="link" widget="url"/>
                             </tree>
                         </field>
-                    </group>
                 </page>
                 <page name="review_assignment" string="Review Assignment"
                       attrs="{'invisible': [('parent_id', '=', False)]}">
