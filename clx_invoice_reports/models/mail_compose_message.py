@@ -9,19 +9,12 @@ class MaleComposeMessage(models.TransientModel):
     _inherit = "mail.compose.message"
 
     def get_allowed_ids(self):
-        if not self.allowed_partner_ids_storage:
-            return False
-        ids_process = self.env["res.partner"].search([("id", "in", json.loads(self.allowed_partner_ids_storage))])
-        self.allowed_partner_ids = ids_process
+        if self.model in ["sale.order", "account.move"]:
+            self.allowed_partner_ids = self.env["sale.order"].browse(self.res_id).partner_id.contacts_to_notify()
 
-    def set_allowed_ids(self):
-        self.allowed_partner_ids_storage = json.dumps(list(map(lambda x: x.id, self.allowed_partner_ids)))
+    allowed_partner_ids = fields.One2many("res.partner", compute="get_allowed_ids", string="List of contacts")
 
     email_to = fields.Char(string="Additional e-mails")
-    allowed_partner_ids = fields.One2many(
-        "res.partner", compute="get_allowed_ids", inverse="set_allowed_ids", string="List of contacts"
-    )
-    allowed_partner_ids_storage = fields.Char(string="List of contacts in JSON")
 
     def clx_action_send_mail(self):
         prepeared_values = {
@@ -44,7 +37,7 @@ class MaleComposeMessage(models.TransientModel):
             prepeared_values["email_to"] = recipient.strip()
             Mail = self.env["mail.mail"].create(prepeared_values)
             object_source = self.env[self.model].browse(self.res_id)
-            object_source.email_send_postprocess();
+            object_source.email_send_postprocess()
             Mail.send()
 
         return {"type": "ir.actions.act_window_close", "infos": "mail_sent"}

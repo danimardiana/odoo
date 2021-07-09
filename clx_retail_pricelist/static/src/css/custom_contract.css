@@ -208,7 +208,18 @@ h3 {
 }
 .msa-wrapper {
     padding: 0 3%;
-
+}
+.communityBlock {
+    display: block;
+    page-break-before: auto;
+    margin: 7px 0;
+    padding: 7px 0;
+    border-top: solid 1px black;
+}
+.communityBlock:first-child {
+    margin: 0;
+    padding: 0;
+    border: none;
 }
 /**
 * ===============
@@ -326,7 +337,7 @@ h3 {
         display: block;
         page-break-before: auto;
         margin: 0px;
-    }
+    }    
     .row {
         page-break-inside: avoid;
     }
