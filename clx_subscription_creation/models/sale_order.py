@@ -9,6 +9,7 @@ from . import grouping_data
 
 products_set_grouping_level = grouping_data.products_set_grouping_level
 
+
 class FakeSaleOrderLine:
     def __init__(self, sol, ratio):
         self.order_id = sol.order_id
@@ -228,15 +229,16 @@ class SaleOrder(models.Model):
                 "name": line.name,
                 "product_id": line.product_id.id,
                 "price_unit": line.price_unit,
+                 "pricelist": line.order_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
                 "description": line._grouping_name_calc(line),  # second level of grouping - budget wrapping
                 "contract_product_description": line.product_id.contract_product_description,
                 "display_type": line.display_type,
                 "prorate_amount": line.prorate_amount if line.prorate_amount else line.price_unit,
                 "product_template_id": line.product_template_id,
-                "management_fee_calculated": self.management_fee_calculation(
-                    line.price_unit, line.product_template_id, self.pricelist_id
-                ),
+                # "management_fee_calculated": self.management_fee_calculation(
+                #     line.price_unit, line.product_template_id, self.pricelist_id
+                # ),
                 "discount": 0.0,
                 "tax_ids": [],
             }
@@ -246,20 +248,22 @@ class SaleOrder(models.Model):
                 "product_id": product_individual["product_id"],
                 "product_name": product_individual["product_name"],
                 "price_unit": product_individual["price_unit"],
+                "pricelist": product_individual["pricelist"],
                 "description": product_individual["description"],
                 "contract_product_description": product_individual["contract_product_description"],
                 "name": product_individual["name"],
+                "category_name": product_individual["category_name"],
                 "display_type": product_individual["display_type"],
                 "prorate_amount": product_individual["prorate_amount"],
                 "product_template_id": product_individual["product_template_id"],
-                "management_fee_calculated": product_individual["management_fee_calculated"],
+                # "management_fee_calculated": product_individual["management_fee_calculated"],
             }
 
         def last_order_update(product_source, product_additional):
             product_updated = product_source
             product_updated["price_unit"] += product_additional["price_unit"]
             product_updated["prorate_amount"] += product_additional["prorate_amount"]
-            product_updated["management_fee_calculated"] += product_additional["management_fee_calculated"]
+            # product_updated["management_fee_calculated"] += product_additional["management_fee_calculated"]
             return product_updated
 
         source_lines = order_line or self.order_line
@@ -288,10 +292,10 @@ class SaleOrder(models.Model):
             line_to_add = initial_obj(line, partner_id)
             modified_invoice_lines.append(line_to_add)
 
-        # first level of grouping - product set
+        # grouping by product set
         self.grouping_by_product_set(modified_invoice_lines)
 
-        # final grouping by description
+        # grouping by description
         final_values = {}
         for product_individual in modified_invoice_lines:
             # combine the lines contains the same description, tax and discount
@@ -310,6 +314,19 @@ class SaleOrder(models.Model):
                         and final_values[combined_signature][unset_fields] != product_individual[unset_fields]
                     ):
                         final_values[combined_signature][unset_fields] = False
+
+        # management fees populating
+        # management fees lines will be added on the invoicing level, here calculation only
+        for line in final_values:
+            current_line = final_values[line]
+            if "product_id" in current_line and "pricelist" in current_line:
+                current_line["management_fee"] = self.management_fee_calculation(
+                    current_line["price_unit"],
+                    self.env["product.product"].browse(current_line["product_id"]),
+                    current_line["pricelist"],
+                )
+            else:
+                current_line["management_fee"] = 0
 
         return list(final_values.values())
 

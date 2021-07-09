@@ -50,6 +50,7 @@ class Partner(models.Model):
     def generate_invoice(self):
         self.env['sale.subscription'].invoicing_invoice_policy_range(partner=self)
 
+    # SB's invoice generation code. Could be removed as new inoicing code approved
     def get_advanced_sub_lines(self, lines):
         """
         To get all the lines which start in Advance month period.
@@ -166,6 +167,7 @@ class Partner(models.Model):
                                   })
             return discount_line
 
+    # SB's invoice generation code. Could be removed as new inoicing code approved
     def generate_advance_invoice(self, lines):
         """
         To calculate invoice lines for Advances Policy.
@@ -640,7 +642,7 @@ class Partner(models.Model):
         if account_id:
             account_id.write({'subscription_line_ids': [(6, 0, so_lines.ids)]})
 
-
+    # SB's invoice generation code. Could be removed as new inoicing code approved
     def generate_arrears_invoice(self, lines):
         today = date.today()
         so_lines = lines.filtered(

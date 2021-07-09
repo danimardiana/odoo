@@ -167,8 +167,6 @@ class SaleSubscription(models.Model):
         )
         return all_account_move_lines or False
 
-    # generate invoice basing on the Billing rules
-
     # generating invoice basing on the datarange
     def format_period_message(self, start_date, end_date):
         format_date = self.env["ir.qweb.field.date"].value_to_html
@@ -349,6 +347,7 @@ class SaleSubscription(models.Model):
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
                 "price_unit": price,
+                "pricelist": line.analytic_account_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
                 "category_id": line.product_id.categ_id.id,
                 "description": line._grouping_name_calc(line),  # second level of grouping - budget wrapping
@@ -373,6 +372,7 @@ class SaleSubscription(models.Model):
                 "rebate": product_individual["rebate"],
                 "category_id": product_individual["category_id"],
                 "product_id": product_individual["product_id"],
+                "pricelist": product_individual["pricelist"],
                 "tax_ids": product_individual["tax_ids"],
                 "discount": product_individual["discount"],
                 # "prorate_amount": product_individual["prorate_amount"],
@@ -458,18 +458,46 @@ class SaleSubscription(models.Model):
         for line in grouped_sub_lines:
             if line["price_unit"] == 0:
                 continue
-            grouped_invoice_lines.append(
-                {
-                    "name": period_msg,
-                    "description": line["description"],
-                    "product_id": line["product_id"],
-                    "category_id": line["category_id"],
-                    "price_unit": line["price_unit"],
-                    "price_subtotal": line["price_unit"],
-                    "discount": line["discount"],
-                    "tax_ids": line["tax_ids"],
-                }
-            )
+            final_price = line["price_unit"]
+            if line["management_fee"]>0:
+                final_price -= line["management_fee"]
+                grouped_invoice_lines.append(
+                    {
+                        "name": period_msg,
+                        "description": line["description"],
+                        "product_id": line["product_id"],
+                        "category_id": line["category_id"],
+                        "price_unit": final_price,
+                        "price_subtotal": final_price,
+                        "discount": line["discount"],
+                        "tax_ids": line["tax_ids"],
+                    }
+                )
+                grouped_invoice_lines.append(
+                    {
+                        "name": period_msg,
+                        "description": "Management Fee for " + line["description"],
+                        "product_id": False,
+                        "category_id": line["category_id"],
+                        "price_unit": line["management_fee"],
+                        "price_subtotal": line["management_fee"],
+                        "discount": 0,
+                        "tax_ids": line["tax_ids"],
+                    }
+                )
+            else:
+                grouped_invoice_lines.append(
+                    {
+                        "name": period_msg,
+                        "description": line["description"],
+                        "product_id": line["product_id"],
+                        "category_id": line["category_id"],
+                        "price_unit": line["price_unit"],
+                        "price_subtotal": final_price,
+                        "discount": line["discount"],
+                        "tax_ids": line["tax_ids"],
+                    }
+                )
             rebate_total += line["rebate"]
 
         if rebate_total:
@@ -481,7 +509,7 @@ class SaleSubscription(models.Model):
                     "price_subtotal": -rebate_total,
                 }
             )
-        
+
         response.update({"invoice_lines": grouped_invoice_lines, "related_subscriptions": sub_lines})
         return response
 

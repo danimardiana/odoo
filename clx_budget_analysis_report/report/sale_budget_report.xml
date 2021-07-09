@@ -179,13 +179,15 @@
                                     <t t-set="total_wholesale" t-value="0" />
                                     <t t-set="total_mgmnt_fee" t-value="0" />
                                 <t t-foreach="spk['subs']" t-as="line">
-                                    <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
-                                        <t t-set="total_retail" t-value="total_retail+sub_period['retail_price']" />
-                                        <t t-if="sub_period['wholesale_price']>0">
-                                            <t t-set="total_wholesale" t-value="total_wholesale + sub_period['wholesale_price']" />
-                                        </t> 
-                                        <t t-if="sub_period['management_fee']>0">
-                                            <t t-set="total_mgmnt_fee" t-value="total_mgmnt_fee + sub_period['management_fee']" />
+                                    <t t-if="period in spk['subs'][line]">
+                                        <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
+                                            <t t-set="total_retail" t-value="total_retail+sub_period['retail_price']" />
+                                            <t t-if="sub_period['wholesale_price']>0">
+                                                <t t-set="total_wholesale" t-value="total_wholesale + sub_period['wholesale_price']" />
+                                            </t> 
+                                            <t t-if="sub_period['management_fee']>0">
+                                                <t t-set="total_mgmnt_fee" t-value="total_mgmnt_fee + sub_period['management_fee']" />
+                                            </t>
                                         </t>
                                     </t>
                                 </t>
