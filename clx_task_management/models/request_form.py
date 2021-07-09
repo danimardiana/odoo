@@ -388,7 +388,26 @@ class RequestForm(models.Model):
         subscriptions = self.env["sale.subscription"].search([("partner_id", "=", self.partner_id.id)])
         if not subscriptions:
             raise UserError("You can not submit request form there is no active sale for this customer!!")
+
         if self.description and self.partner_id:
+
+            # Project creation is not allowed if there is already an open
+            # project for this client. Popup a dialog and let the user know
+            open_projects = self.env["project.project"].search(
+                ["&", ("partner_id", "=", self.partner_id.id), ("clx_state", "!=", "done")]
+            )
+            if len(open_projects) > 0:
+                context = dict(self._context or {})
+                context["open_ids"] = open_projects.ids
+                return {
+                    "name": "Existing Project Warning",
+                    "type": "ir.actions.act_window",
+                    "res_model": "clx.existing.project.warning.wizard",
+                    "view_mode": "form",
+                    "target": "new",
+                    "context": context,
+                }
+
             vals = self.prepared_project_vals(self.description, self.partner_id)
             if vals:
                 project_id = project_obj.create(vals)
@@ -417,7 +436,7 @@ class RequestForm(models.Model):
 
         if not self.intended_launch_date:
             self.intended_launch_date = self.max_proof_deadline_date
-
+        print("SUBMITTED")
         self.state = "submitted"
         self.submitted_by_user_id = self.env.uid
         self._send_request_form_mail()

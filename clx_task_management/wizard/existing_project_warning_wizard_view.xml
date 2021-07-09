@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<odoo>
+  <data>
+    <record id="clx_existing_project_warning_form_wiz" model="ir.ui.view">
+      <field name="name">clx.existing.project.warning.form.wiz</field>
+      <field name="model">clx.existing.project.warning.wizard</field>
+      <field name="arch" type="xml">
+        <form>
+          <h3>
+            IMPORTANT:
+          </h3>
+          <field name="message" />   
+          <field name="open_project_ids" class="oe_inline" readonly="1"/>
+          <footer>
+            <button special="cancel" string="Ok" class="btn btn-secondary"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <record id="view_project_inherit_clx_existing_project_wizard" model="ir.ui.view">
+      <field name="name">project.project.tree</field>
+      <field name="model">project.project</field>
+      <field name="inherit_id" ref="project.view_project"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='user_id']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>
+        <xpath expr="//field[@name='ops_team_member_id']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>
+        <xpath expr="//field[@name='clx_project_designer_id']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>
+        <xpath expr="//field[@name='clx_project_manager_id']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>
+        <xpath expr="//field[@name='client_services_team']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>    
+        <xpath expr="//field[@name='deadline']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>
+        <xpath expr="//field[@name='create_date']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>  
+        <xpath expr="//field[@name='complete_date']" position="attributes">
+            <attribute name="invisible">1</attribute>
+        </xpath>     
+        <xpath expr="//field[@name='partner_id']" position="attributes">
+            <attribute name="string">Customer</attribute>
+        </xpath>
+        <xpath expr="//field[@name='user_id']" position="attributes">
+            <attribute name="string">Account Manager</attribute>
+        </xpath>
+        <xpath expr="//field[@name='name']" position="attributes">
+            <attribute name="string">Project Name</attribute>
+        </xpath>
+        <xpath expr="//field[@name='partner_id']" position="after">
+            <field name="user_id"/>
+        </xpath>
+        <xpath expr="//field[@name='priority']" position="after">
+            <field name="create_date"/>
+        </xpath>
+      </field>
+    </record>
+    
+    <record id="action_clx_existing_project_warning" model="ir.actions.act_window">
+      <field name="name">Existing Project Warning</field>
+      <field name="res_model">clx.existing.project.warning.wizard</field>
+      <field name="view_mode">form</field>
+      <field name="target">new</field>
+    </record>
+  </data>
+</odoo>

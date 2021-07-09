@@ -24,6 +24,7 @@
         
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
+                <!-- <field name="partner_id" widget="copyable" copyable="1"/> -->
                 <field name="is_co_op"/>
 
             </xpath>
@@ -31,6 +32,9 @@
                 <field name="is_co_op" invisible="True"/>
                 <field name="total_coop_percenage" attrs="{'column_invisible':[('parent.is_co_op', '=', False)]}"/>
                 <button  name="sale_order_line_action" string="co-op" context="{'default_sale_order_line_id': id}" type="object" attrs="{'invisible':[('is_co_op', '=', False)]}" class="oe_inline oe_stat_button" style="background:rgba(46, 210, 162, 0.2);"/>
+            </xpath>            
+            <xpath expr="//field[@name='name']"  position="attributes">
+                <attribute name="widget">copyable</attribute>
             </xpath>
         </field>
     </record>

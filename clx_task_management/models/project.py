@@ -56,6 +56,7 @@ class ProjectProject(models.Model):
     intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
     complete_date = fields.Datetime(string="Project Complete Date")
     proofing_contacts_emails = fields.Char(compute="_proofing_contacts_emails", string="Proofing Contact")
+
     def _proofing_contacts_emails(self):
         emails_list = []
         default_emails = self.env["ir.config_parameter"].sudo().get_param("proofing_email_default", "")
