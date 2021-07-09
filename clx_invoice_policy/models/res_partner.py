@@ -48,60 +48,7 @@ class Partner(models.Model):
                 }
 
     def generate_invoice(self):
-        """
-        Invoice will be generated for Arrears Policy Type.
-        :return: None
-        """
-        if not self.is_subscribed:
-            return self
-
-        lines = self.env['sale.subscription.line'].search([
-            ('so_line_id.order_id.partner_id', 'child_of', self.id),
-            ('so_line_id.order_id.state', 'in', ('sale', 'done')),
-        ])
-        if self._context.get('create_invoice_from_wzrd'):
-            lines = self.env['sale.subscription.line'].search([
-                ('so_line_id.order_id', '=', self._context.get('order')),
-            ])
-        if not lines:
-            return self
-
-        areas_lines = lines.filtered(
-            lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'arrears'))
-        advance_lines = lines.filtered(
-            lambda sl: (sl.so_line_id.order_id.clx_invoice_policy_id.policy_type == 'advance'))
-        if self._context.get('check_invoice_start_date', False):
-            advance_lines = advance_lines.filtered(
-                lambda sl: (sl.invoice_start_date and sl.invoice_end_date))
-        if areas_lines:
-            self.generate_arrears_invoice(areas_lines)
-        if advance_lines:
-            advance_lines = lines.filtered(
-                lambda x: x.invoice_start_date and x.invoice_end_date and x.line_type == 'base')
-            not_base_lines = lines.filtered(
-                lambda x: x.invoice_start_date and x.invoice_end_date and x.line_type != 'base')
-            new_advance_lines = []
-            invoice_lines = self.invoice_ids.invoice_line_ids
-            if invoice_lines and any(line.move_id.state == 'cancel' for line in invoice_lines):
-                a = advance_lines.ids
-                for invoice_line in invoice_lines:
-                    if "Invoicing period" in invoice_line.name:
-                        start_date = invoice_line.name.split(':')[-1].split('-')[0]
-                        start_date = parser.parse(start_date)
-                        new_line = advance_lines.filtered(
-                            lambda x: x.product_id.categ_id.id == invoice_line.category_id.id
-                            and x.invoice_start_date == start_date.date()
-                            and invoice_line.move_id.state == 'draft')
-                        if new_line and new_line[0].id in a:
-                            a.remove(new_line[0].id)
-                            start = new_line[0].invoice_start_date + relativedelta(months=1)
-                            end = start.replace(day=monthrange(start.year, start.month)[1])
-                            new_line[0].invoice_start_date = start
-                            new_line[0].invoice_end_date = end
-                if a:
-                    advance_lines = self.env['sale.subscription.line'].browse(a)
-            advance_lines = advance_lines + not_base_lines
-            self.generate_advance_invoice(advance_lines)
+        self.env['sale.subscription'].invoicing_invoice_policy_range(partner=self)
 
     def get_advanced_sub_lines(self, lines):
         """
