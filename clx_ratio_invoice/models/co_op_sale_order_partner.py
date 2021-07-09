@@ -23,8 +23,6 @@ class CoOpSaleOrderPartner(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": "CO-OP companies list",
-            # "view_type": "tree",
-            # "view_mode": "tree",
             "res_model": "co.op.sale.order.partner",
             "views": [(form_view_id, "tree")],
             "domain": [("sale_order_line_id", "=", line_id)],

@@ -202,6 +202,13 @@ class AccountMove(models.Model):
         for rec in self.filtered(lambda x: x.state == 'draft'):
             rec.state = 'approved_draft'
 
+    def generate_invoices(self):
+        for partner_id in self.env['res.partner'].search([
+            ('active','=',True),('is_subscribed','=',True),
+            ('clx_invoice_policy_id','!=',False)
+        ]):
+            partner_id.generate_invoice()
+
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 

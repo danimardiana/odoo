@@ -31,7 +31,11 @@
         'views/sale_subscription_views.xml',
         'views/invoice_email_template.xml',
         'wizard/generate_invoice_date_range_views.xml',
-        'wizard/sale_make_invoice_advance_views.xml'
+        'wizard/sale_make_invoice_advance_views.xml',
+        'views/account_move_listview_template.xml',
+    ],
+    'qweb':[
+        'static/src/xml/account_move_template.xml',
     ],
     'installable': True,
     'application': True,
