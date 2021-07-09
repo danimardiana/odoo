@@ -6,6 +6,9 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                 <attribute name="create">false</attribute>
+            </xpath>
             <!-- EMAIL BUTTON -->
             <xpath expr="//button[@name='action_invoice_sent']" position="replace">
                     <!-- Send (only invoices) -->

@@ -86,6 +86,12 @@
             table.report-budgets th.dates,td.dates {
                 min-width:70px;
             }
+
+            table.report-budgets th.total,td.total,tr.total {
+                background-color:#dddddd;
+                font-weight:600;
+            }
+
             table.report-budgets th{
                 background-color:#dddddd;
             }
@@ -123,7 +129,7 @@
                     <tbody>
                         <a target="_blank" t-attf-href="/web#id={{spk['partner_id']}}&amp;model=res.partner&amp;view_type=form&amp;cids=1&amp;menu_id=294">
                             <div class="table-report-cap" t-esc="spk['company_name']" />
-                        </a>
+                        </a>                                
                         <t t-foreach="spk['subs']" t-as="line">
                             <tr>
                                 <td class="names">
@@ -133,7 +139,6 @@
                                     </a>
                                 </td>
                                 <t t-foreach="all_periods" t-as="period">
-                                    <!-- <div t-esc="spk['subs'][line]" /> -->
                                     <t t-if="period in spk['subs'][line]">
                                         <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
                                             <td class="moneys retail">
@@ -167,6 +172,34 @@
                                 </t>
                             </tr>
                         </t>
+                        <tr class="total"> 
+                            <td class="total moneys">Total</td>      
+                            <t t-foreach="all_periods" t-as="period">
+                                    <t t-set="total_retail" t-value="0" />
+                                    <t t-set="total_wholesale" t-value="0" />
+                                    <t t-set="total_mgmnt_fee" t-value="0" />
+                                <t t-foreach="spk['subs']" t-as="line">
+                                    <t t-if="period in spk['subs'][line]">
+                                        <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
+                                            <t t-set="total_retail" t-value="total_retail+sub_period['retail_price']" />
+                                            <t t-if="sub_period['wholesale_price']>0">
+                                                <t t-set="total_wholesale" t-value="total_wholesale + sub_period['wholesale_price']" />
+                                            </t> 
+                                            <t t-if="sub_period['management_fee']>0">
+                                                <t t-set="total_mgmnt_fee" t-value="total_mgmnt_fee + sub_period['management_fee']" />
+                                            </t>
+                                        </t>
+                                    </t>
+                                </t>
+                                <td  class="total"><div t-esc="total_retail" /></td>
+                                <t t-if="fees_allowed">
+                                    <td  class="total" ><div t-esc="total_wholesale" /></td>
+                                    <td  class="total"><div t-esc="total_mgmnt_fee" /></td>
+                                </t>
+                                <td class="dates"></td>
+                                <td class="dates"></td>
+                            </t>
+                        </tr>
                     </tbody>
                 </table>
             </t>

@@ -10,6 +10,37 @@ from . import grouping_data
 products_set_grouping_level = grouping_data.products_set_grouping_level
 
 
+class FakeSaleOrderLine:
+    def __init__(self, sol, ratio):
+        self.order_id = sol.order_id
+        self.product_id = sol.product_id
+        self.price_unit = sol.price_unit * ratio / 100
+        self.name = sol.name
+        self.partner_id = sol.product_id
+        self.prorate_amount = sol.prorate_amount * ratio / 100
+        self.display_type = sol.display_type
+        self.product_template_id = sol.product_template_id
+        self.product_type = sol.product_type
+        self.discount = 0
+        self._grouping_name_calc = sol.env["sale.order.line"]._grouping_name_calc
+
+
+class FakeSaleOrder:
+    def append_sale_order_line(self, line, ratio):
+        self.order_line.append(FakeSaleOrderLine(line, ratio))
+
+    def __init__(self, so, partner_id):
+        self.partner_id = partner_id
+        self.partner_invoice_id = so.partner_invoice_id
+        self._grouping_wrapper = so.env["sale.order"]._grouping_wrapper
+        self.contract_start_date = so.contract_start_date
+        self.order_line = []
+        self.display_management_fee = False
+        self.signature = False
+        self.pricelist_id = so.pricelist_id
+        # self.money_formatting = so.money_formatting
+
+
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
@@ -26,8 +57,6 @@ class SaleOrder(models.Model):
                 {
                     "partner_id": partner_id,
                     "initial_sale_order_id": self,
-                    # "is_co_op": partner_id.co,
-                    # "co_op_percentage": self._context.get("co_op_percentage"),
                     "active": False,
                 }
             )
@@ -81,6 +110,15 @@ class SaleOrder(models.Model):
                 values["initial_sale_order_id"] = self.id
                 values["recurring_invoice_line_ids"] = line._prepare_subscription_line_data()
                 subscription = sale_subscription_obj.create(values)
+                # create corresponding co-op lines if exist
+                if line.is_co_op and len(line.co_op_sale_order_line_partner_ids) > 0:
+                    for coop in line.co_op_sale_order_line_partner_ids:
+                        coop_subscription_record = {
+                            "partner_id": coop.partner_id.id,
+                            "ratio": coop.ratio,
+                            "subscription_id": subscription.id,
+                        }
+                        self.env["co.op.subscription.partner"].create(coop_subscription_record)
                 res.append(subscription.id)
                 subscription.message_post_with_view(
                     "mail.message_origin_link",
@@ -191,15 +229,16 @@ class SaleOrder(models.Model):
                 "name": line.name,
                 "product_id": line.product_id.id,
                 "price_unit": line.price_unit,
+                 "pricelist": line.order_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
                 "description": line._grouping_name_calc(line),  # second level of grouping - budget wrapping
                 "contract_product_description": line.product_id.contract_product_description,
                 "display_type": line.display_type,
                 "prorate_amount": line.prorate_amount if line.prorate_amount else line.price_unit,
                 "product_template_id": line.product_template_id,
-                "management_fee_calculated": self.management_fee_calculation(
-                    line.price_unit, line.product_template_id, self.pricelist_id
-                ),
+                # "management_fee_calculated": self.management_fee_calculation(
+                #     line.price_unit, line.product_template_id, self.pricelist_id
+                # ),
                 "discount": 0.0,
                 "tax_ids": [],
             }
@@ -209,26 +248,40 @@ class SaleOrder(models.Model):
                 "product_id": product_individual["product_id"],
                 "product_name": product_individual["product_name"],
                 "price_unit": product_individual["price_unit"],
+                "pricelist": product_individual["pricelist"],
                 "description": product_individual["description"],
                 "contract_product_description": product_individual["contract_product_description"],
                 "name": product_individual["name"],
+                "category_name": product_individual["category_name"],
                 "display_type": product_individual["display_type"],
                 "prorate_amount": product_individual["prorate_amount"],
                 "product_template_id": product_individual["product_template_id"],
-                "management_fee_calculated": product_individual["management_fee_calculated"],
+                # "management_fee_calculated": product_individual["management_fee_calculated"],
             }
 
         def last_order_update(product_source, product_additional):
             product_updated = product_source
             product_updated["price_unit"] += product_additional["price_unit"]
             product_updated["prorate_amount"] += product_additional["prorate_amount"]
-            product_updated["management_fee_calculated"] += product_additional["management_fee_calculated"]
+            # product_updated["management_fee_calculated"] += product_additional["management_fee_calculated"]
             return product_updated
 
         source_lines = order_line or self.order_line
         return self.grouping_all_products(
             source_lines, partner_id, initial_order_data, last_order_data, last_order_update
         )
+
+    def build_communities(self):
+        communities = {}
+
+        for so_line in self.order_line:
+            if self.is_co_op and len(so_line.co_op_sale_order_line_partner_ids) > 0:
+                for community in so_line.co_op_sale_order_line_partner_ids:
+                    if community.partner_id.id not in communities:
+                        fake_order = FakeSaleOrder(self, community.partner_id)
+                        communities[community.partner_id.id] = fake_order
+                    communities[community.partner_id.id].append_sale_order_line(so_line, community.ratio)
+        return communities
 
     # main grouping function
     # partner_id - the client we calculating values for (for co-op)
@@ -239,10 +292,10 @@ class SaleOrder(models.Model):
             line_to_add = initial_obj(line, partner_id)
             modified_invoice_lines.append(line_to_add)
 
-        # first level of grouping - product set
+        # grouping by product set
         self.grouping_by_product_set(modified_invoice_lines)
 
-        # final grouping by description
+        # grouping by description
         final_values = {}
         for product_individual in modified_invoice_lines:
             # combine the lines contains the same description, tax and discount
@@ -261,6 +314,19 @@ class SaleOrder(models.Model):
                         and final_values[combined_signature][unset_fields] != product_individual[unset_fields]
                     ):
                         final_values[combined_signature][unset_fields] = False
+
+        # management fees populating
+        # management fees lines will be added on the invoicing level, here calculation only
+        for line in final_values:
+            current_line = final_values[line]
+            if "product_id" in current_line and "pricelist" in current_line:
+                current_line["management_fee"] = self.management_fee_calculation(
+                    current_line["price_unit"],
+                    self.env["product.product"].browse(current_line["product_id"]),
+                    current_line["pricelist"],
+                )
+            else:
+                current_line["management_fee"] = 0
 
         return list(final_values.values())
 

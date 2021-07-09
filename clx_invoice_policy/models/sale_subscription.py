@@ -167,8 +167,6 @@ class SaleSubscription(models.Model):
         )
         return all_account_move_lines or False
 
-    # generate invoice basing on the Billing rules
-
     # generating invoice basing on the datarange
     def format_period_message(self, start_date, end_date):
         format_date = self.env["ir.qweb.field.date"].value_to_html
@@ -247,8 +245,12 @@ class SaleSubscription(models.Model):
         lines = self.subscription_lines_collection_for_invoicing(
             partner, order_id, kwargs["start_date"], kwargs["end_date"]
         )
-        #not create invoices if no lines to invoice or all have 0
-        if not lines or not lines["related_subscriptions"] or not(any(list(map(lambda l: l['price_unit'],lines["invoice_lines"])))):
+        # not create invoices if no lines to invoice or all have 0
+        if (
+            not lines
+            or not lines["related_subscriptions"]
+            or not (any(list(map(lambda l: l["price_unit"], lines["invoice_lines"]))))
+        ):
             return False
 
         last_order = sorted(
@@ -345,6 +347,7 @@ class SaleSubscription(models.Model):
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
                 "price_unit": price,
+                "pricelist": line.analytic_account_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
                 "category_id": line.product_id.categ_id.id,
                 "description": line._grouping_name_calc(line),  # second level of grouping - budget wrapping
@@ -369,6 +372,7 @@ class SaleSubscription(models.Model):
                 "rebate": product_individual["rebate"],
                 "category_id": product_individual["category_id"],
                 "product_id": product_individual["product_id"],
+                "pricelist": product_individual["pricelist"],
                 "tax_ids": product_individual["tax_ids"],
                 "discount": product_individual["discount"],
                 # "prorate_amount": product_individual["prorate_amount"],
@@ -408,7 +412,8 @@ class SaleSubscription(models.Model):
         search_args += [
             "|",
             ("so_line_id.order_id.partner_id", "child_of", partner.id),
-            ("analytic_account_id.co_opp_partner_ids.partner_id", "in", [partner.id]),
+            ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
+            # co-op change!!!!
             # ("so_line_id.order_id.co_op_sale_order_partner_ids", "in", [partner.id]),
         ]
 
@@ -451,18 +456,48 @@ class SaleSubscription(models.Model):
         rebate_total = 0.0
         grouped_invoice_lines = []
         for line in grouped_sub_lines:
-            grouped_invoice_lines.append(
-                {
-                    "name": period_msg,
-                    "description": line["description"],
-                    "product_id": line["product_id"],
-                    "category_id": line["category_id"],
-                    "price_unit": line["price_unit"],
-                    "price_subtotal": line["price_unit"],
-                    "discount": line["discount"],
-                    "tax_ids": line["tax_ids"],
-                }
-            )
+            if line["price_unit"] == 0:
+                continue
+            final_price = line["price_unit"]
+            if line["management_fee"]>0:
+                final_price -= line["management_fee"]
+                grouped_invoice_lines.append(
+                    {
+                        "name": period_msg,
+                        "description": line["description"],
+                        "product_id": line["product_id"],
+                        "category_id": line["category_id"],
+                        "price_unit": final_price,
+                        "price_subtotal": final_price,
+                        "discount": line["discount"],
+                        "tax_ids": line["tax_ids"],
+                    }
+                )
+                grouped_invoice_lines.append(
+                    {
+                        "name": period_msg,
+                        "description": "Management Fee for " + line["description"],
+                        "product_id": False,
+                        "category_id": line["category_id"],
+                        "price_unit": line["management_fee"],
+                        "price_subtotal": line["management_fee"],
+                        "discount": 0,
+                        "tax_ids": line["tax_ids"],
+                    }
+                )
+            else:
+                grouped_invoice_lines.append(
+                    {
+                        "name": period_msg,
+                        "description": line["description"],
+                        "product_id": line["product_id"],
+                        "category_id": line["category_id"],
+                        "price_unit": line["price_unit"],
+                        "price_subtotal": final_price,
+                        "discount": line["discount"],
+                        "tax_ids": line["tax_ids"],
+                    }
+                )
             rebate_total += line["rebate"]
 
         if rebate_total:
@@ -474,6 +509,7 @@ class SaleSubscription(models.Model):
                     "price_subtotal": -rebate_total,
                 }
             )
+
         response.update({"invoice_lines": grouped_invoice_lines, "related_subscriptions": sub_lines})
         return response
 
@@ -654,15 +690,16 @@ class SaleSubscriptionLine(models.Model):
         ):
             price_calculated = self["prorate_end_amount"]
         co_op_coef = 1
-        co_op_list = self.analytic_account_id.initial_sale_order_id.co_op_sale_order_partner_ids
-        if partner_id and len(co_op_list) and self.analytic_account_id.is_co_op and not dont_prorate:
+        # co-op change!!!!
+        co_op_list = self.analytic_account_id.co_op_partner_ids
+        if partner_id and len(co_op_list) and not dont_prorate:
             coop_line_filter = filter(lambda line: line.partner_id.id == partner_id, co_op_list)
-            if len(list(coop_line_filter))==0:
+            if len(list(coop_line_filter)) == 0:
                 co_op_coef = 0
             else:
                 co_op_coef = next(filter(lambda line: line.partner_id.id == partner_id, co_op_list)).ratio / 100
-        if co_op_coef > 1:
-            co_op_coef /= 100
+        # if co_op_coef > 1:
+        #     co_op_coef /= 100
         price_calculated = co_op_coef * price_calculated
         return price_calculated
 
