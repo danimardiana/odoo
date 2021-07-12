@@ -544,6 +544,7 @@
                             <field name="client_provided_utm_tracking_urls"/>
                             <field name="art_assets"/>
                             <field name="lead_management_system"/>
+                            <field name="google_ads_account"/>
                         </group>
                     </group>
                 </page>
