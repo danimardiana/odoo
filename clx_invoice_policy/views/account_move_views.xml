@@ -19,6 +19,8 @@
             <field name="company_id" position="after">
                 <field name="mgmt_company"/>
                 <field name="invoice_period_verbal"/>
+                <field name="accounting_notes" readonly="0"/>
+                <field name="unique_billing_note"/>
             </field>
             <xpath expr="//field[@name='line_ids']/tree//field[@name='analytic_account_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -93,6 +95,7 @@
             <xpath expr="//filter[@name='myinvoices']" position="after">
                 <separator/>
                 <filter name="mgmt_company" string="Management Company" domain="[('mgmt_company','!=',False)]"/>
+                <filter name="unique_billing_note" string="Unique Billing Note" domain="[('unique_billing_note','=',True)]"/>
             </xpath>
             <xpath expr="//group" position="inside">
                 <filter name="mgmt_company" string="Management Company" context="{'group_by': 'mgmt_company'}"/>

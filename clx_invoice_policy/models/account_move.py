@@ -38,6 +38,16 @@ class AccountMove(models.Model):
         "res.partner.clx.child", compute="compute_billing_contacts", string="Billing Contacts2", store=False
     )
 
+    accounting_notes = fields.Text(string="Accounting Notes",compute="_compute_accounting_notes")
+    unique_billing_note = fields.Boolean(string="Unique Billing Note")
+
+    @api.onchange('accounting_notes')
+    def onchange_accounting_notes(self):
+        self.partner_id.accounting_notes = self.accounting_notes
+
+    def _compute_accounting_notes(self):
+        self.accounting_notes = self.partner_id.accounting_notes
+
     def compute_billing_contacts(self):
         billing_list = map(
             lambda item: item.id,
