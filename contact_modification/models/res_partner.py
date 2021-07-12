@@ -5,6 +5,8 @@
 from ast import literal_eval
 from lxml import etree
 import json
+import mysql.connector
+import os
 from odoo import api, fields, models
 
 
@@ -168,6 +170,16 @@ class Partner(models.Model):
         return super(Partner, self).read_group(
             domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy
         )
+
+    def write(self, vals):
+        res = super(Partner, self).write(vals)
+
+        if "name" in vals:
+            vals["contact"] = self
+            CLXDB = self.env["clx.mysql"]
+            CLXDB.update_contact(vals)
+
+        return res
 
     @api.onchange("ownership_company_type_id")
     def onchange_ownership_company_type_id(self):
