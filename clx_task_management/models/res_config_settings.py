@@ -32,3 +32,23 @@ class ResConfigSettings(models.TransientModel):
             is_create_auto_task=bool(params.get_param('auto_create_sub_task', '')) or False
         )
         return res
+
+class ResConfigSettingsProof(models.TransientModel):
+    _inherit = "res.config.settings"
+
+    proofing_email_default = fields.Char(string="Default Proofing Mail")
+
+    @api.model
+    def set_values(self):
+        config_parameter = self.env["ir.config_parameter"].sudo()
+        config_parameter.set_param(
+            "proofing_email_default", self.proofing_email_default
+        )
+        return super(ResConfigSettingsProof, self).set_values()
+
+    @api.model
+    def get_values(self):
+        res = super(ResConfigSettingsProof, self).get_values()
+        params = self.env["ir.config_parameter"].sudo()
+        res.update({"proofing_email_default": str(params.get_param("proofing_email_default", ""))})
+        return res

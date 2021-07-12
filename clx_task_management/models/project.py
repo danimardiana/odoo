@@ -55,6 +55,18 @@ class ProjectProject(models.Model):
     # Analyst selected Client Launch Date
     intended_launch_date = fields.Date(string="Intended Launch Date", readonly=False)
     complete_date = fields.Datetime(string="Project Complete Date")
+    proofing_contacts_emails = fields.Char(compute="_proofing_contacts_emails", string="Proofing Contact")
+
+    def _proofing_contacts_emails(self):
+        emails_list = []
+        default_emails = self.env["ir.config_parameter"].sudo().get_param("proofing_email_default", "")
+        for email in self.partner_id.contacts_to_notify(group_name="Proofing Contact").mapped("email") + [
+            default_emails,
+            self.partner_id.account_user_id.email,
+        ]:
+            if email:
+                emails_list.append(email)
+        self.proofing_contacts_emails = ", ".join(emails_list)
 
     @api.model
     def create(self, vals):
@@ -187,6 +199,7 @@ class ProjectTask(models.Model):
     task_in_progress_date = fields.Datetime(string="Task In Progress Date", readonly=False)
     task_proof_internal_date = fields.Datetime(string="Task Proof Internal Date", readonly=False)
     cancel_client = fields.Boolean(string="Client Cancellation")
+    proofing_contacts_emails = fields.Char(related="project_id.proofing_contacts_emails", string="Proofing Contact")
 
     @api.model
     def create(self, vals):
