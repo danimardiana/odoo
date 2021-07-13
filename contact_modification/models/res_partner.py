@@ -4,9 +4,6 @@
 
 from ast import literal_eval
 from lxml import etree
-import json
-import mysql.connector
-import os
 from odoo import api, fields, models
 
 
@@ -170,6 +167,16 @@ class Partner(models.Model):
         return super(Partner, self).read_group(
             domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy
         )
+
+    @api.model
+    def create(self, vals):
+        res = super(Partner, self).create(vals)
+
+        vals["contact"] = res
+        CLXDB = self.env["clx.mysql"]
+        CLXDB.create_contact(vals)
+
+        return res
 
     def write(self, vals):
         res = super(Partner, self).write(vals)
