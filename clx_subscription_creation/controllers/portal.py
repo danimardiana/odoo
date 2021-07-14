@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import binascii
+
 from datetime import date
 
 from odoo import fields, http, _
@@ -24,9 +25,6 @@ def get_records_pager(ids, current):
             "next_record": idx < len(ids) - 1 and getattr(current.browse(ids[idx + 1]), attr_name),
         }
     return {}
-
-
-# when quotation signing happened
 class CustomerPortal(CustomerPortal):
     @http.route(["/my/orders/<int:order_id>/accept"], type="json", auth="public", website=True)
     def portal_quote_accept(self, order_id, access_token=None, name=None, signature=None):
@@ -82,6 +80,8 @@ class CustomerPortal(CustomerPortal):
         except (AccessError, MissingError):
             return request.redirect("/my")
 
+
+
         if report_type in ("html", "pdf", "text"):
             return self._show_report(
                 model=order_sudo, report_type=report_type, report_ref="sale.action_report_saleorder", download=download
@@ -107,7 +107,7 @@ class CustomerPortal(CustomerPortal):
                     subtype="mail.mt_note",
                     partner_ids=order_sudo.user_id.sudo().partner_id.ids,
                 )
-
+        communities = order_sudo.build_communities()
         values = {
             "sale_order": order_sudo,
             "message": message,
@@ -117,6 +117,7 @@ class CustomerPortal(CustomerPortal):
             "partner_id": order_sudo.partner_id.id,
             "report_type": "html",
             "action": order_sudo._get_portal_return_action(),
+            "communities": list(communities.values()),
         }
         if order_sudo.company_id:
             values["res_company"] = order_sudo.company_id

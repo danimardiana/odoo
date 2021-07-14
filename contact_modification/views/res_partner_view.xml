@@ -520,9 +520,10 @@
             </xpath>
             <notebook position="inside">
                 <page string="Ads Link" attrs="{'invisible': [('company_type', 'not in', ('company'))]}">
-                    <field name="ads_link_ids">
+                    <field name="ads_link_ids" >
                         <tree editable="bottom">
-                            <field name="product_id"/>
+                            <field name="category_id" options="{'no_open':True,'no_create':1,'no_create_edit':1}"/>
+                            <field name="description"/>
                             <field name="link" widget="url"/>
                         </tree>
                     </field>
@@ -543,6 +544,7 @@
                             <field name="client_provided_utm_tracking_urls"/>
                             <field name="art_assets"/>
                             <field name="lead_management_system"/>
+                            <field name="google_ads_account"/>
                         </group>
                     </group>
                 </page>

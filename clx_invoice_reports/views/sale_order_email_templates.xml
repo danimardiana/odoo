@@ -109,7 +109,6 @@ If additional changes are made, your Conversion Logix Account Manager is copied 
                 <field name="partner_ids" widget="many2many_tags_email" placeholder="Add contacts to notify..." domain="[('id', 'in', allowed_partner_ids)]" options="{'no_create': True}"/>
                 <field name="reply_to" placeholder="Send copy ...   "  invisible="1"/>
                 <field name="email_to" placeholder="Add additional e-mails to notify..." />
-                <!-- <div t-attf-class="{{allowed_partner_ids}}"/> eval="ref('allowed_partner_ids')"-->
             </xpath>
             <xpath expr="//footer/button[@name='action_send_mail' and contains(@class,'o_mail_send')]" position="replace">
                 <button string="Send" attrs="{'invisible': [('is_log', '=', True)]}" name="clx_action_send_mail" type="object" class="btn-primary o_mail_send"/>
