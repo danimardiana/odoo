@@ -6,5 +6,9 @@
             <field name="name">Client Launch</field>
             <field name="req_type">new</field>
         </record>
+        <record id="client_cancellation_task" model="main.task">
+            <field name="name">Client Cancellation</field>
+            <field name="req_type">update</field>
+        </record>
     </data>
 </odoo>
