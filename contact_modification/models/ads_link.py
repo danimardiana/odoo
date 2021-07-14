@@ -10,6 +10,7 @@ class AdsLink(models.Model):
     _description = "Ads Link"
 
     partner_id = fields.Many2one('res.partner', string="Customer")
+    product_id = fields.Many2one('product.product', string="Products")
     category_id = fields.Many2one('product.category', string="Category")
     description = fields.Char(string="Description")
     link = fields.Char(string="Link")
