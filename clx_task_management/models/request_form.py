@@ -223,6 +223,10 @@ class RequestForm(models.Model):
                 line.requirements
                 + os.linesep
                 + os.linesep
+                + "Service Cancellation Date:  "
+                + self.cancel_service_date.strftime("%m/%d/%Y")
+                + os.linesep
+                + os.linesep
                 + "Preferred Client Type:  "
                 + client_type
                 + os.linesep
