@@ -16,8 +16,10 @@ class ClxMysql(models.Model):
         contact = vals.get("contact")
         db_config = self._read_db_config("db.ini", "clxdb")
         update_entity = (
-            "INSERT INTO odoo_entity (odoo_entity_id, entity_name, entity_type, odoo_parent_id) "
-            + " VALUES (%(odoo_entity_id)s, %(entity_name)s, %(entity_type)s,%(odoo_parent_id)s) "
+            "INSERT INTO odoo_entity (odoo_entity_id, entity_name, entity_type, odoo_parent_id,"
+            + "                       street, city, vertical, yardi_code) "
+            + " VALUES (%(odoo_entity_id)s, %(entity_name)s, %(entity_type)s,%(odoo_parent_id)s, "
+            + "         %(street)s,%(city)s,%(vertical)s,%(yardi_code)s) "
         )
 
         data_entity = {
@@ -25,6 +27,10 @@ class ClxMysql(models.Model):
             "entity_name": contact.name,
             "entity_type": contact.company_type,
             "odoo_parent_id": contact.parent_id.id if contact.parent_id.id else 0,
+            "street": contact.street,
+            "city": contact.city,
+            "vertical": contact.vertical,
+            "yardi_code": contact.yardi_code,
         }
 
         try:
@@ -46,7 +52,8 @@ class ClxMysql(models.Model):
         db_config = self._read_db_config("db.ini", "clxdb")
         update_entity = (
             "UPDATE odoo_entity "
-            + " SET entity_name = %(entity_name)s , entity_type = %(entity_type)s ,odoo_parent_id = %(odoo_parent_id)s "
+            + " SET entity_name = %(entity_name)s , entity_type = %(entity_type)s ,odoo_parent_id = %(odoo_parent_id)s, "
+            + "     street = %(street)s, city = %(city)s, vertical = %(vertical)s, yardi_code = %(yardi_code)s "
             + " WHERE odoo_entity_id = %(odoo_entity_id)s;"
         )
 
@@ -55,6 +62,10 @@ class ClxMysql(models.Model):
             "entity_name": contact.name,
             "entity_type": contact.company_type,
             "odoo_parent_id": contact.parent_id.id if contact.parent_id.id else 0,
+            "street": contact.street,
+            "city": contact.city,
+            "vertical": contact.vertical,
+            "yardi_code": contact.yardi_code,
         }
 
         try:
