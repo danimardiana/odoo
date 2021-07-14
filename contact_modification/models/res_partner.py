@@ -180,11 +180,14 @@ class Partner(models.Model):
 
     def write(self, vals):
         res = super(Partner, self).write(vals)
+        contact_fields = {"name", "company_type", "parent_id", "street", "city", "vertical", "yardi_code"}
 
-        if "name" in vals:
-            vals["contact"] = self
-            CLXDB = self.env["clx.mysql"]
-            CLXDB.update_contact(vals)
+        for key in vals:
+            if key in contact_fields:
+                vals["contact"] = self
+                CLXDB = self.env["clx.mysql"]
+                CLXDB.update_contact(vals)
+                break
 
         return res
 
