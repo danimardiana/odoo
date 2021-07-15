@@ -85,6 +85,7 @@ class Partner(models.Model):
         string="Timezone2",
     )
     yardi_code = fields.Char(string="Yardi Code")
+    fb_account = fields.Char(string="Facebook Account")
     google_ads_account = fields.Char(string="Google ADS Account")
     master_id = fields.Char(string="Master ID")
     ads_link_ids = fields.One2many("ads.link", "partner_id", string="Ads Link")
