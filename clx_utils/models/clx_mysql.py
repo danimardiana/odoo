@@ -14,7 +14,7 @@ class ClxMysql(models.Model):
 
     def create_contact(self, vals):
         contact = vals.get("contact")
-        db_config = self._read_db_config("db.ini", "clxdb")
+        db_config = self._read_db_config()
         update_entity = (
             "INSERT INTO odoo_entity (odoo_entity_id, entity_name, entity_type, odoo_parent_id,"
             + "                       street, city, vertical, yardi_code) "
@@ -49,7 +49,7 @@ class ClxMysql(models.Model):
 
     def update_contact(self, vals):
         contact = vals.get("contact")
-        db_config = self._read_db_config("db.ini", "clxdb")
+        db_config = self._read_db_config()
         update_entity = (
             "UPDATE odoo_entity "
             + " SET entity_name = %(entity_name)s , entity_type = %(entity_type)s ,odoo_parent_id = %(odoo_parent_id)s, "
@@ -82,24 +82,17 @@ class ClxMysql(models.Model):
             cursor.close()
             cnx.close()
 
-    @staticmethod
-    def _read_db_config(filename, section):
-        model_folder = os.path.join(os.path.dirname(__file__))
-        module_parent = Path(model_folder)
-        clx_addon_root = Path(module_parent.parent)
-        file_path = os.path.join(clx_addon_root.parent, filename)
+    def _read_db_config(self):
+        mysql_host = self.env["ir.config_parameter"].sudo().get_param("mysql_host", "")
+        mysql_database = self.env["ir.config_parameter"].sudo().get_param("mysql_database", "")
+        mysql_user = self.env["ir.config_parameter"].sudo().get_param("mysql_user", "")
+        mysql_password = self.env["ir.config_parameter"].sudo().get_param("mysql_password", "")
 
-        db = {}
-        config = ConfigParser()
-        config.read(file_path)
-
-        if config.has_section(section):
-            keys = config.items(section)
-            for key in keys:
-                db[key[0]] = key[1]
-        else:
-            _logger.error(
-                "CLXDB Connection Failed - {0} not found in the {1} file " + str(section) + " - " + str(filename)
-            )
+        db = {
+            "host": mysql_host,
+            "database": mysql_database,
+            "user": mysql_user,
+            "password": mysql_password,
+        }
 
         return db
