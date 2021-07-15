@@ -538,13 +538,14 @@
                             <field name="call_rail_destination_number"/>
                             <field name="google_analytics_cl_account_location"/>
                             <field name="dni"/>
+                            <field name="google_ads_account"/>
+                            <field name="fb_account"/>
                         </group>
                         <group>
                             <field name="client_provided_tracking_email"/>
                             <field name="client_provided_utm_tracking_urls"/>
                             <field name="art_assets"/>
                             <field name="lead_management_system"/>
-                            <field name="google_ads_account"/>
                         </group>
                     </group>
                 </page>
