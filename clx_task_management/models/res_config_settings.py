@@ -34,6 +34,7 @@ class ResConfigSettings(models.TransientModel):
         res.update(is_create_auto_task=bool(params.get_param("auto_create_sub_task", "")) or False)
         return res
 
+
 class ResConfigSettingsProof(models.TransientModel):
     _inherit = "res.config.settings"
 
@@ -42,9 +43,7 @@ class ResConfigSettingsProof(models.TransientModel):
     @api.model
     def set_values(self):
         config_parameter = self.env["ir.config_parameter"].sudo()
-        config_parameter.set_param(
-            "proofing_email_default", self.proofing_email_default
-        )
+        config_parameter.set_param("proofing_email_default", self.proofing_email_default)
         return super(ResConfigSettingsProof, self).set_values()
 
     @api.model
@@ -52,4 +51,37 @@ class ResConfigSettingsProof(models.TransientModel):
         res = super(ResConfigSettingsProof, self).get_values()
         params = self.env["ir.config_parameter"].sudo()
         res.update({"proofing_email_default": str(params.get_param("proofing_email_default", ""))})
+        return res
+
+
+class ResConfigSettingsMysql(models.TransientModel):
+    _inherit = "res.config.settings"
+
+    mysql_host = fields.Char(string="Host")
+    mysql_database = fields.Char(string="Database")
+    mysql_user = fields.Char(string="User")
+    mysql_password = fields.Char(string="Password")
+
+    @api.model
+    def set_values(self):
+        config_parameter = self.env["ir.config_parameter"].sudo()
+        config_parameter.set_param("mysql_host", self.mysql_host)
+        config_parameter.set_param("mysql_database", self.mysql_database)
+        config_parameter.set_param("mysql_user", self.mysql_user)
+        config_parameter.set_param("mysql_password", self.mysql_password)
+        return super(ResConfigSettingsProof, self).set_values()
+
+    @api.model
+    def get_values(self):
+        res = super(ResConfigSettingsMysql, self).get_values()
+        params = self.env["ir.config_parameter"].sudo()
+        res.update(
+            {
+                "mysql_host": str(params.get_param("mysql_host", "")),
+                "mysql_database": str(params.get_param("mysql_database", "")),
+                "mysql_user": str(params.get_param("mysql_user", "")),
+                "mysql_password": str(params.get_param("mysql_password", "")),
+            }
+        )
+
         return res
