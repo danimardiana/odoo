@@ -220,7 +220,7 @@ class SaleOrder(models.Model):
                             ]
 
     # TODO: need to pass the partner_id if we going to prorate price value at the contract level
-    def _grouping_wrapper(self, partner_id=False, order_line=False):
+    def _grouping_wrapper(self, partner_id=False, order_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING):
         def initial_order_data(line, partner_id):
             return {
                 "order_id": line.order_id,
@@ -229,9 +229,11 @@ class SaleOrder(models.Model):
                 "name": line.name,
                 "product_id": line.product_id.id,
                 "price_unit": line.price_unit,
-                 "pricelist": line.order_id.pricelist_id,
+                "pricelist": line.order_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
-                "description": line._grouping_name_calc(line),  # second level of grouping - budget wrapping
+                "description": line._grouping_name_calc(line)
+                if grouping_levels & grouping_data.ACCOUNTIG_GROUPING_FLAG
+                else line.product_id.categ_id.name,  # second level of grouping - budget wrapping
                 "contract_product_description": line.product_id.contract_product_description,
                 "display_type": line.display_type,
                 "prorate_amount": line.prorate_amount if line.prorate_amount else line.price_unit,
@@ -268,7 +270,7 @@ class SaleOrder(models.Model):
 
         source_lines = order_line or self.order_line
         return self.grouping_all_products(
-            source_lines, partner_id, initial_order_data, last_order_data, last_order_update
+            source_lines, partner_id, initial_order_data, last_order_data, last_order_update, grouping_levels
         )
 
     def build_communities(self):
@@ -285,7 +287,9 @@ class SaleOrder(models.Model):
 
     # main grouping function
     # partner_id - the client we calculating values for (for co-op)
-    def grouping_all_products(self, source_lines, partner_id, initial_obj, last_obj_set, last_obj_update):
+    def grouping_all_products(
+        self, source_lines, partner_id, initial_obj, last_obj_set, last_obj_update, grouping_levels=grouping_data.ALL_FLAGS_GROUPING
+    ):
 
         modified_invoice_lines = []
         for line in source_lines:
@@ -293,17 +297,23 @@ class SaleOrder(models.Model):
             modified_invoice_lines.append(line_to_add)
 
         # grouping by product set
-        self.grouping_by_product_set(modified_invoice_lines)
+        if grouping_levels & grouping_data.PRODUCT_GROUPING_FLAG:
+            self.grouping_by_product_set(modified_invoice_lines)
 
         # grouping by description
         final_values = {}
         for product_individual in modified_invoice_lines:
             # combine the lines contains the same description, tax and discount
-            combined_signature = (
-                product_individual["description"]
-                + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
-                + str(product_individual["discount"])
-            )
+            if grouping_levels & grouping_data.DESCRIPTION_GROUPING_FLAG:
+                combined_signature = (
+                    product_individual["description"]
+                    + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
+                    + str(product_individual["discount"])
+                )
+            else: #combune if product the same (ingnore the description)
+                combined_signature = str(product_individual['product_id'])+",".join(map(lambda tax: str(tax), product_individual["tax_ids"])) + str(
+                    product_individual["discount"]
+                )
             if combined_signature not in final_values:
                 final_values[combined_signature] = last_obj_set(product_individual)
             else:
