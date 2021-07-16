@@ -4,10 +4,13 @@
 import binascii
 
 from datetime import date
+import datetime
+from dateutil import parser
 
 from odoo import fields, http, _
 from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
+from dateutil.relativedelta import relativedelta
 from odoo.addons.payment.controllers.portal import PaymentProcessing
 from odoo.addons.portal.controllers.mail import _message_post_helper
 
@@ -25,6 +28,8 @@ def get_records_pager(ids, current):
             "next_record": idx < len(ids) - 1 and getattr(current.browse(ids[idx + 1]), attr_name),
         }
     return {}
+
+
 class CustomerPortal(CustomerPortal):
     @http.route(["/my/orders/<int:order_id>/accept"], type="json", auth="public", website=True)
     def portal_quote_accept(self, order_id, access_token=None, name=None, signature=None):
@@ -79,8 +84,6 @@ class CustomerPortal(CustomerPortal):
             order_sudo = self._document_check_access("sale.order", order_id, access_token=access_token)
         except (AccessError, MissingError):
             return request.redirect("/my")
-
-
 
         if report_type in ("html", "pdf", "text"):
             return self._show_report(
@@ -151,3 +154,54 @@ class CustomerPortal(CustomerPortal):
         values.update(get_records_pager(history, order_sudo))
 
         return request.render("sale.sale_order_portal_template", values)
+
+
+class ApiConnections(http.Controller):
+    @http.route(["/clientplatformspend/"], type="json", auth="none", methods=["POST"])
+    def client_platform_spend(self, partners_id, start_date, products, access_token, name=None, signature=None):
+        params = request.env["ir.config_parameter"].sudo()
+        access_token_settings = params.get_param("api_token", False)
+
+        if access_token != access_token_settings:
+            return {"status": 404, "response": {"error": "Access Token is wrong"}}
+
+        if not partners_id:
+            return {"status": 404, "response": {"error": "partner_id is mandratory parameter."}}
+        response_data = []
+        if not start_date:
+            start_date = date.today().replace(day=1)
+        else:
+            start_date = parser.parse(start_date).date()
+
+        end_date = start_date + relativedelta(months=1, days=-1)
+        subscription_app = request.env["sale.subscription"].sudo()
+
+        for partner_id in partners_id:
+            partner = request.env["res.partner"].sudo().search([("id", "=", int(partner_id))])
+            if not len(partner) or partner[0].company_type != "company":
+                return {"status": 404, "response": {"error": "partner_id should be company."}}
+
+            partner = partner[0]
+
+            subscription_lines = subscription_app.get_subscription_lines(partner, False, start_date, end_date)
+            all_subscriptions = subscription_app._grouping_wrapper(start_date, partner.id, subscription_lines, 5)
+
+            subscriptions = list(filter(lambda subscr: subscr["product_id"] in products, all_subscriptions))
+            # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
+            # total_managemnt_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
+            for subscription in subscriptions: 
+                response_data += [
+                    {
+                        "partner_id": partner_id,
+                        "price": subscription["price_unit"],
+                        "managemnt_fee": subscription["management_fee"],
+                        "product_name":subscription["product_name"],
+                    }
+                ]
+        return {
+            "status": 200,
+            "response": {
+                "data": response_data,
+                "access_token": access_token,
+            },
+        }

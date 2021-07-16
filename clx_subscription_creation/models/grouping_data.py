@@ -6,3 +6,7 @@ products_set_grouping_level = [
     <br/>*Ads will be served over thousands on locations across the internet - including social media''',
      }
 ]
+ACCOUNTIG_GROUPING_FLAG = 1
+PRODUCT_GROUPING_FLAG = 2
+DESCRIPTION_GROUPING_FLAG = 4
+ALL_FLAGS_GROUPING = 7
