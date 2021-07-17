@@ -175,27 +175,43 @@ class ApiConnections(http.Controller):
 
         end_date = start_date + relativedelta(months=1, days=-1)
         subscription_app = request.env["sale.subscription"].sudo()
+        all_odoo_partners = (
+            request.env["res.partner"]
+            .sudo()
+            .search([("id", "in", [partners_id] if type(partners_id) in [int, str] else partners_id)])
+        )
+        all_odoo_partners_obj = {}
+        for odoo_partner in all_odoo_partners:
+            all_odoo_partners_obj[odoo_partner.id] = odoo_partner
 
         for partner_id in partners_id:
-            partner = request.env["res.partner"].sudo().search([("id", "=", int(partner_id))])
+            if partner_id not in all_odoo_partners_obj:
+                continue
+            partner = all_odoo_partners_obj[partner_id]
             if not len(partner) or partner[0].company_type != "company":
                 return {"status": 404, "response": {"error": "partner_id should be company."}}
 
-            partner = partner[0]
-
             subscription_lines = subscription_app.get_subscription_lines(partner, False, start_date, end_date)
+            # removing not related subscriptions
+            subscription_lines = list(filter(lambda subscr: subscr.product_id.id in products, subscription_lines))
+
             all_subscriptions = subscription_app._grouping_wrapper(start_date, partner.id, subscription_lines, 5)
 
-            subscriptions = list(filter(lambda subscr: subscr["product_id"] in products, all_subscriptions))
             # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
             # total_managemnt_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
-            for subscription in subscriptions: 
+            for subscription in all_subscriptions:
                 response_data += [
                     {
                         "partner_id": partner_id,
                         "price": subscription["price_unit"],
                         "managemnt_fee": subscription["management_fee"],
-                        "product_name":subscription["product_name"],
+                        "product_name": subscription["product_name"],
+                        "startDate": start_date
+                        if not subscription["start_date"] or start_date > subscription["start_date"]
+                        else subscription["start_date"],
+                        "endDate": end_date
+                        if not subscription["end_date"] or end_date < subscription["end_date"]
+                        else subscription["end_date"],
                     }
                 ]
         return {

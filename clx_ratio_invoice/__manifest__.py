@@ -17,7 +17,7 @@
                 'sale_subscription'
     ],
     'data': [
-            # 'security/ir.model.access.csv',
+            'security/ir.model.access.csv',
             # 'data/res_partner_data.xml',
             'views/sale_order_views.xml'
 

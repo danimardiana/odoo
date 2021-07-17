@@ -339,7 +339,9 @@ class SaleSubscription(models.Model):
             invoice = self.env["account.move"].create(new_invoice)
         return invoice
 
-    def _grouping_wrapper(self, start_date, partner_id=False, subscripion_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING):
+    def _grouping_wrapper(
+        self, start_date, partner_id=False, subscripion_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING
+    ):
         def initial_order_data(line, partner_id):
             price = line.period_price_calc(start_date, partner_id)
             return {
@@ -358,6 +360,8 @@ class SaleSubscription(models.Model):
                 "rebate": line.rebate_calc(price),
                 "discount": line.discount,
                 "tax_ids": list(map(lambda tax: tax.id, line.so_line_id.tax_id)),
+                "start_date": line.start_date,
+                "end_date": line.end_date,
                 # "prorate_amount": line.prorate_amount if line.prorate_amount else line.price_unit,
                 # "product_template_id": line.product_template_id,
                 # "management_fee_calculated": self.management_fee_calculation(
@@ -378,6 +382,8 @@ class SaleSubscription(models.Model):
                 "pricelist": product_individual["pricelist"],
                 "tax_ids": product_individual["tax_ids"],
                 "discount": product_individual["discount"],
+                "start_date": product_individual["start_date"],
+                "end_date": product_individual["end_date"],
                 # "prorate_amount": product_individual["prorate_amount"],
                 # "product_template_id": product_individual["product_template_id"],
                 # "management_fee_calculated": product_individual["management_fee_calculated"],
@@ -387,6 +393,27 @@ class SaleSubscription(models.Model):
             product_updated = product_source
             product_updated["price_unit"] += product_additional["price_unit"]
             product_updated["rebate"] += product_additional["rebate"]
+            if "start_date" in product_updated or "start_date" in product_additional:
+                if not product_updated["start_date"]:
+                    product_updated["start_date"] = product_additional["start_date"]
+                else:
+                    product_updated["start_date"] = (
+                        product_additional["start_date"]
+                        if product_additional["start_date"]
+                        and product_updated["start_date"] > product_additional["start_date"]
+                        else product_updated["start_date"]
+                    )
+
+            if "end_date" in product_updated:
+                if not product_updated["end_date"]:
+                    product_updated["end_date"] = product_additional["end_date"]
+                else:
+                    product_updated["end_date"] = (
+                        product_updated["end_date"]
+                        if product_additional["end_date"]
+                        and product_updated["end_date"] >= product_additional["end_date"]
+                        else product_additional["end_date"]
+                    )
             # product_updated["prorate_amount"] += product_additional["prorate_amount"]
             return product_updated
 
@@ -395,7 +422,7 @@ class SaleSubscription(models.Model):
             source_lines, partner_id, initial_order_data, last_order_data, last_order_update, grouping_levels
         )
 
-    def get_subscription_lines (self, partner, order_id, start_date, end_date):
+    def get_subscription_lines(self, partner, order_id, start_date, end_date):
         """
         Collecting lines for invoicing based on the daterange
         Should be start_day and end_day presented
@@ -418,7 +445,7 @@ class SaleSubscription(models.Model):
             ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
             # co-op change!!!!
             # ("so_line_id.order_id.co_op_sale_order_partner_ids", "in", [partner.id]),
-        ]        
+        ]
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 
     # grouping levels:
@@ -428,7 +455,7 @@ class SaleSubscription(models.Model):
 
     def subscription_lines_collection_for_invoicing(self, partner, order_id, start_date, end_date, grouping_levels=7):
 
-        subscription_lines = self.get_subscription_lines (self, partner, order_id, start_date, end_date)
+        subscription_lines = self.get_subscription_lines(partner, order_id, start_date, end_date)
 
         if not len(subscription_lines):
             return False
@@ -437,7 +464,7 @@ class SaleSubscription(models.Model):
         draft_invoice_subscriptions = {}
         draft_invoices = {}
         response = {}
-        
+
         # filter out invoiced subscription lines and collect draft invoices for update
         for subscription_line in subscription_lines:
             invoice = self.is_product_invoiced(partner.id, subscription_line, start_date)
