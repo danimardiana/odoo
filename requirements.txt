@@ -1,1 +1,1 @@
-MySQLConnection
+mysql-connector-python
