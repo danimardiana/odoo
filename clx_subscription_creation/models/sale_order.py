@@ -238,9 +238,6 @@ class SaleOrder(models.Model):
                 "display_type": line.display_type,
                 "prorate_amount": line.prorate_amount if line.prorate_amount else line.price_unit,
                 "product_template_id": line.product_template_id,
-                # "management_fee_calculated": self.management_fee_calculation(
-                #     line.price_unit, line.product_template_id, self.pricelist_id
-                # ),
                 "discount": 0.0,
                 "tax_ids": [],
             }
@@ -288,7 +285,13 @@ class SaleOrder(models.Model):
     # main grouping function
     # partner_id - the client we calculating values for (for co-op)
     def grouping_all_products(
-        self, source_lines, partner_id, initial_obj, last_obj_set, last_obj_update, grouping_levels=grouping_data.ALL_FLAGS_GROUPING
+        self,
+        source_lines,
+        partner_id,
+        initial_obj,
+        last_obj_set,
+        last_obj_update,
+        grouping_levels=grouping_data.ALL_FLAGS_GROUPING,
     ):
 
         modified_invoice_lines = []
@@ -310,9 +313,11 @@ class SaleOrder(models.Model):
                     + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
                     + str(product_individual["discount"])
                 )
-            else: #combune if product the same (ingnore the description)
-                combined_signature = str(product_individual['product_id'])+",".join(map(lambda tax: str(tax), product_individual["tax_ids"])) + str(
-                    product_individual["discount"]
+            else:  # combune if product the same (ingnore the description)
+                combined_signature = (
+                    str(product_individual["product_id"])
+                    + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
+                    + str(product_individual["discount"])
                 )
             if combined_signature not in final_values:
                 final_values[combined_signature] = last_obj_set(product_individual)
@@ -328,15 +333,16 @@ class SaleOrder(models.Model):
         # management fees populating
         # management fees lines will be added on the invoicing level, here calculation only
         for line in final_values:
-            current_line = final_values[line]
-            if "product_id" in current_line and "pricelist" in current_line:
-                current_line["management_fee"] = self.management_fee_calculation(
-                    current_line["price_unit"],
-                    self.env["product.product"].browse(current_line["product_id"]),
-                    current_line["pricelist"],
+            if "product_id" in final_values[line] and "pricelist" in final_values[line]:
+                calculation_result = self.management_fee_calculation(
+                    final_values[line]["price_unit"],
+                    self.env["product.product"].browse(final_values[line]["product_id"]),
+                    final_values[line]["pricelist"],
                 )
+                final_values[line] = {**final_values[line] , **calculation_result}
             else:
-                current_line["management_fee"] = 0
+                final_values[line]["management_fee"] = 0
+                final_values[line]["wholesale"] = 0
 
         return list(final_values.values())
 
