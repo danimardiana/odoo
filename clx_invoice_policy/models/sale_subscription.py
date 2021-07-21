@@ -2,6 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
+from itertools import product
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
@@ -344,8 +345,12 @@ class SaleSubscription(models.Model):
     ):
         def initial_order_data(line, partner_id):
             price = line.period_price_calc(start_date, partner_id)
+            product_variant = ''
+            if len(line.product_id.product_template_attribute_value_ids):
+                product_variant = line.product_id.product_template_attribute_value_ids[0].name
             return {
                 "product_name": line.product_id.name,
+                "product_variant": product_variant,
                 "product_id": line.product_id.id,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
@@ -362,16 +367,12 @@ class SaleSubscription(models.Model):
                 "tax_ids": list(map(lambda tax: tax.id, line.so_line_id.tax_id)),
                 "start_date": line.start_date,
                 "end_date": line.end_date,
-                # "prorate_amount": line.prorate_amount if line.prorate_amount else line.price_unit,
-                # "product_template_id": line.product_template_id,
-                # "management_fee_calculated": self.management_fee_calculation(
-                #     line.price_unit, line.product_template_id, self.pricelist_id
-                # ),
             }
 
         def last_order_data(product_individual):
             return {
                 "product_name": product_individual["product_name"],
+                "product_variant": product_individual["product_variant"],
                 "price_unit": product_individual["price_unit"],
                 "description": product_individual["description"],
                 "contract_product_description": product_individual["contract_product_description"],

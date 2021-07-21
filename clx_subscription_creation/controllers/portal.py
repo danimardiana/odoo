@@ -199,13 +199,19 @@ class ApiConnections(http.Controller):
 
             # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
             # total_managemnt_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
+
             for subscription in all_subscriptions:
+                wholesale = subscription["wholesale_price"]
+                if wholesale <= 0 and subscription["management_fee"] > 0:
+                    wholesale = subscription["price_unit"] - subscription["management_fee"]
                 response_data += [
                     {
                         "partner_id": partner_id,
                         "price": subscription["price_unit"],
                         "managemnt_fee": subscription["management_fee"],
+                        "wholesale": wholesale,
                         "product_name": subscription["product_name"],
+                        "product_variant": subscription["product_variant"],
                         "startDate": start_date
                         if not subscription["start_date"] or start_date > subscription["start_date"]
                         else subscription["start_date"],
