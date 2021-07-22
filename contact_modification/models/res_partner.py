@@ -173,22 +173,26 @@ class Partner(models.Model):
     def create(self, vals):
         res = super(Partner, self).create(vals)
 
-        vals["contact"] = res
-        CLXDB = self.env["clx.mysql"]
-        CLXDB.create_contact(vals)
+        # Create non-user contact in CLXDB
+        if res.company_type in {"management", "company", "person", "owner"}:
+            vals["contact"] = res
+            CLXDB = self.env["clx.mysql"]
+            CLXDB.create_contact(vals)
 
         return res
 
     def write(self, vals):
         res = super(Partner, self).write(vals)
-        contact_fields = {"name", "company_type", "parent_id", "street", "city", "vertical", "yardi_code"}
 
-        for key in vals:
-            if key in contact_fields:
-                vals["contact"] = self
-                CLXDB = self.env["clx.mysql"]
-                CLXDB.update_contact(vals)
-                break
+        # Update non-user contact in CLXDB
+        if not self.user_ids.id:
+            contact_fields = {"name", "company_type", "parent_id", "street", "city", "vertical", "yardi_code"}
+            for key in vals:
+                if key in contact_fields:
+                    vals["contact"] = self
+                    CLXDB = self.env["clx.mysql"]
+                    CLXDB.update_contact(vals)
+                    break
 
         return res
 

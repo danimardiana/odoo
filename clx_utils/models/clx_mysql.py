@@ -26,7 +26,7 @@ class ClxMysql(models.Model):
             "odoo_entity_id": contact.id,
             "entity_name": contact.name,
             "entity_type": contact.company_type,
-            "odoo_parent_id": contact.parent_id.id if contact.parent_id.id else 0,
+            "odoo_parent_id": contact.parent_id.id,
             "street": contact.street,
             "city": contact.city,
             "vertical": contact.vertical,

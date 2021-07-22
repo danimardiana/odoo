@@ -1,1 +1,2 @@
-MySQLConnection
+###### Package Requirements for CLX Odoo ######`
+mysql-connector-python
