@@ -68,11 +68,15 @@ class MailComposer(models.TransientModel):
 
     def get_mail_values(self, res_ids):
         res = super(MailComposer, self).get_mail_values(res_ids)
-        move_ids = self.env['account.move'].browse(res_ids)
-        for move in move_ids:
-            res[move.id]['recipient_ids'] = []
-            partner_ids = move.partner_id.account_user_id.partner_id + \
-                          move.partner_id.contacts_to_notify(group_name='Billing Contact')
-            for partner in partner_ids:
-                res[move.id]['recipient_ids'].append((4, partner.id))
+        try:
+            if self._context.get('active_model') == 'account.move':
+                move_ids = self.env['account.move'].browse(res_ids)
+                for move in move_ids:
+                    res[move.id]['recipient_ids'] = []
+                    partner_ids = move.partner_id.account_user_id.partner_id + \
+                                  move.partner_id.contacts_to_notify(group_name='Billing Contact')
+                    for partner in partner_ids:
+                        res[move.id]['recipient_ids'].append((4, partner.id))
+        except Exception as e:
+            pass
         return res
