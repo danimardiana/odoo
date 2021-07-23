@@ -4,7 +4,6 @@
 
 from ast import literal_eval
 from lxml import etree
-import json
 from odoo import api, fields, models
 
 
@@ -169,6 +168,33 @@ class Partner(models.Model):
         return super(Partner, self).read_group(
             domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy
         )
+
+    @api.model
+    def create(self, vals):
+        res = super(Partner, self).create(vals)
+
+        # Create non-user contact in CLXDB
+        if res.company_type in {"management", "company", "person", "owner"}:
+            vals["contact"] = res
+            CLXDB = self.env["clx.mysql"]
+            CLXDB.create_contact(vals)
+
+        return res
+
+    def write(self, vals):
+        res = super(Partner, self).write(vals)
+
+        # Update non-user contact in CLXDB
+        if not self.user_ids.id:
+            contact_fields = {"name", "company_type", "parent_id", "street", "city", "vertical", "yardi_code"}
+            for key in vals:
+                if key in contact_fields:
+                    vals["contact"] = self
+                    CLXDB = self.env["clx.mysql"]
+                    CLXDB.update_contact(vals)
+                    break
+
+        return res
 
     @api.onchange("ownership_company_type_id")
     def onchange_ownership_company_type_id(self):
