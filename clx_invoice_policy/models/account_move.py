@@ -41,6 +41,13 @@ class AccountMove(models.Model):
     accounting_notes = fields.Text(string="Accounting Notes",compute="_compute_accounting_notes")
     unique_billing_note = fields.Boolean(string="Unique Billing Note")
 
+    portable_invoice_url = fields.Char(string="Invoice link", index=True,compute="_compute_get_url")
+
+    def _compute_get_url(self):
+        for rec in self:
+            host_url = self.env['ir.config_parameter'].get_param('web.base.url') or ''
+            rec.portable_invoice_url = host_url + rec.get_portal_url() or ''
+
     @api.onchange('accounting_notes')
     def onchange_accounting_notes(self):
         self.partner_id.accounting_notes = self.accounting_notes
