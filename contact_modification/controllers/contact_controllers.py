@@ -5,7 +5,7 @@ from odoo.http import request
 
 class ContactContoller(http.Controller):
     @http.route(["/subscriberlist/"], type="json", auth="none", methods=["POST"])
-    def get_subscribed_clients(self, access_token, name=None, signature=None):
+    def get_subscribed_clients(self, access_token):
         params = request.env["ir.config_parameter"].sudo()
         access_token_settings = params.get_param("api_token", False)
         print(access_token)
