@@ -185,6 +185,8 @@ class ApiConnections(http.Controller):
             all_odoo_partners_obj[odoo_partner.id] = odoo_partner
 
         for partner_id in partners_id:
+            # if partner_id != 52281:
+            #     continue # debug purposes
             if partner_id not in all_odoo_partners_obj:
                 continue
             partner = all_odoo_partners_obj[partner_id]
@@ -193,12 +195,13 @@ class ApiConnections(http.Controller):
 
             subscription_lines = subscription_app.get_subscription_lines(partner, False, start_date, end_date)
             # removing not related subscriptions
-            subscription_lines = list(filter(lambda subscr: subscr.product_id.id in products, subscription_lines))
+            if products:
+                subscription_lines = list(filter(lambda subscr: subscr.product_id.id in products, subscription_lines))
 
             all_subscriptions = subscription_app._grouping_wrapper(start_date, partner.id, subscription_lines, 5)
 
             # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
-            # total_managemnt_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
+            # total_management_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
 
             for subscription in all_subscriptions:
                 wholesale = subscription["wholesale_price"]
@@ -208,10 +211,10 @@ class ApiConnections(http.Controller):
                     {
                         "partner_id": partner_id,
                         "price": subscription["price_unit"],
-                        "managemnt_fee": subscription["management_fee"],
+                        "management_fee": subscription["management_fee"],
                         "wholesale": wholesale,
-                        "product_name": subscription["product_name"],
-                        "product_variant": subscription["product_variant"],
+                        "product_name": subscription["description"],
+                        # "product_variant": subscription["product_variant"],
                         "startDate": start_date
                         if not subscription["start_date"] or start_date > subscription["start_date"]
                         else subscription["start_date"],
