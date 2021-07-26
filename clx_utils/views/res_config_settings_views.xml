@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="developer" model="res.groups">
+            <field name="name">Developers</field>
+        </record>
+
+        <record id="res_config_settings_view_form" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.developing.setup</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="90"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" data-string="Developing" string="Developing" data-key="develop" groups="base.developer,clx_utils.developer" >
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                            </div>
+                        </div>
+                    </div>
+                    <h2>Mysql DB Connection</h2>
+                        <div class="row mt16 o_settings_container" id="mysql_connection">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <label for="mysql_host"/>   
+                                <field name="mysql_host" class="oe_inline"/>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <label for="mysql_database"/>   
+                                <field name="mysql_database" class="oe_inline"/>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <label for="mysql_user"/>   
+                                <field name="mysql_user" class="oe_inline"/>
+                            </div>
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <label for="mysql_password"/>   
+                                <field name="mysql_password" class="oe_inline"/>
+                            </div>
+                        </div>
+
+                </div>
+                </xpath>
+            </field>
+        </record>
+
+</odoo>
