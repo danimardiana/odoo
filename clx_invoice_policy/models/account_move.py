@@ -226,6 +226,14 @@ class AccountMove(models.Model):
         ]):
             partner_id.generate_invoice()
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super(AccountMove, self).create(vals_list)
+        #Updating invoice user id as it's partner's account manager
+        if res.partner_id and res.partner_id.account_user_id:
+            res.invoice_user_id = res.partner_id.account_user_id
+        return res
+
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
