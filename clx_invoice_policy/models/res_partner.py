@@ -767,14 +767,12 @@ class Partner(models.Model):
         for those customers who subscribed and has Arrears policy
         :return: Boolean
         """
-        count =1
         customers = self.search([
             ('is_subscribed', '=', True),
             ('active', '=', True),
             ('clx_invoice_policy_id', '!=', False),
             ('is_generate_invoice','=',True)
         ],limit=50)
-        # customers = self.browse(42746)
         if not customers:
             return True
         try:
@@ -782,8 +780,6 @@ class Partner(models.Model):
                 try:
                     customer.with_context(check_invoice_start_date=True).generate_invoice()
                     customer.is_generate_invoice = False
-                    count+=1
-                    print("-----Count--------%d",count)
                 except Exception as e:
                     print("-------Error at invoice creation------")
             return True
