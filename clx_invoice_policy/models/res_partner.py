@@ -7,7 +7,6 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import UserError
 from odoo import fields, models, api, _
-from dateutil import parser
 from calendar import monthrange
 # from . import grouping_data
 
@@ -35,6 +34,7 @@ class Partner(models.Model):
 
     child_invoice_selection = fields.Selection(
         related="management_company_type_id.invoice_selection", string="Display on")
+    is_generate_invoice = fields.Boolean(string="Is Generate Invoice?")
 
     def generate_invoice_with_date_range(self):
         view_id = self.env.ref(
@@ -767,10 +767,13 @@ class Partner(models.Model):
         for those customers who subscribed and has Arrears policy
         :return: Boolean
         """
+        count =1
         customers = self.search([
             ('is_subscribed', '=', True),
-            ('clx_invoice_policy_id', '!=', False)
-        ])
+            ('active', '=', True),
+            ('clx_invoice_policy_id', '!=', False),
+            ('is_generate_invoice','=',True)
+        ],limit=50)
         # customers = self.browse(42746)
         if not customers:
             return True
@@ -778,11 +781,23 @@ class Partner(models.Model):
             for customer in customers:
                 try:
                     customer.with_context(check_invoice_start_date=True).generate_invoice()
+                    customer.is_generate_invoice = False
+                    count+=1
+                    print("-----Count--------%d",count)
                 except Exception as e:
                     print("-------Error at invoice creation------")
             return True
         except Exception as e:
             return False
+
+    @api.model
+    def _check_and_set_invoice_customers(self):
+        customers = self.search([
+            ('is_subscribed', '=', True),
+            ('clx_invoice_policy_id', '!=', False)
+        ])
+        qry = """update res_partner set is_generate_invoice = True where id in %s"""
+        self.env.cr.execute(qry, [tuple(customers.ids)])
     
     # not used now, can be deleted
     def new_generate_invoice(self):
