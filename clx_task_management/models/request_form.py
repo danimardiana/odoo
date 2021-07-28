@@ -277,7 +277,7 @@ class RequestForm(models.Model):
         }
         return vals
 
-    def prepared_project_vals(self, description, partner_id, ops_member=False):
+    def prepared_project_vals(self, description, partner_id, cs_member=False):
         """
         prepared dictionary for the create project
         :Param : description : Title of the project
@@ -298,7 +298,7 @@ class RequestForm(models.Model):
             "clx_state": "new",
             "clx_sale_order_ids": self.sale_order_id.ids if self.sale_order_id.ids else False,
             "user_id": self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
-            "ops_team_member_id": ops_member,
+            "clx_project_manager_id": cs_member,
             "intended_launch_date": launch_date,
             "deadline": max_date,
             "priority": self.priority,
@@ -459,13 +459,13 @@ class RequestForm(models.Model):
 
             # Project creation is not allowed if there is already an open
             # project for this client. Popup a dialog and let the user know
-            ops_member = False
+            cs_member = False
             open_projects = self.env["project.project"].search(
                 ["&", ("partner_id", "=", self.partner_id.id), ("clx_state", "!=", "done")]
             )
             if len(open_projects) > 0 and self.override_project_check:
-                if open_projects.ops_team_member_id:
-                    ops_member = open_projects.ops_team_member_id[0].id
+                if open_projects.clx_project_manager_id:
+                    cs_member = open_projects.clx_project_manager_id[0].id
 
             elif len(open_projects) > 0:
                 context = dict(self._context or {})
@@ -479,7 +479,7 @@ class RequestForm(models.Model):
                     "context": context,
                 }
 
-            vals = self.prepared_project_vals(self.description, self.partner_id, ops_member)
+            vals = self.prepared_project_vals(self.description, self.partner_id, cs_member)
             if vals:
                 project_id = project_obj.create(vals)
 
