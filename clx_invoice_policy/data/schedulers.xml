@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
     <!--Scheduler sync Receive Request-->
-    <record id="clx_subscription_invoice_scheduler" model="ir.cron">
+    <record id="clx_subscription_minute_invoice_scheduler" model="ir.cron">
         <field name="name">CLX: Subscription minute Invoice Scheduler</field>
         <field name="model_id" ref="base.model_res_partner"/>
         <field name="state">code</field>
@@ -15,7 +15,7 @@
         <field name="active" eval="True"/>
     </record>
 
-    <record id="clx_subscription_invoice_scheduler_1" model="ir.cron">
+    <record id="clx_subscription_monthly_invoice_scheduler" model="ir.cron">
         <field name="name">CLX: Subscription monthly Invoice Scheduler</field>
         <field name="model_id" ref="base.model_res_partner"/>
         <field name="state">code</field>
