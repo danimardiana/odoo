@@ -44,6 +44,7 @@
                                context="{'active_sale_order': True,'req_partner_id': partner_id}"/>
                         <field name="update_all_products" attrs="{'invisible': [('cancel_client', '=', True)]}"/>
                         <field name="cancel_client" attrs="{'invisible': ['|',('is_create_client_launch', '=', True), ('update_all_products', '=', True)]}"/>
+                        <field name="override_project_check"/>
                         <field name="update_products_des" attrs="{'invisible': [('update_all_products', '=', False)]}"/>
                         <div attrs="{'invisible': [('update_all_products', '=', False)]}">
                             <button name="update_description" string="Update Descriptions" icon="fa-long-arrow-right"

@@ -42,6 +42,7 @@ class RequestForm(models.Model):
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one("project.project", string="Project")
     product_ids = fields.Many2many("product.product", string="Products")
+    override_project_check = fields.Boolean(string="Override Project Check", default=False)
     # Client Cancellation Fields
     cancel_client = fields.Boolean(string="Client Cancellation")
     cancel_service_date = fields.Date(string="Last Day of Service")
@@ -276,7 +277,7 @@ class RequestForm(models.Model):
         }
         return vals
 
-    def prepared_project_vals(self, description, partner_id):
+    def prepared_project_vals(self, description, partner_id, ops_member=False):
         """
         prepared dictionary for the create project
         :Param : description : Title of the project
@@ -297,6 +298,7 @@ class RequestForm(models.Model):
             "clx_state": "new",
             "clx_sale_order_ids": self.sale_order_id.ids if self.sale_order_id.ids else False,
             "user_id": self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
+            "ops_team_member_id": ops_member,
             "intended_launch_date": launch_date,
             "deadline": max_date,
             "priority": self.priority,
@@ -457,10 +459,15 @@ class RequestForm(models.Model):
 
             # Project creation is not allowed if there is already an open
             # project for this client. Popup a dialog and let the user know
+            ops_member = False
             open_projects = self.env["project.project"].search(
                 ["&", ("partner_id", "=", self.partner_id.id), ("clx_state", "!=", "done")]
             )
-            if len(open_projects) > 0:
+            if len(open_projects) > 0 and self.override_project_check:
+                if open_projects.ops_team_member_id:
+                    ops_member = open_projects.ops_team_member_id[0].id
+
+            elif len(open_projects) > 0:
                 context = dict(self._context or {})
                 context["open_ids"] = open_projects.ids
                 return {
@@ -472,7 +479,7 @@ class RequestForm(models.Model):
                     "context": context,
                 }
 
-            vals = self.prepared_project_vals(self.description, self.partner_id)
+            vals = self.prepared_project_vals(self.description, self.partner_id, ops_member)
             if vals:
                 project_id = project_obj.create(vals)
 
