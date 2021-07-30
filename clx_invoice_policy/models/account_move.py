@@ -27,26 +27,34 @@ class AccountMove(models.Model):
         ('cancel', 'Cancelled')
     ], string='Status', required=True, readonly=True, copy=False, tracking=True,
         default='draft')
-
     related_contact_ids = fields.One2many(
         related="partner_id.contact_child_ids",
         string="Billing Contacts",
         store=False,
     )
-
     related_billing_contact_ids = fields.Many2many(
         "res.partner.clx.child", compute="compute_billing_contacts", string="Billing Contacts2", store=False
     )
-
-    accounting_notes = fields.Text(string="Accounting Notes",compute="_compute_accounting_notes")
+    accounting_notes = fields.Text(string="Accounting Notes", compute="_compute_accounting_notes")
     unique_billing_note = fields.Boolean(string="Unique Billing Note")
-
-    portable_invoice_url = fields.Char(string="Invoice link", index=True,compute="_compute_get_url")
+    portable_invoice_url = fields.Char(string="Invoice link", index=True, compute="_compute_get_url")
+    yardi_code = fields.Char(string="Yardi Code", related="partner_id.yardi_code")
+    master_id = fields.Char(string="Master ID", related="partner_id.master_id")
 
     def _compute_get_url(self):
         for rec in self:
             host_url = self.env['ir.config_parameter'].get_param('web.base.url') or ''
             rec.portable_invoice_url = host_url + rec.get_portal_url() or ''
+
+    @api.onchange('yardi_code')
+    def _onchange_yardi_code(self):
+        for rec in self:
+            rec.partner_id.yardi_code = rec.yardi_code
+
+    @api.onchange('master_id')
+    def _onchange_master_id(self):
+        for rec in self:
+            rec.partner_id.master_id = rec.master_id
 
     @api.onchange('accounting_notes')
     def onchange_accounting_notes(self):
@@ -218,13 +226,6 @@ class AccountMove(models.Model):
     def button_approve_invoice(self):
         for rec in self.filtered(lambda x: x.state == 'draft'):
             rec.state = 'approved_draft'
-
-    # def generate_invoices(self):
-    #     for partner_id in self.env['res.partner'].search([
-    #         ('active','=',True),('is_subscribed','=',True),
-    #         ('clx_invoice_policy_id','!=',False)
-    #     ]):
-    #         partner_id.generate_invoice()
 
     @api.model_create_multi
     def create(self, vals_list):
