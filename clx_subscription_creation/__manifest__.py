@@ -26,7 +26,7 @@
         'views/sale_subscription_views.xml',
         'wizard/sale_subscription_wizard_views.xml',
         'data/ir_cron.xml',
-        'views/res_config_settings_views.xml',
+        # 'views/res_config_settings_views.xml',
     ],
     'installable': True,
     'application': True,
