@@ -175,6 +175,7 @@ class RequestForm(models.Model):
                 "parent_id": main_task.id,
                 "sub_task_id": sub_task.id,
                 "team_ids": sub_task.team_ids.ids,
+                "clx_task_manager_id": main_task.clx_task_manager_id.id if main_task.clx_task_manager_id else False,
                 "team_members_ids": sub_task.team_members_ids.ids,
                 "date_deadline": main_task.date_deadline,
                 "task_intended_launch_date": self.intended_launch_date
@@ -191,6 +192,7 @@ class RequestForm(models.Model):
                 "clx_attachment_ids": self.clx_attachment_ids.ids,
                 "category_id": line.category_id.id if line.category_id else False,
             }
+            # print(vals)
             return vals
 
     def prepared_task_vals(self, line, project_id):
@@ -260,6 +262,7 @@ class RequestForm(models.Model):
             "repositary_task_id": line.task_id.id,
             "req_type": line.task_id.req_type,
             "team_ids": line.task_id.team_ids.ids,
+            "clx_task_manager_id": project_id.clx_project_manager_id.id if project_id.clx_project_manager_id else False,
             "team_members_ids": line.task_id.team_members_ids.ids,
             "date_deadline": proof_deadline_date,
             "task_intended_launch_date": self.intended_launch_date
