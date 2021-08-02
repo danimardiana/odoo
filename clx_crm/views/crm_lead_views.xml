@@ -5,8 +5,92 @@
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
-           <xpath expr="//field[@name='partner_name']" position="attributes">
+        <xpath expr="//div[hasclass('oe_title')]" position="replace">
+            <div class="oe_title">
+                <label for="name" class="oe_edit_only" string="Client Prospect Name" attrs="{'invisible': [('type', '=', 'opportunity')]}"/>
+                <label for="name" class="oe_edit_only" attrs="{'invisible': [('type', '=', 'lead')]}"/>
+                <h1><field name="name" placeholder="e.g. Company ABC Inc."/></h1>
+                <h2 class="o_row row no-gutters d-flex">
+                    <div class="col" attrs="{'invisible': [('type', '=', 'lead')]}">
+                        <label for="planned_revenue" class="oe_edit_only" />
+                        <div class="o_row">
+                            <field name="company_currency" invisible="1"/>
+                            <field name="planned_revenue" class="oe_inline" widget='monetary' options="{'currency_field': 'company_currency'}"/>
+                            <span class="oe_grey p-2"> at </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <span class="oe_edit_only o_pls_probability">
+                            <label for="probability"/>
+                            <button class="btn btn-link" name="action_set_automated_probability" type="object"
+                                    attrs="{'invisible': [('is_automated_probability', '=', True)]}">
+                                <i class="fa fa-gear" role="img" title="Switch to automatic probability" aria-label="Switch to automatic probability"></i>
+                            </button>
+                            <small class="oe_grey" attrs="{'invisible': [('is_automated_probability', '=', True)]}"><field name="automated_probability"/> %% (Estimated by Odoo)</small>
+                            </span>
+                        <div id="probability" class="o_row d-flex">
+                            <field name="is_automated_probability" invisible="1"/>
+                            <field name="probability" widget="float" class="oe_inline"/>
+                            <span class="oe_grey"> %%</span>
+                        </div>
+                    </div>
+                </h2>
+            </div>
+        </xpath>
+            
+
+
+            <xpath expr="//field[@name='partner_name']" position="attributes">
                 <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//span[hasclass('o_pls_probability')]" position="before">
+                <field name="lead_company_type" widget="radio" options="{'horizontal': true}"/>
+                <div>
+                    <label for="priority">Priority</label>
+                    <field name="priority" class="oe_inline"/>
+                </div>
+            </xpath>
+            <field name="lead_company_type" position="attributes">
+                <attribute name="required">True</attribute>
+            </field>
+            <xpath expr="//group[@name='lead_priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='team_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='lang_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//form/sheet/group/group[3]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='website']" position="after">
+                    <field name="tag_ids"/>
+            </xpath>
+            <xpath expr="//page[@name='extra']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//form/sheet/notebook/page[1]" position="before">
+                <page string="Lead Contacts">
+                    <field name="crm_lead_contact_ids">
+                        <tree editable="bottom">
+                            <field name="name" required="True"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                        </tree>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>

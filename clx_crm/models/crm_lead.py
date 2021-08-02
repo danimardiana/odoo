@@ -7,10 +7,22 @@ from odoo import api, fields, models
 class CrmLead(models.Model):
     _inherit = "crm.lead"
 
-    # Overriding this method so that commercial_partner_id.id, the lead company,
-    # is used as customer rather than partner.id which the lead contact
+    lead_company_type = fields.Selection(
+        string="Lead Company Type",
+        selection=[
+            ("person", "Individual"),
+            ("company", "Customer Company"),
+            ("owner", "Owner"),
+            ("management", "Management"),
+        ],
+        default="company",
+    )
+    crm_lead_contact_ids = fields.One2many("crm.lead.contact", "crm_lead_id", string="Lead Contact")
+
+    # Overriding this method so that commercial_partner_id.id (the company) is used to create the
+    # lead company customer rather than default partner.id, which is the lead contact/person
     def handle_partner_assignation(self, action="create", partner_id=False):
-        """Handle partner assignation during a lead conversion.
+        """Handle partner assignation during a conversion from lead to opportunity.
         if action is 'create', create new partner with contact and assign lead to new partner_id.
         otherwise assign lead to the specified partner_id
 
@@ -32,3 +44,7 @@ class CrmLead(models.Model):
                 partner.team_id = lead.team_id
             partner_ids[lead.id] = partner_id
         return partner_ids
+
+    @api.onchange("name")
+    def onchange_lead_name(self):
+        self.partner_name = self.name
