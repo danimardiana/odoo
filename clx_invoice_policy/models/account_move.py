@@ -38,6 +38,23 @@ class AccountMove(models.Model):
         "res.partner.clx.child", compute="compute_billing_contacts", string="Billing Contacts2", store=False
     )
 
+    accounting_notes = fields.Text(string="Accounting Notes",compute="_compute_accounting_notes")
+    unique_billing_note = fields.Boolean(string="Unique Billing Note")
+
+    portable_invoice_url = fields.Char(string="Invoice link", index=True,compute="_compute_get_url")
+
+    def _compute_get_url(self):
+        for rec in self:
+            host_url = self.env['ir.config_parameter'].get_param('web.base.url') or ''
+            rec.portable_invoice_url = host_url + rec.get_portal_url() or ''
+
+    @api.onchange('accounting_notes')
+    def onchange_accounting_notes(self):
+        self.partner_id.accounting_notes = self.accounting_notes
+
+    def _compute_accounting_notes(self):
+        self.accounting_notes = self.partner_id.accounting_notes
+
     def compute_billing_contacts(self):
         billing_list = map(
             lambda item: item.id,
@@ -201,6 +218,21 @@ class AccountMove(models.Model):
     def button_approve_invoice(self):
         for rec in self.filtered(lambda x: x.state == 'draft'):
             rec.state = 'approved_draft'
+
+    # def generate_invoices(self):
+    #     for partner_id in self.env['res.partner'].search([
+    #         ('active','=',True),('is_subscribed','=',True),
+    #         ('clx_invoice_policy_id','!=',False)
+    #     ]):
+    #         partner_id.generate_invoice()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super(AccountMove, self).create(vals_list)
+        #Updating invoice user id as it's partner's account manager
+        if res.partner_id and res.partner_id.account_user_id:
+            res.invoice_user_id = res.partner_id.account_user_id
+        return res
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
