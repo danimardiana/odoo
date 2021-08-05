@@ -244,16 +244,16 @@ class Partner(models.Model):
             elif partner.is_management and not partner.is_owner:
                 partner.company_type = "management"
 
-    def _compute_company_type_hidden(self):
-        if (
-            self.company_type == "person"
-            or self.company_type == "company"
-            or self.company_type == "management"
-            or self.company_type == "owner"
-        ):
-            self.company_type_hidden = True
-        else:
-            self.company_type_hidden = False
+    # def _compute_company_type_hidden(self):
+    #     if (
+    #         self.company_type == "person"
+    #         or self.company_type == "company"
+    #         or self.company_type == "management"
+    #         or self.company_type == "owner"
+    #     ):
+    #         self.company_type_hidden = True
+    #     else:
+    #         self.company_type_hidden = False
 
     def properties_owner(self):
         self.ensure_one()

@@ -7,5 +7,6 @@ class CrmLeadContact(models.Model):
 
     crm_lead_id = fields.Many2one("crm.lead", string="CRM Lead")
     name = fields.Char(string="Name")
+    function = fields.Char(string="Job Position")
     email = fields.Char(string="Email")
     phone = fields.Char(string="Phone")
