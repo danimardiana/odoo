@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_clx_utils_clx_utils,clx_utils.clx_utils,model_clx_utils_clx_utils,base.group_user,1,1,1,1
 access_clx_mysql,access_clx_mysql,model_clx_mysql,base.group_user,1,0,0,0
+
+
