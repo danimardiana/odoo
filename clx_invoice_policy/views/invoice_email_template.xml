@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--Email template -->
+    <record model="ir.ui.view" id="account_invoice_send_wizard_form_inherit_id">
+        <field name="name">account.invoice.send.form.inherit</field>
+        <field name="model">account.invoice.send</field>
+        <field name="inherit_id" ref="account.account_invoice_send_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_ids']" position="replace">
+                <field name="allowed_partner_ids" invisible="1" />
+                <field name="partner_ids" widget="many2many_tags_email" placeholder="Add contacts to notify..." domain="[('id', 'in', allowed_partner_ids)]" options="{'no_create': True}"/>
+                <field name="reply_to" placeholder="Send copy ...   "  invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

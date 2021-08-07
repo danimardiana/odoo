@@ -51,25 +51,6 @@
                         <field name="proofing_email_default" class="oe_inline"/>
                     </div>
                 </div>
-                <h2>Mysql DB Connection</h2>
-                <div class="row mt16 o_settings_container" id="mysql_connection">
-                    <div class="col-12 col-lg-6 o_setting_box">
-                        <label for="mysql_host"/>   
-                        <field name="mysql_host" class="oe_inline"/>
-                    </div>
-                    <div class="col-12 col-lg-6 o_setting_box">
-                        <label for="mysql_database"/>   
-                        <field name="mysql_database" class="oe_inline"/>
-                    </div>
-                    <div class="col-12 col-lg-6 o_setting_box">
-                        <label for="mysql_user"/>   
-                        <field name="mysql_user" class="oe_inline"/>
-                    </div>
-                    <div class="col-12 col-lg-6 o_setting_box">
-                        <label for="mysql_password"/>   
-                        <field name="mysql_password" class="oe_inline"/>
-                    </div>
-                </div>
             </xpath>
         </field>
     </record>

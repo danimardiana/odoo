@@ -70,16 +70,23 @@ class BudgetReportWizard(models.TransientModel):
         result_table = {}
         price_list = {}
         price_list_processed = []
-        partner_id = self.env["res.partner"].browse(self.partner_ids.ids[0])
+        # partner_id = self.env["res.partner"].browse(self.partner_ids.ids[0])
         companies_list = {}
         category_show_params = {}
         while True:
             result_table[slider_period] = {}
             for sub_line in subscription_lines:
-                companies_list ["%s|%s"%(str(partner_id.id),str(sub_line.analytic_account_id.id))]= {"company": partner_id, "percent": 1.0}
+                partner_id = sub_line.analytic_account_id.partner_id
+                companies_list["%s|%s" % (str(partner_id.id), str(sub_line.analytic_account_id.id))] = {
+                    "company": partner_id,
+                    "percent": 1.0,
+                }
                 if len(sub_line.analytic_account_id.co_op_partner_ids):
                     for co_op_line in sub_line.analytic_account_id.co_op_partner_ids:
-                        sub_company_signature = "%s|%s"%(str(co_op_line.partner_id.id),str(sub_line.analytic_account_id.id))
+                        sub_company_signature = "%s|%s" % (
+                            str(co_op_line.partner_id.id),
+                            str(sub_line.analytic_account_id.id),
+                        )
                         companies_list[sub_company_signature] = {
                             "company": co_op_line.partner_id,
                             "percent": co_op_line.ratio / 100,
@@ -143,10 +150,10 @@ class BudgetReportWizard(models.TransientModel):
                         "category": sub_line.product_id.categ_id.id,
                         "company_name": sub_line.so_line_id.order_id.partner_id.name,
                     }
-                    category_show_params [sub_line.product_id.categ_id.id] = {
+                    category_show_params[sub_line.product_id.categ_id.id] = {
                         "show_mgmnt_fee": sub_line.product_id.categ_id.management_fee,
-                        "show_wholesale": sub_line.product_id.categ_id.wholesale
-                        }
+                        "show_wholesale": sub_line.product_id.categ_id.wholesale,
+                    }
 
             slider_start_date += relativedelta(months=1)
             slider_end_date = slider_start_date.replace(
@@ -162,13 +169,17 @@ class BudgetReportWizard(models.TransientModel):
 
                 result_table[period][subscription].update(
                     self.env["sale.subscription"].subscription_wholesale_period(
-                        sale_line_write["retail_price"], sale_line_write["wholesale_price"], category_show_params[ sale_line_write["category"]]
+                        sale_line_write["retail_price"],
+                        sale_line_write["wholesale_price"],
+                        category_show_params[sale_line_write["category"]],
                     )
                 )
 
                 # pass thru all the companies related to the subscription
                 subscription_id = subscription.split("_")[1]
-                subscription_related_list = list(filter(lambda signature:signature.split("|")[1] == subscription_id ,companies_list.keys()))
+                subscription_related_list = list(
+                    filter(lambda signature: signature.split("|")[1] == subscription_id, companies_list.keys())
+                )
                 for partner_line in subscription_related_list:
                     subscribtion_total = sale_line_write.copy()
                     partner_percent = companies_list[partner_line]["percent"]

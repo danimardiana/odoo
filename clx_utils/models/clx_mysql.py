@@ -41,7 +41,6 @@ class ClxMysql(models.Model):
             "city": contact.city if contact.city else "NULL",
             "vertical": contact.vertical if contact.vertical else "NULL",
             "yardi_code": contact.yardi_code if contact.yardi_code else "NULL",
-        }
 
         try:
             cnx = MySQLConnection(**db_config)
