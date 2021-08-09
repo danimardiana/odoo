@@ -879,3 +879,12 @@ class Partner(models.Model):
         else:
             contacts = self.contact_child_ids
         return contacts.mapped("child_id")
+
+    @api.onchange('account_user_id')
+    def _onchange_account_manager(self):
+        partner_id = self.id or self.ids and self.ids[0]
+        move_ids = self.env['account.move'].search([('partner_id','=',partner_id),('state','!=','cancel')])
+        if move_ids:
+            qry = """update account_move set invoice_user_id ="""\
+                + str(self.account_user_id.id) + """ where id in %s"""
+            self.env.cr.execute(qry, [tuple(move_ids.ids)])

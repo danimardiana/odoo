@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <t t-extend="ListView.buttons" t-name="BillsListView.buttons">
+        <t t-jquery="button.o_list_button_add" t-operation="after">
+            <button type="button" class="btn btn-primary oe_auto_generate_invoices oe_highlight">
+                Generate Invoices
+            </button>
+        </t>
+    </t>
+</templates>

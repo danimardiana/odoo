@@ -157,18 +157,7 @@ class SaleOrder(models.Model):
         return res
 
     def unlink(self):
-        budget_lines = self.env["sale.budget.line"].search([("sol_id", "in", self.order_line.ids)])
-        if budget_lines:
-            budget_lines.unlink()
-        subscriptions = False
-        for record in self:
-            sub_lines = self.env["sale.subscription.line"].search([("so_line_id", "in", record.order_line.ids)])
-            if sub_lines:
-                subscriptions = sub_lines.mapped("analytic_account_id")
-                sub_lines.unlink()
-                subscriptions = subscriptions.filtered(lambda x: not x.recurring_invoice_line_ids)
-            if subscriptions:
-                subscriptions.unlink()
+        # here was SB's code for 
         return super(SaleOrder, self).unlink()
 
     def grouping_by_product_set(self, product_lines, invoice_level=False):
@@ -361,24 +350,6 @@ class SaleOrderLine(models.Model):
     line_type = fields.Selection(
         [("base", "Base"), ("upsell", "Upsell"), ("downsell", "Downsell")], string="Origin", default="base"
     )
-
-    def write(self, values):
-        res = super(SaleOrderLine, self).write(values)
-        budget_obj = self.env["sale.budget.line"]
-        if values.get("end_date", False):
-            end_date = values.get("end_date")
-            subscription_lines = self.env["sale.subscription.line"].search([("so_line_id", "=", self.id)])
-            if subscription_lines:
-                [sub_line.write({"end_date": values.get("end_date")}) for sub_line in subscription_lines]
-                for line in subscription_lines:
-                    if line.invoice_start_date > self.end_date:
-                        line.write({"invoice_start_date": False, "invoice_end_date": False})
-                    elif line.invoice_start_date < self.end_date and line.invoice_end_date > self.end_date:
-                        line.write({"invoice_end_date": self.end_date})
-            budget_lines = budget_obj.search([("sol_id", "=", self.id)])
-            if budget_lines:
-                [budget_line.write({"end_date": values.get("end_date")}) for budget_line in budget_lines]
-        return res
 
     @api.onchange("start_date", "end_date")
     def onchange_date_validation(self):
