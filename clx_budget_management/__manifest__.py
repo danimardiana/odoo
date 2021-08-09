@@ -14,7 +14,7 @@
     'depends': [
         'sale_management',
         'sale_subscription',
-        'clx_retail_pricelist'
+        'clx_retail_pricelist',
     ],
     'data': [
         'security/ir.model.access.csv',

@@ -23,10 +23,23 @@
             <tree>
                 <field name="partner_id"/>
                 <field name="subscription_id"/>
-                <field name="product_id"/> 
+                <field name="subscription_href" widget="clx_href" options="{'display_icon': '1', 'display_url': '0', 'open_new': '1'}" string="URL"/>
+                <field name="report_href" widget="clx_href" options="{'display_icon': '1', 'display_url': '0', 'open_new': '1','icon':'fa-bar-chart'}" string="URL" />                
+
+                <field name="product_id" /> 
+                <field name="price_full" />                 
+                <field name="change_wholesale"/>
+                <field name="change_mngmt_fee"/>
                 <field name="change_date"/>
                 <field name="change_price"/>
-                <field name="change_wholesale"/>
+                <field name="prev_date"/>
+                <field name="prev_price" attrs = "{'invisible':[('prev_price','=','False')]}"/>                
+                <field name="prev_wholesale" attrs = "{'invisible':[('prev_price','=','False')]}"/>
+                <field name="next_date" attrs = "{'invisible':[('next_price','=','False')]}" optional="hide"/>
+                <field name="next_price" attrs = "{'invisible':[('next_price','=','False')]}" optional="hide"/>                 
+                <field name="next_wholesale" attrs = "{'invisible':[('next_price','=','False')]}" optional="hide"/> 
+                <field name="status" widget="statusbar" options="{'clickable': '1'}"/>
+                <field name="completed_date" optional="hide"/>
             </tree>
         </field>
     </record>
@@ -38,6 +51,15 @@
         <field name="view_mode">tree</field>
         <!-- <field name="context">{'search_default_group_by_partner_id': 1,'search_default_group_by_start_date':1}</field> -->
         <field name="search_view_id" ref="clx_budget_management.sale_budget_changes_search_view"/> 
+    </record>
+
+    <record id="complete_budgets_action" model="ir.actions.server">
+        <field name="name">Complete</field>
+            <field name="type">ir.actions.server</field>
+            <field name="model_id" ref="model_sale_budget_changes"/>
+            <field name="binding_model_id" ref="model_sale_budget_changes" />
+            <field name="state">code</field>
+            <field name="code">records.complete_budget_changes()</field>
     </record>
 
     <!-- This Menu for sale Budget -->

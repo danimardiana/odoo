@@ -83,6 +83,9 @@ class SaleSubscription(models.Model):
         if not price_list:
             return {"management_fee": -2, "wholesale_price": -2}
 
+        if retail==0:
+            return {"management_fee": 0, "wholesale_price": 0}
+
         management_fee = 0.0 if show_flags["show_mgmnt_fee"] else False
         wholesale = 0.0 if show_flags["show_wholesale"] else False
 
@@ -229,6 +232,7 @@ class SaleSubscription(models.Model):
 
         return self.invoicing_date_range(**kwargs)
 
+    #generates invoice for one period
     def invoicing_one_period(self, **kwargs):
         if (
             (("partner_id" not in kwargs) and ("order_id" not in kwargs))

@@ -22,3 +22,10 @@ class SaleSubscriptionLine(models.Model):
         ]:
             self.env["sale.budget.changes"].refresh_changes(self)
         return write_result
+
+    def create(self, records):
+        create_result = super().create(records)
+        # updating the sale budget changes. when fields can have influence on
+        for record in create_result:
+            self.env["sale.budget.changes"].refresh_changes(record)
+        return create_result
