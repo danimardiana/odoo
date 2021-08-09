@@ -20,7 +20,7 @@
         <field name="name">sale.budget.changes.tree.view</field>
         <field name="model">sale.budget.changes</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree decoration-success="change_price &gt;0" decoration-warning ="change_price &lt;0" decoration-danger ="price_full==0" decoration-bf ="price_full==0">
                 <field name="partner_id"/>
                 <field name="subscription_id"/>
                 <field name="subscription_href" widget="clx_href" options="{'display_icon': '1', 'display_url': '0', 'open_new': '1'}" string="URL"/>
