@@ -69,6 +69,12 @@
                         <div class="col-6" name="bill_to" style="float:left;">
                             <strong>BILL TO</strong>
                             <br/>
+                            <span t-field="o.partner_id.name"/>
+                            <br/>
+                            <t t-if="o.partner_id.management_company_type_id">
+                                <span t-field="o.partner_id.management_company_type_id.name"/>
+                                <br/>
+                            </t>
                             <t t-if="o.partner_id.street">
                                 <span t-field="o.partner_id.street"/>
                                 <br/>
@@ -79,19 +85,12 @@
                             </t>
                             <!--<address t-field="o.partner_id"
                                      t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>-->
-                            <span t-field="o.partner_id.name"/>
-                            <br/>
-                            <t t-if="o.partner_id.management_company_type_id">
-                                <span t-field="o.partner_id.management_company_type_id.name"/>
-                                <br/>
-                            </t>
                             <t t-if="o.partner_id.city">
                                 <span t-field="o.partner_id.city"/>
-                                <span/>
+                                <span>, </span>
                             </t>
                             <t t-if="o.partner_id.state_id">
-                                <span t-field="o.partner_id.state_id.name"/>
-                                <span/>
+                                <span t-field="o.partner_id.state_id.code"/>
                             </t>
                             <t t-if="o.partner_id.zip">
                                 <span t-field="o.partner_id.zip"/>
