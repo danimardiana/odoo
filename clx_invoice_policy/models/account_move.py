@@ -5,9 +5,12 @@
 from odoo import fields, models, api, _
 from dateutil import parser
 from collections import OrderedDict
+import datetime
 from datetime import timedelta
 import calendar
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -233,6 +236,16 @@ class AccountMove(models.Model):
         #Updating invoice user id as it's partner's account manager
         if res.partner_id and res.partner_id.account_user_id:
             res.invoice_user_id = res.partner_id.account_user_id
+        try:
+            if res.invoice_month_year:
+                current_month = datetime.datetime.now().date().month
+                current_year = datetime.datetime.now().date().year
+                invoice_period_year , invoive_period_month = res.invoice_month_year.split("-")
+                if int(invoive_period_month) > current_month & int(invoice_period_year) >= current_year:
+                    res.invoice_date_due = datetime.date(int(invoice_period_year), int(invoive_period_month), 1) - datetime.timedelta(days=1)
+        except Exception as e:
+            _logger.error("While creating Invoice and updating due date this error occurs.")
+            _logger.error(e)
         return res
 
 class AccountMoveLine(models.Model):
