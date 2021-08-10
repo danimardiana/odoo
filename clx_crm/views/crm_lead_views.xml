@@ -5,6 +5,11 @@
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
+            <!-- Add Contact Validaion Button to header -->
+            <xpath expr="//button[@name='296']" position="before">
+                <field name="show_validate_btn" invisible="1"/>
+                <button name="validate_lead_contacts" string="Validate Contacts" type="object" attrs="{'invisible': ['|',('show_validate_btn', '=', False), ('type', '=', 'opportunity')]}"/>
+            </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="replace">
                 <div class="oe_title">
                     <label for="name" string="Lead Prospect Name" attrs="{'invisible': [('type', '=', 'opportunity')]}"/>

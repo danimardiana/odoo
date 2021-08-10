@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 
 class CrmLead(models.Model):
@@ -24,9 +25,17 @@ class CrmLead(models.Model):
             ("srl", "SRL"),
             ("local", "Local"),
             ("auto", "Auto"),
+            ("agency", "Agency"),
         ],
         string="Vertical",
     )
+    show_validate_btn = fields.Boolean(string="Show Validation Button", compute="_set_show_validate_btn")
+
+    def _set_show_validate_btn(self):
+        if self.crm_lead_contact_ids:
+            self.show_validate_btn = True
+        else:
+            self.show_validate_btn = False
 
     def _create_partner_company_data(self, name, is_company, parent_id=False, company_type=False):
         """extract data from lead to create a partner
@@ -68,13 +77,80 @@ class CrmLead(models.Model):
         }
         return res
 
+    def validate_lead_contacts(self):
+        """
+        Lead contacts need to be related to the
+        new Opportunity Client Company through the res_partner_clx table
+        which allows a contact to have roles at many Companies
+        1. Check to see it person contact exists. Create if it does not
+        2. Create the parent-child relationship in the res_partner_clx table
+        """
+        lead_contacts = self.crm_lead_contact_ids
+
+        if lead_contacts:
+            contact_table = self.env["res.partner"]
+            # contact_company_role_table = self.env["res.partner.clx.child"]
+            contact_list = []
+
+            for contact in lead_contacts:
+                search_email = contact.email
+                search_name = contact.name
+
+                if search_email:
+                    results = contact_table.search(
+                        ["&", ("email", "=ilike", search_email), ("company_type", "=ilike", "person")]
+                    )
+                    for existing in results:
+                        lead = self._build_lead_contact_validation(contact, existing)
+                        contact_list.append(lead)
+
+                else:
+                    results = contact_table.search(
+                        ["&", ("name", "=ilike", search_name), ("company_type", "=ilike", "person")]
+                    )
+                    for existing in results:
+                        lead = self._build_lead_contact_validation(contact, existing)
+                        contact_list.append(lead)
+
+                add_new_contact_row = self._build_lead_contact_validation(contact, False)
+                contact_list.append(add_new_contact_row)
+
+        context = dict(self._context or {})
+        context["contact_list"] = contact_list
+        context["search_default_lead_contact"] = 1
+
+        res = {
+            "name": "Existing Contact Warning",
+            "type": "ir.actions.act_window",
+            "res_model": "lead.contact.warning.wizard",
+            "view_type": "form",
+            "view_mode": "form",
+            "search_view_id": "view_clx_lead_contact_search",
+            "target": "new",
+            "context": context,
+        }
+
+        return res
+
+    def _build_lead_contact_validation(self, lead=False, existing=False):
+        vals = {
+            "crm_lead_contact_id": lead.id,
+            "crm_lead_contact_name": lead.name,
+            "existing_res_partner_id": existing.id if existing else "",
+            "existing_name": existing.name if existing else "Create New " + lead.name,
+            "existing_function": existing.function if existing else "",
+            "existing_email": existing.email if existing else "",
+            "existing_phone": existing.phone if existing else "",
+            "existing_city": existing.city if existing else "",
+            "existing_state": existing.state_id.code if existing else "",
+        }
+        return vals
+
     def _create_lead_partner(self):
         """Create a partner from lead data
         :returns res.partner record
         """
         Partner = self.env["res.partner"]
-        lead_contacts = self.crm_lead_contact_ids
-
         # if not self.crm_lead_contact_ids:
         #     contact_name = Partner._parse_partner_name(self.email_from)[0] if self.email_from else False
 
@@ -85,12 +161,15 @@ class CrmLead(models.Model):
         else:
             partner_company = None
 
-        if lead_contacts:
-            company_contact = self.env["res.partner"]
-            for contact in lead_contacts:
-                company_contact.create(
-                    self._create_partner_person_data(contact, partner_company.id if partner_company else False)
-                )
+        # new_contact = False
+        # if not existing_contact_list:
+        #     new_contact = contact_table.create(self._create_partner_person_data(contact, False))
+        #     contact_company_role_table.create({"parent_id": partner_company.id, "child_id": new_contact.id})
+        # else:
+        #     print(existing_contact_list[0].id)
+        #     contact_company_role_table.create(
+        #         {"parent_id": partner_company.id, "child_id": existing_contact_list[0].id}
+        #     )
 
         if partner_company:
             return partner_company

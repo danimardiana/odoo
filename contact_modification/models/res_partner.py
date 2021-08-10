@@ -56,7 +56,7 @@ class Partner(models.Model):
     mangement_company_type = fields.Selection(
         string="Mgmt. Company Type", selection=[("greystar", "Greystar"), ("other", "Other")]
     )
-    contact_type_ids = fields.Many2many("contact.type", "contact_type_rel", "con_id", "type_id", string="Contact Type")
+    contact_type_ids = fields.Many2many("contact.type", "contact_type_rel", "con_id", "type_id", string="Contact Role")
     contact_company_type_id = fields.Many2one("res.partner", string="Contact Name")
     company_type_rel = fields.Selection(
         related="company_type",
@@ -65,7 +65,7 @@ class Partner(models.Model):
     contact_display_kanban = fields.Char("Contact Display Name")
     contact_child_ids = fields.One2many("res.partner.clx.child", "parent_id", string="Other Contacts")
     vertical = fields.Selection(
-        [("res", "RES"), ("srl", "SRL"), ("local", "Local"), ("auto", "Auto")], string="Vertical"
+        [("res", "RES"), ("srl", "SRL"), ("local", "Local"), ("auto", "Auto"), ("agency", "Agency")], string="Vertical"
     )
 
     branding_name = fields.Char(string="Branding Name")

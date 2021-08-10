@@ -10,3 +10,4 @@ class CrmLeadContact(models.Model):
     function = fields.Char(string="Job Position")
     email = fields.Char(string="Email")
     phone = fields.Char(string="Phone")
+    validated = fields.Boolean(string="Lead contact has been validated", default=False)
