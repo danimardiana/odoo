@@ -74,7 +74,10 @@
             <xpath expr="//header//button[@name='action_post']" position="after">
                 <button name="button_approve_invoice" string="Approve invoice" class="oe_highlight" type="object"
                         groups="account.group_account_invoice"
-                        attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                        attrs="{'invisible': ['|',('state', '!=', 'draft'),('type','in',('out_refund','in_refund'))]}"/>
+                <button name="button_approve_invoice" string="Approve Credit Note" class="oe_highlight" type="object"
+                        groups="account.group_account_invoice"
+                        attrs="{'invisible': ['|',('state', '!=', 'draft'),('type','not in',('out_refund','in_refund'))]}"/>
             </xpath>
             <xpath expr="//header//button[@name='button_draft']" position="attributes">
                 <attribute name="attrs">{'invisible' : ['|', ('restrict_mode_hash_table', '=', True),
