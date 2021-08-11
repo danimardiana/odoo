@@ -19,14 +19,21 @@ class AccountMove(models.Model):
     invoice_period_verbal = fields.Char(
         compute="compute_invoice_period_verbal", string="Invoice Period Verbal", store=False
     )
-    state = fields.Selection(selection=[
-        ('draft', 'Draft'),
-        ('approved_draft', 'Approved Draft'),
-        ('email_sent', 'Email Sent'),
-        ('posted', 'Posted'),
-        ('cancel', 'Cancelled')
-    ], string='Status', required=True, readonly=True, copy=False, tracking=True,
-        default='draft')
+    state = fields.Selection(
+        selection=[
+            ("draft", "Draft"),
+            ("approved_draft", "Approved Draft"),
+            ("email_sent", "Email Sent"),
+            ("posted", "Posted"),
+            ("cancel", "Cancelled"),
+        ],
+        string="Status",
+        required=True,
+        readonly=True,
+        copy=False,
+        tracking=True,
+        default="draft",
+    )
 
     related_contact_ids = fields.One2many(
         related="partner_id.contact_child_ids",
@@ -38,17 +45,17 @@ class AccountMove(models.Model):
         "res.partner.clx.child", compute="compute_billing_contacts", string="Billing Contacts2", store=False
     )
 
-    accounting_notes = fields.Text(string="Accounting Notes",compute="_compute_accounting_notes")
+    accounting_notes = fields.Text(string="Accounting Notes", compute="_compute_accounting_notes")
     unique_billing_note = fields.Boolean(string="Unique Billing Note")
 
-    portable_invoice_url = fields.Char(string="Invoice link", index=True,compute="_compute_get_url")
+    portable_invoice_url = fields.Char(string="Invoice link", index=True, compute="_compute_get_url")
 
     def _compute_get_url(self):
         for rec in self:
-            host_url = self.env['ir.config_parameter'].get_param('web.base.url') or ''
-            rec.portable_invoice_url = host_url + rec.get_portal_url() or ''
+            host_url = self.env["ir.config_parameter"].get_param("web.base.url") or ""
+            rec.portable_invoice_url = host_url + rec.get_portal_url() or ""
 
-    @api.onchange('accounting_notes')
+    @api.onchange("accounting_notes")
     def onchange_accounting_notes(self):
         self.partner_id.accounting_notes = self.accounting_notes
 
@@ -63,7 +70,7 @@ class AccountMove(models.Model):
             ),
         )
         self.related_billing_contact_ids = [(6, 0, list(billing_list))]
-    
+
     def post(self):
         res = super(AccountMove, self).post()
         sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
@@ -93,70 +100,6 @@ class AccountMove(models.Model):
             else:
                 invoice.invoice_period_verbal = "-"
 
-    def unlink(self):
-        for record in self:
-            if record.invoice_origin:
-                for inv_line in record.invoice_line_ids:
-                    if inv_line.subscription_lines_ids:
-                        name = inv_line.name.split(":")
-                        name = name[-1].split("-")
-                        start_date = parser.parse(name[0])
-                        end_date = parser.parse(name[-1])
-                        if start_date and end_date:
-                            for sub in inv_line.subscription_lines_ids:
-                                if not sub.end_date:
-                                    sub.invoice_start_date = start_date.date()
-                                    sub.invoice_end_date = end_date.date()
-                                elif sub.end_date:
-                                    month_count = len(
-                                        OrderedDict(
-                                            ((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0)
-                                            for _ in range((start_date.date() - sub.end_date).days)
-                                        )
-                                    )
-                                    if month_count == 1 and start_date.date() > sub.end_date:
-                                        sub.invoice_start_date = sub.start_date
-                                        sub.invoice_end_date = sub.end_date
-                                    elif sub.start_date > start_date.date():
-                                        sub.invoice_start_date = sub.start_date
-                                        sub.invoice_end_date = sub.end_date
-                                    else:
-                                        sub.invoice_start_date = start_date.date()
-                                        sub.invoice_end_date = end_date.date()
-        return super(AccountMove, self).unlink()
-
-    def button_cancel(self):
-        res = super(AccountMove, self).button_cancel()
-        if self.invoice_origin:
-            for inv_line in self.invoice_line_ids:
-                if inv_line.subscription_lines_ids:
-                    name = inv_line.name.split(":")
-                    name = name[-1].split("-")
-                    start_date = parser.parse(name[0])
-                    end_date = parser.parse(name[-1])
-                    if start_date and end_date:
-                        for sub in inv_line.subscription_lines_ids:
-                            if not sub.end_date:
-                                sub.invoice_start_date = start_date.date()
-                                sub.invoice_end_date = end_date.date()
-                            elif sub.end_date:
-                                month_count = len(
-                                    OrderedDict(
-                                        ((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0)
-                                        for _ in range((start_date.date() - sub.end_date).days)
-                                    )
-                                )
-                                if month_count == 1 and start_date.date() > sub.end_date:
-                                    sub.invoice_start_date = sub.start_date
-                                    sub.invoice_end_date = sub.end_date
-                                elif sub.start_date > start_date.date():
-                                    sub.invoice_start_date = sub.start_date
-                                    sub.invoice_end_date = sub.end_date
-                                else:
-                                    sub.invoice_start_date = start_date.date()
-                                    sub.invoice_end_date = end_date.date()
-        return res
-
     # rewriting the eamil sending function
     def action_invoice_sent(self, reminder=False):
         self.ensure_one()
@@ -165,7 +108,9 @@ class AccountMove(models.Model):
         template_id = template.id
         account_manager = self.partner_id.account_user_id.partner_id
         default_partner_ids = [account_manager.id] + self.partner_id.contacts_to_notify().mapped("id")
-        contacts_billing = [account_manager.id] + self.partner_id.contacts_to_notify(group_name="Billing Contact").mapped("id")
+        contacts_billing = [account_manager.id] + self.partner_id.contacts_to_notify(
+            group_name="Billing Contact"
+        ).mapped("id")
 
         if template.lang:
             lang = template._render_template(template.lang, "account.move", self.ids[0])
@@ -214,10 +159,10 @@ class AccountMove(models.Model):
     # no status for mail sending
     def email_send_postprocess(self):
         return
-      
+
     def button_approve_invoice(self):
-        for rec in self.filtered(lambda x: x.state == 'draft'):
-            rec.state = 'approved_draft'
+        for rec in self.filtered(lambda x: x.state == "draft"):
+            rec.state = "approved_draft"
 
     # def generate_invoices(self):
     #     for partner_id in self.env['res.partner'].search([
@@ -229,19 +174,17 @@ class AccountMove(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         res = super(AccountMove, self).create(vals_list)
-        #Updating invoice user id as it's partner's account manager
+        # Updating invoice user id as it's partner's account manager
         if res.partner_id and res.partner_id.account_user_id:
             res.invoice_user_id = res.partner_id.account_user_id
         return res
+
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
     category_id = fields.Many2one("product.category", string="Category")
-    subscription_ids = fields.Many2many("sale.subscription", string="Subscription(s)")
-    subscription_lines_ids = fields.Many2many("sale.subscription.line", string="Subscriptions Lines")
+    # subscription_ids = fields.Many2many("sale.subscription", string="Subscription(s)")
+    # subscription_lines_ids = fields.Many2many("sale.subscription.line", string="Subscriptions Lines")
 
-    management_fees = fields.Float(string="Management Fees")
-    retail_price = fields.Float(string="Retails Price")
-    wholesale = fields.Float(string="Wholsesale")
     description = fields.Char(string="Description")
