@@ -53,11 +53,7 @@ class SaleBudgetChanges(models.Model):
     def _get_report_href(self):
         web_base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
         for element in self:
-            element.report_href = (
-                web_base_url
-                + "/budget_report/%s"
-                % (element.partner_id.id)
-            )
+            element.report_href = web_base_url + "/budget_report/%s" % (element.partner_id.id)
 
     def complete_budget_changes(self):
         for change in self:
@@ -202,19 +198,22 @@ class SaleBudgetChanges(models.Model):
         for i in range(len(sorted_dates) - 1, 0, -1):
             if change_dates_to_update[sorted_dates[i]]["change_price"] == 0:
                 del change_dates_to_update[sorted_dates[i]]
+                del sorted_dates[i]
 
         # clean up existing changes
         for change_date in change_dates_existing:
             if change_date not in sorted_dates:
                 change_dates_existing[change_date].unlink()
 
+        # Initial  date need to be passed as Ops team won't have notification about it.
+        # So scan till index 0 excluding
         for change_date_idx in range(len(sorted_dates) - 1, 0, -1):
-            prev_date = sorted_dates[change_date_idx - 1]
-            # Initial  date need to be passed as Ops team won't have notification about it.
-            # So scan till index 0 excluding
-
             change_date = sorted_dates[change_date_idx]
             processing_change = change_dates_to_update[change_date]
+            # filter out changes happened before August 2021
+            if datetime.datetime.strptime(change_date, date_signature) < datetime.datetime(2021, 8, 1):
+                continue
+            prev_date = sorted_dates[change_date_idx - 1]
 
             # generate the change object
             period_start_date = processing_change["start_period_date"]
@@ -230,7 +229,7 @@ class SaleBudgetChanges(models.Model):
                 next_date = sorted_dates[change_date_idx + 1]
                 if next_date in periods_spending:
                     next_money_details = periods_spending[next_date]
-
+            management_fee = money_detils["management_fee"] if money_detils["management_fee"] >= 0 else "-"
             change_object = {
                 # "partner_id": partner_id,
                 "subscription_id": subscription.id,
@@ -240,7 +239,7 @@ class SaleBudgetChanges(models.Model):
                 "change_price": processing_change["change_price"],
                 "price_full": money_detils["price_full"],
                 "change_wholesale": money_detils["wholesale"],
-                "change_mngmt_fee": money_detils["management_fee"],
+                "change_mngmt_fee": management_fee,
                 "prev_date": datetime.datetime.strptime(prev_date, date_signature),
                 "prev_price": prev_money_detils["price_full"],
                 "prev_wholesale": prev_money_detils["wholesale"],
