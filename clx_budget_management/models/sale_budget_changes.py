@@ -61,7 +61,7 @@ class SaleBudgetChanges(models.Model):
 
     def complete_budget_changes(self):
         for change in self:
-            change.update({"status": "complete"})
+            change.update({"status": "completed"})
 
     def refresh_changes(self, changed_line):
         date_signature = "%Y-%m-%d"
