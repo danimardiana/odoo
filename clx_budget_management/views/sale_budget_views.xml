@@ -32,8 +32,8 @@
                 <field name="change_mngmt_fee"/>
                 <field name="change_date"/>
                 <field name="change_price"/>
-                <field name="prev_date"  optional="hide"/ >
-                <field name="prev_price" attrs = "{'invisible':[('prev_price','=','False')]}"  optional="hide"/>                
+                <field name="prev_date"  optional="hide" />
+                <field name="prev_price" attrs = "{'invisible':[('prev_price','=','False')]}" optional="hide"/>                
                 <field name="prev_wholesale" attrs = "{'invisible':[('prev_price','=','False')]}"  optional="hide"/>
                 <field name="next_date" attrs = "{'invisible':[('next_price','=','False')]}" optional="hide"/>
                 <field name="next_price" attrs = "{'invisible':[('next_price','=','False')]}" optional="hide"/>                 
