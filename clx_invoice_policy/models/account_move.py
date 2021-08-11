@@ -95,14 +95,26 @@ class AccountMove(models.Model):
     def compute_invoice_period_verbal(self):
         for invoice in self:
             if invoice.invoice_month_year:
-                year, day = invoice.invoice_month_year.split("-")
+                year, month = invoice.invoice_month_year.split("-")
                 # check for correct data
-                if len(year) == 4 and len(day) == 2:
-                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)], year)
+                if len(year) == 4 and len(month) == 2:
+                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(month)], year)
+                    self.update_due_date()
                 else:
                     invoice.invoice_period_verbal = "-"
             else:
                 invoice.invoice_period_verbal = "-"
+
+    def update_due_date(self):
+        current_month = datetime.datetime.now().date().month
+        current_year = datetime.datetime.now().date().year
+        for invoice in self:
+            new_val = invoice.invoice_month_year
+            if new_val:
+                year, month = new_val.split("-")
+            if int(month) > current_month and int(year) >= current_year:
+                invoice.invoice_date_due = datetime.date(int(year), int(month), 1)
+
 
     def unlink(self):
         for record in self:
@@ -236,16 +248,7 @@ class AccountMove(models.Model):
         #Updating invoice user id as it's partner's account manager
         if res.partner_id and res.partner_id.account_user_id:
             res.invoice_user_id = res.partner_id.account_user_id
-        try:
-            if res.invoice_month_year:
-                current_month = datetime.datetime.now().date().month
-                current_year = datetime.datetime.now().date().year
-                invoice_period_year , invoive_period_month = res.invoice_month_year.split("-")
-                if int(invoive_period_month) > current_month & int(invoice_period_year) >= current_year:
-                    res.invoice_date_due = datetime.date(int(invoice_period_year), int(invoive_period_month), 1) - datetime.timedelta(days=1)
-        except Exception as e:
-            _logger.error("While creating Invoice and updating due date this error occurs.")
-            _logger.error(e)
+        res.update_due_date()
         return res
 
 class AccountMoveLine(models.Model):
