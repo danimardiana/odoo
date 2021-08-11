@@ -99,11 +99,14 @@ class AccountMove(models.Model):
                 # check for correct data
                 if len(year) == 4 and len(month) == 2:
                     invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(month)], year)
-                    self.update_due_date()
                 else:
                     invoice.invoice_period_verbal = "-"
             else:
                 invoice.invoice_period_verbal = "-"
+
+    @api.onchange('invoice_month_year')
+    def _onchange_invoice_month_year(self):
+        self.update_due_date()
 
     def update_due_date(self):
         current_month = datetime.datetime.now().date().month
