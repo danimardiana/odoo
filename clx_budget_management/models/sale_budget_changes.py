@@ -229,7 +229,7 @@ class SaleBudgetChanges(models.Model):
                 next_date = sorted_dates[change_date_idx + 1]
                 if next_date in periods_spending:
                     next_money_details = periods_spending[next_date]
-            management_fee = money_detils["management_fee"] if money_detils["management_fee"] >= 0 else "-"
+            management_fee = money_detils["management_fee"] if money_detils["management_fee"] >= 0 else 0.0
             change_object = {
                 # "partner_id": partner_id,
                 "subscription_id": subscription.id,
