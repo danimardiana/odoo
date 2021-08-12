@@ -20,25 +20,25 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
             let count = self.$('tbody.ui-sortable tr.o_data_row').length;
             let tableBody = self.$('tbody.ui-sortable');
             let ratio = count > 0 ? 100 / count : 0;
-
-            console.log(count);
+            let sale_order_line_id = self.initialState.context.default_sale_order_line_id;
 
             tableBody.find('tr.o_data_row').each((idx, tr) => {
                 let partner = $(tr).find('td.o_list_many2one');
                 let split_ratio = $(tr).find('td.o_list_number');
-                split_ratio.text((Math.round(ratio * 100) / 100).toFixed(2));
+                split_ratio.text(ratio.toFixed(2));
 
-                // console.log(partner[0]);
+                console.log(self.initialState.context.default_sale_order_line_id);
                 console.log(`Actual ratio: ${ratio}`);
             });
-
-            // console.log(tableBody);
 
             Model.query({
                 model: 'co.op.sale.order.partner',
                 method: 'split_ratio_evenly',
-                args: [{}]
-            }).then(function (data) {});
+                args: [{}],
+                kwargs: { split_ratio: ratio, sale_order_line_id: sale_order_line_id }
+            }).then(function (data) {
+                //console.log('SET RATIO(S)');
+            });
         }
     });
 });

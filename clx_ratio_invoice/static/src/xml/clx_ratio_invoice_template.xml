@@ -4,7 +4,7 @@
         <t t-jquery="div.o_list_buttons" t-operation="append">
             <t t-if="widget.modelName == 'co.op.sale.order.partner'">
                 <button type="button" class="oe_split_ratio_button btn btn-secondary oe_highlight">
-                    Div Ratio
+                    Split Ratio
                 </button>
             </t>
         </t> 
