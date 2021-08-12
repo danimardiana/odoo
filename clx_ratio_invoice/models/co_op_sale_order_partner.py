@@ -44,6 +44,8 @@ class CoOpSaleOrderPartner(models.Model):
         for line in related_lines:
             if updated_line_id and updated_line_id != line.id:
                 ratio += line.ratio
+            if not updated_line_id:
+                ratio += line.ratio
         if ratio > 100:
             raise UserError(_("You Can not add more than 100% !!"))
 
