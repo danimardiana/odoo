@@ -12,7 +12,7 @@
                     <field name="ratio" />
                     <field name="sale_order_line_id" invisible="1"/>     
                     <button type="object" icon="fa-trash-o" name="unlink" string="Unlink" class="btn-secondary"/>
-                </tree>     
+                </tree>
             </field>
     </record>
 

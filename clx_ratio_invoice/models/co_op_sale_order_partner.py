@@ -9,7 +9,7 @@ class CoOpSaleOrderPartner(models.Model):
     _name = "co.op.sale.order.partner"
     _description = "Co Op Sale Order"
 
-    partner_id = fields.Many2one("res.partner", string="Customer",domain="[('company_type', '=', 'company')]")
+    partner_id = fields.Many2one("res.partner", string="Customer", domain="[('company_type', '=', 'company')]")
     ratio = fields.Float(string="Ratio (%)")
     sale_order_line_id = fields.Many2one("sale.order.line", string="Sale Order")
 
@@ -44,6 +44,9 @@ class CoOpSaleOrderPartner(models.Model):
             ratio += line.ratio
         if ratio > 100:
             raise UserError(_("You Can not add more than 100% !!"))
+
+    def split_ratio_evenly(self):
+        print("SPLIT RATIO!!")
 
 
 class CoOpSubscriptionPartner(models.Model):
