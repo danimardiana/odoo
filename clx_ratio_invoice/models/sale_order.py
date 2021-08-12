@@ -81,7 +81,7 @@ class SaleOrderLine(models.Model):
     co_op_sale_order_line_partner_ids = fields.One2many(
         "co.op.sale.order.partner", "sale_order_line_id", string="CO-OP Customers"
     )
-    total_coop_percenage = fields.Integer(compute="calculate_total_coop_percenage", store=False, string="co-op %")
+    total_coop_percenage = fields.Float(compute="calculate_total_coop_percenage", store=False, string="co-op %")
     is_co_op = fields.Boolean(related="order_id.is_co_op", store=False)
 
     # clx_subscription_ids = fields.Many2many("sale.subscription", copy=False)
@@ -103,12 +103,11 @@ class SaleOrderLine(models.Model):
             "target": "new",
             "context": {"default_sale_order_line_id": self.id},
         }
-        
+
     @api.model
     def calculate_total_coop_percenage(self):
         for line in self:
-            line.total_coop_percenage = int(sum(line.co_op_sale_order_line_partner_ids.mapped('ratio') ))
-
+            line.total_coop_percenage = sum(line.co_op_sale_order_line_partner_ids.mapped("ratio"))
 
     # @api.onchange('is_ratio')
     # def onchange_is_ratio(self):
