@@ -11,7 +11,21 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
             var self = this;
             if (this.$buttons) {
                 let splitButton = this.$buttons.find('.oe_split_ratio_button');
+                let createButton = this.$buttons.find('.o_list_button_add');
+                let discardButton = this.$buttons.find('.o_list_button_discard');
+                let saveButton = this.$buttons.find('.o_list_button_save');
+
                 splitButton && splitButton.click(this.proxy('SplitRatioEvenly'));
+
+                createButton.click(() => {
+                    $('.oe_split_ratio_button').hide();
+                });
+                discardButton.click(() => {
+                    $('.oe_split_ratio_button').show();
+                });
+                saveButton.click(() => {
+                    $('.oe_split_ratio_button').show();
+                });
             }
         },
 
