@@ -9,13 +9,13 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
         renderButtons: function ($node) {
             this._super.apply(this, arguments);
             var self = this;
-            if (this.$buttons) {
+            if (self.$buttons) {
                 let splitButton = this.$buttons.find('.oe_split_ratio_button');
                 let createButton = this.$buttons.find('.o_list_button_add');
                 let discardButton = this.$buttons.find('.o_list_button_discard');
                 let saveButton = this.$buttons.find('.o_list_button_save');
 
-                splitButton && splitButton.click(this.proxy('SplitRatioEvenly'));
+                splitButton && splitButton.click(self.proxy('SplitRatioEvenly'));
 
                 createButton.click(() => {
                     $('.oe_split_ratio_button').hide();
@@ -37,7 +37,6 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
             let sale_order_line_id = self.initialState.context.default_sale_order_line_id;
 
             tableBody.find('tr.o_data_row').each((idx, tr) => {
-                let partner = $(tr).find('td.o_list_many2one');
                 let split_ratio = $(tr).find('td.o_list_number');
                 split_ratio.text(ratio.toFixed(2));
 
@@ -56,40 +55,3 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
         }
     });
 });
-
-// odoo.define('clx_ratio_invoice.coop.ratio.tree', function (require) {
-//     'use strict';
-
-//     var Model = require('web.rpc');
-//     var ListController = require('web.ListController');
-//     var core = require('web.core');
-
-//     ListView.include({
-//         renderButtons: function ($node) {
-//             this._super.apply(this, arguments);
-//             if (this.$buttons) {
-//                 console.log('ADD BUTTON!!!!!!!');
-//                 let importButton = this.$buttons.find('.oe_split_ratio_button');
-//                 importButton && importButton.click(this.proxy('SplitRatioEvenly'));
-//             }
-//         },
-//         // ListView.include({
-//         //     renderButtons: function (data) {
-//         //         if (this.$buttons) {
-//         //             console.log('ADD BUTTON!!!!!!!');
-//         //             this.$buttons.find('.oe_split_ratio_button').click(this.proxy('SplitRatioEvenly'));
-//         //         }
-//         //     },
-
-//         SplitRatioEvenly: function () {
-//             //implement your click logic here
-//             // Model.query({
-//             //     model: 'account.move',
-//             //     method: 'generate_invoices',
-//             //     args: [{}]
-//             // }).then(function (data) {});
-//         }
-//     });
-//     core.action_registry.add('clx_ratio_invoice.coop.ratio.tree', ListView);
-//     return ListView;
-// });

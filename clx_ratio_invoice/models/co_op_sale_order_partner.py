@@ -39,13 +39,18 @@ class CoOpSaleOrderPartner(models.Model):
             raise UserError(_("Percentage cant be negative !!"))
         related_lines = self.search(([("sale_order_line_id", "=", self.sale_order_line_id.id)]))
 
+        # new user supplied ratio
         ratio = self.ratio
         updated_line_id = self.ids[0] if len(self.ids) == 1 else False
+
         for line in related_lines:
+            # if updating an existing line, skip it's old value when totaling
             if updated_line_id and updated_line_id != line.id:
                 ratio += line.ratio
-            if not updated_line_id:
+            # else use all values in the list when totaling
+            elif not updated_line_id:
                 ratio += line.ratio
+
         if ratio > 100:
             raise UserError(_("You Can not add more than 100% !!"))
 

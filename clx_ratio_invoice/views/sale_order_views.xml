@@ -24,9 +24,7 @@
         
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <!-- <field name="partner_id" widget="copyable" copyable="1"/> -->
                 <field name="is_co_op"/>
-
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="after">
                 <field name="is_co_op" invisible="True"/>
