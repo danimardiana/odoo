@@ -15,7 +15,6 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
                 let discardButton = this.$buttons.find('.o_list_button_discard');
                 let saveButton = this.$buttons.find('.o_list_button_save');
                 let exportButton = this.$buttons.find('.o_list_export_xlsx');
-                //let toolBarButtons = $('.o_cp_buttons');
 
                 splitButton && splitButton.click(self.proxy('SplitRatioEvenly'));
                 exportButton.hide();
@@ -53,9 +52,6 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
             tableBody.find('tr.o_data_row').each((idx, tr) => {
                 let split_ratio = $(tr).find('td.o_list_number');
                 split_ratio.text(ratio.toFixed(2));
-
-                // console.log(self.initialState.context.default_sale_order_line_id);
-                // console.log(`Actual ratio: ${ratio}`);
             });
 
             Model.query({
@@ -63,9 +59,7 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
                 method: 'split_ratio_evenly',
                 args: [{}],
                 kwargs: { split_ratio: ratio, sale_order_line_id: sale_order_line_id }
-            }).then(function (data) {
-                //console.log('SET RATIO(S)');
-            });
+            }).then(function (data) {});
         }
     });
 });
