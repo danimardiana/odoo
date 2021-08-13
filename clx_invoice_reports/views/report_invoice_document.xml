@@ -165,19 +165,19 @@
                 <tbody class="invoice_tbody">
                     <t t-set="current_subtotal" t-value="0"/>
                     <t t-set="lines"
-                       t-value="o.invoice_line_ids.sorted(key=lambda l: (-l.sequence, l.date, l.move_name, -l.id), reverse=True)"/>
+                       t-value="o.client_invoice_grouping()"/>
 
                     <t t-foreach="lines" t-as="line">
-                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
+                        <t t-set="current_subtotal" t-value="current_subtotal + line['price_subtotal']"
                            groups="account.group_show_line_subtotals_tax_excluded"/>
-                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_total"
+                        <t t-set="current_subtotal" t-value="current_subtotal + line['price_total']"
                            groups="account.group_show_line_subtotals_tax_included"/>
                         <tr>
                             <td>
-                                <span t-field="line.description"/>
+                                <span t-esc="line['description']"/>
                             </td>
                             <td name="th_amount" class="text-right">
-                                <t t-if="line.tax_ids">
+                                <t t-if="len(line['tax_ids'])">
                                     <span>Y</span>
                                 </t>
                                 <t t-else="">
@@ -185,10 +185,11 @@
                                 </t>
                             </td>
                             <td>
-                                <span t-field="line.price_total" style="float:right;"/>
+                                <span t-esc="line['price_total']" style="float:right;"/>
                             </td>
                         </tr>
                     </t>
+
                 </tbody>
             </table>
             <hr style="border: 1px dashed black;"/>

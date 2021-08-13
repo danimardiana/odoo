@@ -343,6 +343,7 @@ class SaleOrder(models.Model):
             else:
                 final_values[line]["management_fee"] = 0
                 final_values[line]["wholesale"] = 0
+                final_values[line]["management_fee_product"] = None
 
         return list(final_values.values())
 

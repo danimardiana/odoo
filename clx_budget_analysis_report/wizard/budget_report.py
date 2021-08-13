@@ -167,13 +167,13 @@ class BudgetReportWizard(models.TransientModel):
             for subscription in result_table[period].keys():
                 sale_line_write = result_table[period][subscription]
 
-                result_table[period][subscription].update(
-                    self.env["sale.subscription"].subscription_wholesale_period(
+                management_fee_data =    self.env["sale.subscription"].subscription_wholesale_period(
                         sale_line_write["retail_price"],
                         sale_line_write["wholesale_price"],
                         category_show_params[sale_line_write["category"]],
                     )
-                )
+                del management_fee_data["management_fee_product"]
+                result_table[period][subscription].update(management_fee_data)
 
                 # pass thru all the companies related to the subscription
                 subscription_id = subscription.split("_")[1]

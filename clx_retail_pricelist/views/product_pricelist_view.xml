@@ -39,6 +39,7 @@
                                attrs="{'readonly':[('is_custom', '=', True)]}"/>
                         <field name="is_percentage"/>
                         <field name="is_custom"/>
+                        <field name="management_fee_product" attrs="{'invisible': [('is_fixed', '=', False), ('is_custom', '=', False)]}" />
                     </group>
                     <group name="pricelist_management_rule_base">
                         <field name="fixed_mgmt_price"
