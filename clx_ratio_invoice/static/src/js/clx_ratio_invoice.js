@@ -14,9 +14,15 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
                 let createButton = this.$buttons.find('.o_list_button_add');
                 let discardButton = this.$buttons.find('.o_list_button_discard');
                 let saveButton = this.$buttons.find('.o_list_button_save');
+                let exportButton = this.$buttons.find('.o_list_export_xlsx');
+                //let toolBarButtons = $('.o_cp_buttons');
 
                 splitButton && splitButton.click(self.proxy('SplitRatioEvenly'));
+                exportButton.hide();
 
+                createButton.text('ADD');
+
+                // add handlers for toogleing(hide/show) the split button
                 createButton.click(() => {
                     $('.oe_split_ratio_button').hide();
                 });
@@ -26,6 +32,14 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
                 saveButton.click(() => {
                     $('.oe_split_ratio_button').show();
                 });
+                $('tr.o_data_row').click(() => {
+                    $('.oe_split_ratio_button').hide();
+                });
+
+                // Remove unused search bar elements from header
+                $('.o_cp_left').hide();
+                $('.o_cp_right').hide();
+                $('.o_searchview').hide();
             }
         },
 
@@ -40,8 +54,8 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
                 let split_ratio = $(tr).find('td.o_list_number');
                 split_ratio.text(ratio.toFixed(2));
 
-                console.log(self.initialState.context.default_sale_order_line_id);
-                console.log(`Actual ratio: ${ratio}`);
+                // console.log(self.initialState.context.default_sale_order_line_id);
+                // console.log(`Actual ratio: ${ratio}`);
             });
 
             Model.query({
