@@ -59,6 +59,7 @@ class AccountMove(models.Model):
         start_date = date(int(year), int(month), 1)
         end_date = start_date + relativedelta(months=1, days=-1)
         partner_id = self.partner_id.id
+        # invoice generation flow. Should do all kinds of grouping
         grouped_lines = self.env["sale.subscription"]._grouping_wrapper(start_date, partner_id, sub_lines, 7)
         grouped_lines = sorted(grouped_lines, key=lambda l: l["price_unit"], reverse=True)
         # prepare lines

@@ -85,7 +85,9 @@ class SaleSubscription(models.Model):
 
         management_fee = 0.0 if show_flags["show_mgmnt_fee"] else False
         wholesale = 0.0 if show_flags["show_wholesale"] else False
-        management_fee_product = None if 'management_fee_product' not in price_list else price_list.management_fee_product
+        management_fee_product = (
+            None if "management_fee_product" not in price_list else price_list.management_fee_product
+        )
 
         if price_list.is_custom and management_fee:
             if retail <= price_list.min_retail_amount:
@@ -247,7 +249,7 @@ class SaleSubscription(models.Model):
 
         # get all subscription lines
         lines = self.subscription_lines_collection_for_invoicing(
-            partner, order_id, kwargs["start_date"], kwargs["end_date"], 5
+            partner, order_id, kwargs["start_date"], kwargs["end_date"], grouping_data.DESCRIPTION_GROUPING_FLAG
         )
         # not create invoices if no lines to invoice or all have 0
         if (
@@ -363,7 +365,7 @@ class SaleSubscription(models.Model):
                 "category_name": line.product_id.categ_id.name,
                 "category_id": line.product_id.categ_id.id,
                 "description": line._grouping_name_calc(line)
-                if grouping_levels & grouping_data.ACCOUNTIG_GROUPING_FLAG
+                if grouping_levels & grouping_data.ACCOUNTING_GROUPING_FLAG
                 else line.product_id.categ_id.name,  # second level of grouping - budget wrapping
                 "contract_product_description": line.product_id.contract_product_description,
                 "rebate": rebate,
@@ -478,8 +480,11 @@ class SaleSubscription(models.Model):
                         "tax_ids": line["tax_ids"],
                     }
                 )
-                management_fee_params = {"description": "Management Fee for " + line["description"],
-                "product_id": False, "category_id":line["category_id"],}
+                management_fee_params = {
+                    "description": "Management Fee for " + line["description"],
+                    "product_id": False,
+                    "category_id": line["category_id"],
+                }
                 if "management_fee_product" in line and "name" in line["management_fee_product"]:
                     management_fee_params = {
                         "description": line["management_fee_product"].name,
@@ -488,13 +493,16 @@ class SaleSubscription(models.Model):
                     }
 
                 grouped_invoice_lines.append(
-                    {**{
-                        "name": period_msg,
-                        "price_unit": line["management_fee"],
-                        "price_subtotal": line["management_fee"],
-                        "discount": 0,
-                        "tax_ids": line["tax_ids"],
-                    }, **management_fee_params}
+                    {
+                        **{
+                            "name": period_msg,
+                            "price_unit": line["management_fee"],
+                            "price_subtotal": line["management_fee"],
+                            "discount": 0,
+                            "tax_ids": line["tax_ids"],
+                        },
+                        **management_fee_params,
+                    }
                 )
             else:
                 grouped_invoice_lines.append(
@@ -579,8 +587,10 @@ class SaleSubscription(models.Model):
             response.update({"draft_invoice": list(draft_invoices.keys())[0]})
         # adding rebate to subscriptions before grouping
 
-        # the regrouping lines
-        grouped_sub_lines = self._grouping_wrapper(start_date, partner.id, sub_lines, grouping_levels)
+        # invoice lines grouping - products and description only
+        grouped_sub_lines = self._grouping_wrapper(
+            start_date, partner.id, sub_lines, grouping_levels
+        )
 
         grouped_invoice_lines = self.invoicing_add_management_fee_and_rebate_lines(
             grouped_sub_lines, start_date, end_date
