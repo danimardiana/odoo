@@ -83,6 +83,9 @@ class SaleSubscription(models.Model):
         if not price_list:
             return {"management_fee": -2, "wholesale_price": -2}
 
+        if retail==0:
+            return {"management_fee": 0, "wholesale_price": 0}
+
         management_fee = 0.0 if show_flags["show_mgmnt_fee"] else False
         wholesale = 0.0 if show_flags["show_wholesale"] else False
 
@@ -229,6 +232,7 @@ class SaleSubscription(models.Model):
 
         return self.invoicing_date_range(**kwargs)
 
+    #generates invoice for one period
     def invoicing_one_period(self, **kwargs):
         if (
             (("partner_id" not in kwargs) and ("order_id" not in kwargs))
@@ -579,93 +583,6 @@ class SaleSubscriptionLine(models.Model):
 
     def write(self, vals):
         res = super(SaleSubscriptionLine, self).write(vals)
-        month_diff = False
-        if not self._context.get("skip"):
-            sale_budget_line_obj = self.env["sale.budget.line"]
-            budget_lines = self.env["sale.budget.line"].search(
-                [
-                    ("end_date", ">", self.end_date),
-                    ("subscription_line_id", "=", self.id),
-                    "|",
-                    ("active", "=", False),
-                    ("active", "=", True),
-                ]
-            )
-            if budget_lines:
-                budget_lines.write({"price": 0.0})
-            else:
-                budget_lines = self.env["sale.budget.line"].search(
-                    [
-                        ("end_date", "<", self.end_date),
-                        ("subscription_line_id", "=", self.id),
-                        "|",
-                        ("active", "=", False),
-                        ("active", "=", True),
-                    ]
-                )
-                if budget_lines:
-                    month_diff = len(
-                        OrderedDict(
-                            ((budget_lines[0].end_date + timedelta(_)).strftime("%B-%Y"), 0)
-                            for _ in range((self.end_date - budget_lines[0].end_date).days)
-                        )
-                    )
-                if month_diff and budget_lines:
-                    start_date = budget_lines[0].end_date + relativedelta(days=1)
-                    start_date.replace(day=calendar.monthrange(start_date.year, start_date.month)[1])
-                    for i in range(0, month_diff):
-                        end_date = (start_date + relativedelta(months=1)).replace(day=1) + relativedelta(days=-1)
-                        vals = {
-                            "partner_id": self.analytic_account_id.partner_id.id,
-                            "start_date": start_date,
-                            "end_date": end_date,
-                            "sol_id": self.so_line_id.id,
-                            "subscription_line_id": self.id,
-                            "subscription_id": self.analytic_account_id.id,
-                            "product_id": self.product_id.id,
-                            "price": self.price_unit,
-                            "status": self.so_line_id.order_id.subscription_management,
-                            "budget_id": budget_lines[0].budget_id.id,
-                        }
-                        start_date = start_date + relativedelta(months=1)
-                        sale_budget_line_obj.create(vals)
-        if vals.get("end_date", False):
-            end_date = vals.get("end_date")
-            if type(end_date) == str:
-                end_date = parser.parse(end_date).date()
-            # if end_date > self.end_date and not self._context.get(
-            #         'skip') and not self.invoice_end_date and not self.invoice_start_date:
-            #     raise ValidationError(_(
-            #         "You Can not set date of the Next Month You have to create new Subscription for that month!!"
-            #     ))
-            if vals.get("end_date") and not self._context.get("skip", False):
-                if self.invoice_end_date == self.end_date:
-                    self.write(
-                        {
-                            "invoice_end_date": False,
-                            "invoice_start_date": False,
-                        }
-                    )
-                elif (
-                    self.invoice_start_date
-                    and self.invoice_end_date
-                    and self.invoice_start_date <= self.end_date <= self.invoice_end_date
-                ):
-                    self.write({"invoice_end_date": self.end_date})
-                elif self.end_date and self.invoice_end_date and self.invoice_end_date > self.end_date:
-                    self.write({"invoice_start_date": False, "invoice_end_date": False})
-                else:
-                    if (
-                        self.invoice_end_date
-                        and self.invoice_start_date
-                        and self.end_date.year == self.invoice_end_date.year
-                        and self.end_date < self.invoice_start_date
-                        and self.end_date < self.invoice_end_date
-                    ):
-                        self.write({"invoice_start_date": False, "invoice_end_date": False})
-            return res
-        else:
-            return res
 
     def start_in_next(self):
         """
