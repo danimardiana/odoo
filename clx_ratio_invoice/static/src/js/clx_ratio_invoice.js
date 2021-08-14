@@ -19,8 +19,7 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
                 splitButton && splitButton.click(self.proxy('SplitRatioEvenly'));
                 exportButton.hide();
 
-                createButton.text('ADD');
-
+                $('.modal-footer').find('.o_list_buttons').find('.o_list_button_add').text('ADD');
                 // add handlers for toogleing(hide/show) the split button
                 createButton.click(() => {
                     $('.oe_split_ratio_button').hide();
