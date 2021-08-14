@@ -35,7 +35,7 @@
         'views/account_move_listview_template.xml',
     ],
     'qweb':[
-        'static/src/xml/account_move_template.xml',
+        # 'static/src/xml/account_move_template.xml',
     ],
     'installable': True,
     'application': True,
