@@ -239,7 +239,7 @@ class SaleSubscription(models.Model):
             or ("start_date" not in kwargs)
             or ("end_date" not in kwargs)
         ):
-            return
+            return False
 
         order_id = kwargs["order_id"] if "order_id" in kwargs else False
 
@@ -305,7 +305,7 @@ class SaleSubscription(models.Model):
             # invoice_total = sum(map(lambda line: line.price_unit, lines["related_subscriptions"]))
             # invoice_previous_total = sum(map(lambda line: line.price_unit, invoice.subscription_line_ids))
             if invoice_included_subscription_ids == invoice_previous_subscription_ids:
-                return
+                return False
             invoice2update = {
                 "invoice_user_id": self.env.user.id,
                 "invoice_origin": "/".join(invoice_origin.keys()),
@@ -588,9 +588,7 @@ class SaleSubscription(models.Model):
         # adding rebate to subscriptions before grouping
 
         # invoice lines grouping - products and description only
-        grouped_sub_lines = self._grouping_wrapper(
-            start_date, partner.id, sub_lines, grouping_levels
-        )
+        grouped_sub_lines = self._grouping_wrapper(start_date, partner.id, sub_lines, grouping_levels)
 
         grouped_invoice_lines = self.invoicing_add_management_fee_and_rebate_lines(
             grouped_sub_lines, start_date, end_date
