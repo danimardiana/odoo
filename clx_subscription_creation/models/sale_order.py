@@ -221,7 +221,7 @@ class SaleOrder(models.Model):
                 "pricelist": line.order_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
                 "description": line._grouping_name_calc(line)
-                if grouping_levels & grouping_data.ACCOUNTIG_GROUPING_FLAG
+                if grouping_levels & grouping_data.ACCOUNTING_GROUPING_FLAG
                 else line.product_id.categ_id.name,  # second level of grouping - budget wrapping
                 "contract_product_description": line.product_id.contract_product_description,
                 "display_type": line.display_type,
@@ -300,9 +300,10 @@ class SaleOrder(models.Model):
                 combined_signature = (
                     product_individual["description"]
                     + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
+                    + str(product_individual["product_id"])
                     + str(product_individual["discount"])
                 )
-            else:  # combune if product the same (ingnore the description)
+            else:  # combune if products are same (ingnore the description)
                 combined_signature = (
                     str(product_individual["product_id"])
                     + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
@@ -332,6 +333,7 @@ class SaleOrder(models.Model):
             else:
                 final_values[line]["management_fee"] = 0
                 final_values[line]["wholesale"] = 0
+                final_values[line]["management_fee_product"] = None
 
         return list(final_values.values())
 
