@@ -9,7 +9,11 @@
     "depends": [
         "crm",
     ],
-    "data": ["views/crm_lead_views.xml"],
+    "data": [
+        "security/ir.model.access.csv",
+        "views/crm_lead_views.xml",
+        "wizard/lead_contact_warning_wizard_view.xml",
+    ],
     "demo": [],
     "css": ["static/src/css/crm.css"],
     "installable": True,
