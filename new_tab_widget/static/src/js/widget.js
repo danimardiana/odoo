@@ -24,10 +24,19 @@ odoo.define("new_tab_widget.FieldOpenTab", function(require) {
             var searchParams = new URLSearchParams(url.split("#")[1]);
             searchParams.set("view_type", "form");
             searchParams.set("id", this.res_id);
-            if (
-                !searchParams.has("model") ||
-                searchParams.get("model") !== this.model
-            ) {
+//          Condition if works for open task from sub task click
+            if (this.model === "sub.task.project"){
+                searchParams.set("id", this.record.data.task_id.data.id || this.res_id);
+                var queryString = window.location.hash.substring(1);
+                var urlParams = new URLSearchParams(queryString);
+                if (urlParams.get('action'))
+                    searchParams.set("action",urlParams.get('action'));
+                else
+                    searchParams.delete("action");
+            }
+            else if (!searchParams.has("model") ||
+                    searchParams.get("model") !== this.model){
+
                 searchParams.set("model", this.model);
                 searchParams.delete("action");
             }

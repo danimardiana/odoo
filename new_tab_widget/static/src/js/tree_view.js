@@ -39,19 +39,23 @@ odoo.define('new_tab_widget.tree_view', function (require) {
         },
         _renderRow: function (record) {
             var $tr = this._super.apply(this, arguments);
-            if (this.hasSelectors) {
+            var base_url =$.bbq.getState(true)
+            if (this.hasSelectors || [this.state.model,'board.board'].indexOf(base_url.model) > -1
+                || !base_url.model) {
                 var queryString = window.location.hash.substring(1);
                 var urlParams = new URLSearchParams(queryString);
                 var menuId = urlParams.get('menu_id') || '';
                 var action = urlParams.get('action') || '';
                 var model = this.state.model;
                 var active_id = urlParams.get('active_id') || null;
-                var url = '#id=' + record.res_id + '&model=' + model + '&menu_id=' + menuId + '&action=' + action;
+                var url = '#id=' + record.res_id + '&model=' + model + '&menu_id=' + menuId;
+                if (base_url.model == this.state.model){
+                        url = url + '&action=' + action;
+                    }
                 if (active_id !== null){
-                    url = url + '&active_id=' + active_id;
+                        url = url + '&active_id=' + active_id;
                     }
                 url = url +'&view_type=form';
-                
                 $tr.prepend(this._renderExternalLink(url));
             }            
 
@@ -59,10 +63,15 @@ odoo.define('new_tab_widget.tree_view', function (require) {
         },
 
         _renderHeader: function () {
+            var base_url =$.bbq.getState(true)
             var $tr = $('<tr>')
                 .append(_.map(this.columns, this._renderHeaderCell.bind(this)));
             if (this.hasSelectors) {
                 $tr.prepend(this._renderSelector('th'));
+                $tr.prepend(this._renderExternalLinkHeader());
+            }
+            else if([this.state.model,'board.board'].indexOf(base_url.model)> -1
+                || !base_url.model){
                 $tr.prepend(this._renderExternalLinkHeader());
             }
             return $('<thead>').append($tr);
