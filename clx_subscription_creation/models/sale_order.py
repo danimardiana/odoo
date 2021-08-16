@@ -127,33 +127,6 @@ class SaleOrder(models.Model):
                     author_id=self.env.user.partner_id.id,
                 )
                 line.subscription_id = subscription.id
-        # elif self.is_ratio:
-        #     if self.subscription_management == "create":
-        #         for co_op_partner in self.co_op_sale_order_partner_ids:
-        #             if co_op_partner.partner_id:
-        #                 for line in self.order_line.filtered(lambda x: x.product_id.recurring_invoice):
-        #                     if not line.product_id.subscription_template_id:
-        #                         raise ValidationError(
-        #                             _("Please select Subscription Template on {}").format(line.product_id.name)
-        #                         )
-        #                     values = line.order_id.with_context(
-        #                         co_op_partner=co_op_partner.partner_id.id
-        #                     )._prepare_subscription_data(line.product_id.subscription_template_id)
-        #                     values["recurring_invoice_line_ids"] = line.with_context(
-        #                         ratio=co_op_partner.ratio
-        #                     )._prepare_subscription_line_data()
-        #                     subscription = sale_subscription_obj.create(values)
-        #                     res.append(subscription.id)
-        #                     subscription.message_post_with_view(
-        #                         "mail.message_origin_link",
-        #                         values={"self": subscription, "origin": line.order_id},
-        #                         subtype_id=self.env.ref("mail.mt_note").id,
-        #                         author_id=self.env.user.partner_id.id,
-        #                     )
-        #                     line.subscription_id = subscription.id
-        #                     clx_sub_list = line.clx_subscription_ids.ids
-        #                     clx_sub_list.append(subscription.id)
-        #                     line.clx_subscription_ids = clx_sub_list
         return res
 
     def unlink(self):
@@ -202,6 +175,7 @@ class SaleOrder(models.Model):
             if matching_flag:
                 for product_group in grouping_rule["products_list"]:
                     for product_individual in products_process[product_group]:
+                        product_individual["product_id"] = grouping_rule["product_id"]
                         product_individual["description"] = grouping_rule["description"]
                         if not invoice_level:
                             product_individual["contract_product_description"] = grouping_rule[
@@ -322,6 +296,7 @@ class SaleOrder(models.Model):
 
         # management fees populating
         # management fees lines will be added on the invoicing level, here calculation only
+
         for line in final_values:
             if "product_id" in final_values[line] and "pricelist" in final_values[line]:
                 calculation_result = self.management_fee_calculation(
@@ -329,11 +304,11 @@ class SaleOrder(models.Model):
                     self.env["product.product"].browse(final_values[line]["product_id"]),
                     final_values[line]["pricelist"],
                 )
-                final_values[line] = {**final_values[line] , **calculation_result}
+                final_values[line] = {**final_values[line], **calculation_result}
             else:
                 final_values[line]["management_fee"] = 0
                 final_values[line]["wholesale"] = 0
-                final_values[line]["management_fee_product"] = None
+                final_values[line]["management_fee_product"] = False
 
         return list(final_values.values())
 
