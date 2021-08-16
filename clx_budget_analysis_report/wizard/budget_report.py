@@ -178,7 +178,8 @@ class BudgetReportWizard(models.TransientModel):
                     sale_line_write["wholesale_price"],
                     category_show_params[sale_line_write["category"]],
                 )
-                del management_fee_data["management_fee_product"]
+                if "management_fee_product" in management_fee_data:
+                    del management_fee_data["management_fee_product"]
                 result_table[period][subscription].update(management_fee_data)
 
                 # pass thru all the companies related to the subscription
