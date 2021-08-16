@@ -80,8 +80,12 @@ class SaleSubscription(models.Model):
         self, retail, price_list, show_flags={"show_mgmnt_fee": True, "show_wholesale": True}
     ):
 
-        if not price_list:
-            return {"management_fee": -2, "wholesale_price": -2}
+        if not price_list or not price_list.active:
+            return {
+                "management_fee": -2,
+                "wholesale_price": -2,
+                "management_fee_product": False,
+            }
 
         management_fee = 0.0 if show_flags["show_mgmnt_fee"] else False
         wholesale = 0.0 if show_flags["show_wholesale"] else False
@@ -485,7 +489,7 @@ class SaleSubscription(models.Model):
                     "product_id": False,
                     "category_id": line["category_id"],
                 }
-                if "management_fee_product" in line and "name" in line["management_fee_product"]:
+                if "management_fee_product" in line and line["management_fee_product"].id:
                     management_fee_params = {
                         "description": line["management_fee_product"].name,
                         "category_id": line["management_fee_product"].categ_id.id,
