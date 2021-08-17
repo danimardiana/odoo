@@ -50,7 +50,7 @@ class AccountMove(models.Model):
     unique_billing_note = fields.Boolean(string="Unique Billing Note")
 
     portable_invoice_url = fields.Char(string="Invoice link", index=True, compute="_compute_get_url")
-
+    
     # overwriting the preview invoice logic
     def client_invoice_grouping(self):
         sub_lines = self.subscription_line_ids
@@ -71,6 +71,7 @@ class AccountMove(models.Model):
             line["price_total"] = line["price_unit"]
 
         return final_lines
+
 
     def _compute_get_url(self):
         for rec in self:
@@ -121,6 +122,70 @@ class AccountMove(models.Model):
                     invoice.invoice_period_verbal = "-"
             else:
                 invoice.invoice_period_verbal = "-"
+
+    # def unlink(self):
+    #     for record in self:
+    #         if record.invoice_origin:
+    #             for inv_line in record.invoice_line_ids:
+    #                 if inv_line.subscription_lines_ids:
+    #                     name = inv_line.name.split(":")
+    #                     name = name[-1].split("-")
+    #                     start_date = parser.parse(name[0])
+    #                     end_date = parser.parse(name[-1])
+    #                     if start_date and end_date:
+    #                         for sub in inv_line.subscription_lines_ids:
+    #                             if not sub.end_date:
+    #                                 sub.invoice_start_date = start_date.date()
+    #                                 sub.invoice_end_date = end_date.date()
+    #                             elif sub.end_date:
+    #                                 month_count = len(
+    #                                     OrderedDict(
+    #                                         ((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0)
+    #                                         for _ in range((start_date.date() - sub.end_date).days)
+    #                                     )
+    #                                 )
+    #                                 if month_count == 1 and start_date.date() > sub.end_date:
+    #                                     sub.invoice_start_date = sub.start_date
+    #                                     sub.invoice_end_date = sub.end_date
+    #                                 elif sub.start_date > start_date.date():
+    #                                     sub.invoice_start_date = sub.start_date
+    #                                     sub.invoice_end_date = sub.end_date
+    #                                 else:
+    #                                     sub.invoice_start_date = start_date.date()
+    #                                     sub.invoice_end_date = end_date.date()
+    #     return super(AccountMove, self).unlink()
+
+    # def button_cancel(self):
+    #     res = super(AccountMove, self).button_cancel()
+    #     if self.invoice_origin:
+    #         for inv_line in self.invoice_line_ids:
+    #             if inv_line.subscription_lines_ids:
+    #                 name = inv_line.name.split(":")
+    #                 name = name[-1].split("-")
+    #                 start_date = parser.parse(name[0])
+    #                 end_date = parser.parse(name[-1])
+    #                 if start_date and end_date:
+    #                     for sub in inv_line.subscription_lines_ids:
+    #                         if not sub.end_date:
+    #                             sub.invoice_start_date = start_date.date()
+    #                             sub.invoice_end_date = end_date.date()
+    #                         elif sub.end_date:
+    #                             month_count = len(
+    #                                 OrderedDict(
+    #                                     ((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0)
+    #                                     for _ in range((start_date.date() - sub.end_date).days)
+    #                                 )
+    #                             )
+    #                             if month_count == 1 and start_date.date() > sub.end_date:
+    #                                 sub.invoice_start_date = sub.start_date
+    #                                 sub.invoice_end_date = sub.end_date
+    #                             elif sub.start_date > start_date.date():
+    #                                 sub.invoice_start_date = sub.start_date
+    #                                 sub.invoice_end_date = sub.end_date
+    #                             else:
+    #                                 sub.invoice_start_date = start_date.date()
+    #                                 sub.invoice_end_date = end_date.date()
+    #     return res
 
     # rewriting the email sending function
     def action_invoice_sent(self, reminder=False):
@@ -208,6 +273,7 @@ class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
     category_id = fields.Many2one("product.category", string="Category")
+    # subscription_ids
     # subscription_ids = fields.Many2many("sale.subscription", string="Subscription(s)")
     # subscription_lines_ids = fields.Many2many("sale.subscription.line", string="Subscriptions Lines")
 

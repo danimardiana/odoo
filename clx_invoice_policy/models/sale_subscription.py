@@ -28,9 +28,9 @@ class SaleSubscription(models.Model):
                 can_read
                 and invoice.search_count(
                     [
-                        "|",
-                        ("invoice_line_ids.subscription_id", "=", subscription.id),
-                        ("invoice_line_ids.subscription_ids", "in", subscription.id),
+                        # "|",
+                        # ("invoice_line_ids.subscription_id", "=", subscription.id),
+                        ("subscription_line_ids", "in", subscription.id),
                     ]
                 )
                 or 0
@@ -40,9 +40,9 @@ class SaleSubscription(models.Model):
         self.ensure_one()
         invoices = self.env["account.move"].search(
             [
-                "|",
-                ("invoice_line_ids.subscription_id", "in", self.ids),
-                ("invoice_line_ids.subscription_ids", "in", self.id),
+                # "|",
+                # ("invoice_line_ids.subscription_id", "in", self.ids),
+                ("subscription_line_ids", "in", self.id),
             ]
         )
         action = self.env.ref("account.action_move_out_invoice_type").read()[0]
@@ -87,7 +87,7 @@ class SaleSubscription(models.Model):
                 "management_fee_product": False,
             }
 
-        if retail==0:
+        if retail == 0:
             return {"management_fee": 0, "wholesale_price": 0}
 
         management_fee = 0.0 if show_flags["show_mgmnt_fee"] else False
@@ -166,10 +166,8 @@ class SaleSubscription(models.Model):
 
     # check if subscription was invoiced for period (using invoice_month_year signature)
     def is_product_invoiced(self, partner_id, product, date):
-        format_date = self.env["ir.qweb.field.date"].value_to_html
         invoice_object = self.env["account.move"]
         period_msg = invoice_object.invoices_date_signature(date)
-        invoice_line_object = self.env["account.move.line"]
         all_account_move_lines = invoice_object.search(
             [
                 ("subscription_line_ids.id", "=", product.id),
@@ -179,6 +177,19 @@ class SaleSubscription(models.Model):
             ]
         )
         return all_account_move_lines or False
+
+    # check if subscription was invoiced for period (using invoice_month_year signature)
+    def is_draft_invoice_for_period(self, partner_id, date):
+        invoice_object = self.env["account.move"]
+        period_msg = invoice_object.invoices_date_signature(date)
+        all_draft_invoices = invoice_object.search(
+            [
+                ("state", "=", "draft"),
+                ("invoice_month_year", "=", period_msg),
+                ("partner_id.id", "=", partner_id),
+            ]
+        )
+        return all_draft_invoices or False
 
     # generating invoice basing on the datarange
     def format_period_message(self, start_date, end_date):
@@ -240,7 +251,7 @@ class SaleSubscription(models.Model):
 
         return self.invoicing_date_range(**kwargs)
 
-    #generates invoice for one period
+    # generates invoice for one period
     def invoicing_one_period(self, **kwargs):
         if (
             (("partner_id" not in kwargs) and ("order_id" not in kwargs))
@@ -584,6 +595,14 @@ class SaleSubscription(models.Model):
             else:
                 sub_lines.append(subscription_line)
 
+        # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated
+        if len(draft_invoices.keys()) == 0:
+            invoice = self.is_draft_invoice_for_period(partner.id, start_date)
+            if len(invoice) > 0:
+                draft_invoices[invoice[0].id] = True
+                for line in invoice[0].subscription_line_ids:
+                    sub_lines.append(line)
+
         # more than 2 draft invoices for the month - ask user to manage this
         if len(draft_invoices.keys()) > 1:
             raise UserError(
@@ -732,6 +751,7 @@ class SaleSubscriptionLine(models.Model):
         return len(OrderedDict(((start + timedelta(_)).strftime("%B-%Y"), 0) for _ in range((end - start).days)))
         # return (end.year - start.year) * 12 + end.month - start.month
 
+    # old SB's code
     def _format_period_msg(self, date_start, date_end, line, inv_start=False, inv_end=False):
         """
         To calculate invoice period/adjustment date
@@ -794,7 +814,7 @@ class SaleSubscriptionLine(models.Model):
             "sequence": line.sequence,
             "name": period_msg,
             "subscription_id": self.analytic_account_id.id,
-            "subscription_ids": [(6, 0, self.analytic_account_id.ids)],
+            # "subscription_ids": [(6, 0, self.analytic_account_id.ids)],
             "subscription_start_date": self.start_date,
             "subscription_end_date": date_end,
             "product_id": self.product_id.id,
