@@ -133,7 +133,7 @@
                                     <div class="productTotalWrapper">
                                         <div class="monthlyTotalText">
                                             <span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/>
-                                            Total:
+                                            Spend:
                                             <t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
                                         </div>
                                         <div class="productTotal">
@@ -145,7 +145,7 @@
                             <t t-else="">
                                 <div class="productTotalWrapperWrapper col-12 col-md-5">
                                     <div class="productTotalWrapper">
-                                        <div class="monthlyTotalText">Recurring Total:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                        <div class="monthlyTotalText">Recurring Spend:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
                                         </div>
                                         <div class="productTotal">
                                             <span t-esc="parent_sale_order.money_formatting(line['price_unit'])"/>
