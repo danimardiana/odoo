@@ -136,6 +136,7 @@ h3 {
 .monthlyTotalWrapper {
     border: 2px dashed #a57d2d;
     padding: 10px !important;
+    margin: auto 10px;
 }
 .monthlyTotalWrapper,
 .firstMonthlyTotalWrapper {

@@ -64,10 +64,19 @@
             <t t-set="first_month_subtotal" t-value="0.0"/>
             <t t-set="fee_subtotal" t-value="0.0"/>
             <t t-set="current_subtotal" t-value="0.0"/>
-            <t t-set="oto_included" t-value="False"/>
-            <t t-set="recurring_included" t-value="False"/>
+            <t t-set="spend_object" t-value="{}"/>
             <t t-set="modified_invoice_lines" t-value="sale_order._grouping_wrapper(sale_order.contract_start_date)"/>
+            <!-- create the base dates  -->
             <t t-foreach="modified_invoice_lines" t-as="line">
+                <t t-set="spend_object" t-value="parent_sale_order.collect_oto_spend(spend_object,line)"/>
+            </t>
+            <!-- updating values with recurring -->
+            <t t-foreach="modified_invoice_lines" t-as="line">
+                <t t-set="spend_object" t-value="parent_sale_order.update_recurring_spend(spend_object,line)"/>
+            </t>
+            <t t-foreach="modified_invoice_lines" t-as="line">
+                <!-- determination what kind of line is this OTO or GTC -->
+                <t t-set="is_oto_line" t-value="parent_sale_order.is_oto_line(line['start_date'],line['end_date'])"/>
                 <!-- section just for compatibly with original ones -->
                 <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
                     <t t-set="display_discount" t-value="True in [line['discount'] > 0 for line in sale_order.order_line]"/>
@@ -119,30 +128,49 @@
                                 </tr>
                             </section>
                             <t t-set="need_display_fee" t-value="not sale_order.display_management_fee"/>
-                            <div class="productTotalWrapperWrapper col-12 col-md-5">
-                                <div class="productTotalWrapper">
-                                    <div class="monthlyTotalText">Monthly Total:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
-                                    </div>
-                                    <div class="productTotal">
-                                        <span t-esc="parent_sale_order.money_formatting(line['price_unit'])"/>
-                                    </div>
+                            <t t-if="is_oto_line">
+                                <div class="productTotalWrapperWrapper col-12 col-md-5">
+                                    <div class="productTotalWrapper">
+                                        <div class="monthlyTotalText">
+                                            <span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/>
+                                            Total:
+                                            <t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                        </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(line['price_unit'])"/>
+                                        </div>
+                                    </div> 
                                 </div>
-                                <div t-if="line['prorate_amount'] and line['prorate_amount'] != line['price_unit']" class="productTotalWrapper">
-                                    <div style="display:inline-block;">First Month Total: </div>
-                                    <div class="productTotal">
-                                        <span t-esc="parent_sale_order.money_formatting(line['prorate_amount'])"/>
+                            </t>
+                            <t t-else="">
+                                <div class="productTotalWrapperWrapper col-12 col-md-5">
+                                    <div class="productTotalWrapper">
+                                        <div class="monthlyTotalText">Recurring Total:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                        </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(line['price_unit'])"/>
+                                        </div>
                                     </div>
-                                </div>
-                                <t t-set="management_fee_calculated" t-value="line['management_fee']" />
-                                <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
-                                    <div style="display:inline-block;">Monthly Fee: </div>
-                                    <div class="productTotal">
-                                        <span t-esc="parent_sale_order.money_formatting(management_fee_calculated)"/>
+                                    <div t-if="line['prorate_amount'] and line['prorate_amount'] != line['price_unit']" class="productTotalWrapper">
+                                        <div style="display:inline-block;"> 
+                                        <span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/>
+                                        Total: 
+                                        </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(line['prorate_amount'])"/>
+                                        </div>
                                     </div>
+                                    <t t-set="management_fee_calculated" t-value="line['management_fee']" />
+                                    <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
+                                        <div style="display:inline-block;">Monthly Fee: </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(management_fee_calculated)"/>
+                                        </div>
+                                    </div>
+                                    <t t-set="first_month_subtotal" t-value="first_month_subtotal + (line['prorate_amount'] if line['prorate_amount'] else line['price_unit'])"/>
+                                    <t t-set="current_subtotal" t-value="current_subtotal + line['price_unit']"/>
                                 </div>
-                                <t t-set="first_month_subtotal" t-value="first_month_subtotal + (line['prorate_amount'] if line['prorate_amount'] else line['price_unit'])"/>
-                                <t t-set="current_subtotal" t-value="current_subtotal + line['price_unit']"/>
-                            </div>
+                            </t>
                         </div>
                     </div>
                 </t>
@@ -157,21 +185,18 @@
                 </tr>
             </t>
         </div>
+        
         <div class="monthlyTotalWrappersWrapper productLineWrapper dont_break_inside row">
-            <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
-                <div class="firstMonthlyTotalWrapper">
-                    <div class="">First Month Spend: </div>
-                    <div class="monthlyTotal">
-                        <span t-esc="parent_sale_order.money_formatting(first_month_subtotal)"/>
+            <t t-foreach="sorted(list(spend_object.keys()))" t-as="date_period">
+                <div class="col firstMonthlyTotalWrapperWrapper">
+                    <div class="firstMonthlyTotalWrapper">
+                        <div class=""><t t-esc="parent_sale_order.date_month_formatting(spend_object[date_period]['date'])"/> Spend: </div>
+                        <div class="monthlyTotal">
+                            <span t-esc="parent_sale_order.money_formatting(spend_object[date_period]['price'])"/>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="offset-2 col-4 monthlyTotalWrapper totals">
-                <div class="">Recurring Monthly Spend: </div>
-                <div class="monthlyTotal">
-                    <span t-esc="parent_sale_order.money_formatting(current_subtotal)"/>
-                </div>
-            </div>
+            </t>
         </div>
 
             <!-- COMMUNITIES BLOCK -->

@@ -5,6 +5,7 @@
 from odoo.exceptions import ValidationError
 from odoo.tools import float_round
 from odoo.tools.misc import get_lang
+import datetime
 
 from odoo import api, fields, models, _
 
@@ -35,10 +36,17 @@ class SaleOrder(models.Model):
     def web_base_url(self):
         return self.env["ir.config_parameter"].sudo().get_param("web.base.url")
 
-    def money_formatting(self, val):
+    @staticmethod
+    def money_formatting(val):
         result_string = "${value:.2f}"
         # if result_string [0] != "$"
         return result_string.format(value=val)
+
+    @staticmethod
+    def date_month_formatting(date):
+        if type(date) is datetime.date:
+            return date.strftime("%B")
+        return date
 
     def management_fee_calculation(self, price_unit, product, pricelist):
         pricelist_product = self.env["sale.subscription"].pricelist_determination(product, pricelist)
