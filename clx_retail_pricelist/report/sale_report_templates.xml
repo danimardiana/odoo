@@ -64,6 +64,8 @@
             <t t-set="first_month_subtotal" t-value="0.0"/>
             <t t-set="fee_subtotal" t-value="0.0"/>
             <t t-set="current_subtotal" t-value="0.0"/>
+            <t t-set="oto_included" t-value="False"/>
+            <t t-set="recurring_included" t-value="False"/>
             <t t-set="modified_invoice_lines" t-value="sale_order._grouping_wrapper(sale_order.contract_start_date)"/>
             <t t-foreach="modified_invoice_lines" t-as="line">
                 <!-- section just for compatibly with original ones -->
@@ -155,7 +157,7 @@
                 </tr>
             </t>
         </div>
-        <div class="monthlyTotalWrappersWrapper dont_break_inside row">
+        <div class="monthlyTotalWrappersWrapper productLineWrapper dont_break_inside row">
             <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
                 <div class="firstMonthlyTotalWrapper">
                     <div class="">First Month Spend: </div>
@@ -436,12 +438,12 @@
                 <!-- Sidebar -->
                 <t t-call="portal.portal_record_sidebar">
                     <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
-
-                    <t t-set="title">
+                    <!-- Removing total from the top -->
+                    <!-- <t t-set="title">
                         <h2 class="mb-0">
                             <b t-field="sale_order.amount_total" data-id="total_amount"/>
                         </h2>
-                    </t>
+                    </t> -->
                     <t t-set="entries">
                         <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
                             <li class="list-group-item flex-grow-1">

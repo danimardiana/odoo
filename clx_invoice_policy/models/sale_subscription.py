@@ -28,9 +28,9 @@ class SaleSubscription(models.Model):
                 can_read
                 and invoice.search_count(
                     [
-                        "|",
-                        ("invoice_line_ids.subscription_id", "=", subscription.id),
-                        ("invoice_line_ids.subscription_ids", "in", subscription.id),
+                        # "|",
+                        # ("invoice_line_ids.subscription_id", "=", subscription.id),
+                        ("subscription_line_ids", "in", subscription.id),
                     ]
                 )
                 or 0
@@ -40,9 +40,9 @@ class SaleSubscription(models.Model):
         self.ensure_one()
         invoices = self.env["account.move"].search(
             [
-                "|",
-                ("invoice_line_ids.subscription_id", "in", self.ids),
-                ("invoice_line_ids.subscription_ids", "in", self.id),
+                # "|",
+                # ("invoice_line_ids.subscription_id", "in", self.ids),
+                ("subscription_line_ids", "in", self.id),
             ]
         )
         action = self.env.ref("account.action_move_out_invoice_type").read()[0]
@@ -794,7 +794,7 @@ class SaleSubscriptionLine(models.Model):
             "sequence": line.sequence,
             "name": period_msg,
             "subscription_id": self.analytic_account_id.id,
-            "subscription_ids": [(6, 0, self.analytic_account_id.ids)],
+            # "subscription_ids": [(6, 0, self.analytic_account_id.ids)],
             "subscription_start_date": self.start_date,
             "subscription_end_date": date_end,
             "product_id": self.product_id.id,
