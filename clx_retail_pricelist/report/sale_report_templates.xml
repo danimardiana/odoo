@@ -154,7 +154,7 @@
                                     <div t-if="line['prorate_amount'] and line['prorate_amount'] != line['price_unit']" class="productTotalWrapper">
                                         <div style="display:inline-block;"> 
                                         <span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/>
-                                        Total: 
+                                        Spend: 
                                         </div>
                                         <div class="productTotal">
                                             <span t-esc="parent_sale_order.money_formatting(line['prorate_amount'])"/>
@@ -190,7 +190,7 @@
             <t t-foreach="sorted(list(spend_object.keys()))" t-as="date_period">
                 <div class="col firstMonthlyTotalWrapperWrapper">
                     <div class="firstMonthlyTotalWrapper">
-                        <div class=""><t t-esc="parent_sale_order.date_month_formatting(spend_object[date_period]['date'])"/> Spend: </div>
+                        <div class=""><t t-esc="parent_sale_order.date_month_formatting(spend_object[date_period]['date'])"/> Total: </div>
                         <div class="monthlyTotal">
                             <span t-esc="parent_sale_order.money_formatting(spend_object[date_period]['price'])"/>
                         </div>
