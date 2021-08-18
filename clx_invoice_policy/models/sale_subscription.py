@@ -598,7 +598,7 @@ class SaleSubscription(models.Model):
         # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated
         if len(draft_invoices.keys()) == 0:
             invoice = self.is_draft_invoice_for_period(partner.id, start_date)
-            if len(invoice) > 0:
+            if invoice and len(invoice) > 0:
                 draft_invoices[invoice[0].id] = True
                 for line in invoice[0].subscription_line_ids:
                     sub_lines.append(line)
