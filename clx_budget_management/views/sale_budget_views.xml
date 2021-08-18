@@ -1,137 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <!--Form View-->
-    <record id="sale_budget_form_view" model="ir.ui.view">
-        <field name="name">sale.budget.form.view</field>
-        <field name="model">sale.budget</field>
-        <field name="arch" type="xml">
-            <form>
-                <header>
-                    <button name="set_to_close" type="object" string="Set to Close"
-                            class="oe_highlight" attrs="{'invisible': [('state', '=', 'closed')]}"/>
-                    <field name="state" widget="statusbar"/>
-                </header>
-                <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
-                    </div>
-                    <group>
-                        <field name="partner_id"/>
-                    </group>
-                    <notebook>
-                        <page string="Budget Lines" name="budget_lines">
-                            <field name="sale_budget_ids" widget="section_and_note_one2many">
-                                <tree editable="bottom">
-                                    <field name="sol_id"/>
-                                    <field name="product_id" invisible="1"/>
-                                    <field name="product_name"/>
-                                    <field name="start_date"/>
-                                    <field name="end_date"/>
-                                    <field name="status"/>
-                                    <field name="subscription_id"/>
-                                    <field name="subscription_line_id"/>
-                                    <field name="price"/>
-                                    <field name="wholesale_price"/>
-                                    <field name="state"/>
-                                </tree>
-                                <form>
-                                    <group>
-                                        <group>
-                                            <field name="budget_id"/>
-                                            <field name="partner_id"/>
-                                            <field name="product_id" invisible="1"/>
-                                            <field name="product_name"/>
-                                            <field name="price"/>
-                                            <field name="subscription_id"/>
-                                        </group>
-                                        <group>
-                                            <field name="start_date"/>
-                                            <field name="end_date"/>
-                                            <field name="sol_id"/>
-                                            <field name="status"/>
-                                            <field name="state"/>
-                                        </group>
-                                    </group>
-                                </form>
-                            </field>
-                        </page>
-                    </notebook>
-                </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids" widget="mail_followers"/>
-                    <field name="activity_ids" widget="mail_activity"/>
-                    <field name="message_ids" widget="mail_thread"/>
-                </div>
-            </form>
-        </field>
-    </record>
-
-    <!--Tree View-->
-    <record id="sale_budget_tree_view" model="ir.ui.view">
-        <field name="name">sale.budget.tree.view</field>
-        <field name="model">sale.budget</field>
-        <field name="arch" type="xml">
-            <tree>
-                <field name="name"/>
-                <field name="partner_id"/>
-                <field name="state"/>
-            </tree>
-        </field>
-    </record>
-    <!--Form View sale Budgel Line-->
-    <record id="sale_budget_line_form_view" model="ir.ui.view">
-        <field name="name">sale.budget.line.form.view</field>
-        <field name="model">sale.budget.line</field>
-        <field name="arch" type="xml">
-            <form>
-                <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="budget_id" readonly="1" options="{&quot;no_open&quot;: True}"/>
-                        </h1>
-                    </div>
-                    <group>
-                        <group>
-                            <field name="partner_id"/>
-                            <field name="start_date"/>
-                            <field name="end_date"/>
-                            <field name="sol_id"/>
-                            <field name="subscription_line_id"/>
-                            <field name="active"/>
-                        </group>
-                        <group>
-                            <field name="subscription_id"/>
-                            <field name="product_id"/>
-                            <field name="price"/>
-                            <field name="wholesale_price"/>
-                            <field name="state"/>
-                            <field name="status"/>
-                        </group>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <!--Tree View sale budget line-->
-    <record id="sale_budget_line_tree_view" model="ir.ui.view">
-        <field name="name">sale.budget.line.tree.view</field>
-        <field name="model">sale.budget.line</field>
-        <field name="arch" type="xml">
-            <tree>
-                <field name="sol_id"/>
-                <field name="product_id"/>
-                <field name="start_date"/>
-                <field name="end_date"/>
-                <field name="price"/>
-                <field name="status"/>
-                <field name="subscription_id"/>
-                <field name="state"/>
-            </tree>
-        </field>
-    </record>
+<!-- -->
 
     <record id="sale_budget_changes_search_view" model="ir.ui.view">
         <field name="name">sale.budget.changes.search.view</field>
@@ -141,76 +10,38 @@
                 <field name="partner_id"/>
                 <group expand='0' string='Group by...'>
                     <filter string='Customer' name="group_by_partner_id" context="{'group_by': 'partner_id'}"/>
-                    <filter string='Start Date' name="group_by_start_date" context="{'group_by': 'start_date'}"/>
+                    <filter string='Change Date' name="group_by_change_date" context="{'group_by': 'change_date'}"/>
                 </group>
             </search>
         </field>
-    </record>
+    </record> 
 
     <record id="sale_budget_changes_tree_view" model="ir.ui.view">
         <field name="name">sale.budget.changes.tree.view</field>
         <field name="model">sale.budget.changes</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree decoration-success="change_price &gt;0" decoration-warning ="change_price &lt;0" decoration-danger ="price_full==0" decoration-bf ="price_full==0">
                 <field name="partner_id"/>
-                <field name="product_id"/>
-                <field name="sol_line_id"/>
-                <field name="line_type"/>
-                <field name="start_date"/>
-                <field name="end_date"/>
-                <field name="price"/>
-                <field name="total_budget"/>
+                <field name="subscription_id"/>
+                <field name="subscription_href" widget="clx_href" options="{'display_icon': '1', 'display_url': '0', 'open_new': '1'}" string="URL"/>
+                <field name="report_href" widget="clx_href" options="{'display_icon': '1', 'display_url': '0', 'open_new': '1','icon':'fa-bar-chart'}" string="URL" />                
+
+                <field name="product_id" /> 
+                <field name="price_full" />                 
+                <field name="change_wholesale"/>
+                <field name="change_mngmt_fee"/>
+                <field name="change_date"/>
+                <field name="change_price"/>
+                <field name="prev_date"  optional="hide" />
+                <field name="prev_price" attrs = "{'invisible':[('prev_price','=','False')]}" optional="hide"/>                
+                <field name="prev_wholesale" attrs = "{'invisible':[('prev_price','=','False')]}"  optional="hide"/>
+                <field name="next_date" attrs = "{'invisible':[('next_price','=','False')]}" optional="hide"/>
+                <field name="next_price" attrs = "{'invisible':[('next_price','=','False')]}" optional="hide"/>                 
+                <field name="next_wholesale" attrs = "{'invisible':[('next_price','=','False')]}" optional="hide"/> 
+                <field name="status" widget="statusbar" options="{'clickable': '1'}"/>
+                <field name="completed_date" optional="hide"/>
             </tree>
         </field>
-    </record>
-
-    <!--Pivot view-->
-    <record model="ir.ui.view" id="view_sale_budget_pivot">
-        <field name="name">sale.budget.pivot.view</field>
-        <field name="model">sale.budget</field>
-        <field name="arch" type="xml">
-            <pivot string="Sale Budget">
-                <field name="partner_id" type="row"/>
-            </pivot>
-        </field>
-    </record>
-
-    <!--Pivot view sale budget line-->
-    <record model="ir.ui.view" id="view_sale_budget_line_pivot">
-        <field name="name">sale.budget.pivot.view</field>
-        <field name="model">sale.budget.line</field>
-        <field name="arch" type="xml">
-            <pivot string="Sale Budget">
-                <field name="start_date" type="col"/>
-            </pivot>
-        </field>
-    </record>
-
-    <!--Graph View-->
-    <record id="sale_budget_graph" model="ir.ui.view">
-        <field name="name">sale.budget.view.graph</field>
-        <field name="model">sale.budget</field>
-        <field name="arch" type="xml">
-            <graph string="Sale Budget">
-                <field name="partner_id"/>
-            </graph>
-        </field>
-    </record>
-
-    <!--action for sale budget-->
-    <record id="action_sale_budget" model="ir.actions.act_window">
-        <field name="name">Budget</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">sale.budget</field>
-        <field name="view_mode">tree,form,pivot,graph</field>
-    </record>
-
-    <!--action for sale budget line-->
-    <record id="action_sale_budget_line" model="ir.actions.act_window">
-        <field name="name">Budget line</field>
-        <field name="type">ir.actions.act_window</field>
-        <field name="res_model">sale.budget.line</field>
-        <field name="view_mode">tree,form,pivot,graph</field>
     </record>
 
     <record id="action_sale_budget_changes" model="ir.actions.act_window">
@@ -218,20 +49,18 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">sale.budget.changes</field>
         <field name="view_mode">tree</field>
-        <field name="context">{'search_default_group_by_partner_id': 1,'search_default_group_by_start_date':1}</field>
-        <field name="search_view_id" ref="clx_budget_management.sale_budget_changes_search_view"/>
+        <!-- <field name="context">{'search_default_group_by_partner_id': 1,'search_default_group_by_start_date':1}</field> -->
+        <field name="search_view_id" ref="clx_budget_management.sale_budget_changes_search_view"/> 
     </record>
 
-    <record id="action_bulk_of_budget_line_close" model="ir.actions.server">
-            <field name="name">Close Selected Budget Lines</field>
+    <record id="complete_budgets_action" model="ir.actions.server">
+        <field name="name">Complete</field>
             <field name="type">ir.actions.server</field>
+            <field name="model_id" ref="model_sale_budget_changes"/>
+            <field name="binding_model_id" ref="model_sale_budget_changes" />
             <field name="state">code</field>
-            <field name="model_id" ref="model_sale_budget_line"/>
-            <field name="binding_model_id" ref="model_sale_budget_line"/>
-            <field name="code">
-records.close_budget_line()
-            </field>
-        </record>
+            <field name="code">records.complete_budget_changes()</field>
+    </record>
 
     <!-- This Menu for sale Budget -->
     <menuitem id="main_menu_sale_budget"
@@ -239,21 +68,11 @@ records.close_budget_line()
               web_icon="clx_budget_management,static/description/icon.png"
               sequence="2"/>
 
-    <menuitem id="menu_sale_budget"
-              name="Budget"
-              parent="clx_budget_management.main_menu_sale_budget"
-              action="clx_budget_management.action_sale_budget"
-              sequence="2"/>
-
+    <!-- This Menu for sale Budget -->
     <menuitem id="menu_sale_budget_notification"
               name="Budget Changes"
               parent="clx_budget_management.main_menu_sale_budget"
               action="clx_budget_management.action_sale_budget_changes"
               sequence="2"/>
 
-    <menuitem id="menu_sale_budget_line"
-              name="Budget Line"
-              parent="clx_budget_management.main_menu_sale_budget"
-              action="clx_budget_management.action_sale_budget_line"
-              sequence="3"/>
 </odoo>

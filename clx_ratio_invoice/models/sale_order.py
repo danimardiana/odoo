@@ -19,8 +19,6 @@ class SaleOrderLine(models.Model):
     total_coop_percenage = fields.Float(compute="calculate_total_coop_percenage", store=False, string="co-op %")
     is_co_op = fields.Boolean(related="order_id.is_co_op", store=False)
 
-    # clx_subscription_ids = fields.Many2many("sale.subscription", copy=False)
-
     # tree view open to add the coop companies to sales order line
     def sale_order_line_action(self):
         try:

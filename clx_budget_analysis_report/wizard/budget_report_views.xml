@@ -39,6 +39,5 @@
         <field name="context">{'action_next':'sale_budget_report_action_qweb'}</field>
     </record>
 
-    <menuitem id="menu_budget_report" name="Budget Report" parent="clx_budget_management.main_menu_sale_budget" action="clx_budget_analysis_report.action_budget_report_wizard" />
-    <menuitem id="menu_budget_report_qweb" name="Budget Report QWEB" parent="clx_budget_management.main_menu_sale_budget" action="clx_budget_analysis_report.action_budget_report_qweb_wizard" />
+    <menuitem id="menu_budget_report_qweb" name="Budget Visualizer" parent="clx_budget_management.main_menu_sale_budget" action="clx_budget_analysis_report.action_budget_report_qweb_wizard" />
 </odoo>
