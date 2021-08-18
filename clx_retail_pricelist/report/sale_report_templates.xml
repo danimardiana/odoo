@@ -75,8 +75,6 @@
                 <t t-set="spend_object" t-value="parent_sale_order.update_recurring_spend(spend_object,line)"/>
             </t>
             <t t-foreach="modified_invoice_lines" t-as="line">
-                <!-- determination what kind of line is this OTO or GTC -->
-                <t t-set="is_oto_line" t-value="parent_sale_order.is_oto_line(line['start_date'],line['end_date'])"/>
                 <!-- section just for compatibly with original ones -->
                 <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
                     <t t-set="display_discount" t-value="True in [line['discount'] > 0 for line in sale_order.order_line]"/>
@@ -128,6 +126,7 @@
                                 </tr>
                             </section>
                             <t t-set="need_display_fee" t-value="not sale_order.display_management_fee"/>
+                            <t t-set="is_oto_line" t-value="parent_sale_order.is_oto_line(line['start_date'],line['end_date'])"/>
                             <t t-if="is_oto_line">
                                 <div class="productTotalWrapperWrapper col-12 col-md-5">
                                     <div class="productTotalWrapper">
@@ -201,122 +200,135 @@
 
             <!-- COMMUNITIES BLOCK -->
             <t t-set="communities" t-value="list(sale_order.build_communities().values())"/>
+
             <t t-foreach="communities" t-as="sale_order_com">
-            <div class="pseudoPage">
-                <div class="communityName row justify-content-center mt32">
-                    <h2><span t-esc="sale_order_com.partner_id.name"/></h2><br/>
-                </div>
-                <div class="row justify-content-center">
-                    <div>Budget Allocation from Cooperative Total.</div>
-                </div>
-                <div class="contractedServicesWrapper">
-                    <t t-set="first_month_subtotal" t-value="0.0"/>
-                    <t t-set="fee_subtotal" t-value="0.0"/>
-                    <t t-set="current_subtotal" t-value="0.0"/>
-                    <t t-set="modified_invoice_lines_com" t-value="sale_order_com._grouping_wrapper(sale_order_com.contract_start_date, sale_order_com.order_line)"/>
-                    <t t-foreach="modified_invoice_lines_com" t-as="line_com">
-                        <!-- section just for compatibly with original ones -->
-                        <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
-                            <t t-set="display_discount" t-value="True in [line.discount > 0 for line in sale_order_com.order_line]"/>
-                            <table class="table table-sm" id="sales_order_table">
-                                <thead>
-                                    <tr>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </section>
-                        <t t-if="line_com['product_id'] == setup_fee_product">
-                            <!-- <span t-set="fee_subtotal" t-value="fee_subtotal + line['price_unit']"/> -->
-                            <t t-set="first_month_subtotal" t-value="first_month_subtotal + line_com['price_unit']"/>
+                <div class="pseudoPage">
+                    <div class="communityName row justify-content-center mt32">
+                        <h2><span t-esc="sale_order_com.partner_id.name"/></h2><br/>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div>Budget Allocation from Cooperative Total.</div>
+                    </div>
+                    <div class="contractedServicesWrapper">
+                        <t t-set="first_month_subtotal" t-value="0.0"/>
+                        <t t-set="fee_subtotal" t-value="0.0"/>
+                        <t t-set="current_subtotal" t-value="0.0"/>
+                        <t t-set="modified_invoice_lines_com" t-value="sale_order_com._grouping_wrapper(sale_order_com.contract_start_date, sale_order_com.order_line)"/>
+
+                        <t t-set="spend_object" t-value="{}"/>
+                        <!-- create the base dates  -->
+                        <t t-foreach="modified_invoice_lines" t-as="line">
+                            <t t-set="spend_object" t-value="parent_sale_order.collect_oto_spend(spend_object,line)"/>
                         </t>
-                        <t t-else="">
-                            <div class="productLineWrapper row">
-                                <div class="topbar row valign-wrapper col-12">
-                                    <section id="details" class="productTitle col-12 col-md-7">
-                                        <t t-esc="line_com['display_type']" />
-                                        <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line_com['display_type'] == 'line_section' else 'font-italic o_line_note' if line_com['display_type'] == 'line_note' else ''">
-                                            <t t-if="not line_com['display_type']">
+                        <!-- updating values with recurring -->
+                        <t t-foreach="modified_invoice_lines" t-as="line">
+                            <t t-set="spend_object" t-value="parent_sale_order.update_recurring_spend(spend_object,line)"/>
+                        </t>
+
+                <t t-foreach="modified_invoice_lines_com" t-as="line_com">
+                    <section id="details" style="page-break-inside: auto;display:none;" class="mt32 ">
+                        <t t-set="display_discount" t-value="True in [line.discount > 0 for line in sale_order_com.order_line]"/>
+                        <table class="table table-sm" id="sales_order_table">
+                            <thead>
+                                <tr>
+                                </tr>
+                            </thead>
+                        </table>
+                    </section>
+                    <t t-if="line_com['product_id'] == setup_fee_product">
+                        <t t-set="first_month_subtotal" t-value="first_month_subtotal + line_com['price_unit']"/>
+                    </t>
+                    <t t-else="">
+                        <div class="productLineWrapper row">
+                            <div class="topbar row valign-wrapper col-12">
+                                <section id="details" class="productTitle col-12 col-md-7">
+                                    <t t-esc="line_com['display_type']" />
+                                    <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line_com['display_type'] == 'line_section' else 'font-italic o_line_note' if line_com['display_type'] == 'line_note' else ''">
+                                        <t t-if="not line_com['display_type']">
+                                            <td id="product_name">
+                                                <span t-raw="line_com['description']"/>
+                                            </td>
+                                        </t>
+                                        <t t-if="line_com['display_type'] == 'line_section'">
+                                            <td colspan="99">
+                                                <span t-raw="line_com['description']"/>
+                                            </td>
+                                            <t t-set="current_section" t-value="line_com"/>
+                                            <t t-set="current_subtotal" t-value="0"/>
+                                        </t>
+                                        <t t-if="line_com['display_type'] == 'line_note'">
+                                            <td colspan="99">
+                                                <span t-raw="line_com['description']"/>
+                                            </td>
+                                        </t>
+                                        <div class="descriptionWrapper">
+                                            <div class="description col-12">
                                                 <td id="product_name">
-                                                    <span t-raw="line_com['description']"/>
+                                                    <span t-raw="line_com['contract_product_description']"/>
                                                 </td>
-                                            </t>
-                                            <t t-if="line_com['display_type'] == 'line_section'">
-                                                <td colspan="99">
-                                                    <span t-raw="line_com['description']"/>
-                                                </td>
-                                                <t t-set="current_section" t-value="line_com"/>
-                                                <t t-set="current_subtotal" t-value="0"/>
-                                            </t>
-                                            <t t-if="line_com['display_type'] == 'line_note'">
-                                                <td colspan="99">
-                                                    <span t-raw="line_com['description']"/>
-                                                </td>
-                                            </t>
-                                            <div class="descriptionWrapper">
-                                                <div class="description col-12">
-                                                    <td id="product_name">
-                                                        <span t-raw="line_com['contract_product_description']"/>
-                                                    </td>
-                                                </div>
                                             </div>
-                                        </tr>
-                                    </section>
-                                    <t t-set="need_display_fee" t-value="line_com['name'].find('Search')>-1 and not sale_order_com.display_management_fee"/>
+                                        </div>
+                                    </tr>
+                                </section>
+                                <t t-set="need_display_fee" t-value="line_com['name'].find('Search')>-1 and not sale_order_com.display_management_fee"/>
+                                <t t-set="is_oto_line" t-value="parent_sale_order.is_oto_line(line_com['start_date'],line_com['end_date'])"/>
+                                <t t-if="is_oto_line">
                                     <div class="productTotalWrapperWrapper col-12 col-md-5">
                                         <div class="productTotalWrapper">
-                                            <div class="monthlyTotalText">Monthly Total:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                            <div class="monthlyTotalText">
+                                                <span t-esc="parent_sale_order.date_month_formatting(line_com['start_date'])"/>
+                                                Spend:
+                                                <t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
                                             </div>
                                             <div class="productTotal">
                                                 <span t-esc="parent_sale_order.money_formatting(line_com['price_unit'])"/>
                                             </div>
-                                        </div>
-                                        <div t-if="line_com['prorate_amount'] and line_com['prorate_amount'] != line_com['price_unit']" class="productTotalWrapper">
-                                            <div style="display:inline-block;">First Month Total: </div>
-                                            <div class="productTotal">
-                                                <span t-esc="parent_sale_order.money_formatting(line_com['prorate_amount'])"/>
-                                            </div>
-                                        </div>
-                                        <t t-set="management_fee_calculated" t-value="line_com['management_fee']" />
-                                        <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
-                                            <div style="display:inline-block;">Monthly Fee: </div>
-                                            <div class="productTotal">
-                                                <span t-esc="parent_sale_order.money_formatting(management_fee_calculated)"/>
-                                            </div>
-                                        </div>
-                                        <t t-set="first_month_subtotal" t-value="first_month_subtotal + (line_com['prorate_amount'] if line_com['prorate_amount'] else line_com['price_unit'])"/>
-                                        <t t-set="current_subtotal" t-value="current_subtotal + line_com['price_unit']"/>
+                                        </div> 
                                     </div>
+                                </t>
+                                <t t-else="">
+                                <div class="productTotalWrapperWrapper col-12 col-md-5">
+                                    <div class="productTotalWrapper">
+                                        <div class="monthlyTotalText">Recurring Spend:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                        </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(line_com['price_unit'])"/>
+                                        </div>
+                                    </div>
+                                    <div t-if="line_com['prorate_amount'] and line_com['prorate_amount'] != line_com['price_unit']" class="productTotalWrapper">
+                                        <div style="display:inline-block;">                                        <span t-esc="parent_sale_order.date_month_formatting(line_com['start_date'])"/>
+                                        Spend: 
+                                        </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(line_com['prorate_amount'])"/>
+                                        </div>
+                                    </div>
+                                    <t t-set="management_fee_calculated" t-value="line_com['management_fee']" />
+                                    <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
+                                        <div style="display:inline-block;">Monthly Fee: </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(management_fee_calculated)"/>
+                                        </div>
+                                    </div>
+                                    <t t-set="first_month_subtotal" t-value="first_month_subtotal + (line_com['prorate_amount'] if line_com['prorate_amount'] else line_com['price_unit'])"/>
+                                    <t t-set="current_subtotal" t-value="current_subtotal + line_com['price_unit']"/>
                                 </div>
+                                </t>
                             </div>
-                        </t>
+                        </div>
                     </t>
+                </t>
 
-                    <t t-if="current_section and (line_last or sale_order.order_line[line_index+1]['display_type'] == 'line_section')">
-                        <tr class="is-subtotal text-right">
-                            <td colspan="99">
-                                <strong class="mr16">Subtotal</strong>
-                                <span t-esc="parent_sale_order.money_formatting(current_subtotal)"/>
-                            </td>
-                        </tr>
-                    </t>
+                        <t t-if="current_section and (line_last or sale_order.order_line[line_index+1]['display_type'] == 'line_section')">
+                            <tr class="is-subtotal text-right">
+                                <td colspan="99">
+                                    <strong class="mr16">Subtotal</strong>
+                                    <span t-esc="parent_sale_order.money_formatting(current_subtotal)"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </div>
                 </div>
-                <!-- <div class="monthlyTotalWrappersWrapper dont_break_inside row">
-                    <div class="offset-1 col-4 firstMonthlyTotalWrapperWrapper">
-                        <div class="firstMonthlyTotalWrapper">
-                            <div class="">First Month Spend: </div>
-                            <div class="monthlyTotal">
-                                <span t-esc="parent_sale_order.money_formatting(first_month_subtotal)"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="offset-2 col-4 monthlyTotalWrapper">
-                        <div class="">Recurring Monthly Spend: </div>
-                        <div class="monthlyTotal">
-                            <span t-esc="parent_sale_order.money_formatting(current_subtotal)"/>
-                        </div>
-                    </div>
-                </div> -->
-            </div>
             </t>
 
             

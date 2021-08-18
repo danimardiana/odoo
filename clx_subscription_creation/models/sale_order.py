@@ -20,6 +20,8 @@ class FakeSaleOrderLine:
         self.partner_id = sol.product_id
         self.prorate_amount = sol.prorate_amount * ratio / 100
         self.display_type = sol.display_type
+        self.start_date = sol.start_date
+        self.end_date = sol.end_date
         self.product_template_id = sol.product_template_id
         self.product_type = sol.product_type
         self.discount = 0
@@ -279,7 +281,7 @@ class SaleOrder(models.Model):
                 "discount": 0.0,
                 "tax_ids": [],
                 "start_date": line.start_date,
-                "end_date": False if "end_date" not in line else line.end_date,
+                "end_date": False if not line.end_date else line.end_date,
             }
 
         def last_order_data(product_individual):
