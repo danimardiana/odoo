@@ -14,7 +14,7 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     is_invoiced = fields.Boolean(string='invoiced')
-    prorate_amount = fields.Float(string="Prorate Amount")
+    prorate_amount = fields.Float(string="One-Time Amount")
 
     @api.onchange('product_id')
     def onchange_start_date(self):

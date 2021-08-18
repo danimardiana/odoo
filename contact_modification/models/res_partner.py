@@ -127,13 +127,19 @@ class Partner(models.Model):
     submitted_platform_id = fields.Many2one("submitted.platform", string="Submittal Platform")
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
+
+    #discounts block
     is_flat_discount = fields.Boolean(string="Is Flat Discount")
     clx_category_id = fields.Many2one("product.category", string="Category for Flat Discount")
     flat_discount = fields.Float(string="Flat Discount")
     is_percent_discount = fields.Boolean(string="Is Percent Discount")
+    flat_discount_product = fields.Many2one('product.product', string="Product for Flat Discount", help="Product the Flat Discount will be assigned to")
     percent_discount = fields.Float(string="Percent Discount")
     percent_discount_category_id = fields.Many2one("product.category", string="Category for Percent Discount")
+    percent_discount_product = fields.Many2one('product.product', string="Product for Percent Discount", help="Product the Percent Discount will be assigned to")
     discount_on_order_line = fields.Float(string="Discount on Sale Order Line (%)")
+    discount_product = fields.Many2one('product.product', string="Product for Flat Discount", help="Product the Main Discont will be assigned to")
+
     client_services_team = fields.Selection(
         [("emerging_accounts", "Emerging Accounts"), ("national_accounts", "National Accounts")],
         default="emerging_accounts",
