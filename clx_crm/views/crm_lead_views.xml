@@ -8,7 +8,10 @@
             <!-- Add Contact Validaion Button to header -->
             <xpath expr="//button[@name='296']" position="before">
                 <field name="show_validate_btn" invisible="1"/>
-                <button name="validate_lead_contacts" string="Validate Contacts" type="object" attrs="{'invisible': ['|',('show_validate_btn', '=', False), ('type', '=', 'opportunity')]}"/>
+                <button name="validate_lead_contacts" class="btn-warning" string="Validate Contacts" type="object" attrs="{'invisible': ['|',('show_validate_btn', '=', False), ('type', '=', 'opportunity')]}"/>
+            </xpath>
+            <xpath expr="//button[@name='296']" position="attributes">
+                 <attribute name="attrs">{'invisible' : ['|',('show_validate_btn', '=', True), ('type', '=', 'opportunity')]}</attribute>
             </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="replace">
                 <div class="oe_title">
@@ -141,11 +144,14 @@
             <xpath expr="//form/sheet/notebook/page[1]" position="before">
                 <page string="Lead Contacts" attrs="{'invisible': [('type', '=', 'opportunity')]}">
                     <field name="crm_lead_contact_ids">
-                        <tree editable="bottom">
+                        <tree editable="bottom"  decoration-success="validated == True" decoration-warning="validated == False">
                             <field name="name" required="True"/>
-                            <field name="function"/>
-                            <field name="phone" widget="phone"/>
                             <field name="email" widget="email"/>
+                            <field name="function"/>
+                            <field name="role" />
+                            <field name="phone" widget="phone"/>
+                            <field name="existing_contact_id" string="Existing ID" readonly="1" optional="hidden"/>
+                            <field name="validated" string="Validated" readonly="1" force_save="True" optional="hidden"/>
                         </tree>
                     </field>
                 </page>

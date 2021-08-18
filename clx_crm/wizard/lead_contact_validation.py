@@ -17,20 +17,16 @@ class ClxLeadContactValidation(models.TransientModel):
     existing_city = fields.Char(string="Existing Contact City")
     existing_state = fields.Char(string="Existing Contact State")
 
-    # @api.onchange("selected")
-    def selected_changes(self):
-        check_box_row_group = self.env["lead.contact.validation"].search([("create_date", "=", self.create_date)])
+    def save_contact_choices(self, contacts):
+        lead_contact_table = self.env["crm.lead.contact"]
 
-        for row in check_box_row_group:
-            self.selected = True
-            # self.update({"selected": False})
-
-            if row.crm_lead_contact_id == self.crm_lead_contact_id and row.id != self.id:
-                row.selected = False
-                # row.update({"selected": False})
-
-                print(row.crm_lead_contact_name)
-
-        return {
-            "type": "set_scrollTop",
-        }
+        for contact in contacts:
+            lead_contact = lead_contact_table.search([("id", "=", contact.get("crm_lead_contact_id"))])
+            lead_contact.update(
+                {
+                    "name": contact.get("existing_name"),
+                    "existing_contact_id": contact.get("existing_res_partner_id"),
+                    "function": contact.get("existing_function"),
+                    "validated": True,
+                }
+            )

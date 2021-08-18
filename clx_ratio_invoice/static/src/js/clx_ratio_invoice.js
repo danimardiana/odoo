@@ -8,18 +8,25 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
     ListController.include({
         renderButtons: function ($node) {
             this._super.apply(this, arguments);
-            var self = this;
-            if (self.$buttons) {
-                let splitButton = this.$buttons.find('.oe_split_ratio_button');
-                let createButton = this.$buttons.find('.o_list_button_add');
-                let discardButton = this.$buttons.find('.o_list_button_discard');
-                let saveButton = this.$buttons.find('.o_list_button_save');
-                let exportButton = this.$buttons.find('.o_list_export_xlsx');
+            let self = this;
+
+            // Get the Coop Tree element and use it as
+            // the starting point for moving up/down
+            // and making changes to relative elements
+            let coopTree = $('.coop_ratio_tree');
+
+            if (self.$buttons && coopTree.length > 0) {
+                let splitButton = coopTree.closest('.modal-content').find('.oe_split_ratio_button');
+                let createButton = coopTree.closest('.modal-content').find('.o_list_button_add');
+                let discardButton = coopTree.closest('.modal-content').find('.o_list_button_discard');
+                let saveButton = coopTree.closest('.modal-content').find('.o_list_button_save');
+                let exportButton = coopTree.closest('.modal-content').find('.o_list_export_xlsx');
 
                 splitButton && splitButton.click(self.proxy('SplitRatioEvenly'));
                 exportButton.hide();
 
-                $('.modal-footer').find('.o_list_buttons').find('.o_list_button_add').text('ADD');
+                coopTree.closest('.modal-content').find('.o_list_button_add').text('ADD');
+
                 // add handlers for toogleing(hide/show) the split button
                 createButton.click(() => {
                     $('.oe_split_ratio_button').hide();
@@ -35,9 +42,9 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
                 });
 
                 // Remove unused search bar elements from header
-                $('.o_cp_left').hide();
-                $('.o_cp_right').hide();
-                $('.o_searchview').hide();
+                coopTree.closest('.modal-content').find('.o_cp_left').hide();
+                coopTree.closest('.modal-content').find('.o_cp_right').hide();
+                coopTree.closest('.modal-content').find('.o_searchview').hide();
             }
         },
 
