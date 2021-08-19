@@ -72,6 +72,11 @@
                     </field>            
                 </page>                
             </xpath>
+            <xpath expr="//group[@name='sale_info_group']" position="after">
+                <group string="CO-OP" name="co_op_group" >
+                    <field name="is_co_op"/>
+                </group>
+            </xpath>                        
             <xpath expr="//header//button[@name='action_post']" position="after">
                 <button name="button_approve_invoice" string="Approve invoice" class="oe_highlight" type="object"
                         groups="account.group_account_invoice"
@@ -112,6 +117,7 @@
             <xpath expr="//field[@name='invoice_date_due']" position="after">
                 <field name="invoice_month_year" optional = "hide" />
                 <field name="invoice_period_verbal" optional = "show" />
+                <field name="is_co_op" optional = "hide" />
             </xpath>
         </field>
     </record>
@@ -127,9 +133,11 @@
                 <filter name="clx_vertical_local" string="Vertical - Local" domain="[('partner_id.vertical', '=', 'local')]"/>
                 <filter name="clx_vertical_res" string="Vertical - Residential" domain="[('partner_id.vertical', '=', 'res')]"/>
                 <filter name="clx_vertical_srl" string="Vertical - Senior Living" domain="[('partner_id.vertical', '=', 'srl')]"/>
-                <separator/>
+
                 <filter name="clx_email_sent_status" string="Email sent to Account Manager" domain="[('state', '=', 'email_sent')]"/>
-                <filter name="clx_inv_approved" string="Invoice Approved by Account Manager" domain="[('state', '=', 'approved_draft')]"/>
+                <filter name="clx_inv_approved" string="Invoice Approved by Account Manager" domain="[('state', '=', 'approved_draft')]"/>                
+                <filter name="clx_is_co_op" string="CO-OP" domain="[('is_co_op', '=', True)]"/>
+                <separator/>
             </filter>
         </field>
     </record>

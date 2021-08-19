@@ -278,6 +278,8 @@ class SaleSubscription(models.Model):
         ):
             return False
 
+        is_co_op = any(list(map(lambda l: (l.analytic_account_id.co_op_partner_ids and len(l.analytic_account_id.co_op_partner_ids)>0), lines["related_subscriptions"])))
+
         last_order = sorted(
             lines["related_subscriptions"], key=lambda kv: kv.so_line_id.order_id.create_date, reverse=True
         )[0].so_line_id.order_id
@@ -328,6 +330,7 @@ class SaleSubscription(models.Model):
             invoice2update = {
                 "invoice_user_id": self.env.user.id,
                 "invoice_origin": "/".join(invoice_origin.keys()),
+                "is_co_op":is_co_op or invoice.is_co_op,
                 "invoice_line_ids": list(map(lambda line: (2, line.id), invoice.invoice_line_ids))
                 + [(0, 0, x) for x in lines["invoice_lines"]],
                 "subscription_line_ids": list(map(lambda line: line.id, lines["related_subscriptions"])),
@@ -348,6 +351,7 @@ class SaleSubscription(models.Model):
                 "invoice_payment_ref": last_order.reference,
                 "invoice_payment_term_id": last_order.payment_term_id.id,
                 "invoice_partner_bank_id": partner.bank_ids[:1].id,
+                "is_co_op":is_co_op,
                 "team_id": last_order.team_id.id,
                 "campaign_id": last_order.campaign_id.id,
                 "medium_id": last_order.medium_id.id,
@@ -571,6 +575,7 @@ class SaleSubscription(models.Model):
     # 1: budget grouping
     # 2: products
     # 4: description grouping
+    # 8: daterange
 
     def subscription_lines_collection_for_invoicing(self, partner, order_id, start_date, end_date, grouping_levels=7):
 
