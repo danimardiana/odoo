@@ -244,17 +244,6 @@ class Partner(models.Model):
             elif partner.is_management and not partner.is_owner:
                 partner.company_type = "management"
 
-    # def _compute_company_type_hidden(self):
-    #     if (
-    #         self.company_type == "person"
-    #         or self.company_type == "company"
-    #         or self.company_type == "management"
-    #         or self.company_type == "owner"
-    #     ):
-    #         self.company_type_hidden = True
-    #     else:
-    #         self.company_type_hidden = False
-
     def properties_owner(self):
         self.ensure_one()
         domain = [
@@ -282,8 +271,6 @@ class Partner(models.Model):
     def assignation_management(self):
         self.ensure_one()
         clx_child_ids = self.env["res.partner.clx.child"].search([("child_id", "=", self.id)])
-        # parent_id = [
-        # clx_child_id.parent_id.id for clx_child_id in clx_child_ids]
         domain = [("id", "in", clx_child_ids.ids)]
         action = self.env.ref("contact_modification.action_partner_assignation_contacts").read()[0]
         context = literal_eval(action["context"])
