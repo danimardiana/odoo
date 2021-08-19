@@ -98,9 +98,9 @@
             <xpath expr="//field[@name='partner_name']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//field[@name='tag_ids']" position="attributes">
+            <!-- <xpath expr="//field[@name='tag_ids']" position="attributes">
                 <attribute name="invisible">1</attribute>
-            </xpath>
+            </xpath> -->
             <xpath expr="//field[@name='user_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
@@ -122,6 +122,7 @@
                         <field name="country_id" placeholder="Country" class="o_address_country" options="{'no_open': True, 'no_create': True}"/>
                     </div>
                     <field name="website" widget="url" placeholder="e.g. https://www.odoo.com"/>
+                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
                 </group>
             </xpath>
             <xpath expr="//form/sheet/group/group[2]" position="attributes">
