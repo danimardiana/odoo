@@ -51,6 +51,8 @@ class AccountMove(models.Model):
 
     portable_invoice_url = fields.Char(string="Invoice link", index=True, compute="_compute_get_url")
     
+    is_co_op = fields.Boolean(string="Invoice Contains CO-OP Subscriptions", readonly=True)
+
     # overwriting the preview invoice logic
     def client_invoice_grouping(self):
         sub_lines = self.subscription_line_ids
