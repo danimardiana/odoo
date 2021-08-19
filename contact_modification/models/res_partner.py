@@ -56,7 +56,7 @@ class Partner(models.Model):
     mangement_company_type = fields.Selection(
         string="Mgmt. Company Type", selection=[("greystar", "Greystar"), ("other", "Other")]
     )
-    contact_type_ids = fields.Many2many("contact.type", "contact_type_rel", "con_id", "type_id", string="Contact Type")
+    contact_type_ids = fields.Many2many("contact.type", "contact_type_rel", "con_id", "type_id", string="Contact Role")
     contact_company_type_id = fields.Many2one("res.partner", string="Contact Name")
     company_type_rel = fields.Selection(
         related="company_type",
@@ -65,7 +65,7 @@ class Partner(models.Model):
     contact_display_kanban = fields.Char("Contact Display Name")
     contact_child_ids = fields.One2many("res.partner.clx.child", "parent_id", string="Other Contacts")
     vertical = fields.Selection(
-        [("res", "RES"), ("srl", "SRL"), ("local", "Local"), ("auto", "Auto")], string="Vertical"
+        [("res", "RES"), ("srl", "SRL"), ("local", "Local"), ("auto", "Auto"), ("agency", "Agency")], string="Vertical"
     )
 
     branding_name = fields.Char(string="Branding Name")
@@ -250,17 +250,6 @@ class Partner(models.Model):
             elif partner.is_management and not partner.is_owner:
                 partner.company_type = "management"
 
-    def _compute_company_type_hidden(self):
-        if (
-            self.company_type == "person"
-            or self.company_type == "company"
-            or self.company_type == "management"
-            or self.company_type == "owner"
-        ):
-            self.company_type_hidden = True
-        else:
-            self.company_type_hidden = False
-
     def properties_owner(self):
         self.ensure_one()
         domain = [
@@ -288,8 +277,6 @@ class Partner(models.Model):
     def assignation_management(self):
         self.ensure_one()
         clx_child_ids = self.env["res.partner.clx.child"].search([("child_id", "=", self.id)])
-        # parent_id = [
-        # clx_child_id.parent_id.id for clx_child_id in clx_child_ids]
         domain = [("id", "in", clx_child_ids.ids)]
         action = self.env.ref("contact_modification.action_partner_assignation_contacts").read()[0]
         context = literal_eval(action["context"])
