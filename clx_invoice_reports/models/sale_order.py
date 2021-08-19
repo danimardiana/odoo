@@ -2,7 +2,8 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 from odoo.tools.mail import email_send
-from odoo import fields, models, api
+from odoo import fields, models, api, _
+from odoo.exceptions import ValidationError
 import json
 
 contract_lengths_const = [
@@ -38,6 +39,16 @@ class SaleOrder(models.Model):
 
     def sale_order_email_action(self):
         """ Opens a wizard to compose an email, with relevant mail template loaded by default """
+
+        # Quotes can not be sent to Clients Companies if Mgmt. Co. is not set.
+        if self.partner_id.company_type == "company" and not self.partner_id.management_company_type_id:
+            raise ValidationError(
+                _(
+                    """Management Company is not set!\n\nPlease navigate to the contact form for %s and select a management company."""
+                )
+                % self.partner_id.name
+            )
+
         self.ensure_one()
         template = self.env["mail.template"].sudo().search([("name", "=", "Sales Order: CLX email template")])
         lang = self.env.context.get("lang")
@@ -139,7 +150,7 @@ class SaleOrder(models.Model):
                     "attachment_ids": [attach.id for attach in composer.attachment_ids],
                     "subject": subject,
                     "email_from": email_from,
-                    "reply_to":email_from,
+                    "reply_to": email_from,
                 }
                 Mail = self.env["mail.mail"].create(prepeared_values)
                 Mail.send()
