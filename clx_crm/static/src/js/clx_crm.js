@@ -37,7 +37,6 @@ odoo.define('clx_crm.lead.contact.validation.template', function (require) {
                     .closest('.modal-content')
                     .find('.save_varification_button');
                 let exportButton = existingContactTree.closest('.modal-content').find('.o_list_export_xlsx');
-                let discardButton = existingContactTree.closest('.modal-content').find('.o_list_button_discard');
 
                 // add handlers
                 selectedContactsBtn && selectedContactsBtn.click(this.proxy('saveSelectedContactOptions'));
