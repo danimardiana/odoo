@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_task_form2_inherit_open_in_tab" model="ir.ui.view">
+        <field name="name">project.task.form</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="clx_task_management.view_task_form2_inherit_clx_task_management"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sub_task_project_ids']/tree/button[@name='redirect_task']" position="replace">
+                <field name="id" widget="open_tab" string="#"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
