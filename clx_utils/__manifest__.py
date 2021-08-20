@@ -15,7 +15,7 @@
     "category": "Uncategorized",
     "version": "0.2",
     # any module necessary for this one to work correctly
-    "depends": ["base","clx_task_management"],
+    "depends": ["base","clx_task_management","clx_subscription_creation"],
     # always loaded
     "data": [
         # 'security/ir.model.access.csv',

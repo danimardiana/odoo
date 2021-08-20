@@ -4,4 +4,4 @@
 
 from . import sale_order
 from . import sale_subscription
-from . import res_config_settings
+

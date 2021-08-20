@@ -14,16 +14,16 @@
     'depends': [
         'sale_management',
         'sale_subscription',
-        'clx_retail_pricelist'
+        'clx_retail_pricelist',
     ],
     'data': [
         'security/ir.model.access.csv',
-        'data/ir_sequence.xml',
-        'data/ir_cron.xml',
+        # 'data/ir_sequence.xml',
+        # 'data/ir_cron.xml',
         'data/mail_template.xml',
         'views/sale_budget_views.xml',
         'views/res_config_settings_views.xml',
-        'views/sale_order_views.xml'
+        # 'views/sale_order_views.xml'
     ],
     'installable': True,
     'application': True,

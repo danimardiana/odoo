@@ -3,3 +3,4 @@
 # See LICENSE file for full copyright & licensing details.
 
 from . import models
+from . import controllers

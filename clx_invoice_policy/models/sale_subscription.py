@@ -28,9 +28,9 @@ class SaleSubscription(models.Model):
                 can_read
                 and invoice.search_count(
                     [
-                        "|",
-                        ("invoice_line_ids.subscription_id", "=", subscription.id),
-                        ("invoice_line_ids.subscription_ids", "in", subscription.id),
+                        # "|",
+                        # ("invoice_line_ids.subscription_id", "=", subscription.id),
+                        ("subscription_line_ids", "in", subscription.id),
                     ]
                 )
                 or 0
@@ -40,9 +40,9 @@ class SaleSubscription(models.Model):
         self.ensure_one()
         invoices = self.env["account.move"].search(
             [
-                "|",
-                ("invoice_line_ids.subscription_id", "in", self.ids),
-                ("invoice_line_ids.subscription_ids", "in", self.id),
+                # "|",
+                # ("invoice_line_ids.subscription_id", "in", self.ids),
+                ("subscription_line_ids", "in", self.id),
             ]
         )
         action = self.env.ref("account.action_move_out_invoice_type").read()[0]
@@ -80,11 +80,21 @@ class SaleSubscription(models.Model):
         self, retail, price_list, show_flags={"show_mgmnt_fee": True, "show_wholesale": True}
     ):
 
-        if not price_list:
-            return {"management_fee": -2, "wholesale_price": -2}
+        if not price_list or not price_list.active:
+            return {
+                "management_fee": -2,
+                "wholesale_price": -2,
+                "management_fee_product": False,
+            }
+
+        if retail == 0:
+            return {"management_fee": 0, "wholesale_price": 0}
 
         management_fee = 0.0 if show_flags["show_mgmnt_fee"] else False
         wholesale = 0.0 if show_flags["show_wholesale"] else False
+        management_fee_product = (
+            None if "management_fee_product" not in price_list else price_list.management_fee_product
+        )
 
         if price_list.is_custom and management_fee:
             if retail <= price_list.min_retail_amount:
@@ -123,6 +133,7 @@ class SaleSubscription(models.Model):
         return {
             "management_fee": management_fee if management_fee else -1,
             "wholesale_price": wholesale if wholesale else -1,
+            "management_fee_product": management_fee_product,
         }
 
     def pricelist_flatten(self, price_list):
@@ -155,10 +166,8 @@ class SaleSubscription(models.Model):
 
     # check if subscription was invoiced for period (using invoice_month_year signature)
     def is_product_invoiced(self, partner_id, product, date):
-        format_date = self.env["ir.qweb.field.date"].value_to_html
         invoice_object = self.env["account.move"]
         period_msg = invoice_object.invoices_date_signature(date)
-        invoice_line_object = self.env["account.move.line"]
         all_account_move_lines = invoice_object.search(
             [
                 ("subscription_line_ids.id", "=", product.id),
@@ -168,6 +177,19 @@ class SaleSubscription(models.Model):
             ]
         )
         return all_account_move_lines or False
+
+    # check if subscription was invoiced for period (using invoice_month_year signature)
+    def is_draft_invoice_for_period(self, partner_id, date):
+        invoice_object = self.env["account.move"]
+        period_msg = invoice_object.invoices_date_signature(date)
+        all_draft_invoices = invoice_object.search(
+            [
+                ("state", "=", "draft"),
+                ("invoice_month_year", "=", period_msg),
+                ("partner_id.id", "=", partner_id),
+            ]
+        )
+        return all_draft_invoices or False
 
     # generating invoice basing on the datarange
     def format_period_message(self, start_date, end_date):
@@ -229,13 +251,14 @@ class SaleSubscription(models.Model):
 
         return self.invoicing_date_range(**kwargs)
 
+    # generates invoice for one period
     def invoicing_one_period(self, **kwargs):
         if (
             (("partner_id" not in kwargs) and ("order_id" not in kwargs))
             or ("start_date" not in kwargs)
             or ("end_date" not in kwargs)
         ):
-            return
+            return False
 
         order_id = kwargs["order_id"] if "order_id" in kwargs else False
 
@@ -245,7 +268,7 @@ class SaleSubscription(models.Model):
 
         # get all subscription lines
         lines = self.subscription_lines_collection_for_invoicing(
-            partner, order_id, kwargs["start_date"], kwargs["end_date"]
+            partner, order_id, kwargs["start_date"], kwargs["end_date"], grouping_data.DESCRIPTION_GROUPING_FLAG
         )
         # not create invoices if no lines to invoice or all have 0
         if (
@@ -254,6 +277,8 @@ class SaleSubscription(models.Model):
             or not (any(list(map(lambda l: l["price_unit"], lines["invoice_lines"]))))
         ):
             return False
+
+        is_co_op = any(list(map(lambda l: (l.analytic_account_id.co_op_partner_ids and len(l.analytic_account_id.co_op_partner_ids)>0), lines["related_subscriptions"])))
 
         last_order = sorted(
             lines["related_subscriptions"], key=lambda kv: kv.so_line_id.order_id.create_date, reverse=True
@@ -301,10 +326,11 @@ class SaleSubscription(models.Model):
             # invoice_total = sum(map(lambda line: line.price_unit, lines["related_subscriptions"]))
             # invoice_previous_total = sum(map(lambda line: line.price_unit, invoice.subscription_line_ids))
             if invoice_included_subscription_ids == invoice_previous_subscription_ids:
-                return
+                return False
             invoice2update = {
                 "invoice_user_id": self.env.user.id,
                 "invoice_origin": "/".join(invoice_origin.keys()),
+                "is_co_op":is_co_op or invoice.is_co_op,
                 "invoice_line_ids": list(map(lambda line: (2, line.id), invoice.invoice_line_ids))
                 + [(0, 0, x) for x in lines["invoice_lines"]],
                 "subscription_line_ids": list(map(lambda line: line.id, lines["related_subscriptions"])),
@@ -325,6 +351,7 @@ class SaleSubscription(models.Model):
                 "invoice_payment_ref": last_order.reference,
                 "invoice_payment_term_id": last_order.payment_term_id.id,
                 "invoice_partner_bank_id": partner.bank_ids[:1].id,
+                "is_co_op":is_co_op,
                 "team_id": last_order.team_id.id,
                 "campaign_id": last_order.campaign_id.id,
                 "medium_id": last_order.medium_id.id,
@@ -338,6 +365,7 @@ class SaleSubscription(models.Model):
             }
             new_invoice.update(invoice_type_settings)
             invoice = self.env["account.move"].create(new_invoice)
+
         return invoice
 
     def _grouping_wrapper(
@@ -345,9 +373,10 @@ class SaleSubscription(models.Model):
     ):
         def initial_order_data(line, partner_id):
             price = line.period_price_calc(start_date, partner_id)
-            product_variant = ''
+            product_variant = ""
             if len(line.product_id.product_template_attribute_value_ids):
                 product_variant = line.product_id.product_template_attribute_value_ids[0].name
+            rebate, rebate_product = line.rebate_calc(price)
             return {
                 "product_name": line.product_id.name,
                 "product_variant": product_variant,
@@ -359,10 +388,11 @@ class SaleSubscription(models.Model):
                 "category_name": line.product_id.categ_id.name,
                 "category_id": line.product_id.categ_id.id,
                 "description": line._grouping_name_calc(line)
-                if grouping_levels & grouping_data.ACCOUNTIG_GROUPING_FLAG
+                if grouping_levels & grouping_data.ACCOUNTING_GROUPING_FLAG
                 else line.product_id.categ_id.name,  # second level of grouping - budget wrapping
                 "contract_product_description": line.product_id.contract_product_description,
-                "rebate": line.rebate_calc(price),
+                "rebate": rebate,
+                "rebate_product": rebate_product,
                 "discount": line.discount,
                 "tax_ids": list(map(lambda tax: tax.id, line.so_line_id.tax_id)),
                 "start_date": line.start_date,
@@ -378,6 +408,7 @@ class SaleSubscription(models.Model):
                 "contract_product_description": product_individual["contract_product_description"],
                 "name": product_individual["name"],
                 "rebate": product_individual["rebate"],
+                "rebate_product": product_individual["rebate_product"],
                 "category_id": product_individual["category_id"],
                 "product_id": product_individual["product_id"],
                 "pricelist": product_individual["pricelist"],
@@ -449,10 +480,102 @@ class SaleSubscription(models.Model):
         ]
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 
+    def invoicing_add_management_fee_and_rebate_lines(self, grouped_sub_lines, start_date, end_date):
+        period_msg = self.format_period_message(start_date, end_date)
+        # processing the grouped lines into invoice lines
+        rebate_total = {}
+        grouped_invoice_lines = []
+        for line in grouped_sub_lines:
+            if line["price_unit"] == 0:
+                continue
+            final_price = line["price_unit"]
+            if line["management_fee"] > 0:
+                final_price -= line["management_fee"]
+                grouped_invoice_lines.append(
+                    {
+                        "name": period_msg,
+                        "description": line["description"],
+                        "product_id": line["product_id"],
+                        "category_id": line["category_id"],
+                        "price_unit": final_price,
+                        "price_subtotal": final_price,
+                        "discount": line["discount"],
+                        "tax_ids": line["tax_ids"],
+                    }
+                )
+                management_fee_params = {
+                    "description": "Management Fee for " + line["description"],
+                    "product_id": False,
+                    "category_id": line["category_id"],
+                }
+                if "management_fee_product" in line and line["management_fee_product"].id:
+                    management_fee_params = {
+                        "description": line["management_fee_product"].name,
+                        "category_id": line["management_fee_product"].categ_id.id,
+                        "product_id": line["management_fee_product"].id,
+                    }
+
+                grouped_invoice_lines.append(
+                    {
+                        **{
+                            "name": period_msg,
+                            "price_unit": line["management_fee"],
+                            "price_subtotal": line["management_fee"],
+                            "discount": 0,
+                            "tax_ids": line["tax_ids"],
+                        },
+                        **management_fee_params,
+                    }
+                )
+            else:
+                grouped_invoice_lines.append(
+                    {
+                        "name": period_msg,
+                        "description": line["description"],
+                        "product_id": line["product_id"],
+                        "category_id": line["category_id"],
+                        "price_unit": line["price_unit"],
+                        "price_subtotal": final_price,
+                        "discount": line["discount"],
+                        "tax_ids": line["tax_ids"],
+                    }
+                )
+            if line["rebate"]:
+                rebate_signature = "Rebate Discount"
+                if "name" in line["rebate_product"]:
+                    rebate_signature = line["rebate_product"].name
+                if rebate_signature not in rebate_total:
+                    rebate_total[rebate_signature] = {
+                        "price": 0.0,
+                        "category": None
+                        if "categ_id" not in line["rebate_product"]
+                        else line["rebate_product"].categ_id.id,
+                        "product": None if "id" not in line["rebate_product"] else line["rebate_product"].id,
+                        "tax_ids": line["tax_ids"],
+                    }
+
+                rebate_total[rebate_signature]["price"] += line["rebate"]
+
+        for reb in rebate_total:
+            if rebate_total:
+                grouped_invoice_lines.append(
+                    {
+                        "name": reb,
+                        "description": reb,
+                        "price_unit": -rebate_total[reb]["price"],
+                        "price_subtotal": -rebate_total[reb]["price"],
+                        "category_id": rebate_total[reb]["category"],
+                        "product_id": rebate_total[reb]["product"],
+                        "tax_ids": rebate_total[reb]["tax_ids"],
+                    }
+                )
+        return grouped_invoice_lines
+
     # grouping levels:
     # 1: budget grouping
     # 2: products
     # 4: description grouping
+    # 8: daterange
 
     def subscription_lines_collection_for_invoicing(self, partner, order_id, start_date, end_date, grouping_levels=7):
 
@@ -477,6 +600,14 @@ class SaleSubscription(models.Model):
             else:
                 sub_lines.append(subscription_line)
 
+        # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated
+        if len(draft_invoices.keys()) == 0:
+            invoice = self.is_draft_invoice_for_period(partner.id, start_date)
+            if invoice and len(invoice) > 0:
+                draft_invoices[invoice[0].id] = True
+                for line in invoice[0].subscription_line_ids:
+                    sub_lines.append(line)
+
         # more than 2 draft invoices for the month - ask user to manage this
         if len(draft_invoices.keys()) > 1:
             raise UserError(
@@ -488,67 +619,12 @@ class SaleSubscription(models.Model):
             response.update({"draft_invoice": list(draft_invoices.keys())[0]})
         # adding rebate to subscriptions before grouping
 
-        # the regrouping lines
+        # invoice lines grouping - products and description only
         grouped_sub_lines = self._grouping_wrapper(start_date, partner.id, sub_lines, grouping_levels)
 
-        period_msg = self.format_period_message(start_date, end_date)
-        # processing the grouped lines into invoice lines
-        rebate_total = 0.0
-        grouped_invoice_lines = []
-        for line in grouped_sub_lines:
-            if line["price_unit"] == 0:
-                continue
-            final_price = line["price_unit"]
-            if line["management_fee"] > 0:
-                final_price -= line["management_fee"]
-                grouped_invoice_lines.append(
-                    {
-                        "name": period_msg,
-                        "description": line["description"],
-                        "product_id": line["product_id"],
-                        "category_id": line["category_id"],
-                        "price_unit": final_price,
-                        "price_subtotal": final_price,
-                        "discount": line["discount"],
-                        "tax_ids": line["tax_ids"],
-                    }
-                )
-                grouped_invoice_lines.append(
-                    {
-                        "name": period_msg,
-                        "description": "Management Fee for " + line["description"],
-                        "product_id": False,
-                        "category_id": line["category_id"],
-                        "price_unit": line["management_fee"],
-                        "price_subtotal": line["management_fee"],
-                        "discount": 0,
-                        "tax_ids": line["tax_ids"],
-                    }
-                )
-            else:
-                grouped_invoice_lines.append(
-                    {
-                        "name": period_msg,
-                        "description": line["description"],
-                        "product_id": line["product_id"],
-                        "category_id": line["category_id"],
-                        "price_unit": line["price_unit"],
-                        "price_subtotal": final_price,
-                        "discount": line["discount"],
-                        "tax_ids": line["tax_ids"],
-                    }
-                )
-            rebate_total += line["rebate"]
-
-        if rebate_total:
-            grouped_invoice_lines.append(
-                {
-                    "name": "Rebate Discount",
-                    "description": "Rebate Discount",
-                    "price_unit": -rebate_total,
-                    "price_subtotal": -rebate_total,
-                }
-            )
+        grouped_invoice_lines = self.invoicing_add_management_fee_and_rebate_lines(
+            grouped_sub_lines, start_date, end_date
+        )
 
         response.update({"invoice_lines": grouped_invoice_lines, "related_subscriptions": sub_lines})
         return response
@@ -579,93 +655,6 @@ class SaleSubscriptionLine(models.Model):
 
     def write(self, vals):
         res = super(SaleSubscriptionLine, self).write(vals)
-        month_diff = False
-        if not self._context.get("skip"):
-            sale_budget_line_obj = self.env["sale.budget.line"]
-            budget_lines = self.env["sale.budget.line"].search(
-                [
-                    ("end_date", ">", self.end_date),
-                    ("subscription_line_id", "=", self.id),
-                    "|",
-                    ("active", "=", False),
-                    ("active", "=", True),
-                ]
-            )
-            if budget_lines:
-                budget_lines.write({"price": 0.0})
-            else:
-                budget_lines = self.env["sale.budget.line"].search(
-                    [
-                        ("end_date", "<", self.end_date),
-                        ("subscription_line_id", "=", self.id),
-                        "|",
-                        ("active", "=", False),
-                        ("active", "=", True),
-                    ]
-                )
-                if budget_lines:
-                    month_diff = len(
-                        OrderedDict(
-                            ((budget_lines[0].end_date + timedelta(_)).strftime("%B-%Y"), 0)
-                            for _ in range((self.end_date - budget_lines[0].end_date).days)
-                        )
-                    )
-                if month_diff and budget_lines:
-                    start_date = budget_lines[0].end_date + relativedelta(days=1)
-                    start_date.replace(day=calendar.monthrange(start_date.year, start_date.month)[1])
-                    for i in range(0, month_diff):
-                        end_date = (start_date + relativedelta(months=1)).replace(day=1) + relativedelta(days=-1)
-                        vals = {
-                            "partner_id": self.analytic_account_id.partner_id.id,
-                            "start_date": start_date,
-                            "end_date": end_date,
-                            "sol_id": self.so_line_id.id,
-                            "subscription_line_id": self.id,
-                            "subscription_id": self.analytic_account_id.id,
-                            "product_id": self.product_id.id,
-                            "price": self.price_unit,
-                            "status": self.so_line_id.order_id.subscription_management,
-                            "budget_id": budget_lines[0].budget_id.id,
-                        }
-                        start_date = start_date + relativedelta(months=1)
-                        sale_budget_line_obj.create(vals)
-        if vals.get("end_date", False):
-            end_date = vals.get("end_date")
-            if type(end_date) == str:
-                end_date = parser.parse(end_date).date()
-            # if end_date > self.end_date and not self._context.get(
-            #         'skip') and not self.invoice_end_date and not self.invoice_start_date:
-            #     raise ValidationError(_(
-            #         "You Can not set date of the Next Month You have to create new Subscription for that month!!"
-            #     ))
-            if vals.get("end_date") and not self._context.get("skip", False):
-                if self.invoice_end_date == self.end_date:
-                    self.write(
-                        {
-                            "invoice_end_date": False,
-                            "invoice_start_date": False,
-                        }
-                    )
-                elif (
-                    self.invoice_start_date
-                    and self.invoice_end_date
-                    and self.invoice_start_date <= self.end_date <= self.invoice_end_date
-                ):
-                    self.write({"invoice_end_date": self.end_date})
-                elif self.end_date and self.invoice_end_date and self.invoice_end_date > self.end_date:
-                    self.write({"invoice_start_date": False, "invoice_end_date": False})
-                else:
-                    if (
-                        self.invoice_end_date
-                        and self.invoice_start_date
-                        and self.end_date.year == self.invoice_end_date.year
-                        and self.end_date < self.invoice_start_date
-                        and self.end_date < self.invoice_end_date
-                    ):
-                        self.write({"invoice_start_date": False, "invoice_end_date": False})
-            return res
-        else:
-            return res
 
     def start_in_next(self):
         """
@@ -689,16 +678,21 @@ class SaleSubscriptionLine(models.Model):
     def rebate_calc(self, price):
         management_company = self.analytic_account_id.partner_id.management_company_type_id
         if not management_company:
-            return 0.0
+            return 0.0, None
 
-        flat_discount = management_company.flat_discount
+        total_discount = (price * management_company.discount_on_order_line) / 100
+        discount_product = None
+        if management_company.discount_product:
+            discount_product = management_company.discount_product
         if (
             management_company.is_flat_discount
             and management_company.clx_category_id
             and "categ_id" in self.analytic_account_id.product_id
             and self.analytic_account_id.product_id.categ_id.id == management_company.clx_category_id.id
         ):
-            total_discount = flat_discount
+            total_discount = management_company.flat_discount
+            if management_company.discount_product:
+                discount_product = management_company.flat_discount_product
         elif (
             management_company.is_percent_discount
             and management_company.percent_discount_category_id
@@ -706,10 +700,10 @@ class SaleSubscriptionLine(models.Model):
             and self.analytic_account_id.product_id.categ_id.id == management_company.percent_discount_category_id.id
         ):
             total_discount = (price * management_company.percent_discount) / 100
-        else:
-            total_discount = (price * management_company.discount_on_order_line) / 100
+            if management_company.percent_discount_product:
+                discount_product = management_company.percent_discount_product
 
-        return total_discount
+        return total_discount, discount_product
 
     # calculation price for period. Taking into account proration
     def period_price_calc(self, start_date, partner_id, dont_prorate=False):
@@ -762,6 +756,7 @@ class SaleSubscriptionLine(models.Model):
         return len(OrderedDict(((start + timedelta(_)).strftime("%B-%Y"), 0) for _ in range((end - start).days)))
         # return (end.year - start.year) * 12 + end.month - start.month
 
+    # old SB's code
     def _format_period_msg(self, date_start, date_end, line, inv_start=False, inv_end=False):
         """
         To calculate invoice period/adjustment date
@@ -824,7 +819,7 @@ class SaleSubscriptionLine(models.Model):
             "sequence": line.sequence,
             "name": period_msg,
             "subscription_id": self.analytic_account_id.id,
-            "subscription_ids": [(6, 0, self.analytic_account_id.ids)],
+            # "subscription_ids": [(6, 0, self.analytic_account_id.ids)],
             "subscription_start_date": self.start_date,
             "subscription_end_date": date_end,
             "product_id": self.product_id.id,

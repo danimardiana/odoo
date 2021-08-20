@@ -6,9 +6,9 @@ from odoo import api, fields, models
 
 
 class ProductPricelist(models.Model):
-    _inherit = 'product.pricelist'
+    _inherit = "product.pricelist"
 
-    display_management_fee = fields.Boolean(string='Display Management Fee')
+    display_management_fee = fields.Boolean(string="Display Management Fee")
 
 
 class ProductPricelistItem(models.Model):
@@ -23,25 +23,26 @@ class ProductPricelistItem(models.Model):
     Custom: To set the condition based Management Fees
         (Ex. - 15% of Retail if Minimum Retails Price is $4000 or above
     """
-    _inherit = 'product.pricelist.item'
 
-    is_cat_mgt_fees = fields.Boolean(string='Categ Management')
-    is_cat_wholesale = fields.Boolean(string='Categ Wholesale')
-    min_price = fields.Float(string='Min. Price')
+    _inherit = "product.pricelist.item"
 
-    is_fixed = fields.Boolean(string='Fixed Price')
-    is_percentage = fields.Boolean(string='Percentage')
-    is_custom = fields.Boolean(string='Custom')
-    fixed_mgmt_price = fields.Float(string='Fixed Price',
-                                    digits='Product Price')
-    min_retail_amount = fields.Float(string='Minimum Retail Amount')
-    percent_mgmt_price = fields.Float(string='Percentage')
+    is_cat_mgt_fees = fields.Boolean(string="Categ Management")
+    is_cat_wholesale = fields.Boolean(string="Categ Wholesale")
+    min_price = fields.Float(string="Min. Price")
 
-    is_wholesale_percentage = fields.Boolean(string='Percentage')
-    is_wholesale_formula = fields.Boolean(string='Formula')
-    percent_wholesale_price = fields.Float(string='Percentage')
+    is_fixed = fields.Boolean(string="Fixed Price")
+    is_percentage = fields.Boolean(string="Percentage")
+    is_custom = fields.Boolean(string="Custom")
+    fixed_mgmt_price = fields.Float(string="Fixed Price", digits="Product Price")
+    min_retail_amount = fields.Float(string="Minimum Retail Amount")
+    percent_mgmt_price = fields.Float(string="Percentage")
+    management_fee_product = fields.Many2one("product.product", string="Product for Management Fee")
 
-    @api.onchange('is_cat_mgt_fees')
+    is_wholesale_percentage = fields.Boolean(string="Percentage")
+    is_wholesale_formula = fields.Boolean(string="Formula")
+    percent_wholesale_price = fields.Float(string="Percentage")
+
+    @api.onchange("is_cat_mgt_fees")
     def onchange_is_cat_mgt_fees(self):
         """
         If is_cat_mgt_fees is not set then reset Management related fields
@@ -49,10 +50,9 @@ class ProductPricelistItem(models.Model):
         """
         if not self.is_cat_mgt_fees:
             self.is_custom = self.is_percentage = self.is_fixed = False
-            self.fixed_mgmt_price = \
-                self.min_retail_amount = self.percent_mgmt_price = 0.0
+            self.fixed_mgmt_price = self.min_retail_amount = self.percent_mgmt_price = 0.0
 
-    @api.onchange('is_cat_wholesale')
+    @api.onchange("is_cat_wholesale")
     def onchange_is_cat_wholesale(self):
         """
         If is_cat_wholesale is not set then reset Wholesale related fields
@@ -62,7 +62,7 @@ class ProductPricelistItem(models.Model):
             self.is_wholesale_percentage = self.is_wholesale_formula = False
             self.percent_wholesale_price = 0.0
 
-    @api.onchange('applied_on', 'categ_id', 'product_tmpl_id', 'product_id')
+    @api.onchange("applied_on", "categ_id", "product_tmpl_id", "product_id")
     def onchange_applied_on(self):
         """
         To set booleans for is_cat_mgt_fees and is_cat_wholesale based on
@@ -70,22 +70,20 @@ class ProductPricelistItem(models.Model):
         :return: None
         """
         self.is_cat_mgt_fees = self.is_cat_wholesale = False
-        if self.applied_on == '3_global':
+        if self.applied_on == "3_global":
             self.is_cat_mgt_fees = self.is_cat_wholesale = True
-        elif self.applied_on == '2_product_category' and self.categ_id:
+        elif self.applied_on == "2_product_category" and self.categ_id:
             self.is_cat_mgt_fees = self.categ_id.management_fee
             self.is_cat_wholesale = self.categ_id.wholesale
-        elif self.applied_on == '1_product' and \
-                self.product_tmpl_id and self.product_tmpl_id.categ_id:
+        elif self.applied_on == "1_product" and self.product_tmpl_id and self.product_tmpl_id.categ_id:
             categ = self.product_tmpl_id.categ_id
             self.is_cat_mgt_fees = categ.management_fee
             self.is_cat_wholesale = categ.wholesale
-        elif self.applied_on == '0_product_variant' and \
-                self.product_id and self.product_id.categ_id:
+        elif self.applied_on == "0_product_variant" and self.product_id and self.product_id.categ_id:
             self.is_cat_mgt_fees = self.product_id.categ_id.management_fee
             self.is_cat_wholesale = self.product_id.categ_id.wholesale
 
-    @api.onchange('is_custom')
+    @api.onchange("is_custom")
     def onchange_is_custom(self):
         """
         Custom to set minimum retail amount
@@ -95,7 +93,7 @@ class ProductPricelistItem(models.Model):
         if self.is_custom:
             self.is_fixed = True
 
-    @api.onchange('is_wholesale_percentage')
+    @api.onchange("is_wholesale_percentage")
     def onchange_is_wholesale_percentage(self):
         """
         To calculate wholesale with percentage
@@ -104,7 +102,7 @@ class ProductPricelistItem(models.Model):
         if self.is_wholesale_percentage:
             self.is_wholesale_formula = False
 
-    @api.onchange('is_wholesale_formula')
+    @api.onchange("is_wholesale_formula")
     def onchange_is_wholesale_formula(self):
         """
         To calculate wholesale with formula

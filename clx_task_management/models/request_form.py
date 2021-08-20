@@ -42,6 +42,7 @@ class RequestForm(models.Model):
     update_products_des = fields.Text(string="Update Products Description")
     project_id = fields.Many2one("project.project", string="Project")
     product_ids = fields.Many2many("product.product", string="Products")
+    override_project_check = fields.Boolean(string="Override Project Check", default=False)
     # Client Cancellation Fields
     cancel_client = fields.Boolean(string="Client Cancellation")
     cancel_service_date = fields.Date(string="Last Day of Service")
@@ -174,6 +175,7 @@ class RequestForm(models.Model):
                 "parent_id": main_task.id,
                 "sub_task_id": sub_task.id,
                 "team_ids": sub_task.team_ids.ids,
+                "clx_task_manager_id": main_task.clx_task_manager_id.id if main_task.clx_task_manager_id else False,
                 "team_members_ids": sub_task.team_members_ids.ids,
                 "date_deadline": main_task.date_deadline,
                 "task_intended_launch_date": self.intended_launch_date
@@ -190,6 +192,7 @@ class RequestForm(models.Model):
                 "clx_attachment_ids": self.clx_attachment_ids.ids,
                 "category_id": line.category_id.id if line.category_id else False,
             }
+            # print(vals)
             return vals
 
     def prepared_task_vals(self, line, project_id):
@@ -259,6 +262,7 @@ class RequestForm(models.Model):
             "repositary_task_id": line.task_id.id,
             "req_type": line.task_id.req_type,
             "team_ids": line.task_id.team_ids.ids,
+            "clx_task_manager_id": project_id.clx_project_manager_id.id if project_id.clx_project_manager_id else False,
             "team_members_ids": line.task_id.team_members_ids.ids,
             "date_deadline": proof_deadline_date,
             "task_intended_launch_date": self.intended_launch_date
@@ -276,7 +280,7 @@ class RequestForm(models.Model):
         }
         return vals
 
-    def prepared_project_vals(self, description, partner_id):
+    def prepared_project_vals(self, description, partner_id, cs_member=False):
         """
         prepared dictionary for the create project
         :Param : description : Title of the project
@@ -297,6 +301,7 @@ class RequestForm(models.Model):
             "clx_state": "new",
             "clx_sale_order_ids": self.sale_order_id.ids if self.sale_order_id.ids else False,
             "user_id": self.partner_id.account_user_id.id if self.partner_id.account_user_id else False,
+            "clx_project_manager_id": cs_member,
             "intended_launch_date": launch_date,
             "deadline": max_date,
             "priority": self.priority,
@@ -457,10 +462,15 @@ class RequestForm(models.Model):
 
             # Project creation is not allowed if there is already an open
             # project for this client. Popup a dialog and let the user know
+            cs_member = False
             open_projects = self.env["project.project"].search(
                 ["&", ("partner_id", "=", self.partner_id.id), ("clx_state", "!=", "done")]
             )
-            if len(open_projects) > 0:
+            if len(open_projects) > 0 and self.override_project_check:
+                if open_projects.clx_project_manager_id:
+                    cs_member = open_projects.clx_project_manager_id[0].id
+
+            elif len(open_projects) > 0:
                 context = dict(self._context or {})
                 context["open_ids"] = open_projects.ids
                 return {
@@ -472,7 +482,7 @@ class RequestForm(models.Model):
                     "context": context,
                 }
 
-            vals = self.prepared_project_vals(self.description, self.partner_id)
+            vals = self.prepared_project_vals(self.description, self.partner_id, cs_member)
             if vals:
                 project_id = project_obj.create(vals)
 
