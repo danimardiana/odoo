@@ -96,7 +96,7 @@ class SaleSubscription(models.Model):
             None if "management_fee_product" not in price_list else price_list.management_fee_product
         )
 
-        if price_list.is_custom and management_fee:
+        if price_list.is_custom and management_fee==0.0:
             if retail <= price_list.min_retail_amount:
                 management_fee = price_list.fixed_mgmt_price
             else:
