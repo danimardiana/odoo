@@ -208,6 +208,14 @@ class AccountMove(models.Model):
     def _onchange_invoice_month_year(self):
         self.update_due_date()
 
+    @api.onchange('partner_id')
+    def _onchange_partner(self):
+        #update Analytic account based on partner vertical
+        analytic_account_id = self.env['account.analytic.account'].\
+            search([('vertical', '=', self.partner_id.vertical)], limit=1)
+        self.invoice_line_ids and \
+            self.invoice_line_ids.update({'analytic_account_id':analytic_account_id or False})
+
     def update_due_date(self):
         current_month = datetime.datetime.now().date().month
         current_year = datetime.datetime.now().date().year
@@ -215,8 +223,8 @@ class AccountMove(models.Model):
             new_val = invoice.invoice_month_year
             if new_val:
                 year, month = new_val.split("-")
-            if int(month) > current_month and int(year) >= current_year:
-                invoice.invoice_date_due = datetime.date(int(year), int(month), 1)
+                if int(month) > current_month and int(year) >= current_year:
+                    invoice.invoice_date_due = datetime.date(int(year), int(month), 1)
 
     # rewriting the email sending function
     def action_invoice_sent(self, reminder=False):
@@ -303,3 +311,12 @@ class AccountMoveLine(models.Model):
     # subscription_lines_ids = fields.Many2many("sale.subscription.line", string="Subscriptions Lines")
 
     description = fields.Char(string="Description")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super(AccountMoveLine, self).create(vals_list)
+        # updating Analytic account value if applicable
+        analytic_account_id = self.env['account.analytic.account'].\
+            search([('vertical','=',res.move_id.partner_id.vertical)],limit=1)
+        res.analytic_account_id = analytic_account_id or False
+        return res

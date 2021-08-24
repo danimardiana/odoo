@@ -16,7 +16,8 @@
         'account',
         'clx_subscription_creation',
         'contact_modification',
-        'clx_ratio_invoice'
+        'clx_ratio_invoice',
+        'analytic',
     ],
     'data': [
         'security/ir.model.access.csv',
@@ -33,6 +34,7 @@
         'wizard/generate_invoice_date_range_views.xml',
         'wizard/sale_make_invoice_advance_views.xml',
         'views/account_move_listview_template.xml',
+        'views/analytic_account.xml',
     ],
     'qweb':[
         # 'static/src/xml/account_move_template.xml',
