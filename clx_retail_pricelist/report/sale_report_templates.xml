@@ -127,24 +127,32 @@
                             </section>
                             <t t-set="need_display_fee" t-value="not sale_order.display_management_fee"/>
                             <t t-set="is_oto_line" t-value="parent_sale_order.is_oto_line(line['start_date'],line['end_date'])"/>
+                            <t t-set="management_fee_calculated" t-value="line['management_fee']" />
                             <t t-if="is_oto_line">
                                 <div class="productTotalWrapperWrapper col-12 col-md-5">
                                     <div class="productTotalWrapper">
                                         <div class="monthlyTotalText">
                                             <span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/>
                                             Spend:
-                                            <t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                            <t t-if="need_display_fee and management_fee_calculated > 0">(Incl.Mgmt.Fee)</t>
                                         </div>
                                         <div class="productTotal">
                                             <span t-esc="parent_sale_order.money_formatting(line['price_unit'])"/>
                                         </div>
-                                    </div> 
+                                    </div>                                  
+                                    <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0 " class="productTotalWrapper">
+                                        <div style="display:inline-block;"><span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/> Management Fee: </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(management_fee_calculated)"/>
+                                        </div>
+                                    </div>
                                 </div>
+
                             </t>
                             <t t-else="">
                                 <div class="productTotalWrapperWrapper col-12 col-md-5">
                                     <div class="productTotalWrapper">
-                                        <div class="monthlyTotalText">Recurring Spend:<t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                        <div class="monthlyTotalText">Recurring Spend:<t t-if="need_display_fee and management_fee_calculated > 0">(Incl.Mgmt.Fee)</t>
                                         </div>
                                         <div class="productTotal">
                                             <span t-esc="parent_sale_order.money_formatting(line['price_unit'])"/>
@@ -159,7 +167,7 @@
                                             <span t-esc="parent_sale_order.money_formatting(line['prorate_amount'])"/>
                                         </div>
                                     </div>
-                                    <t t-set="management_fee_calculated" t-value="line['management_fee']" />
+                                    
                                     <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
                                         <div style="display:inline-block;">Monthly Fee: </div>
                                         <div class="productTotal">
@@ -272,13 +280,20 @@
                                 </section>
                                 <t t-set="need_display_fee" t-value="line_com['name'].find('Search')>-1 and not sale_order_com.display_management_fee"/>
                                 <t t-set="is_oto_line" t-value="parent_sale_order.is_oto_line(line_com['start_date'],line_com['end_date'])"/>
+                                <t t-set="management_fee_calculated" t-value="line_com['management_fee']" /> 
                                 <t t-if="is_oto_line">
                                     <div class="productTotalWrapperWrapper col-12 col-md-5">
                                         <div class="productTotalWrapper">
                                             <div class="monthlyTotalText">
                                                 <span t-esc="parent_sale_order.date_month_formatting(line_com['start_date'])"/>
                                                 Spend:
-                                                <t t-if="need_display_fee">(Incl.Mgmt.Fee)</t>
+                                                <t t-if="need_display_fee and management_fee_calculated > 0">(Incl.Mgmt.Fee)</t>
+                                            </div>
+                                            <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
+                                                <div style="display:inline-block;"><span t-esc="parent_sale_order.date_month_formatting(line_com['start_date'])"/> Management Fee: </div>
+                                                <div class="productTotal">
+                                                    <span t-esc="parent_sale_order.money_formatting(management_fee_calculated)"/>
+                                                </div>
                                             </div>
                                             <div class="productTotal">
                                                 <span t-esc="parent_sale_order.money_formatting(line_com['price_unit'])"/>
@@ -303,7 +318,6 @@
                                             <span t-esc="parent_sale_order.money_formatting(line_com['prorate_amount'])"/>
                                         </div>
                                     </div>
-                                    <t t-set="management_fee_calculated" t-value="line_com['management_fee']" />
                                     <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
                                         <div style="display:inline-block;">Monthly Fee: </div>
                                         <div class="productTotal">
