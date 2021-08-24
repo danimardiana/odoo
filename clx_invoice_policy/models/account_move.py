@@ -297,6 +297,8 @@ class AccountMove(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         res = super(AccountMove, self).create(vals_list)
+        # updating Analytic account value if applicable
+        res._onchange_partner()
         # Updating invoice user id as it's partner's account manager
         if res.partner_id and res.partner_id.account_user_id:
             res.invoice_user_id = res.partner_id.account_user_id
@@ -313,13 +315,3 @@ class AccountMoveLine(models.Model):
     # subscription_lines_ids = fields.Many2many("sale.subscription.line", string="Subscriptions Lines")
 
     description = fields.Char(string="Description")
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        res = super(AccountMoveLine, self).create(vals_list)
-        # updating Analytic account value if applicable
-        analytic_account_id = self.env['account.analytic.account'].\
-            search([('vertical','=',res.move_id.partner_id.vertical)],limit=1)
-        res.analytic_account_id = res.move_id.partner_id.vertical and \
-                                  analytic_account_id or False
-        return res
