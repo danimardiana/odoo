@@ -213,8 +213,10 @@ class AccountMove(models.Model):
         #update Analytic account based on partner vertical
         analytic_account_id = self.env['account.analytic.account'].\
             search([('vertical', '=', self.partner_id.vertical)], limit=1)
-        self.invoice_line_ids and \
-            self.invoice_line_ids.update({'analytic_account_id':analytic_account_id or False})
+        if self.invoice_line_ids:
+            self.invoice_line_ids.analytic_account_id = self.partner_id.vertical and \
+                                                        analytic_account_id or False
+
 
     def update_due_date(self):
         current_month = datetime.datetime.now().date().month
@@ -318,5 +320,6 @@ class AccountMoveLine(models.Model):
         # updating Analytic account value if applicable
         analytic_account_id = self.env['account.analytic.account'].\
             search([('vertical','=',res.move_id.partner_id.vertical)],limit=1)
-        res.analytic_account_id = analytic_account_id or False
+        res.analytic_account_id = res.move_id.partner_id.vertical and \
+                                  analytic_account_id or False
         return res
