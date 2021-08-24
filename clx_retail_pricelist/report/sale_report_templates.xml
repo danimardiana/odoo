@@ -195,13 +195,13 @@
         
         <div class="dont_break_inside productLineWrapper justify-content-center row">
             <t t-foreach="sorted(list(spend_object.keys()))" t-as="date_period">
-                <div class="monthlyTotalWrapper">
-                    <div class="firstMonthlyTotalWrapper">
+                <div class="monthlyTotalWrapper" >
+
                         <div class=""><t t-esc="parent_sale_order.date_month_formatting(spend_object[date_period]['date'])"/> Total: </div>
                         <div class="monthlyTotal">
                             <span t-esc="parent_sale_order.money_formatting(spend_object[date_period]['price'])"/>
                         </div>
-                    </div>
+
                 </div>
             </t>
         </div>
