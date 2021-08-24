@@ -487,9 +487,9 @@ h3 {
 }
 .container.pdf  .firstMonthlyTotalWrapperWrapper,.container.pdf  .monthlyTotalWrapper {
     font-size: 0.6cm;
-    /* width: 40%; */
+    width: 32%;
     position: relative;
-    display: flex;
+    display: inline-block;
     margin: 5px;
 }
 .container.pdf  .monthlyTotal {
