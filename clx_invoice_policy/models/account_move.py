@@ -226,7 +226,8 @@ class AccountMove(models.Model):
             if new_val:
                 year, month = new_val.split("-")
                 if int(month) > current_month and int(year) >= current_year:
-                    invoice.invoice_date_due = datetime.date(int(year), int(month), 1)
+                    invoice.invoice_date_due = \
+                        datetime.date(int(year), int(month), 1) - datetime.timedelta(days=1)
 
     # rewriting the email sending function
     def action_invoice_sent(self, reminder=False):
