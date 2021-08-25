@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_bulk_send_to_bill_com" model="ir.ui.view">
+            <field name="name">view.bulk.send.to.bill.com</field>
+            <field name="model">bulk.send.bill.com</field>
+            <field name="arch" type="xml">
+            <form string="Bulk Invoice Send">
+              <group><p>Do you want to send Selected Invoices to the Bill.com?</p></group>
+                <footer>
+                    <button name="bulk_send_bill_com_btn" string="Yes" type="object" default_focus="1" class="oe_highlight"/>
+                    or
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+            </field>
+        </record>
+
+        <act_window
+                name="Send to Bill.com"
+                res_model="bulk.send.bill.com"
+                binding_model="account.move"
+                binding_views="list"
+                view_mode="form"
+                target="new"
+                view_id="view_bulk_send_to_bill_com"
+                id="view_bulk_send_to_bill_com_action" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
+</data>
+</odoo>
