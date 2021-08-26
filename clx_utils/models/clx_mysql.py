@@ -109,3 +109,24 @@ class ClxMysql(models.Model):
         }
 
         return db
+
+    def update_odoo_entity_table(self):
+        db_config = self._read_db_config()
+        update_entity = """UPDATE odoo_entity oe
+            INNER JOIN companies_federated cf on TRIM(LOWER(cf.company_name)) = TRIM(LOWER(oe.entity_name))
+            SET oe.podio_entity_id = cf.item_id
+            where oe.podio_entity_id is null;"""
+
+        try:
+            cnx = MySQLConnection(**db_config)
+            cursor = cnx.cursor()
+            cursor.execute(update_entity)
+            cnx.commit()
+            _logger.info("odoo_entity table updated")
+
+        except Error as error:
+            _logger.error("odoo_entity table updated" +  " - " + str(error))
+
+        finally:
+            cursor.close()
+            cnx.close()

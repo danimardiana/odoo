@@ -52,8 +52,14 @@
             <div class="row">
                 <div class="col-12">
                     <div class="col-6" name="invoice">
-                        <h2>
-                            <span style="margin:left;">INVOICE</span>
+                        <h2 style="margin:left;">
+                            <span t-if="o.type == 'out_invoice' and o.state == 'posted'">Invoice</span>
+                            <span t-if="o.type == 'out_invoice' and o.state == 'draft'">Draft Invoice</span>
+                            <span t-if="o.type == 'out_invoice' and o.state == 'cancel'">Cancelled Invoice</span>
+                            <span t-if="o.type == 'out_refund'">Credit Note</span>
+                            <span t-if="o.type == 'in_refund'">Vendor Credit Note</span>
+                            <span t-if="o.type == 'in_invoice'">Vendor Bill</span>
+                            <span t-if="o.name != '/'" t-field="o.name"/>
                         </h2>
                     </div>
                     <div class="col-6" name="invoice">
@@ -63,6 +69,12 @@
                         <div class="col-6" name="bill_to" style="float:left;">
                             <strong>BILL TO</strong>
                             <br/>
+                            <span t-field="o.partner_id.name"/>
+                            <br/>
+                            <t t-if="o.partner_id.management_company_type_id">
+                                <span t-field="o.partner_id.management_company_type_id.name"/>
+                                <br/>
+                            </t>
                             <t t-if="o.partner_id.street">
                                 <span t-field="o.partner_id.street"/>
                                 <br/>
@@ -73,19 +85,12 @@
                             </t>
                             <!--<address t-field="o.partner_id"
                                      t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>-->
-                            <span>"Attention" <span t-field="o.partner_id.name"/> "PM"</span>
-                            <br/>
-                            <t t-if="o.partner_id.management_company_type_id">
-                                <span t-field="o.partner_id.management_company_type_id.name"/>
-                                <br/>
-                            </t>
                             <t t-if="o.partner_id.city">
                                 <span t-field="o.partner_id.city"/>
-                                <br/>
+                                <span>, </span>
                             </t>
                             <t t-if="o.partner_id.state_id">
-                                <span t-field="o.partner_id.state_id.name"/>
-                                <br/>
+                                <span t-field="o.partner_id.state_id.code"/>
                             </t>
                             <t t-if="o.partner_id.zip">
                                 <span t-field="o.partner_id.zip"/>
@@ -103,7 +108,13 @@
                             </div>
                         </div>
                         <div class="col-6" name="invoice_to" style="float:right;">
-                            <strong>INVOICE :</strong>
+                            <strong>
+                                <span t-if="o.type == 'out_invoice' and o.state in ('draft','posted','cancel')">Invoice:</span>
+                                <span t-if="o.type == 'out_refund'">Credit Note:</span>
+                                <span t-if="o.type == 'in_refund'">Vendor Credit Note:</span>
+                                <span t-if="o.type == 'in_invoice'">Vendor Bill:</span>
+                                <span t-if="o.name != '/'" t-field="o.name"/>
+                            </strong>
                             <t t-esc="o.name"/>
                             <br/>
                             <t t-if="o.invoice_date">

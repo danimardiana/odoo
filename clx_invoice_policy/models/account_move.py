@@ -7,8 +7,12 @@ from dateutil import parser
 from collections import OrderedDict
 from datetime import date
 from dateutil.relativedelta import relativedelta
+import datetime
+from datetime import timedelta
 import calendar
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -20,6 +24,7 @@ class AccountMove(models.Model):
     invoice_period_verbal = fields.Char(
         compute="compute_invoice_period_verbal", string="Invoice Period Verbal", store=False
     )
+
     state = fields.Selection(
         selection=[
             ("draft", "Draft"),
@@ -41,15 +46,16 @@ class AccountMove(models.Model):
         string="Billing Contacts",
         store=False,
     )
-
     related_billing_contact_ids = fields.Many2many(
         "res.partner.clx.child", compute="compute_billing_contacts", string="Billing Contacts2", store=False
     )
 
     accounting_notes = fields.Text(string="Accounting Notes", compute="_compute_accounting_notes")
     unique_billing_note = fields.Boolean(string="Unique Billing Note")
-
     portable_invoice_url = fields.Char(string="Invoice link", index=True, compute="_compute_get_url")
+    is_co_op = fields.Boolean(string="Invoice Contains CO-OP Subscriptions", readonly=True)
+    yardi_code = fields.Char(string="Yardi Code", related="partner_id.yardi_code")
+    master_id = fields.Char(string="Master ID", related="partner_id.master_id")
     
     # overwriting the preview invoice logic
     def client_invoice_grouping(self):
@@ -78,7 +84,17 @@ class AccountMove(models.Model):
             host_url = self.env["ir.config_parameter"].get_param("web.base.url") or ""
             rec.portable_invoice_url = host_url + rec.get_portal_url() or ""
 
-    @api.onchange("accounting_notes")
+    @api.onchange('yardi_code')
+    def _onchange_yardi_code(self):
+        for rec in self:
+            rec.partner_id.yardi_code = rec.yardi_code
+
+    @api.onchange('master_id')
+    def _onchange_master_id(self):
+        for rec in self:
+            rec.partner_id.master_id = rec.master_id
+
+    @api.onchange('accounting_notes')
     def onchange_accounting_notes(self):
         self.partner_id.accounting_notes = self.accounting_notes
 
@@ -114,14 +130,15 @@ class AccountMove(models.Model):
     def compute_invoice_period_verbal(self):
         for invoice in self:
             if invoice.invoice_month_year:
-                year, day = invoice.invoice_month_year.split("-")
+                year, month = invoice.invoice_month_year.split("-")
                 # check for correct data
-                if len(year) == 4 and len(day) == 2:
-                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(day)], year)
+                if len(year) == 4 and len(month) == 2:
+                    invoice.invoice_period_verbal = "%s %s" % (calendar.month_name[int(month)], year)
                 else:
                     invoice.invoice_period_verbal = "-"
             else:
                 invoice.invoice_period_verbal = "-"
+
 
     # def unlink(self):
     #     for record in self:
@@ -186,6 +203,20 @@ class AccountMove(models.Model):
     #                                 sub.invoice_start_date = start_date.date()
     #                                 sub.invoice_end_date = end_date.date()
     #     return res
+    
+    @api.onchange('invoice_month_year')
+    def _onchange_invoice_month_year(self):
+        self.update_due_date()
+
+    def update_due_date(self):
+        current_month = datetime.datetime.now().date().month
+        current_year = datetime.datetime.now().date().year
+        for invoice in self:
+            new_val = invoice.invoice_month_year
+            if new_val:
+                year, month = new_val.split("-")
+            if int(month) > current_month and int(year) >= current_year:
+                invoice.invoice_date_due = datetime.date(int(year), int(month), 1)
 
     # rewriting the email sending function
     def action_invoice_sent(self, reminder=False):
@@ -253,19 +284,13 @@ class AccountMove(models.Model):
         for rec in self.filtered(lambda x: x.state == "draft"):
             rec.state = "approved_draft"
 
-    # def generate_invoices(self):
-    #     for partner_id in self.env['res.partner'].search([
-    #         ('active','=',True),('is_subscribed','=',True),
-    #         ('clx_invoice_policy_id','!=',False)
-    #     ]):
-    #         partner_id.generate_invoice()
-
     @api.model_create_multi
     def create(self, vals_list):
         res = super(AccountMove, self).create(vals_list)
         # Updating invoice user id as it's partner's account manager
         if res.partner_id and res.partner_id.account_user_id:
             res.invoice_user_id = res.partner_id.account_user_id
+        res.update_due_date()
         return res
 
 
