@@ -83,10 +83,10 @@ class ContactContoller(http.Controller):
         if "company_type" not in request.jsonrequest:
             return {"status": 404, "response": {"error": "company_type not set"}}
 
+        company_type = "company"
+
         if request.jsonrequest["company_type"] in ["person", "owner", "company", "management"]:
             company_type = request.jsonrequest["company_type"]
-        else:
-            company_type = "company"
             
         limit =  10
 
@@ -94,9 +94,9 @@ class ContactContoller(http.Controller):
             limit =  request.jsonrequest["limit"]
 
         company_query = """ 
-                SELECT c.id, c.name, c.company_type, c.vertical
-                FROM res_partner AS c
-                WHERE LOWER(c.name) LIKE LOWER('%{company}%') and company_type='{company_type}' LIMIT {limit}; """.format(
+                SELECT id, name, company_type, vertical
+                FROM res_partner
+                WHERE LOWER(name) LIKE LOWER('%{company}%') and company_type='{company_type}' LIMIT {limit}; """.format(
             company=company, company_type=company_type, limit=limit
         )
         cr = request.registry.cursor()
