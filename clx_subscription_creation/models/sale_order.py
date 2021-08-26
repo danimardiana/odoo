@@ -2,6 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 
+from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError
 
 from odoo import fields, models, api, _
@@ -19,6 +20,8 @@ class FakeSaleOrderLine:
         self.partner_id = sol.product_id
         self.prorate_amount = sol.prorate_amount * ratio / 100
         self.display_type = sol.display_type
+        self.start_date = sol.start_date
+        self.end_date = sol.end_date
         self.product_template_id = sol.product_template_id
         self.product_type = sol.product_type
         self.discount = 0
@@ -127,37 +130,10 @@ class SaleOrder(models.Model):
                     author_id=self.env.user.partner_id.id,
                 )
                 line.subscription_id = subscription.id
-        # elif self.is_ratio:
-        #     if self.subscription_management == "create":
-        #         for co_op_partner in self.co_op_sale_order_partner_ids:
-        #             if co_op_partner.partner_id:
-        #                 for line in self.order_line.filtered(lambda x: x.product_id.recurring_invoice):
-        #                     if not line.product_id.subscription_template_id:
-        #                         raise ValidationError(
-        #                             _("Please select Subscription Template on {}").format(line.product_id.name)
-        #                         )
-        #                     values = line.order_id.with_context(
-        #                         co_op_partner=co_op_partner.partner_id.id
-        #                     )._prepare_subscription_data(line.product_id.subscription_template_id)
-        #                     values["recurring_invoice_line_ids"] = line.with_context(
-        #                         ratio=co_op_partner.ratio
-        #                     )._prepare_subscription_line_data()
-        #                     subscription = sale_subscription_obj.create(values)
-        #                     res.append(subscription.id)
-        #                     subscription.message_post_with_view(
-        #                         "mail.message_origin_link",
-        #                         values={"self": subscription, "origin": line.order_id},
-        #                         subtype_id=self.env.ref("mail.mt_note").id,
-        #                         author_id=self.env.user.partner_id.id,
-        #                     )
-        #                     line.subscription_id = subscription.id
-        #                     clx_sub_list = line.clx_subscription_ids.ids
-        #                     clx_sub_list.append(subscription.id)
-        #                     line.clx_subscription_ids = clx_sub_list
         return res
 
     def unlink(self):
-        # here was SB's code for 
+        # here was SB's code for
         return super(SaleOrder, self).unlink()
 
     def grouping_by_product_set(self, product_lines, invoice_level=False):
@@ -202,13 +178,88 @@ class SaleOrder(models.Model):
             if matching_flag:
                 for product_group in grouping_rule["products_list"]:
                     for product_individual in products_process[product_group]:
+                        product_individual["product_id"] = grouping_rule["product_id"]
                         product_individual["description"] = grouping_rule["description"]
                         if not invoice_level:
                             product_individual["contract_product_description"] = grouping_rule[
                                 "contract_product_description"
                             ]
 
-    # TODO: need to pass the partner_id if we going to prorate price value at the contract level
+    def contract_data(self, date):
+        return_object = {
+            "oto_included": False,
+            "recurring_included": False,
+            "lines__by_dates": [],
+        }
+        # calculate the last date of SO date processing
+        source_lines = self.order_line
+        max_date = date
+        for line in source_lines:
+            start_date = line.start_date
+            if line.end_date and line.end_date > max_date:
+                max_date = line.end_date
+            else:
+                start_date = line.start_date
+                if line.prorate_amount > 0:
+                    start_date += relativedelta(months=1)
+                if line.start_date > max_date:
+                    max_date = line.start_date
+        # while max_date-date
+        return return_object
+
+    @staticmethod
+    def is_oto_line(start_date, end_date):
+        if not end_date:
+            return False
+        if start_date.year == end_date.year and start_date.month == end_date.month:
+            return True
+        return False
+
+    @staticmethod
+    def collect_oto_spend(initial_array, line):
+        result_object = initial_array
+        is_oto = SaleOrder.is_oto_line(line["start_date"], line["end_date"])
+        period_signature = line["start_date"].strftime("%Y%m")
+        start_date = line["start_date"].replace(day=1)
+
+        def update(price, date_signature, date):
+            if date_signature not in result_object:
+                result_object[date_signature] = {
+                    "price": 0.0,
+                    "date": date,
+                }
+            result_object[date_signature]["price"] += price
+
+        if is_oto:
+            update(line["price_unit"], period_signature, start_date)
+        else:
+            update(line["price_unit"], "recurring_spend", "Recurring")
+            if line["prorate_amount"] and line["prorate_amount"] != line["price_unit"]:
+                update(line["prorate_amount"], period_signature, start_date)
+
+        return result_object
+
+    @staticmethod
+    def update_recurring_spend(initial_array, line):
+        result_object = initial_array
+        for date_text in result_object:
+            start_date = line["start_date"].replace(day=1)
+            if date_text == "recurring_spend" or start_date.strftime("%Y%m") == date_text:
+                continue
+            if line["prorate_amount"] and line["prorate_amount"] != line["price_unit"]:
+                start_date += relativedelta(months=1)
+            # if start date == signature this means it was processed already
+            if start_date.strftime("%Y%m") == date_text:
+                continue
+            if result_object[date_text]["date"] >= start_date and (
+                not line["end_date"] or result_object[date_text]["date"] <= line["end_date"]
+            ):
+                result_object[date_text]["price"] += line["price_unit"]
+
+        return result_object
+
+    # TODO::
+    # True need to pass the partner_id if we going to prorate price value at the contract level
     def _grouping_wrapper(self, partner_id=False, order_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING):
         def initial_order_data(line, partner_id):
             return {
@@ -221,7 +272,7 @@ class SaleOrder(models.Model):
                 "pricelist": line.order_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
                 "description": line._grouping_name_calc(line)
-                if grouping_levels & grouping_data.ACCOUNTIG_GROUPING_FLAG
+                if grouping_levels & grouping_data.ACCOUNTING_GROUPING_FLAG
                 else line.product_id.categ_id.name,  # second level of grouping - budget wrapping
                 "contract_product_description": line.product_id.contract_product_description,
                 "display_type": line.display_type,
@@ -229,6 +280,8 @@ class SaleOrder(models.Model):
                 "product_template_id": line.product_template_id,
                 "discount": 0.0,
                 "tax_ids": [],
+                "start_date": line.start_date,
+                "end_date": False if not line.end_date else line.end_date,
             }
 
         def last_order_data(product_individual):
@@ -244,6 +297,8 @@ class SaleOrder(models.Model):
                 "display_type": product_individual["display_type"],
                 "prorate_amount": product_individual["prorate_amount"],
                 "product_template_id": product_individual["product_template_id"],
+                "start_date": product_individual["start_date"],
+                "end_date": product_individual["end_date"],
                 # "management_fee_calculated": product_individual["management_fee_calculated"],
             }
 
@@ -300,14 +355,19 @@ class SaleOrder(models.Model):
                 combined_signature = (
                     product_individual["description"]
                     + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
+                    + str(product_individual["product_id"])
                     + str(product_individual["discount"])
                 )
-            else:  # combune if product the same (ingnore the description)
+            else:  # combune if products are same (ingnore the description)
                 combined_signature = (
                     str(product_individual["product_id"])
                     + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
                     + str(product_individual["discount"])
                 )
+            # in case if grouping should take date ino account
+            if grouping_levels & grouping_data.DATE_GROUPING_FLAG:
+                combined_signature += str(product_individual["start_date"]) + str(product_individual["end_date"])
+
             if combined_signature not in final_values:
                 final_values[combined_signature] = last_obj_set(product_individual)
             else:
@@ -321,6 +381,7 @@ class SaleOrder(models.Model):
 
         # management fees populating
         # management fees lines will be added on the invoicing level, here calculation only
+
         for line in final_values:
             if "product_id" in final_values[line] and "pricelist" in final_values[line]:
                 calculation_result = self.management_fee_calculation(
@@ -328,10 +389,11 @@ class SaleOrder(models.Model):
                     self.env["product.product"].browse(final_values[line]["product_id"]),
                     final_values[line]["pricelist"],
                 )
-                final_values[line] = {**final_values[line] , **calculation_result}
+                final_values[line] = {**final_values[line], **calculation_result}
             else:
                 final_values[line]["management_fee"] = 0
                 final_values[line]["wholesale"] = 0
+                final_values[line]["management_fee_product"] = False
 
         return list(final_values.values())
 

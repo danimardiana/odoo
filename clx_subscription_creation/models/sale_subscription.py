@@ -14,10 +14,8 @@ class SaleSubscription(models.Model):
     # is_co_op = fields.Boolean(related="initial_sale_order_id.is_ratio", string="Co-op")
     # co_op_percentage = fields.Float(string="Co Op Percentage")
     active = fields.Boolean(string="Active", default=True)
-    #co-op change!!!!
-    co_op_partner_ids = fields.One2many(
-        "co.op.subscription.partner",'subscription_id', string="Co-Op Customers"
-    )
+    # co-op change!!!!
+    co_op_partner_ids = fields.One2many("co.op.subscription.partner", "subscription_id", string="Co-Op Customers")
 
     def deactivate_finished_subscriptins(self):
         today = date.today()
@@ -29,6 +27,12 @@ class SaleSubscription(models.Model):
             deactive_flag = len(list(filter(lambda x: (not x.end_date or x.end_date > today), sub_lines)))
             if not deactive_flag:
                 subscription.is_active = False
+
+    def update_is_active_flag(self):
+        today = date.today()
+        sub_lines = self.recurring_invoice_line_ids
+        deactive_flag = any(list(filter(lambda x: (not x.end_date or x.end_date >= today), sub_lines)))
+        self.is_active = deactive_flag
 
     def partial_invoice_line(self, sale_order, option_line, refund=False, date_from=False):
         """Add an invoice line on the sales order for the specified option and add a discount
@@ -127,3 +131,15 @@ class SaleSubscriptionLine(models.Model):
         [("base", "Base"), ("upsell", "Upsell"), ("downsell", "Downsell")], string="Origin", default="base"
     )
     active = fields.Boolean(string="Active", default=True)
+
+    def write(self, vals):
+        res = super(SaleSubscriptionLine, self).write(vals)
+        # update the is_active field for subscription if all
+        self.analytic_account_id.update_is_active_flag()
+        return res
+
+    def create(self, vals):
+        res = super(SaleSubscriptionLine, self).create(vals)
+        # update the is_active field for subscription if all
+        res.analytic_account_id.update_is_active_flag()
+        return res

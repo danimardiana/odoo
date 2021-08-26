@@ -157,6 +157,7 @@ class CustomerPortal(CustomerPortal):
 
 
 class ApiConnections(http.Controller):
+    # endpoint for BAR script
     @http.route(["/clientplatformspend/"], type="json", auth="none", methods=["POST"])
     def client_platform_spend(self, partners_id, start_date, products, access_token, name=None, signature=None):
         params = request.env["ir.config_parameter"].sudo()

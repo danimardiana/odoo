@@ -12,8 +12,8 @@ class SaleBudgetChanges(models.Model):
     _description = "Sale Budget Changes"
 
     subscription_id = fields.Many2one("sale.subscription", string="Subscription")
-    subscription_href = fields.Char(string="Subscription", compute="_get_subscription_href")
-    report_href = fields.Char(string="Report", compute="_get_report_href")
+    subscription_href = fields.Char(string="Subscription Link", compute="_get_subscription_href")
+    report_href = fields.Char(string="Report Link", compute="_get_report_href")
     partner_id = fields.Many2one("res.partner", related="subscription_id.partner_id", store=True, string="Client")
     product_id = fields.Many2one("product.product", string="Product")
     product_description = fields.Char(string="Product Description")

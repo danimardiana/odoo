@@ -136,6 +136,8 @@ h3 {
 .monthlyTotalWrapper {
     border: 2px dashed #a57d2d;
     padding: 10px !important;
+    margin: auto 10px;
+    display: block;
 }
 .monthlyTotalWrapper,
 .firstMonthlyTotalWrapper {
@@ -485,7 +487,10 @@ h3 {
 }
 .container.pdf  .firstMonthlyTotalWrapperWrapper,.container.pdf  .monthlyTotalWrapper {
     font-size: 0.6cm;
-    width: 40%;
+    width: 32%;
+    position: relative;
+    display: inline-block;
+    margin: 5px;
 }
 .container.pdf  .monthlyTotal {
         font-size: 0.6cm;

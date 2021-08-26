@@ -52,8 +52,14 @@
             <div class="row">
                 <div class="col-12">
                     <div class="col-6" name="invoice">
-                        <h2>
-                            <span style="margin:left;">INVOICE</span>
+                        <h2 style="margin:left;">
+                            <span t-if="o.type == 'out_invoice' and o.state == 'posted'">Invoice</span>
+                            <span t-if="o.type == 'out_invoice' and o.state == 'draft'">Draft Invoice</span>
+                            <span t-if="o.type == 'out_invoice' and o.state == 'cancel'">Cancelled Invoice</span>
+                            <span t-if="o.type == 'out_refund'">Credit Note</span>
+                            <span t-if="o.type == 'in_refund'">Vendor Credit Note</span>
+                            <span t-if="o.type == 'in_invoice'">Vendor Bill</span>
+                            <span t-if="o.name != '/'" t-field="o.name"/>
                         </h2>
                     </div>
                     <div class="col-6" name="invoice">
@@ -63,6 +69,12 @@
                         <div class="col-6" name="bill_to" style="float:left;">
                             <strong>BILL TO</strong>
                             <br/>
+                            <span t-field="o.partner_id.name"/>
+                            <br/>
+                            <t t-if="o.partner_id.management_company_type_id">
+                                <span t-field="o.partner_id.management_company_type_id.name"/>
+                                <br/>
+                            </t>
                             <t t-if="o.partner_id.street">
                                 <span t-field="o.partner_id.street"/>
                                 <br/>
@@ -73,19 +85,12 @@
                             </t>
                             <!--<address t-field="o.partner_id"
                                      t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>-->
-                            <span>"Attention" <span t-field="o.partner_id.name"/> "PM"</span>
-                            <br/>
-                            <t t-if="o.partner_id.management_company_type_id">
-                                <span t-field="o.partner_id.management_company_type_id.name"/>
-                                <br/>
-                            </t>
                             <t t-if="o.partner_id.city">
                                 <span t-field="o.partner_id.city"/>
-                                <br/>
+                                <span>, </span>
                             </t>
                             <t t-if="o.partner_id.state_id">
-                                <span t-field="o.partner_id.state_id.name"/>
-                                <br/>
+                                <span t-field="o.partner_id.state_id.code"/>
                             </t>
                             <t t-if="o.partner_id.zip">
                                 <span t-field="o.partner_id.zip"/>
@@ -103,7 +108,13 @@
                             </div>
                         </div>
                         <div class="col-6" name="invoice_to" style="float:right;">
-                            <strong>INVOICE :</strong>
+                            <strong>
+                                <span t-if="o.type == 'out_invoice' and o.state in ('draft','posted','cancel')">Invoice:</span>
+                                <span t-if="o.type == 'out_refund'">Credit Note:</span>
+                                <span t-if="o.type == 'in_refund'">Vendor Credit Note:</span>
+                                <span t-if="o.type == 'in_invoice'">Vendor Bill:</span>
+                                <span t-if="o.name != '/'" t-field="o.name"/>
+                            </strong>
                             <t t-esc="o.name"/>
                             <br/>
                             <t t-if="o.invoice_date">
@@ -164,53 +175,32 @@
                 </thead>
                 <tbody class="invoice_tbody">
                     <t t-set="current_subtotal" t-value="0"/>
-                    <t t-set="management_fees" t-value="0"/>
                     <t t-set="lines"
-                       t-value="o.invoice_line_ids.sorted(key=lambda l: (-l.sequence, l.date, l.move_name, -l.id), reverse=True)"/>
+                       t-value="o.client_invoice_grouping()"/>
 
                     <t t-foreach="lines" t-as="line">
-                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal"
+                        <t t-set="current_subtotal" t-value="current_subtotal + line['price_subtotal']"
                            groups="account.group_show_line_subtotals_tax_excluded"/>
-                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_total"
+                        <t t-set="current_subtotal" t-value="current_subtotal + line['price_total']"
                            groups="account.group_show_line_subtotals_tax_included"/>
                         <tr>
                             <td>
-                                <span t-field="line.description"/>
+                                <span t-esc="line['description']"/>
                             </td>
                             <td name="th_amount" class="text-right">
-                                <t t-if="line.tax_ids">
+                                <t t-if="len(line['tax_ids'])">
                                     <span>Y</span>
                                 </t>
                                 <t t-else="">
                                     <span>N</span>
                                 </t>
                             </td>
-                            <!--<td t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
-                                <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.tax_ids))"
-                                      id="line_tax_ids"/>
-                            </td>-->
                             <td>
-                                <!--<t t-set="priceunit" t-value="line.price_subtotal- line.management_fees"/>
-                                <t t-if="not line.category_id and not line.product_id">
-                                    <t t-set="priceunit" t-value="line.price_total"/>
-                                </t>-->
-                                <span t-field="line.price_total" style="float:right;"/>
-                                <!--<span t-esc="priceunit" style="float:right;"/>-->
-                                <!--<t t-set="priceunit" t-value="0"/>-->
-                            </td>
-                        </tr>
-                        <tr>
-                            <t t-set="management_fees" t-value="line.management_fees"/>
-                        </tr>
-                    </t>
-                    <t t-if="management_fees">
-                        <tr>
-                            <td>Management Fees</td>
-                            <td colspan="2" class="text-righ">
-                                <span t-esc="management_fees" style="float:right;"/>
+                                <span t-esc="line['price_total']" style="float:right;"/>
                             </td>
                         </tr>
                     </t>
+
                 </tbody>
             </table>
             <hr style="border: 1px dashed black;"/>
