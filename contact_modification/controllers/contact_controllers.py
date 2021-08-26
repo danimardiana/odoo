@@ -2,7 +2,6 @@
 from odoo import http
 from odoo.http import request
 
-
 class ContactContoller(http.Controller):
     @http.route(["/subscriberlist/"], type="json", auth="none", methods=["POST"])
     def get_subscribed_clients(self, access_token):
@@ -70,6 +69,42 @@ class ContactContoller(http.Controller):
                 "homepage_urls": record[9],
             }
             odoo_companies.append(company_obj)
+
+        return {
+            "status": 200,
+            "response": {"data": odoo_companies},
+        }
+
+    @http.route(["/companies/<string:company>"], type="json", auth="none", csrf=False, methods=["POST"])
+    def get_companies(self, company):
+        if len(company) < 3:
+            return {"status": 404, "response": {"error": "Company name too short"}}
+        
+        if "company_type" not in request.jsonrequest:
+            return {"status": 404, "response": {"error": "company_type not set"}}
+
+        if request.jsonrequest["company_type"] in ["person", "owner", "company", "management"]:
+            company_type = request.jsonrequest["company_type"]
+        else:
+            company_type = "company"
+            
+        limit =  10
+
+        if "limit" in request.jsonrequest:
+            limit =  request.jsonrequest["limit"]
+
+        company_query = """ 
+                SELECT c.id, c.name, c.company_type, c.vertical
+                FROM res_partner AS c
+                WHERE LOWER(c.name) LIKE LOWER('%{company}%') and company_type='{company_type}' LIMIT {limit}; """.format(
+            company=company, company_type=company_type, limit=limit
+        )
+        cr = request.registry.cursor()
+        cr.execute(company_query)
+        company_result = cr.fetchall()
+        odoo_companies = list(
+            map(lambda d: {"id": d[0], "name": d[1], "company_type": d[2], "vertical": d[3]}, company_result)
+        )
 
         return {
             "status": 200,
