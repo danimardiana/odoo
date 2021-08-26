@@ -108,7 +108,7 @@ class CrmLead(models.Model):
             for contact in lead_contacts:
                 if not contact.validated:
                     search_email = contact.email
-                    search_name = contact.name
+                    search_name = contact.name + "%"
                     results = {}
 
                     if search_email:

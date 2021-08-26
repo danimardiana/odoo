@@ -24,7 +24,9 @@ class ClxLeadContactValidation(models.TransientModel):
             lead_contact = lead_contact_table.search([("id", "=", contact.get("crm_lead_contact_id"))])
             lead_contact.update(
                 {
-                    "name": contact.get("existing_name"),
+                    "name": contact.get("existing_name")
+                    if contact.get("existing_res_partner_id")
+                    else contact.get("crm_lead_contact_name"),
                     "existing_contact_id": contact.get("existing_res_partner_id"),
                     "function": contact.get("existing_function"),
                     "validated": True,
