@@ -18,6 +18,9 @@ class SaleSubscription(models.Model):
     co_op_partner_ids = fields.One2many(
         "co.op.subscription.partner",'subscription_id', string="Co-Op Customers"
     )
+    account_depreciation_expense_id = fields.Many2one('account.account',
+        string='Deferred Revenue Account', company_dependent=True,
+        domain="['&', ('deprecated', '=', False), ('company_id', '=', current_company_id)]")
 
     def deactivate_finished_subscriptins(self):
         today = date.today()

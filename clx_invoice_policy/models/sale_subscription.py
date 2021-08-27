@@ -383,6 +383,7 @@ class SaleSubscription(models.Model):
                 "product_id": line.product_id.id,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
+                'account_id': line.analytic_account_id.account_depreciation_expense_id.id or False,
                 "price_unit": price,
                 "pricelist": line.analytic_account_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
@@ -406,6 +407,7 @@ class SaleSubscription(models.Model):
                 "price_unit": product_individual["price_unit"],
                 "description": product_individual["description"],
                 "contract_product_description": product_individual["contract_product_description"],
+                "account_id": product_individual['account_id'],
                 "name": product_individual["name"],
                 "rebate": product_individual["rebate"],
                 "rebate_product": product_individual["rebate_product"],
@@ -425,6 +427,7 @@ class SaleSubscription(models.Model):
             product_updated = product_source
             product_updated["price_unit"] += product_additional["price_unit"]
             product_updated["rebate"] += product_additional["rebate"]
+            product_updated["account_id"] = product_additional['account_id']
             if "start_date" in product_updated or "start_date" in product_additional:
                 if not product_updated["start_date"]:
                     product_updated["start_date"] = product_additional["start_date"]
@@ -494,6 +497,7 @@ class SaleSubscription(models.Model):
                 grouped_invoice_lines.append(
                     {
                         "name": period_msg,
+                        "account_id": line['account_id'],
                         "description": line["description"],
                         "product_id": line["product_id"],
                         "category_id": line["category_id"],
@@ -531,6 +535,7 @@ class SaleSubscription(models.Model):
                 grouped_invoice_lines.append(
                     {
                         "name": period_msg,
+                        "account_id": line['account_id'],
                         "description": line["description"],
                         "product_id": line["product_id"],
                         "category_id": line["category_id"],
