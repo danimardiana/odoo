@@ -12,6 +12,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/crm_lead_views.xml",
+        "wizard/crm_lead_to_opportunity_view.xml",
         "wizard/lead_contact_warning_wizard_view.xml",
         "views/assets.xml",
     ],
