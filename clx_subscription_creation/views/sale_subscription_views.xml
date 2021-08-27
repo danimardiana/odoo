@@ -42,6 +42,11 @@
                 <attribute name="readonly">1</attribute>
             </xpath>
             <xpath expr="//page[@id='other_info']/group" position="after">
+                <group string="Accounts">
+                    <group>
+                        <field name="account_depreciation_expense_id" string="Deferred Revenue Account"/>
+                    </group>
+                </group>
                 <group>
                     <field name="id" invisible="1"/>
                     <field name="co_op_partner_ids" readonly="1">
