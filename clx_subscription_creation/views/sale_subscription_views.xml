@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <field name='team_id' position="after">
                 <field name="product_id"/>
-                <field name="is_active"/>
+                <field name="is_active" readonly="1" force_save="1"/>
                 <field name="initial_sale_order_id"/>
                 <!-- <field name="co_op_percentage"/> -->
             </field>
