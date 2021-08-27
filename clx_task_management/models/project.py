@@ -46,7 +46,7 @@ class ProjectProject(models.Model):
     clx_attachment_ids = fields.Many2many(
         "ir.attachment", "att_project_rel", "attach_id", "clx_id", string="Files", help="Upload multiple files here."
     )
-    implementation_specialist_id = fields.Many2one(related="partner_id.implementation_specialist_id")
+    implementation_specialist_id = fields.Many2one(related="partner_id.implementation_specialist_id", store=True)
     user_id = fields.Many2one("res.users", string="Account Manager", default=lambda self: self.env.user, tracking=True)
     # Caluculated Max Task Due Date
     # which is set when the project and tasks
@@ -183,7 +183,7 @@ class ProjectTask(models.Model):
     )
     clx_attachment_ids = fields.Many2many(related="project_id.clx_attachment_ids", string="Files", readonly=False)
     clx_description = fields.Html(related="parent_id.description", readonly=False)
-    implementation_specialist_id = fields.Many2one(related="project_id.partner_id.implementation_specialist_id")
+    implementation_specialist_id = fields.Many2one(related="project_id.partner_id.implementation_specialist_id", store=True)
     category_id = fields.Many2one("product.category", string="Category")
     user_id = fields.Many2one(
         "res.users", string="Account Manager", default=lambda self: self.env.uid, index=True, tracking=True
