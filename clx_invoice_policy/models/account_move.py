@@ -3,12 +3,11 @@
 # See LICENSE file for full copyright & licensing details.
 
 from odoo import fields, models, api, _
-from dateutil import parser
-from collections import OrderedDict
+from odoo.exceptions import RedirectWarning, UserError, ValidationError, AccessError
 from datetime import date
 from dateutil.relativedelta import relativedelta
 import datetime
-from datetime import timedelta
+
 import calendar
 import logging
 
@@ -306,6 +305,67 @@ class AccountMove(models.Model):
         res.update_due_date()
         return res
 
+    def _auto_create_asset(self):
+        if False:
+            return super(AccountMove, self)._auto_create_asset()
+        else:
+            create_list = []
+            invoice_list = []
+            auto_validate = []
+            for move in self:
+                if not move.is_invoice():
+                    continue
+
+                for move_line in move.line_ids:
+                    if (
+                        move_line.account_id
+                        and (move_line.account_id.can_create_asset)
+                        and move_line.account_id.create_asset != "no"
+                        and not move.reversed_entry_id
+                        and not (move_line.currency_id or move.currency_id).is_zero(move_line.price_total)
+                        and not move_line.asset_id
+                    ):
+                        if not move_line.name:
+                            raise UserError(_('Journal Items of {account} should have a label in order to generate an asset').format(account=move_line.account_id.display_name))
+                        today = datetime.date.today()
+
+                        next_date = (today.replace(day=1) + datetime.timedelta(days=60)).replace(day=1)
+                        vals = {
+                            'name': move_line.name,
+                            'company_id': move_line.company_id.id,
+                            'currency_id': move_line.company_currency_id.id,
+                            'account_depreciation_id': move_line.product_id.categ_id.property_account_income_categ_id.id,
+                            'account_depreciation_expense_id': move_line.account_id and move_line.account_id.id,
+                            'original_move_line_ids': [(6, False, move_line.ids)],
+                            'state': 'draft',
+                            'first_depreciation_date' : next_date,
+                        }
+                        model_id = move_line.account_id.asset_model
+                        if model_id:
+                            vals.update({
+                                'model_id': model_id.id,
+                            })
+                        auto_validate.append(move_line.account_id.create_asset == 'validate')
+                        invoice_list.append(move)
+                        create_list.append(vals)
+
+            assets = self.env['account.asset'].create(create_list)
+            for asset, vals, invoice, validate in zip(assets, create_list, invoice_list, auto_validate):
+                
+                asset._onchange_model_id()
+                asset._onchange_method_period()
+                if validate:
+                    asset.validate()
+                if invoice:
+                    asset_name = {
+                        'purchase': _('Asset'),
+                        'sale': _('Deferred revenue'),
+                        'expense': _('Deferred expense'),
+                    }[asset.asset_type]
+                    msg = _('%s created from invoice') % (asset_name)
+                    msg += ': <a href=# data-oe-model=account.move data-oe-id=%d>%s</a>' % (invoice.id, invoice.name)
+                    asset.message_post(body=msg)
+            return assets
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
