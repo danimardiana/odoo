@@ -306,7 +306,11 @@ class AccountMove(models.Model):
         return res
 
     def _auto_create_asset(self):
-        if False:
+        model_ids = []
+        if self.is_invoice():
+            model_ids = self.line_ids.account_id\
+                    and self.line_ids.account_id.asset_model
+        if model_ids:
             return super(AccountMove, self)._auto_create_asset()
         else:
             create_list = []
@@ -315,7 +319,6 @@ class AccountMove(models.Model):
             for move in self:
                 if not move.is_invoice():
                     continue
-
                 for move_line in move.line_ids:
                     if (
                         move_line.account_id
