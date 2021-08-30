@@ -303,13 +303,25 @@ class AccountMove(models.Model):
         if res.partner_id and res.partner_id.account_user_id:
             res.invoice_user_id = res.partner_id.account_user_id
         res.update_due_date()
+        if res.type == 'out_invoice':
+            current_month = datetime.datetime.now().month
+            current_year = datetime.datetime.now().year
+            new_val = res.invoice_month_year
+            if new_val:
+                year, month = new_val.split("-")
+                if int(month) == current_month and int(year) >= current_year:
+                    for line in res.line_ids:
+                        account = line.product_id.property_account_income_id\
+                            or line.product_id.categ_id.property_account_income_categ_id
+                        line.account_id =account and account.id or line.account_id.id
         return res
 
     def _auto_create_asset(self):
         model_ids = []
-        if self.is_invoice():
-            model_ids = self.line_ids.account_id\
-                    and self.line_ids.account_id.asset_model
+        move = self and self[0]
+        if move and move.is_invoice():
+            model_ids = move.line_ids.account_id\
+                    and move.line_ids.account_id.asset_model
         if model_ids:
             return super(AccountMove, self)._auto_create_asset()
         else:

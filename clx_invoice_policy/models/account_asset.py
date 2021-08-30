@@ -1,11 +1,4 @@
-import calendar
-from dateutil.relativedelta import relativedelta
-from math import copysign
-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
-from odoo.tools import float_compare, float_is_zero, float_round
-
 
 class AccountAsset(models.Model):
     _inherit = 'account.asset'
