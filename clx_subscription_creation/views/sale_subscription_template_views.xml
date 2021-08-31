@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to add start date field -->
+    <record id="sale_subscription_template_view_form_inherited_subscription_creation" model="ir.ui.view">
+        <field name="name">sale.subscription.form.inherited.subscription.template.creation</field>
+        <field name="model">sale.subscription.template</field>
+        <field name="inherit_id" ref="sale_subscription.sale_subscription_template_view_form"/>
+        <field name="arch" type="xml">
+            <field name="payment_mode" position="after">
+                <field name="account_depreciation_expense_id" required="1"/>
+            </field>
+        </field>
+    </record>
+</odoo>

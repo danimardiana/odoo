@@ -20,7 +20,8 @@ class SaleSubscription(models.Model):
     )
     account_depreciation_expense_id = fields.Many2one('account.account',
         string='Deferred Revenue Account', company_dependent=True,
-        domain="['&', ('deprecated', '=', False), ('company_id', '=', current_company_id)]")
+        domain="['&', ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+        related='template_id.account_depreciation_expense_id')
 
     def deactivate_finished_subscriptins(self):
         today = date.today()
