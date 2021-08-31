@@ -29,8 +29,8 @@ class AccountMove(models.Model):
         selection=[
             ("draft", "Draft"),
             ("approved_draft", "Approved Draft"),
-            ("email_sent", "Email Sent"),
             ("posted", "Posted"),
+            ("email_sent", "Email Sent"),
             ("cancel", "Cancelled"),
         ],
         string="Status",

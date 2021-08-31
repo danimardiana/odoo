@@ -96,7 +96,7 @@ class SaleSubscription(models.Model):
             None if "management_fee_product" not in price_list else price_list.management_fee_product
         )
 
-        if price_list.is_custom and management_fee==0.0:
+        if price_list.is_custom and management_fee == 0.0:
             if retail <= price_list.min_retail_amount:
                 management_fee = price_list.fixed_mgmt_price
             else:
@@ -165,30 +165,22 @@ class SaleSubscription(models.Model):
         return mapped
 
     # check if subscription was invoiced for period (using invoice_month_year signature)
-    def is_product_invoiced(self, partner_id, product, date):
+    # product = False when we are looking for ANY invoice for client
+    def are_invoices_for_period(self, partner_id, date, states=False, product=False):
         invoice_object = self.env["account.move"]
         period_msg = invoice_object.invoices_date_signature(date)
-        all_account_move_lines = invoice_object.search(
-            [
-                ("subscription_line_ids.id", "=", product.id),
-                ("state", "in", ("draft", "posted")),
-                ("invoice_month_year", "=", period_msg),
-                ("partner_id.id", "=", partner_id),
-            ]
-        )
-        return all_account_move_lines or False
+        all_filters = [
+            ("invoice_month_year", "=", period_msg),
+            ("partner_id.id", "=", partner_id),
+        ]
 
-    # check if subscription was invoiced for period (using invoice_month_year signature)
-    def is_draft_invoice_for_period(self, partner_id, date):
-        invoice_object = self.env["account.move"]
-        period_msg = invoice_object.invoices_date_signature(date)
-        all_draft_invoices = invoice_object.search(
-            [
-                ("state", "=", "draft"),
-                ("invoice_month_year", "=", period_msg),
-                ("partner_id.id", "=", partner_id),
-            ]
-        )
+        if states:
+            all_filters.append(("state", "in", states))
+
+        if product and "id" in product:
+            all_filters.append(("subscription_line_ids.id", "=", product.id))
+
+        all_draft_invoices = invoice_object.search(all_filters)
         return all_draft_invoices or False
 
     # generating invoice basing on the datarange
@@ -278,7 +270,16 @@ class SaleSubscription(models.Model):
         ):
             return False
 
-        is_co_op = any(list(map(lambda l: (l.analytic_account_id.co_op_partner_ids and len(l.analytic_account_id.co_op_partner_ids)>0), lines["related_subscriptions"])))
+        is_co_op = any(
+            list(
+                map(
+                    lambda l: (
+                        l.analytic_account_id.co_op_partner_ids and len(l.analytic_account_id.co_op_partner_ids) > 0
+                    ),
+                    lines["related_subscriptions"],
+                )
+            )
+        )
 
         last_order = sorted(
             lines["related_subscriptions"], key=lambda kv: kv.so_line_id.order_id.create_date, reverse=True
@@ -293,7 +294,7 @@ class SaleSubscription(models.Model):
         posted_invoice = self.env["account.move"].search(
             [
                 ("partner_id", "=", partner_id),
-                ("state", "=", "posted"),
+                ("state", "in", ("email_sent", "posted")),
                 ("invoice_month_year", "=", invoice_signature),
             ],
             limit=1,
@@ -330,11 +331,12 @@ class SaleSubscription(models.Model):
             invoice2update = {
                 "invoice_user_id": self.env.user.id,
                 "invoice_origin": "/".join(invoice_origin.keys()),
-                "is_co_op":is_co_op or invoice.is_co_op,
+                "is_co_op": is_co_op or invoice.is_co_op,
                 "invoice_line_ids": list(map(lambda line: (2, line.id), invoice.invoice_line_ids))
                 + [(0, 0, x) for x in lines["invoice_lines"]],
                 "subscription_line_ids": list(map(lambda line: line.id, lines["related_subscriptions"])),
             }
+            invoice_type_settings["state"] = "draft"
             invoice2update.update(invoice_type_settings)
             invoice.update(invoice2update)
         else:
@@ -351,7 +353,7 @@ class SaleSubscription(models.Model):
                 "invoice_payment_ref": last_order.reference,
                 "invoice_payment_term_id": last_order.payment_term_id.id,
                 "invoice_partner_bank_id": partner.bank_ids[:1].id,
-                "is_co_op":is_co_op,
+                "is_co_op": is_co_op,
                 "team_id": last_order.team_id.id,
                 "campaign_id": last_order.campaign_id.id,
                 "medium_id": last_order.medium_id.id,
@@ -580,7 +582,8 @@ class SaleSubscription(models.Model):
     def subscription_lines_collection_for_invoicing(self, partner, order_id, start_date, end_date, grouping_levels=7):
 
         subscription_lines = self.get_subscription_lines(partner, order_id, start_date, end_date)
-
+        invoices_posted = ("posted", "email_sent")
+        invoices_could_be_changed = ("draft", "approved_draft")
         if not len(subscription_lines):
             return False
 
@@ -591,18 +594,19 @@ class SaleSubscription(models.Model):
 
         # filter out invoiced subscription lines and collect draft invoices for update
         for subscription_line in subscription_lines:
-            invoice = self.is_product_invoiced(partner.id, subscription_line, start_date)
-            if invoice:
-                if invoice.state == "draft":
-                    draft_invoice_subscriptions[subscription_line.id] = subscription_line
-                    draft_invoices[invoice.id] = True
-                    sub_lines.append(subscription_line)
-            else:
+            # find the invoices could be changed
+            invoice = self.are_invoices_for_period(partner.id, start_date, invoices_could_be_changed+invoices_posted, subscription_line)
+            if invoice and (invoice.state in invoices_could_be_changed):
+                draft_invoice_subscriptions[subscription_line.id] = subscription_line
+                draft_invoices[invoice.id] = True
+                sub_lines.append(subscription_line)
+            elif not invoice or (invoice.state not in invoices_posted):
+                #in case of subscription was not invoiced ye or invoice was cancelled
                 sub_lines.append(subscription_line)
 
         # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated
         if len(draft_invoices.keys()) == 0:
-            invoice = self.is_draft_invoice_for_period(partner.id, start_date)
+            invoice = self.are_invoices_for_period(partner.id, start_date, invoices_could_be_changed)
             if invoice and len(invoice) > 0:
                 draft_invoices[invoice[0].id] = True
                 for line in invoice[0].subscription_line_ids:
