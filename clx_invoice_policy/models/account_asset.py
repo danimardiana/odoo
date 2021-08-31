@@ -20,3 +20,8 @@ class AccountAsset(models.Model):
             self.account_depreciation_id = self.account_depreciation_id
             self.account_depreciation_expense_id = self.account_depreciation_expense_id
             self.journal_id = self.journal_id
+
+    def _get_first_depreciation_date(self,vals={}):
+        if self.model_id:
+            return super(AccountAsset, self)._get_first_depreciation_date()
+        return self.first_depreciation_date
