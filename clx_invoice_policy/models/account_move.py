@@ -342,14 +342,21 @@ class AccountMove(models.Model):
                     ):
                         if not move_line.name:
                             raise UserError(_('Journal Items of {account} should have a label in order to generate an asset').format(account=move_line.account_id.display_name))
-                        today = datetime.date.today()
-
-                        next_date = (today.replace(day=1) + datetime.timedelta(days=60)).replace(day=1)
+                        relative_date = datetime.date.today()
+                        new_val = move.invoice_month_year
+                        if new_val:
+                            year, month = new_val.split("-")
+                        if month.isdigit() and year.isdigit():
+                            relative_date = relative_date.replace(day=1,month=int(month),year=int(year))
+                            relative_date += relativedelta(months=1) - relativedelta(days=1)
+                        next_date = relative_date
+                        dep_account_id = move_line.product_id.property_account_income_id.id\
+                                or move_line.product_id.categ_id.property_account_income_categ_id.id
                         vals = {
                             'name': move_line.name,
                             'company_id': move_line.company_id.id,
                             'currency_id': move_line.company_currency_id.id,
-                            'account_depreciation_id': move_line.product_id.categ_id.property_account_income_categ_id.id,
+                            'account_depreciation_id': dep_account_id,
                             'account_depreciation_expense_id': move_line.account_id and move_line.account_id.id,
                             'original_move_line_ids': [(6, False, move_line.ids)],
                             'state': 'draft',
@@ -365,6 +372,7 @@ class AccountMove(models.Model):
                         create_list.append(vals)
 
             assets = self.env['account.asset'].create(create_list)
+            # assets.update({'state':'draft'})
             for asset, vals, invoice, validate in zip(assets, create_list, invoice_list, auto_validate):
                 
                 asset._onchange_model_id()
