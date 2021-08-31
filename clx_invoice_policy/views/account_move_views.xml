@@ -99,6 +99,9 @@
                     <field name="master_id" readonly="0"/>
                 </group>
             </xpath>
+            <xpath expr="//header//field[@name='state']" position="replace">
+                <field name="state" widget="statusbar" statusbar_visible="draft,draft_approved,posted,email_sent"/>
+            </xpath>
         </field>
     </record>
 
