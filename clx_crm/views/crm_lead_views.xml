@@ -8,7 +8,7 @@
             <!-- Add Contact Validaion Button to header -->
             <xpath expr="//button[@name='296']" position="before">
                 <field name="show_validate_btn" invisible="1"/>
-                <button name="validate_lead_contacts" class="btn-warning" string="Validate Contacts" type="object" attrs="{'invisible': ['|',('show_validate_btn', '=', False), ('type', '=', 'opportunity')]}"/>
+                <button name="validate_lead_contacts" class="btn-warning oe_read_only" string="Validate Contacts" type="object" attrs="{'invisible': ['|',('show_validate_btn', '=', False), ('type', '=', 'opportunity')]}"/>
             </xpath>
             <xpath expr="//button[@name='296']" position="attributes">
                 <attribute name="attrs">{'invisible' : ['|',('show_validate_btn', '=', True), ('type', '=', 'opportunity')]}</attribute>
