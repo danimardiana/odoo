@@ -309,7 +309,7 @@ class AccountMove(models.Model):
             new_val = res.invoice_month_year
             if new_val:
                 year, month = new_val.split("-")
-                if int(month) == current_month and int(year) >= current_year:
+                if int(month) <= current_month and int(year) <= current_year:
                     for line in res.line_ids:
                         account = line.product_id.property_account_income_id\
                             or line.product_id.categ_id.property_account_income_categ_id
