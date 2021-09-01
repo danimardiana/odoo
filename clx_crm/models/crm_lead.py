@@ -113,7 +113,7 @@ class CrmLead(models.Model):
 
                     if search_email:
                         results = contact_table.search(
-                            ["&", ("email", "=ilike", search_email), ("company_type", "=ilike", "person")]
+                            ["&", ("email", "ilike", search_email), ("company_type", "=", "person")]
                         )
                         if not results:
                             contact.update({"existing_contact_id": 0, "validated": True})
@@ -123,7 +123,7 @@ class CrmLead(models.Model):
                             contact_list.append(lead)
                     else:
                         results = contact_table.search(
-                            ["&", ("name", "=ilike", search_name), ("company_type", "=ilike", "person")]
+                            ["&", ("name", "ilike", search_name), ("company_type", "=", "person")]
                         )
                         if not results:
                             contact.update({"existing_contact_id": 0, "validated": True})
