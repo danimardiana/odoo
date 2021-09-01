@@ -115,6 +115,9 @@ class CrmLead(models.Model):
                         results = contact_table.search(
                             ["&", ("email", "=ilike", search_email), ("company_type", "=ilike", "person")]
                         )
+                        if not results:
+                            contact.update({"existing_contact_id": 0, "validated": True})
+
                         for existing in results:
                             lead = self._build_lead_contact_validation(contact, existing)
                             contact_list.append(lead)
@@ -122,6 +125,9 @@ class CrmLead(models.Model):
                         results = contact_table.search(
                             ["&", ("name", "=ilike", search_name), ("company_type", "=ilike", "person")]
                         )
+                        if not results:
+                            contact.update({"existing_contact_id": 0, "validated": True})
+
                         for existing in results:
                             lead = self._build_lead_contact_validation(contact, existing)
                             contact_list.append(lead)
@@ -129,8 +135,7 @@ class CrmLead(models.Model):
                     if not search_email and results:
                         add_new_contact_row = self._build_lead_contact_validation(contact, False)
                         contact_list.append(add_new_contact_row)
-                    elif not contact_list:
-                        contact.update({"existing_contact_id": 0, "validated": True})
+                    # elif not contact_list:
 
             for lead in contact_list:
                 val_rec = self.env["lead.contact.validation"].create(lead)
