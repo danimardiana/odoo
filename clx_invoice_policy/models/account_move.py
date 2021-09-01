@@ -25,6 +25,7 @@ class AccountMove(models.Model):
     invoice_period_verbal = fields.Char(
         compute="compute_invoice_period_verbal", string="Invoice Period Verbal", store=False
     )
+    account_user_id = fields.Many2one("res.users", string="Account Manager")
     secondary_user_id = fields.Many2one("res.users", string="Secondary Acct. Manager")
     national_user_id = fields.Many2one("res.users", string="National Acct. Manager")
 
@@ -291,7 +292,7 @@ class AccountMove(models.Model):
         # Updating invoice user id as it's partner's account manager
         if res.partner_id: 
             if res.partner_id.account_user_id:
-                res.invoice_user_id = res.partner_id.account_user_id      
+                res.account_user_id = res.partner_id.account_user_id      
             if res.partner_id.secondary_user_id:
                 res.secondary_user_id = res.partner_id.secondary_user_id  
             if res.partner_id.national_user_id:

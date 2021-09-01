@@ -72,6 +72,7 @@
                 </page>                
             </xpath>            
             <xpath expr="//group[@name='sale_info_group']//field[@name='invoice_user_id']" position="after">
+                <field name="account_user_id"/>
                 <field name="secondary_user_id"/>
                 <field name="national_user_id"/>
             </xpath>   
