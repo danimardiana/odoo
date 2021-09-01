@@ -12,6 +12,7 @@
             </xpath>
             <xpath expr="//button[@name='296']" position="attributes">
                  <attribute name="attrs">{'invisible' : ['|',('show_validate_btn', '=', True), ('type', '=', 'opportunity')]}</attribute>
+                 <attribute name="class">btn btn-primary oe_read_only</attribute>
             </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="replace">
                 <div class="oe_title">

@@ -3,7 +3,7 @@
     <t t-extend="ListView.buttons">
         <t t-jquery="div.o_list_buttons" t-operation="append">
             <t t-if="widget.modelName == 'lead.contact.validation'">
-                <button type="button" class="save_varification_button btn btn-secondary oe_highlight" data-dismiss="modal">
+                <button type="button" class="save_validation_button btn btn-secondary oe_highlight" data-dismiss="modal">
                     Save Selections
                 </button>
             </t>

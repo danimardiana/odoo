@@ -33,9 +33,7 @@ odoo.define('clx_crm.lead.contact.validation.template', function (require) {
             });
 
             if (this.$buttons && this.modelName === 'lead.contact.validation') {
-                let selectedContactsBtn = existingContactTree
-                    .closest('.modal-content')
-                    .find('.save_varification_button');
+                let selectedContactsBtn = existingContactTree.closest('.modal-content').find('.save_validation_button');
                 let exportButton = existingContactTree.closest('.modal-content').find('.o_list_export_xlsx');
 
                 // add handlers
