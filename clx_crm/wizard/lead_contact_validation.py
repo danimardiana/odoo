@@ -26,7 +26,7 @@ class ClxLeadContactValidation(models.TransientModel):
                 {
                     "name": contact.get("existing_name"),
                     "email": contact.get("existing_email"),
-                    "phone": contact.get("phone"),
+                    "phone": contact.get("existing_phone"),
                     "existing_contact_id": contact.get("existing_res_partner_id"),
                     "function": contact.get("existing_function"),
                     "validated": True,
