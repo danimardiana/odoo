@@ -35,6 +35,7 @@
         'wizard/sale_make_invoice_advance_views.xml',
         'views/account_move_listview_template.xml',
         'views/analytic_account.xml',
+        'views/account_asset.xml',
     ],
     'qweb':[
         # 'static/src/xml/account_move_template.xml',
