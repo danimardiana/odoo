@@ -14,6 +14,7 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+
 class AccountMove(models.Model):
     _inherit = "account.move"
 
@@ -24,6 +25,9 @@ class AccountMove(models.Model):
     invoice_period_verbal = fields.Char(
         compute="compute_invoice_period_verbal", string="Invoice Period Verbal", store=False
     )
+    account_user_id = fields.Many2one("res.users", string="Account Manager")
+    secondary_user_id = fields.Many2one("res.users", string="Secondary Acct. Manager")
+    national_user_id = fields.Many2one("res.users", string="National Acct. Manager")
 
     state = fields.Selection(
         selection=[
@@ -56,7 +60,7 @@ class AccountMove(models.Model):
     is_co_op = fields.Boolean(string="Invoice Contains CO-OP Subscriptions", readonly=True)
     yardi_code = fields.Char(string="Yardi Code", related="partner_id.yardi_code")
     master_id = fields.Char(string="Master ID", related="partner_id.master_id")
-    
+
     # overwriting the preview invoice logic
     def client_invoice_grouping(self):
         sub_lines = self.subscription_line_ids
@@ -78,23 +82,22 @@ class AccountMove(models.Model):
 
         return final_lines
 
-
     def _compute_get_url(self):
         for rec in self:
             host_url = self.env["ir.config_parameter"].get_param("web.base.url") or ""
             rec.portable_invoice_url = host_url + rec.get_portal_url() or ""
 
-    @api.onchange('yardi_code')
+    @api.onchange("yardi_code")
     def _onchange_yardi_code(self):
         for rec in self:
             rec.partner_id.yardi_code = rec.yardi_code
 
-    @api.onchange('master_id')
+    @api.onchange("master_id")
     def _onchange_master_id(self):
         for rec in self:
             rec.partner_id.master_id = rec.master_id
 
-    @api.onchange('accounting_notes')
+    @api.onchange("accounting_notes")
     def onchange_accounting_notes(self):
         self.partner_id.accounting_notes = self.accounting_notes
 
@@ -138,7 +141,6 @@ class AccountMove(models.Model):
                     invoice.invoice_period_verbal = "-"
             else:
                 invoice.invoice_period_verbal = "-"
-
 
     # def unlink(self):
     #     for record in self:
@@ -203,8 +205,8 @@ class AccountMove(models.Model):
     #                                 sub.invoice_start_date = start_date.date()
     #                                 sub.invoice_end_date = end_date.date()
     #     return res
-    
-    @api.onchange('invoice_month_year')
+
+    @api.onchange("invoice_month_year")
     def _onchange_invoice_month_year(self):
         self.update_due_date()
 
@@ -224,7 +226,7 @@ class AccountMove(models.Model):
 
         template = self.env["mail.template"].sudo().search([("name", "=", "Invoice: CLX email template")])
         template_id = template.id
-        account_manager = self.partner_id.account_user_id.partner_id
+        account_manager = self.account_user_id
         default_partner_ids = [account_manager.id] + self.partner_id.contacts_to_notify().mapped("id")
         contacts_billing = [account_manager.id] + self.partner_id.contacts_to_notify(
             group_name="Billing Contact"
@@ -288,8 +290,13 @@ class AccountMove(models.Model):
     def create(self, vals_list):
         res = super(AccountMove, self).create(vals_list)
         # Updating invoice user id as it's partner's account manager
-        if res.partner_id and res.partner_id.account_user_id:
-            res.invoice_user_id = res.partner_id.account_user_id
+        if res.partner_id: 
+            if res.partner_id.account_user_id:
+                res.account_user_id = res.partner_id.account_user_id      
+            if res.partner_id.secondary_user_id:
+                res.secondary_user_id = res.partner_id.secondary_user_id  
+            if res.partner_id.national_user_id:
+                res.national_user_id = res.partner_id.national_user_id                    
         res.update_due_date()
         return res
 
