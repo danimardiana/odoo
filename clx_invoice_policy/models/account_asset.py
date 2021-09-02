@@ -3,6 +3,15 @@ from odoo import api, fields, models, _
 class AccountAsset(models.Model):
     _inherit = 'account.asset'
 
+    account_move_id = fields.Many2one('account.move',string="Invoice",compute="_compute_get_move")
+    partner_id = fields.Many2one('res.partner',string="Customer",related="account_move_id.partner_id")
+
+    # asset_id
+    def _compute_get_move(self):
+        for rec in self:
+            move_id = self.env['account.move'].search([('line_ids.asset_id','=',rec.id)],limit=1)
+            rec.account_move_id = move_id and move_id.id
+
     @api.onchange('model_id')
     def _onchange_model_id(self):
         model = self.model_id
