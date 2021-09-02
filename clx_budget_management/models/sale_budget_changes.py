@@ -14,7 +14,7 @@ class SaleBudgetChanges(models.Model):
     subscription_id = fields.Many2one("sale.subscription", string="Subscription")
     subscription_href = fields.Char(string="Subscription Link", compute="_get_subscription_href")
     report_href = fields.Char(string="Report Link", compute="_get_report_href")
-    partner_id = fields.Many2one("res.partner", related="subscription_id.partner_id", store=True, string="Client")
+    partner_id = fields.Many2one("res.partner", string="Client")
     product_id = fields.Many2one("product.product", string="Product")
     product_description = fields.Char(string="Product Description")
     category_id = fields.Many2one(
@@ -231,7 +231,7 @@ class SaleBudgetChanges(models.Model):
                     next_money_details = periods_spending[next_date]
             management_fee = money_detils["management_fee"] if money_detils["management_fee"] >= 0 else 0.0
             change_object = {
-                # "partner_id": partner_id,
+                "partner_id": partner_id.id,
                 "subscription_id": subscription.id,
                 "product_id": product_id.id,
                 "product_description": subscription.description,
