@@ -41,7 +41,7 @@ class Partner(models.Model):
         string="Company Type",
         store=True,
         compute="_compute_company_type",
-        selection_add=[("company", "Customer Company"), ("owner", "Owner"), ("management", "Management")],
+        selection_add=[("company", "Customer Company"), ("owner", "Owner"), ("management", "Management"),('vendor','Vendor')],
         inverse="_write_company_type",
     )
     ownership_company_type_id = fields.Many2one("res.partner", string="Owner Ship Company")
