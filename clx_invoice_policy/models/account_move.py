@@ -342,13 +342,13 @@ class AccountMove(models.Model):
                     ):
                         if not move_line.name:
                             raise UserError(_('Journal Items of {account} should have a label in order to generate an asset').format(account=move_line.account_id.display_name))
+                        #Create first_depreciation_date
                         relative_date = datetime.date.today()
                         new_val = move.invoice_month_year
                         if new_val:
                             year, month = new_val.split("-")
-                        if month.isdigit() and year.isdigit():
-                            relative_date = relative_date.replace(day=1,month=int(month),year=int(year))
-                            relative_date += relativedelta(months=1) - relativedelta(days=1)
+                            if month.isdigit() and year.isdigit():
+                                relative_date = relative_date.replace(day=1, month=int(month), year=int(year))
                         next_date = relative_date
                         dep_account_id = move_line.product_id.property_account_income_id.id\
                                 or move_line.product_id.categ_id.property_account_income_categ_id.id
@@ -360,7 +360,7 @@ class AccountMove(models.Model):
                             'account_depreciation_expense_id': move_line.account_id and move_line.account_id.id,
                             'original_move_line_ids': [(6, False, move_line.ids)],
                             'state': 'draft',
-                            'first_depreciation_date' : next_date,
+                            'first_depreciation_date': next_date,
                         }
                         model_id = move_line.account_id.asset_model
                         if model_id:
