@@ -52,5 +52,5 @@
     <menuitem name="Import Errors" id="bill_com_import_errors_menu"
               sequence="2"
               parent="menu_bill_com_main"
-              action="action_bill_com_import_errors"/>
+              action="action_bill_com_import_errors" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
 </odoo>
