@@ -2,7 +2,7 @@
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import ValidationError
 
 
 class CrmLead(models.Model):
@@ -114,6 +114,9 @@ class CrmLead(models.Model):
             an existing contact or create a new contact.
             """
             for contact in lead_contacts:
+                if not contact.name:
+                    raise ValidationError(_("Contact name missing! Please provide a name for the lead contact."))
+
                 if not contact.validated:
                     search_email = contact.email
                     search_name = contact.name + "%"
