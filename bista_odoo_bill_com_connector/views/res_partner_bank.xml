@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="res_partner_bank_form_view_inherit">
+        <field name="name">res.partner.bank.form.view.inherit</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="base.view_partner_bank_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='acc_number']" position="attributes">
+                <attribute name="attrs">{'readonly': [('bill_com_vendor_bank_account_id', '!=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('bill_com_vendor_bank_account_id', '!=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='acc_holder_name']" position="attributes">
+                <attribute name="required">True</attribute>
+                <attribute name="attrs">{'readonly': [('bill_com_vendor_bank_account_id', '!=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='acc_holder_name']" position="after">
+                <field name="active" />
+                <field name="supplier_rank" readonly="1" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('bill_com_vendor_bank_account_id', '!=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="bill_com_vendor_bank_account_id"  readonly="1" attrs="{'invisible': [('bill_com_vendor_bank_account_id', '=', False)]}"/>
+            </xpath>
+            <xpath expr="/form/*" position="before">
+                <header>
+                    <button name="update_on_bill_com" string="Update On Bill.com" type="object" attrs="{'invisible': [('supplier_rank', '=', 0)]}" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="US_view_res_partner_bank_form_view_inherit">
+        <field name="name">US.view.res.partner.bank.form.view.inherit</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="l10n_us.view_partner_bank_form_inherit_l10n_us"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='aba_routing']" position="attributes">
+                <attribute name="required">True</attribute>
+                <attribute name="attrs">{'readonly': [('bill_com_vendor_bank_account_id', '!=', False)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="view_company_partner_bank_form_bista_bill_com">
+        <field name="name">view.company.partner.bank.form</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="account.view_company_partner_bank_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="bill_com_organization_bank_account_id" string="Bill.com ID"/>
+            </xpath>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="res_partner_bank_tree_view_inherit">
+        <field name="name">res.partner.bank.tree.view.inherit</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="base.view_partner_bank_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="active"/>
+            </xpath>
+            <xpath expr="//tree" position="attributes">
+                <attribute name="decoration-success">active == True</attribute>
+                <attribute name="decoration-bf">active == True</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_bank_search_bill_com" model="ir.ui.view">
+        <field name="name">view.partner.bank.search.bill.com</field>
+        <field name="model">res.partner.bank</field>
+        <field name="inherit_id" ref="base.view_partner_bank_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="/search/field[@name='partner_id']" position="after">
+                <filter name="all_bank_accounts" string="All" domain="['|', ('active', '=', False), ('active', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+
