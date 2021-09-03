@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_account_journal_form_bista_odoo_bill_com_connector" model="ir.ui.view">
+            <field name="name">view.account.journal.form.bista.odoo.bill.com.connector</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='code']" position="before">
+                    <field name="bill_com_journal" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

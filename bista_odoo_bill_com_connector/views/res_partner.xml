@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_partner_form_bista_odoo_bill_com_connector" model="ir.ui.view">
+            <field name="name">view.partner.form.bista.odoo.bill.com.connector</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form/sheet/div[1]" position="after">
+                    <separator style="color:Red;" string="Vendor Linked to Bill.com. Please ensure changes are updated on Bill.com by Authorized user." attrs="{'invisible': [('bill_com_vendor_id', '=', False)]}"/>
+                </xpath>
+                <xpath expr="/form/sheet/notebook" position="inside">
+                    <page name="bank_ids" string="Bank Accounts">
+                        <field name="bank_ids" domain="['|',('active', '=', True), ('active', '=', False)]" context="{'acc_holder_name': name}">
+                            <tree string="Bank Accounts" editable="bottom" decoration-success="active == True" decoration-bf="active == True">
+                                <field name="bank_id"/>
+                                <field name="acc_holder_name" required="1" attrs="{'readonly': [('bill_com_vendor_bank_account_id', '!=', False)]}"/>
+                                <field name="acc_number" required="1" attrs="{'readonly': [('bill_com_vendor_bank_account_id', '!=', False)]}"/>
+                                <field name="aba_routing" required="1" attrs="{'readonly': [('bill_com_vendor_bank_account_id', '!=', False)]}"/>
+                                <field name="active"/>
+                                <field name="supplier_rank" readonly="1" invisible="1"/>
+                                <field name="bill_com_vendor_bank_account_id" invisible="1"/>
+                                <button name="update_on_bill_com" string="Update On Bill.com" type="object" attrs="{'invisible': [ ('supplier_rank', '=', 0)]}" icon="fa-pencil-square-o" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page name="bill_com_vendor_id" string="Bill.com"
+                    attrs="{'invisible': [('bill_com_vendor_id', '=', False)]}"> 
+                        <group>
+                            <field name="supplier_rank" invisible="1"/>
+                            <field name="bill_com_vendor_id" readonly="1" string="Vendor ID"/>
+                        </group>
+                    </page>
+                </xpath>
+
+                <div name="button_box" position="inside">
+                    <button class="oe_stat_button" icon="fa-pencil-square-o" type="object" string="Update on Bill.com" name="send_vendor_info" attrs="{'invisible': [('supplier_rank', '=', 0)]}" groups="bista_odoo_bill_com_connector.group_bill_com_access">
+                    </button>
+                </div>
+            </field>
+        </record>
+        <record id="view_res_partner_filter_bista_odoo_bill_com_connector" model="ir.ui.view">
+            <field name="name">view.res.partner.filter.bista.odoo.bill.com.connector</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='inactive']" position="after">
+                    <separator/>
+                    <filter string="Bill.Com Vendors" name="bill_com_vendors" domain="[('bill_com_vendor_id', '!=', False)]"/>
+                </xpath>
+                <xpath expr="//field[@name='user_id']" position="after">
+                    <field name="bill_com_vendor_id"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
