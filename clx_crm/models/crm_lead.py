@@ -30,6 +30,7 @@ class CrmLead(models.Model):
         string="Vertical",
     )
     show_validate_btn = fields.Boolean(string="Show Validation Button", compute="_set_show_validate_btn")
+    lead_contact_count = fields.Char(string="Contacts", compute="_count_contacts", store=False)
 
     def _set_show_validate_btn(self):
         show_validation_button = False
@@ -40,6 +41,13 @@ class CrmLead(models.Model):
                     show_validation_button = True
 
         self.show_validate_btn = show_validation_button
+
+    def _count_contacts(self):
+        for rec in self:
+            if rec.crm_lead_contact_ids.ids:
+                rec.lead_contact_count = str(len(rec.crm_lead_contact_ids.ids))
+            else:
+                rec.lead_contact_count = str(0)
 
     def _create_partner_company_data(self, name, is_company, parent_id=False, company_type=False):
         """extract data from lead to create a partner

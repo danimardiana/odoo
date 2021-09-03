@@ -164,4 +164,38 @@
             </xpath>
         </field>
     </record>
+    <record id="clx_crm_lead_view_tree" model="ir.ui.view">
+        <field name="name">clx.crm.lead.tree.inherited</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_tree_view_leads"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='contact_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="lead_contact_count" class="contact_count" />
+            </xpath>
+             <xpath expr="//field[@name='team_id']" position="before">
+                <field name="lead_vertical"/>
+            </xpath>
+            <xpath expr="//field[@name='email_from']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='country_id']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='state_id']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+        </field>
+    </record>
 </odoo>
