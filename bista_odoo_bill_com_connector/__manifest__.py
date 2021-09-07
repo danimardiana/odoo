@@ -11,7 +11,7 @@
     'author': 'Bista Solutions Pvt. Ltd.',
     'website': "https://www.bistasolutions.com",
     'category': 'Accounting',
-    'depends': ['base', 'account', 'l10n_us', 'contacts', 'payment'],
+    'depends': ['base', 'account', 'l10n_us', 'contacts', 'payment', 'purchase'],
     'description': """Connector of ODOO and Bill.com""",
     'data': [
         'security/ir.model.access.csv',
@@ -25,7 +25,7 @@
         'views/scheduler.xml',
         'views/journal.xml',
         'views/error_logs.xml',
-
+        'views/account_account.xml',
         ],
     'installable': True,
     'auto_install': False,

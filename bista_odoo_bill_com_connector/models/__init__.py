@@ -14,3 +14,4 @@ from . import config
 from . import journal
 from . import error_logs
 from . import purchase_order
+from . import account_account

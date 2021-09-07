@@ -215,8 +215,9 @@ class AccountMove(models.Model):
         analytic_account_id = self.env['account.analytic.account'].\
             search([('vertical', '=', self.partner_id.vertical)], limit=1)
         if self.invoice_line_ids:
-            self.invoice_line_ids.analytic_account_id = self.partner_id.vertical and \
-                                                        analytic_account_id or False
+            for line in self.invoice_line_ids:
+                line.analytic_account_id = self.partner_id.vertical and \
+                                    analytic_account_id or line.analytic_account_id
 
 
     def update_due_date(self):

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_form_bill_com" model="ir.ui.view">
+        <field name="name">view.account.form.bill.com</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+<!--            removing required tag from -->
+            <xpath expr="//field[@name='asset_model']" position="attributes">
+                <attribute name="attrs">{'required':[('true', '=', 'false')]}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
