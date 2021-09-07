@@ -48,6 +48,7 @@ class BillComConfig(models.Model):
     bill_com_vendor_bank_account_import_url = fields.Char("Vendor Bank Accounts Import URL", copy=False)
     bill_com_bill_import_url = fields.Char("Bill Import URL", copy=False)
     last_bill_imported_date = fields.Datetime('Bill Imported Date', copy=False)
+    bill_com_bill_status = fields.Selection([('1','Unpaid'),('2','Partially Paid'), ('4','Scheduled'), ('0','Paid'), ('all', 'All')], string="Payment Status", copy=False, default='all')
     bill_com_coa_import_url = fields.Char("Chart of Account Import URL", copy=False)
 
     def get_bill_com_config(self, company_id):
@@ -239,6 +240,7 @@ class BillComConfig(models.Model):
                                 for each_bill_data in billPays:
                                     billId = each_bill_data.get('billId')
                                     amount = each_bill_data.get('amount')
+                                    bill_name = each_bill_data.get('name')
                                     billIds.append(billId)
                                     cr.execute("""select id from account_move where bill_com_bill_id = '%s'""" % (billId))
                                     odoo_invoice_ids = list(filter(None, map(lambda x: x[0], cr.fetchall())))
@@ -301,25 +303,33 @@ class BillComConfig(models.Model):
             bill_com_devkey = each_config.bill_com_devkey
             bill_com_login_url = each_config.bill_com_login_url
             bill_com_bill_import_url = each_config.bill_com_bill_import_url
+            bill_com_bill_status =  each_config.bill_com_bill_status
             bill_com_vendor_import_url = each_config.bill_com_vendor_import_url
             company_id = each_config.company_id
             filter_data = ''
             if 'bill_id' in context:
                 bill_id = context.get('bill_id', '')
                 filter_data = {"start": 0, "max": 999,
-                               "filters": [{"field": "id", "op": "=", "value": bill_id}]}
+                               "filters": [{"field": "id", "op": "=", "value": bill_id},
+                               {"field": "isActive", "op": "=", "value": "1"}]}
             elif 'from_date' in context and 'to_date' in context:
                 from_date = context.get('from_date', '')
                 to_date = context.get('to_date', '')
                 filter_data = {"start": 0, "max": 999,
                                "filters": [{"field": "updatedTime", "op": ">=", "value": from_date},
                                            {"field": "updatedTime", "op": "<=", "value": to_date},
+                                           {"field": "isActive", "op": "=", "value": "1"}
                                            ]}
+                if bill_com_bill_status and bill_com_bill_status != 'all':
+                    filter_data["filters"].append({"field": "paymentStatus", "op": "=", "value": bill_com_bill_status})
             elif last_bill_imported_date:
                 # last_bill_imported_date = fields.Date.to_string(last_bill_imported_date - timedelta(1))
                 last_bill_imported_date = fields.Date.to_string(last_bill_imported_date)
                 filter_data = {"start": 0, "max": 999,
-                               "filters": [{"field": "updatedTime", "op": ">", "value": last_bill_imported_date}]}
+                               "filters": [{"field": "updatedTime", "op": ">", "value": last_bill_imported_date},
+                                            {"field": "isActive", "op": "=", "value": "1"}]}
+                if bill_com_bill_status and bill_com_bill_status != 'all':
+                    filter_data["filters"].append({"field": "paymentStatus", "op": "=", "value": bill_com_bill_status})                                
             if filter_data:
                 bill_com_service_obj = BillComService(bill_com_user_name, bill_com_password, bill_com_orgid,
                                                       bill_com_devkey, bill_com_login_url)
@@ -395,10 +405,17 @@ class BillComConfig(models.Model):
                                         product_id = product_obj.search(['|',('default_code', '=', odoo_internal_reference), ('name', '=', description)], limit=1)
                                     else:
                                         product_id = product_obj.search([('name', '=', description)], limit=1)
-                                    quantity = each_line_data.get('quantity')
+                                    quantity = each_line_data.get('quantity', 1)
+                                    subtotal = each_line_data.get('amount', 0.0)
+                                    unit_price = each_line_data.get('unit_price', 0.0)
                                     if not quantity:
                                         quantity = 1
-                                    unit_price = each_line_data.get('amount')
+                                    if 'quantity' not in each_line_data:
+                                        quantity = subtotal / unit_price   
+                                    if 'unit_price' in each_line_data:
+                                        unit_price = unit_price
+                                    else:        
+                                        unit_price =  subtotal / quantity
                                     if odoo_purchase_order_id and product_id:
                                         cr.execute("select id from purchase_order_line where order_id=%s and product_id=%s" % (odoo_purchase_order_id[0], product_id.id))
                                         purchase_line_id = list(filter(None, map(lambda x: x[0], cr.fetchall())))
