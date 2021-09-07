@@ -25,7 +25,8 @@ class ResPartner(models.Model):
                 if bill_com_vendor_id:
                     data["obj"].update({"id" : bill_com_vendor_id, "name" : name})
                 else:    
-                    data["obj"].update({"isActive" : "1", "name" : name})
+                    data["obj"].update({"isActive" : "1", "name" : name, "payBy": "0"# By Check
+                        })
                 street = self.street
                 data["obj"].update({"address1" : street or ''})
                 street2 = self.street2

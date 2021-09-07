@@ -69,6 +69,7 @@
                             <field name="last_bill_imported_date"/>
                         </group>
                         <group>
+                            <field name="bill_com_bill_status"/>
                             <button name="import_bill_com_bills" string="Import Bills" type="object"/>
                         </group>
                         <group>
