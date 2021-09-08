@@ -10,3 +10,4 @@ from . import sale_budget_changes
 from . import sale_subscription_line
 from . import res_company
 from . import res_partner
+from . import sale_budget_product_map
