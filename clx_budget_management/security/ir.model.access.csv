@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sale_budget_changes_user,sale.budget.changes,model_sale_budget_changes,base.group_user,1,1,1,1
+access_sale_budget_product_map,sale.budget.product.map,model_sale_budget_product_map,base.group_user,1,1,1,1
