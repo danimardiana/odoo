@@ -341,7 +341,6 @@ class AccountMove(models.Model):
                 if not move.is_invoice():
                     continue
                 for move_line in move.line_ids:
-                    print(move_line.product_id.name)
                     if (
                         move_line.account_id
                         and (move_line.account_id.can_create_asset)
