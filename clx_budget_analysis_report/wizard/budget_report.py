@@ -178,8 +178,8 @@ class BudgetReportWizard(models.TransientModel):
                     sale_line_write["wholesale_price"],
                     category_show_params[sale_line_write["category"]],
                 )
-                if "management_fee_product" in management_fee_data:
-                    del management_fee_data["management_fee_product"]
+                # if "management_fee_product" in management_fee_data:
+                #     del management_fee_data["management_fee_product"]
                 result_table[period][subscription].update(management_fee_data)
 
                 # pass thru all the companies related to the subscription
@@ -195,18 +195,25 @@ class BudgetReportWizard(models.TransientModel):
                     description = subscribtion_total["description"]
                     if partner_percent != 1.0:
                         description += " (%s%%) " % (str(int(partner_percent * 100)))
+                    management_fee_product = (
+                        False
+                        if not sale_line_write["management_fee_product"]
+                        or len(sale_line_write["management_fee_product"]) == 0
+                        else sale_line_write["management_fee_product"].id
+                    )
                     subscribtion_total.update(
                         {
                             "description": description,
                             "partner_id": company.id,
                             "wholesale_price": partner_percent * sale_line_write["wholesale_price"]
-                            if sale_line_write["wholesale_price"] > 0
+                            if (sale_line_write["wholesale_price"]) > 0
                             else sale_line_write["wholesale_price"],
                             "management_fee": partner_percent * sale_line_write["management_fee"]
-                            if sale_line_write["management_fee"] > 0
+                            if abs(sale_line_write["management_fee"]) > 0
                             else sale_line_write["management_fee"],
                             "retail_price": partner_percent * sale_line_write["retail_price"],
                             "company_name": company_name,
+                            "management_fee_product": management_fee_product,
                         }
                     )
                     report_data_table.create(subscribtion_total)
@@ -262,6 +269,7 @@ class qweb_sale_subscription_budgets_report(models.AbstractModel):
                     "retail_price": subscription.retail_price,
                     "wholesale_price": subscription.wholesale_price,
                     "management_fee": subscription.management_fee,
+                    "management_fee_product": subscription.management_fee_product,
                     "start_date": subscription.start_date,
                     "end_date": subscription.end_date,
                 }
@@ -289,6 +297,7 @@ class qweb_sale_subscription_budgets_report(models.AbstractModel):
             sbl.subscription_id as subscription_id,
             sbl.subscription_line_id as subscription_line_id,
             sbl.management_fee as management_fee,
+            sbl.management_fee_product as management_fee_poduct,
             sbl.partner_id as partner_id,
             sbl.wholesale_price as wholesale_price,
             sbl.retail_price as price,

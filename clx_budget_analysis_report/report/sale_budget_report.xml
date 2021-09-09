@@ -145,11 +145,12 @@
                                                 <div t-esc="sub_period['retail_price']" />
                                             </td>
                                             <t t-if="fees_allowed">
+                                                <!-- <div t-esc="sub_period"/> -->
                                                 <td class="moneys">
-                                                    <div t-esc="'PNS' if sub_period['wholesale_price']==-2 else  (sub_period['wholesale_price'] if sub_period['wholesale_price']!=-1 else '')"/>
+                                                    <div t-esc="'PNS' if sub_period['management_fee_product']==False and sub_period['wholesale_price'] == False else  (sub_period['wholesale_price'] if sub_period['wholesale_price'] else '')"/>
                                                 </td>
                                                 <td class="moneys">
-                                                    <div t-esc="'PNS' if sub_period['management_fee']==-2 else (sub_period['management_fee'] if sub_period['management_fee']!=-1 else '')" />
+                                                    <div t-esc="'PNS' if sub_period['management_fee_product']==False and sub_period['management_fee'] == False else (sub_period['management_fee'] if sub_period['management_fee'] else '')" />
                                                 </td>
                                             </t>
                                             <td class="dates">

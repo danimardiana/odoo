@@ -20,6 +20,7 @@ class SaleSubscriptionData(models.Model):
         'res.partner', string="Customer", readonly=True)
     wholesale_price = fields.Float(string='Wholesale Price', readonly=True)
     management_fee = fields.Float(string='Management Fee', readonly=True)
+    management_fee_product = fields.Many2one('product.product', readonly=True)
     retail_price = fields.Float(string='Retail')
     changes = fields.Text(readonly=True)
     description = fields.Char(readonly=True)
@@ -56,6 +57,7 @@ class SaleBudgetReport(models.Model):
             sbl.subscription_id as subscription_id,
             sbl.subscription_line_id as subscription_line_id,
             sbl.management_fee as management_fee,
+            sbl.management_fee_product as management_fee_product,
             sbl.partner_id as partner_id,
             sbl.wholesale_price as wholesale_price,
             sbl.retail_price as retail_price,
