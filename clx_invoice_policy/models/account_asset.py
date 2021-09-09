@@ -34,3 +34,12 @@ class AccountAsset(models.Model):
         if self.model_id:
             return super(AccountAsset, self)._get_first_depreciation_date()
         return self.first_depreciation_date
+
+    @api.depends('original_move_line_ids', 'original_move_line_ids.account_id', 'asset_type')
+    def _compute_value(self):
+        super(AccountAsset, self)._compute_value()
+        for record in self:
+            total_credit = sum(line.credit for line in record.original_move_line_ids)
+            total_debit = sum(line.debit for line in record.original_move_line_ids)
+            if total_debit:
+                record.original_value = min(total_debit,-total_debit) + max(total_credit,-total_credit)
