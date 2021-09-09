@@ -204,6 +204,11 @@ class Partner(models.Model):
     def write(self, vals):
         res = super(Partner, self).write(vals)
 
+        """
+        If the national account manager is changed at the manamement company
+        level, then update the national manager on all it's childeren. Greystar
+        is currently a special use case because it have a master management company
+        """
         if vals.get("national_user_id", False):
             new_national_mgr = vals["national_user_id"]
 
