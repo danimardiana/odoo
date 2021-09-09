@@ -82,8 +82,8 @@ class SaleSubscription(models.Model):
 
         if not price_list or not price_list.active:
             return {
-                "management_fee": -2,
-                "wholesale_price": -2,
+                "management_fee": False,
+                "wholesale_price": False,
                 "management_fee_product": False,
             }
 
@@ -95,25 +95,25 @@ class SaleSubscription(models.Model):
         management_fee_product = (
             None if "management_fee_product" not in price_list else price_list.management_fee_product
         )
-
+        retail_absolute = abs(retail)
         if price_list.is_custom and management_fee == 0.0:
-            if retail <= price_list.min_retail_amount:
+            if retail_absolute <= price_list.min_retail_amount:
                 management_fee = price_list.fixed_mgmt_price
             else:
-                management_fee = round((price_list.percent_mgmt_price * retail) / 100, 2)
+                management_fee = round((price_list.percent_mgmt_price * retail_absolute) / 100, 2)
         else:
             # if management fee fixed
             if (
                 price_list.is_fixed
                 and price_list.fixed_mgmt_price
                 and show_flags["show_mgmnt_fee"]
-                and retail > price_list.fixed_mgmt_price
+                and retail_absolute > price_list.fixed_mgmt_price
             ):
                 management_fee = price_list.fixed_mgmt_price
 
             # if management fee percentage
             if price_list.is_percentage and price_list.percent_mgmt_price and show_flags["show_mgmnt_fee"]:
-                management_fee = round((price_list.percent_mgmt_price * retail) / 100, 2)
+                management_fee = round((price_list.percent_mgmt_price * retail_absolute) / 100, 2)
 
             # if wholesale fee percentage
             if (
@@ -121,18 +121,23 @@ class SaleSubscription(models.Model):
                 and price_list.percent_wholesale_price
                 and show_flags["show_wholesale"]
             ):
-                wholesale = round((price_list.percent_wholesale_price * retail) / 100, 2)
+                wholesale = round((price_list.percent_wholesale_price * retail_absolute) / 100, 2)
 
         # but never less than minimum price
         if management_fee < price_list.fixed_mgmt_price:
             management_fee = price_list.fixed_mgmt_price
 
         if wholesale == 0.0:
-            wholesale = retail - management_fee
+            wholesale = retail_absolute - management_fee
+
+        # invert the management fee when retail is negative
+        if retail != retail_absolute:
+            management_fee = -management_fee
+            wholesale = -wholesale
 
         return {
-            "management_fee": management_fee if management_fee else -1,
-            "wholesale_price": wholesale if wholesale else -1,
+            "management_fee": management_fee,
+            "wholesale_price": wholesale,
             "management_fee_product": management_fee_product,
         }
 
@@ -385,7 +390,7 @@ class SaleSubscription(models.Model):
                 "product_id": line.product_id.id,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
-                'account_id': line.analytic_account_id.account_depreciation_expense_id.id or False,
+                "account_id": line.analytic_account_id.account_depreciation_expense_id.id or False,
                 "price_unit": price,
                 "pricelist": line.analytic_account_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
@@ -409,7 +414,7 @@ class SaleSubscription(models.Model):
                 "price_unit": product_individual["price_unit"],
                 "description": product_individual["description"],
                 "contract_product_description": product_individual["contract_product_description"],
-                "account_id": product_individual['account_id'],
+                "account_id": product_individual["account_id"],
                 "name": product_individual["name"],
                 "rebate": product_individual["rebate"],
                 "rebate_product": product_individual["rebate_product"],
@@ -429,7 +434,7 @@ class SaleSubscription(models.Model):
             product_updated = product_source
             product_updated["price_unit"] += product_additional["price_unit"]
             product_updated["rebate"] += product_additional["rebate"]
-            product_updated["account_id"] = product_additional['account_id']
+            product_updated["account_id"] = product_additional["account_id"]
             if "start_date" in product_updated or "start_date" in product_additional:
                 if not product_updated["start_date"]:
                     product_updated["start_date"] = product_additional["start_date"]
@@ -480,8 +485,6 @@ class SaleSubscription(models.Model):
             "|",
             ("so_line_id.order_id.partner_id", "child_of", partner.id),
             ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
-            # co-op change!!!!
-            # ("so_line_id.order_id.co_op_sale_order_partner_ids", "in", [partner.id]),
         ]
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 
@@ -494,12 +497,12 @@ class SaleSubscription(models.Model):
             if line["price_unit"] == 0:
                 continue
             final_price = line["price_unit"]
-            if line["management_fee"] > 0:
+            if abs(line["management_fee"]) > 0:
                 final_price -= line["management_fee"]
                 grouped_invoice_lines.append(
                     {
                         "name": period_msg,
-                        "account_id": line['account_id'],
+                        "account_id": line["account_id"],
                         "description": line["description"],
                         "product_id": line["product_id"],
                         "category_id": line["category_id"],
@@ -519,7 +522,6 @@ class SaleSubscription(models.Model):
                         "description": line["management_fee_product"].name,
                         "category_id": line["management_fee_product"].categ_id.id,
                         "product_id": line["management_fee_product"].id,
-                        "account_id": line["account_id"],
                     }
 
                 grouped_invoice_lines.append(
@@ -538,7 +540,7 @@ class SaleSubscription(models.Model):
                 grouped_invoice_lines.append(
                     {
                         "name": period_msg,
-                        "account_id": line['account_id'],
+                        "account_id": line["account_id"],
                         "description": line["description"],
                         "product_id": line["product_id"],
                         "category_id": line["category_id"],
@@ -601,13 +603,15 @@ class SaleSubscription(models.Model):
         # filter out invoiced subscription lines and collect draft invoices for update
         for subscription_line in subscription_lines:
             # find the invoices could be changed
-            invoice = self.are_invoices_for_period(partner.id, start_date, invoices_could_be_changed+invoices_posted, subscription_line)
+            invoice = self.are_invoices_for_period(
+                partner.id, start_date, invoices_could_be_changed + invoices_posted, subscription_line
+            )
             if invoice and (invoice.state in invoices_could_be_changed):
                 draft_invoice_subscriptions[subscription_line.id] = subscription_line
                 draft_invoices[invoice.id] = True
                 sub_lines.append(subscription_line)
             elif not invoice or (invoice.state not in invoices_posted):
-                #in case of subscription was not invoiced ye or invoice was cancelled
+                # in case of subscription was not invoiced yet or invoice was cancelled
                 sub_lines.append(subscription_line)
 
         # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated
