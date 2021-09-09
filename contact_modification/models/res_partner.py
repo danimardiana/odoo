@@ -53,6 +53,11 @@ class Partner(models.Model):
     account_user_id = fields.Many2one("res.users", string="Account Manager")
     secondary_user_id = fields.Many2one("res.users", string="Secondary Acct. Manager")
     national_user_id = fields.Many2one("res.users", string="National Acct. Manager")
+    national_mgr_hidden = fields.Boolean(
+        string="National Manager Hidden",
+        compute="_compute_national_mgr_hidden",
+        help="Used to toggle the national managed field show/hide",
+    )
     mangement_company_type = fields.Selection(
         string="Mgmt. Company Type", selection=[("greystar", "Greystar"), ("other", "Other")]
     )
@@ -128,17 +133,25 @@ class Partner(models.Model):
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
 
-    #discounts block
+    # discounts block
     is_flat_discount = fields.Boolean(string="Is Flat Discount")
     clx_category_id = fields.Many2one("product.category", string="Category for Flat Discount")
     flat_discount = fields.Float(string="Flat Discount")
     is_percent_discount = fields.Boolean(string="Is Percent Discount")
-    flat_discount_product = fields.Many2one('product.product', string="Product for Flat Discount", help="Product the Flat Discount will be assigned to")
+    flat_discount_product = fields.Many2one(
+        "product.product", string="Product for Flat Discount", help="Product the Flat Discount will be assigned to"
+    )
     percent_discount = fields.Float(string="Percent Discount")
     percent_discount_category_id = fields.Many2one("product.category", string="Category for Percent Discount")
-    percent_discount_product = fields.Many2one('product.product', string="Product for Percent Discount", help="Product the Percent Discount will be assigned to")
+    percent_discount_product = fields.Many2one(
+        "product.product",
+        string="Product for Percent Discount",
+        help="Product the Percent Discount will be assigned to",
+    )
     discount_on_order_line = fields.Float(string="Discount on Sale Order Line (%)")
-    discount_product = fields.Many2one('product.product', string="Product for Flat Discount", help="Product the Main Discont will be assigned to")
+    discount_product = fields.Many2one(
+        "product.product", string="Product for Flat Discount", help="Product the Main Discont will be assigned to"
+    )
 
     client_services_team = fields.Selection(
         [("emerging_accounts", "Emerging Accounts"), ("national_accounts", "National Accounts")],
@@ -191,6 +204,25 @@ class Partner(models.Model):
     def write(self, vals):
         res = super(Partner, self).write(vals)
 
+        if vals.get("national_user_id", False):
+            new_national_mgr = vals["national_user_id"]
+
+            if self.company_type == "management" and self.mangement_company_type != "greystar":
+                subsidiary_companies = self.env["res.partner"].search([("management_company_type_id", "=", self.id)])
+
+                for company in subsidiary_companies:
+                    company.write({"national_user_id": new_national_mgr})
+            elif self.id == 29824:  # Master Greystar Entity
+                greystar_regional_mgmt_companies = self.env["res.partner"].search(
+                    [("mangement_company_type", "=", "greystar")]
+                )
+                greystar_subsidiary_companies = self.env["res.partner"].search(
+                    [("management_company_type_id", "in", greystar_regional_mgmt_companies.ids)]
+                )
+
+                for company in greystar_subsidiary_companies:
+                    company.write({"national_user_id": new_national_mgr})
+
         # Update non-user contact in CLXDB
         if not self.user_ids.id:
             contact_fields = {"name", "company_type", "parent_id", "street", "city", "vertical", "yardi_code"}
@@ -229,6 +261,17 @@ class Partner(models.Model):
         if self.management_company_type_id and self.management_company_type_id.property_product_pricelist:
             self.property_product_pricelist = self.management_company_type_id.property_product_pricelist.id
 
+        if self.company_type == "company" and self.management_company_type_id:
+            mgmt_company = self.env["res.partner"].search([("id", "=", self.management_company_type_id.id)])
+
+            if mgmt_company.national_user_id and mgmt_company.mangement_company_type != "greystar":
+                self.national_user_id = mgmt_company.national_user_id
+            elif mgmt_company.mangement_company_type == "greystar":
+                greystar_master_mgmt_company = self.env["res.partner"].search([("id", "=", 29824)])
+
+                if greystar_master_mgmt_company.national_user_id:
+                    self.national_user_id = greystar_master_mgmt_company.national_user_id
+
     @api.onchange("contact_type_ids")
     def onchange_contact_display_name(self):
         for rec in self:
@@ -249,6 +292,16 @@ class Partner(models.Model):
                 partner.company_type = "owner"
             elif partner.is_management and not partner.is_owner:
                 partner.company_type = "management"
+
+    def _compute_national_mgr_hidden(self):
+        if (
+            self.company_type == "company"
+            or (self.company_type == "management" and self.mangement_company_type != "greystar")
+            or self.id == 29824  # Master Greystar Entity
+        ):
+            self.national_mgr_hidden = False
+        else:
+            self.national_mgr_hidden = True
 
     def _compute_company_type_hidden(self):
         if (
