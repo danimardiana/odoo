@@ -327,14 +327,14 @@
             </xpath>
 
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
+                <field name="national_mgr_hidden" invisible="1"/>
                 <field name="implementation_specialist_id" attrs="{'invisible':[('company_type','not in','company')]}"/>
                 <field name="account_user_id" 
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)],
                                'required':[('is_company','=',True)]}"/>
                 <field name="secondary_user_id"
                        attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
-                <field name="national_user_id"
-                       attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
+                <field name="national_user_id" attrs="{'invisible':[('national_mgr_hidden','=',True)]}"/>
             </xpath>
 
             <xpath expr="//notebook//page[1]//field[@name='child_ids']" position="attributes">
