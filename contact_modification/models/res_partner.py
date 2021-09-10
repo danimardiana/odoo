@@ -211,22 +211,21 @@ class Partner(models.Model):
         """
         if vals.get("national_user_id", False):
             new_national_mgr = vals["national_user_id"]
+            subsidiary_companies = {}
 
             if self.company_type == "management" and self.mangement_company_type != "greystar":
                 subsidiary_companies = self.env["res.partner"].search([("management_company_type_id", "=", self.id)])
 
-                for company in subsidiary_companies:
-                    company.write({"national_user_id": new_national_mgr})
             elif self.id == 29824:  # Master Greystar Entity
                 greystar_regional_mgmt_companies = self.env["res.partner"].search(
                     [("mangement_company_type", "=", "greystar")]
                 )
-                greystar_subsidiary_companies = self.env["res.partner"].search(
+                subsidiary_companies = self.env["res.partner"].search(
                     [("management_company_type_id", "in", greystar_regional_mgmt_companies.ids)]
                 )
 
-                for company in greystar_subsidiary_companies:
-                    company.write({"national_user_id": new_national_mgr})
+            for company in subsidiary_companies:
+                company.write({"national_user_id": new_national_mgr})
 
         # Update non-user contact in CLXDB
         if not self.user_ids.id:
