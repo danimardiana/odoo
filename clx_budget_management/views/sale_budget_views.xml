@@ -62,13 +62,13 @@
             <field name="code">records.complete_budget_changes()</field>
     </record>
 
-    <!-- This Menu for sale Budget -->
+    <!-- This is ROOT menu for Budget Management App -->
     <menuitem id="main_menu_sale_budget"
               name="Budgets Management"
               web_icon="clx_budget_management,static/description/icon.png"
               sequence="2"/>
 
-    <!-- This Menu for sale Budget -->
+    <!-- This SubMenu for Budget Change -->
     <menuitem id="menu_sale_budget_notification"
               name="Budget Changes"
               parent="clx_budget_management.main_menu_sale_budget"
