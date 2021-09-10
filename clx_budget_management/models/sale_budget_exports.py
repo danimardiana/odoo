@@ -163,20 +163,19 @@ class SaleBudgetExports(models.TransientModel):
                     "category": self.env["product.category"].browse(subscription["category_id"]).name,
                     "product_name": subscription["product_name"],
                     "product_variant": subscription["product_variant"],
-                    "management_fee": subscription["management_fee"],
-                    "wholesale": wholesale,
+                    "management_fee": "" if subscription["management_fee"]<=0 else subscription["management_fee"],
+                    "wholesale": "" if wholesale<=0 else wholesale,
                     "description": subscription["description"],
                     "start_date": start_date.strftime("%m/%d/%Y"),
                     "end_date": end_date.strftime("%m/%d/%Y"),
-                    "google_id": partner_object.google_ads_account,
-                    "fb_id": partner_object.fb_account,
+                    "google_id": "" if not partner_object.google_ads_account else partner_object.google_ads_account,
+                    "fb_id":  "" if not partner_object.fb_account else partner_object.fb_account,
                 }
                 return_data.append(list(map(lambda x: return_object[x["field_name"]], REPORT_STRUCTURE)))
 
         return return_data
 
     def download_report(self):
-        start_time = time.time()
         all_data = self.collect_report_data()
 
         fp = io.BytesIO()
@@ -187,8 +186,6 @@ class SaleBudgetExports(models.TransientModel):
         for col in REPORT_STRUCTURE:
             worksheet.write(0, col["report_column"], col["header"], header_format)
 
-        print("Saving to table time --- %s seconds ---" % (time.time() - start_time))
-        start_time = time.time()
         for idx, line in enumerate(all_data):
             worksheet.write_row(idx + 1,0, line)
 
