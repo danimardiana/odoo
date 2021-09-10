@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="budget_export" model="ir.ui.view">
+        <field name="name">budget.export.wizard.form</field>
+        <field name="model">sale.budget.export.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="start_date" required="1"/>
+                        <field name="end_date" required="1"/>
+                    </group>
+                    <footer>
+                        <button name="download_report" string="Download" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>                    
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_sale_budget_exports_wizard" model="ir.actions.act_window">
+        <field name="name">Export</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.budget.export.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <!-- <field name="context">{'search_default_group_by_partner_id': 1,'search_default_group_by_start_date':1}</field>
+        <field name="search_view_id" ref="clx_budget_management.action_sale_budget_exports"/>  -->
+    </record>
+
+    <!-- This SubMenu for Exporting -->
+    <menuitem id="menu_sale_budget_exporting"
+              name="Data Export"
+              parent="clx_budget_management.main_menu_sale_budget"
+              action="clx_budget_management.action_sale_budget_exports_wizard"
+              sequence="4"
+              />
+
+</odoo>
