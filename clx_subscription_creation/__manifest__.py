@@ -24,6 +24,7 @@
         'views/sale_order_views.xml',
         'views/filters.xml',
         'views/sale_subscription_views.xml',
+        'views/sale_subscription_template_views.xml',
         'wizard/sale_subscription_wizard_views.xml',
         'data/ir_cron.xml',
         'security/sale_subscription_security.xml',

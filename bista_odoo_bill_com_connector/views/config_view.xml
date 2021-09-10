@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bill_com_config_form" model="ir.ui.view">
+        <field name="name">view.bill.com.config.form</field>
+        <field name="model">bill.com.config</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Bill.Com Configuration" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="name" required="1" style="width: 33%"/>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="company_id" required="1" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <field name="bill_com_user_name" required="1"/>
+                            <field name="bill_com_orgid" required="1"/>
+                        </group>
+                    <group>
+                        <field name="bill_com_environment" required="1"/>
+                        <field name="bill_com_password" required="1" password="True"/>
+                        <field name="bill_com_devkey" required="1"/>
+                    </group>
+                    </group>
+                    <separator  string="URLS"/>
+                    <group>
+                        <field name="bill_com_login_url" required="1"/>
+                        <field name="bill_com_vendor_create_url" required="1"/>
+                        <field name="bill_com_vendor_update_url" required="1"/>
+                         <field name="bill_com_vendor_bank_account_create_url" required="1"/>
+                        <field name="bill_com_vendor_bank_account_update_url" required="1"/>
+                        <field name="bill_com_bill_create_url" required="1"/>
+                        <field name="bill_com_bill_update_url" required="1"/>
+                    </group>
+                    <separator  string="MFA Authentication"/>
+                    <group>
+                        <group>
+                            <field name="bill_com_mfa_challenge_create_url" required="1"/>
+                            <field name="bill_com_mfa_challenge"/>
+                        </group>
+                        <group>
+                            <button name="get_mfn_challenge" string="Get MFA Challenge" type="object"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="bill_com_mfa_token"/>
+                            <field name="bill_com_device_name"/>
+                            <field name="bill_com_machine_name"/>
+                            <field name="bill_com_mfa_challenge_authenticate_url" required="1"/>
+                            <field name="bill_com_organization_bank_account_url" required="1"/>
+                            <field name="bill_com_payment_create_url" required="1"/>
+                            <field name="bill_com_payment_cancel_url" required="1"/>
+                        </group>
+                        <group>
+                            <button name="mfn_authenticate" string="MFA Authentication" type="object"/>
+                            <field name="bill_com_mfa_id"/>
+                            <button name="get_organizational_bank_accounts_details" string="Get Organization Bank Account Details" type="object"/>
+                        </group>
+                        <group>
+                            <field name="bill_com_payment_import_url" required="1"/>
+                            <field name="last_payment_imported_date"/>
+                        </group>
+                        <group>
+                            <button name="import_bill_com_payments" string="Import Payments" type="object"/>
+                        </group>
+                        <group>
+                            <field name="bill_com_bill_import_url" required="1"/>
+                            <field name="last_bill_imported_date"/>
+                        </group>
+                        <group>
+                            <button name="import_bill_com_bills" string="Import Bills" type="object"/>
+                        </group>
+                        <group>
+                            <field name="bill_com_vendor_import_url"/>
+                            <field name="bill_com_vendor_bank_account_import_url"/>
+                        </group>
+                        <group>
+                            <button name="import_vendor_data" string="Import Vendors" type="object"/>
+                            <br/>
+                            <button name="import_vendor_bank_account_data" string="Import Vendors Bank Details" type="object"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bill_com_config_tree" model="ir.ui.view">
+        <field name="name">view.bill.com.config.tree</field>
+        <field name="model">bill.com.config</field>
+        <field name="type">tree</field>
+        <field name="arch" type="xml">
+            <tree string="Bill.Com Configuration">
+                <field name="name"/>
+                <field name="bill_com_environment"/>
+                <field name="bill_com_user_name"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_bill_com_config" model="ir.actions.act_window">
+            <field name="name">Bill.Com Config</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">bill.com.config</field>
+            <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_bill_com_main" name="Bill.Com" parent="account.menu_finance_configuration"/>
+    <menuitem id="menu_bill_com_config" name="Configuration"
+        parent="menu_bill_com_main" sequence="1"
+        action="action_bill_com_config" />
+
+</odoo>
