@@ -95,25 +95,25 @@ class SaleSubscription(models.Model):
         management_fee_product = (
             None if "management_fee_product" not in price_list else price_list.management_fee_product
         )
-
+        retail_absolute = abs(retail)
         if price_list.is_custom and management_fee == 0.0:
-            if retail <= price_list.min_retail_amount:
+            if retail_absolute <= price_list.min_retail_amount:
                 management_fee = price_list.fixed_mgmt_price
             else:
-                management_fee = round((price_list.percent_mgmt_price * retail) / 100, 2)
+                management_fee = round((price_list.percent_mgmt_price * retail_absolute) / 100, 2)
         else:
             # if management fee fixed
             if (
                 price_list.is_fixed
                 and price_list.fixed_mgmt_price
                 and show_flags["show_mgmnt_fee"]
-                and retail > price_list.fixed_mgmt_price
+                and retail_absolute > price_list.fixed_mgmt_price
             ):
                 management_fee = price_list.fixed_mgmt_price
 
             # if management fee percentage
             if price_list.is_percentage and price_list.percent_mgmt_price and show_flags["show_mgmnt_fee"]:
-                management_fee = round((price_list.percent_mgmt_price * retail) / 100, 2)
+                management_fee = round((price_list.percent_mgmt_price * retail_absolute) / 100, 2)
 
             # if wholesale fee percentage
             if (
@@ -121,14 +121,19 @@ class SaleSubscription(models.Model):
                 and price_list.percent_wholesale_price
                 and show_flags["show_wholesale"]
             ):
-                wholesale = round((price_list.percent_wholesale_price * retail) / 100, 2)
+                wholesale = round((price_list.percent_wholesale_price * retail_absolute) / 100, 2)
 
         # but never less than minimum price
         if management_fee < price_list.fixed_mgmt_price:
             management_fee = price_list.fixed_mgmt_price
 
         if wholesale == 0.0:
-            wholesale = retail - management_fee
+            wholesale = retail_absolute - management_fee
+
+        #invert the management fee when retail is negative
+        if retail != retail_absolute:
+            management_fee = -management_fee
+            wholesale = -wholesale
 
         return {
             "management_fee": management_fee if management_fee else -1,
@@ -480,8 +485,6 @@ class SaleSubscription(models.Model):
             "|",
             ("so_line_id.order_id.partner_id", "child_of", partner.id),
             ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
-            # co-op change!!!!
-            # ("so_line_id.order_id.co_op_sale_order_partner_ids", "in", [partner.id]),
         ]
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 

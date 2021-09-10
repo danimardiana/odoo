@@ -50,9 +50,9 @@ class ProofReturnExcelReport(models.TransientModel):
     def download_report(self):
         tasks = self._get_task_proof_return_data()
         fp = io.BytesIO()
-        workbook = xlsxwriter.Workbook(fp)
+        workbook = xlsxwriter.Workbook(fp, {'in_memory': True})
         worksheet = workbook.add_worksheet("Proof Return")
-        header_format = workbook.add_format({"bold": True})
+        header_format = workbook.add_format({"align": "center","bold": True})
         row = 0
         worksheet.write(row, 0, "Project", header_format)
         worksheet.write(row, 1, "Task", header_format)
