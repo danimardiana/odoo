@@ -404,8 +404,11 @@ class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
     category_id = fields.Many2one("product.category", string="Category")
-    # subscription_ids
-    # subscription_ids = fields.Many2many("sale.subscription", string="Subscription(s)")
-    # subscription_lines_ids = fields.Many2many("sale.subscription.line", string="Subscriptions Lines")
-
     description = fields.Char(string="Description")
+
+    @api.onchange('tax_ids')
+    def onchange_tax_ids(self):
+        #prevent user to add tax on rebate products
+        for line in self:
+            if line.product_id == line.move_id.partner_id.management_company_type_id.discount_product:
+                line.tax_ids = False
