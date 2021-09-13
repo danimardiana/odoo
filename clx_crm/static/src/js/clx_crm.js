@@ -60,7 +60,9 @@ odoo.define('clx_crm.lead.contact.validation.template', function (require) {
                 method: 'save_contact_choices',
                 args: [{}],
                 kwargs: { contacts: data }
-            }).then(function (data) {});
+            }).then(function (data) {
+                location.reload();
+            });
         }
     });
 });
