@@ -341,11 +341,12 @@ class AccountMove(models.Model):
                 if not move.is_invoice():
                     continue
                 for move_line in move.line_ids:
+                    # and not move.reversed_entry_id -- removed condition
+                    # it'll allow all the future invoices to create deferred revenue
                     if (
                         move_line.account_id
                         and (move_line.account_id.can_create_asset)
                         and move_line.account_id.create_asset != "no"
-                        and not move.reversed_entry_id
                         and not (move_line.currency_id or move.currency_id).is_zero(move_line.price_total)
                         and not move_line.asset_id
                     ):
