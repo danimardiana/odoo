@@ -144,3 +144,10 @@ class SaleOrderLine(models.Model):
             description = self._grouping_by_product_logic(product_id, partner_id, line.name)
 
         return description
+
+    @api.onchange('tax_id')
+    def onchange_tax_id(self):
+        for line in self:
+            # prevent user to add tax on rebate products
+            if line.product_id == line.order_id.partner_id.management_company_type_id.discount_product:
+                line.tax_id = False
