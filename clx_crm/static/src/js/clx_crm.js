@@ -34,16 +34,15 @@ odoo.define('clx_crm.lead.contact.validation.template', function (require) {
 
             if (this.$buttons && this.modelName === 'lead.contact.validation') {
                 let selectedContactsBtn = existingContactTree.closest('.modal-content').find('.save_validation_button');
-                let exportButton = existingContactTree.closest('.modal-content').find('.o_list_export_xlsx');
 
                 // add handlers
                 selectedContactsBtn && selectedContactsBtn.click(this.proxy('saveSelectedContactOptions'));
 
                 // Remove unused search bar elements from header
-                exportButton.hide();
-                existingContactTree.closest('.modal-content').find('.o_cp_left').hide();
-                existingContactTree.closest('.modal-content').find('.o_cp_right').hide();
-                existingContactTree.closest('.modal-content').find('.o_searchview').hide();
+                existingContactTree
+                    .closest('.modal-content')
+                    .find('.o_list_export_xlsx, .o_cp_left, .o_cp_right, .o_searchview')
+                    .hide();
             }
         },
 

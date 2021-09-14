@@ -42,9 +42,7 @@ odoo.define('clx_ratio_invoice.clx.ratio.invoice.template', function (require) {
                 });
 
                 // Remove unused search bar elements from header
-                coopTree.closest('.modal-content').find('.o_cp_left').hide();
-                coopTree.closest('.modal-content').find('.o_cp_right').hide();
-                coopTree.closest('.modal-content').find('.o_searchview').hide();
+                coopTree.closest('.modal-content').find('.o_cp_left, .o_cp_right, .o_searchview').hide();
             }
         },
 
