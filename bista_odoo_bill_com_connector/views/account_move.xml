@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_bista_odoo_bill_com_connector" model="ir.ui.view">
+        <field name="name">view.move.form.bista.odoo.bill.com.connector</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/group/group/field[@name='ref']" position="attributes">
+                 <attribute name="attrs">{'readonly':[('bill_com_bill_id', '!=', False),('state', '=', 'posted')]}</attribute>
+            </xpath>
+            <xpath expr="/form/sheet/notebook" position="inside">
+                <page name="bill_com_bill_id" string="Bill.com"
+                attrs="{'invisible': [('bill_com_bill_id', '=', False)]}">
+                    <group>
+                        <field name="bill_com_bill_id" readonly="1" string="Bill ID"/>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="/form/header/button[@name='action_post']" position="after">
+                <button name="send_to_bill_com" type="object" string="Send to Bill.com" attrs="{'invisible': ['|','|','|',('bill_com_bill_id', '!=', False), ('state', '=', 'draft'), ('type', '!=', 'in_invoice'), ('invoice_payment_state', '!=', 'not_paid')]}" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
+            </xpath>
+            <xpath expr="/form/header/button[@name='action_invoice_register_payment']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|', ('state', '!=', 'posted'), ('invoice_payment_state', 'not in', ('not_paid', 'scheduled')), ('type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]}</attribute>
+            </xpath>
+            <xpath expr="//widget[2]" position="after"> 
+                <widget name="web_ribbon" title="Scheduled" 
+                    attrs="{'invisible': ['|', ('invoice_payment_state', '!=', 'scheduled'), ('type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))]}"/> 
+            </xpath>
+        </field>
+    </record>
+    <record id="view_account_invoice_filter_odoo_bill_com_connector" model="ir.ui.view">
+        <field name="name">view.account.invoice.fitler.odoo.bill.com.connector</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='due_date']" position="after">
+                <separator/>
+                <filter name="bill_com_invoices" string="Bill.Com Invoices" domain="[('bill_com_bill_id', '!=', False)]"/>
+                <separator/>
+                <filter name="send_to_bill_com" string="Send to Bill.com" domain="[('partner_id.bill_com_vendor_id', '!=', False),('state', '=', 'posted'),('bill_com_bill_id', '=', False), ('invoice_payment_state', '=', 'not_paid'), ('type', '=', 'in_invoice')]"/>
+            </xpath>
+            <xpath expr="//filter[@name='in_payment']" position="after">
+                <filter name="scheduled" string="Scheduled" domain="[('invoice_payment_state', '=', 'scheduled')]"/>
+            </xpath>
+            <xpath expr="//group/filter[@name='duedate']" position="after">
+                <separator/>
+                <filter string="Payment" name="invoice_payment_state" context="{'group_by': 'invoice_payment_state'}"/>
+            </xpath>
+            <xpath expr="//field[@name='date']" position="after">
+                <field name="bill_com_bill_id"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="account_invoice_view_form_inherit_payment_bista_odoo_bill_com_connector" model="ir.ui.view">
+        <field name="name">account.invoice.view.form.inherit.payment.bista.odoo.bill.com.connector</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="payment.account_invoice_view_form_inherit_payment" />
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_invoice_register_payment']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|', '|', ('state', '!=', 'posted'), ('invoice_payment_state', 'not in', ('not_paid', 'scheduled')), ('type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')), ('authorized_transaction_ids', '!=', [])]}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

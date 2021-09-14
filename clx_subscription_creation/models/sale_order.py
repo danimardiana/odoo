@@ -234,7 +234,12 @@ class SaleOrder(models.Model):
             update(line["price_unit"], period_signature, start_date)
         else:
             update(line["price_unit"], "recurring_spend", "Recurring")
+
             if line["prorate_amount"] and line["prorate_amount"] != line["price_unit"]:
+                update(line["prorate_amount"], period_signature, start_date)
+            # TCC products are not prorated, so prorated amount will be the same as
+            # monthly unit price and we need to add it to the first month spend
+            elif line["prorate_amount"] and "TCC" in line["name"]:
                 update(line["prorate_amount"], period_signature, start_date)
 
         return result_object

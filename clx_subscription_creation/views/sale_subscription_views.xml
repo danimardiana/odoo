@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <field name='team_id' position="after">
                 <field name="product_id"/>
-                <field name="is_active"/>
+                <field name="is_active" readonly="1" force_save="1"/>
                 <field name="initial_sale_order_id"/>
                 <!-- <field name="co_op_percentage"/> -->
             </field>
@@ -42,6 +42,11 @@
                 <attribute name="readonly">1</attribute>
             </xpath>
             <xpath expr="//page[@id='other_info']/group" position="after">
+                <group string="Accounts">
+                    <group>
+                        <field name="account_depreciation_expense_id" string="Deferred Revenue Account"/>
+                    </group>
+                </group>
                 <group>
                     <field name="id" invisible="1"/>
                     <field name="co_op_partner_ids" readonly="1">
@@ -76,14 +81,18 @@
         <field name="model">sale.subscription</field>
         <field name="inherit_id" ref="sale_subscription.sale_subscription_view_list"/>
         <field name="arch" type="xml">
-
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="product_id"/>
                 <field name="is_active" readonly="1"/>
             </xpath>
-
         </field>
     </record>
+
+    <template id="sale_subscription_assets_backend" name="JS integration to the view" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/clx_subscription_creation/static/src/js/base_view.js"/>
+        </xpath>
+    </template>
 
     <record id="sale_subscription.sale_subscription_action" model="ir.actions.act_window">
         <field name="name">Subscriptions</field>
