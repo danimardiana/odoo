@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+  <record id="view_clx_existing_contact" model="ir.ui.view">
+    <field name="name">existing.contact.validation.tree</field>
+    <field name="model">lead.contact.validation</field>
+    <field name="type">tree</field>
+    <field name="arch" type="xml">
+        <tree class="existing_contact_tree" string="Existing Contacts" expand="1" editable="bottom" delete="0" create="0">
+          <field name="crm_lead_contact_id" invisible="1"/>
+          <field name="crm_lead_contact_name" invisible="1"/>
+          <field name="existing_res_partner_id" invisible="1"/>
+          <field name="existing_name" string=" " readonly="1"/>
+          <field name="existing_function" invisible="1"/>
+          <field name="existing_email" string="Email" readonly="1"/>
+          <field name="existing_phone" string="Phone" readonly="1"/>
+          <field name="existing_city" string="City" readonly="1"/>
+          <field name="existing_state" string="State" readonly="1"/>
+        </tree>
+    </field>
+  </record>
+</odoo>

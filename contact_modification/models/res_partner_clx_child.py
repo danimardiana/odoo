@@ -8,13 +8,11 @@ class ContactType(models.Model):
     _name = "res.partner.clx.child"
     _description = "Partner Children"
 
-    parent_id = fields.Many2one('res.partner', string="Parent Contact")
-    child_id = fields.Many2one(
-        'res.partner', string="Child Contact",
-        domain="[('company_type', '=', 'person')]")
+    parent_id = fields.Many2one("res.partner", string="Parent Company")
+    child_id = fields.Many2one("res.partner", string="Individual Contact", domain="[('company_type', '=', 'person')]")
     contact_type_ids = fields.Many2many(
-        'contact.type', 'contact_type_partner_rel',
-        'con_id', 'type_id', string='Contact Type')
+        "contact.type", "contact_type_partner_rel", "con_id", "type_id", string="Contact Role"
+    )
     color = fields.Integer(related="child_id.color")
     name = fields.Char(related="child_id.name")
     title = fields.Many2one(related="child_id.title")
@@ -37,5 +35,4 @@ class ContactType(models.Model):
     lang = fields.Selection(related="child_id.lang")
     comment = fields.Text(related="child_id.comment")
     display_name = fields.Char(related="child_id.display_name")
-    contact_display_kanban = fields.Char(
-        related="child_id.contact_display_kanban")
+    contact_display_kanban = fields.Char(related="child_id.contact_display_kanban")
