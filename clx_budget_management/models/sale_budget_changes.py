@@ -349,20 +349,9 @@ class SaleBudgetChanges(models.Model):
                 change_date in change_dates_existing_processed
                 and change_dates_existing_processed[change_date]["change_price"]
                 == change_dates_existing[change_date]["change_price"]
-                and change_dates_existing_processed[change_date]["total_price"]
-                == change_dates_existing[change_date]["total_price"]
+                and change_dates_existing_processed[change_date]["price_full"]
+                == change_dates_existing[change_date]["price_full"]
             ):
-
-                # if change_dates_existing[change_date]["change_price"] != processing_change["change_price"] or change_dates_existing[change_date]["price_full"] != processing_change["price_full"]:
-                #     if (
-                #         prev_date in change_dates_existing
-                #         and change_date in change_dates_existing
-                #         and change_dates_existing[change_date]["change_price"]
-                #         == change_dates_existing[prev_date]["change_price"]
-                #     ):
-                #         # if prefious changes is same as current one - delete the existing
-                #         self.delete(change_dates_existing[change_date].id)
-                # else:
                 change_dates_existing[change_date].update(change_object)
             else:
                 self.create(change_object)
