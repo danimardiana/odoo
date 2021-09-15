@@ -130,7 +130,7 @@ class SaleSubscription(models.Model):
         if wholesale == 0.0:
             wholesale = retail_absolute - management_fee
 
-        #invert the management fee when retail is negative
+        # invert the management fee when retail is negative
         if retail != retail_absolute:
             management_fee = -management_fee
             wholesale = -wholesale
@@ -390,7 +390,7 @@ class SaleSubscription(models.Model):
                 "product_id": line.product_id.id,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
-                'account_id': line.analytic_account_id.account_depreciation_expense_id.id or False,
+                "account_id": line.analytic_account_id.account_depreciation_expense_id.id or False,
                 "price_unit": price,
                 "pricelist": line.analytic_account_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
@@ -414,7 +414,7 @@ class SaleSubscription(models.Model):
                 "price_unit": product_individual["price_unit"],
                 "description": product_individual["description"],
                 "contract_product_description": product_individual["contract_product_description"],
-                "account_id": product_individual['account_id'],
+                "account_id": product_individual["account_id"],
                 "name": product_individual["name"],
                 "rebate": product_individual["rebate"],
                 "rebate_product": product_individual["rebate_product"],
@@ -434,7 +434,7 @@ class SaleSubscription(models.Model):
             product_updated = product_source
             product_updated["price_unit"] += product_additional["price_unit"]
             product_updated["rebate"] += product_additional["rebate"]
-            product_updated["account_id"] = product_additional['account_id']
+            product_updated["account_id"] = product_additional["account_id"]
             if "start_date" in product_updated or "start_date" in product_additional:
                 if not product_updated["start_date"]:
                     product_updated["start_date"] = product_additional["start_date"]
@@ -502,7 +502,7 @@ class SaleSubscription(models.Model):
                 grouped_invoice_lines.append(
                     {
                         "name": period_msg,
-                        "account_id": line['account_id'],
+                        "account_id": line["account_id"],
                         "description": line["description"],
                         "product_id": line["product_id"],
                         "category_id": line["category_id"],
@@ -540,7 +540,7 @@ class SaleSubscription(models.Model):
                 grouped_invoice_lines.append(
                     {
                         "name": period_msg,
-                        "account_id": line['account_id'],
+                        "account_id": line["account_id"],
                         "description": line["description"],
                         "product_id": line["product_id"],
                         "category_id": line["category_id"],
@@ -552,16 +552,16 @@ class SaleSubscription(models.Model):
                 )
             if line["rebate"]:
                 rebate_signature = "Rebate Discount"
-                if "name" in line["rebate_product"]:
+                if line["rebate_product"] and "name" in line["rebate_product"]:
                     rebate_signature = line["rebate_product"].name
                 if rebate_signature not in rebate_total:
                     rebate_total[rebate_signature] = {
                         "price": 0.0,
                         "category": None
-                        if "categ_id" not in line["rebate_product"]
+                        if not line["rebate_product"] or "categ_id" not in line["rebate_product"]
                         else line["rebate_product"].categ_id.id,
-                        "product": None if "id" not in line["rebate_product"] else line["rebate_product"].id,
-                        "tax_ids": line["tax_ids"],
+                        "product": None if not line["rebate_product"] or "id" not in line["rebate_product"] else line["rebate_product"].id,
+                        "tax_ids": [],
                     }
 
                 rebate_total[rebate_signature]["price"] += line["rebate"]
@@ -603,13 +603,15 @@ class SaleSubscription(models.Model):
         # filter out invoiced subscription lines and collect draft invoices for update
         for subscription_line in subscription_lines:
             # find the invoices could be changed
-            invoice = self.are_invoices_for_period(partner.id, start_date, invoices_could_be_changed+invoices_posted, subscription_line)
+            invoice = self.are_invoices_for_period(
+                partner.id, start_date, invoices_could_be_changed + invoices_posted, subscription_line
+            )
             if invoice and (invoice.state in invoices_could_be_changed):
                 draft_invoice_subscriptions[subscription_line.id] = subscription_line
                 draft_invoices[invoice.id] = True
                 sub_lines.append(subscription_line)
             elif not invoice or (invoice.state not in invoices_posted):
-                #in case of subscription was not invoiced ye or invoice was cancelled
+                # in case of subscription was not invoiced ye or invoice was cancelled
                 sub_lines.append(subscription_line)
 
         # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated
