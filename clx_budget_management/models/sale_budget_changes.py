@@ -83,7 +83,6 @@ class SaleBudgetChanges(models.Model):
         products_related = self.env["sale.budget.product.map"].search(
             ["|", ("product_1_id", "=", current_product.id), ("product_2_id", "=", current_product.id)], limit=1
         )
-        main_product = products_related.product_1_id
 
         if products_related:
             if current_product == products_related.product_1_id:
@@ -223,8 +222,8 @@ class SaleBudgetChanges(models.Model):
                     if start_next_period_date_text not in involved_periods:
                         involved_periods[start_next_period_date_text] = start_next_period_date
 
-        # pricelist_product = subscription.pricelist_determination(product_id, subscription.pricelist_id)
-
+        # calculating how much was spent for each period has the changes
+        # this needed to get the monthly management fee
         pricelist = {}
         for subscription_iterator in all_subscriptions:
             pricelist[subscription_iterator.id] = subscription_iterator.pricelist_determination(
@@ -243,7 +242,8 @@ class SaleBudgetChanges(models.Model):
                             "date": involved_periods[period_process],
                         }
 
-        # calc wholesale and management fee for periods with changes.
+        # now, calc wholesale and management fee for periods with changes.
+        # each product should be calculated separatly
         for period in periods_spending:
             price_including_middlemonth_changes = periods_spending[period]["price_full"]
             [period_current, pricelist_current] = period.split("|")
@@ -257,7 +257,7 @@ class SaleBudgetChanges(models.Model):
                 }
             )
 
-        # combining all subscriptions to total monthly spending
+        # now, all products could be combined to the monthly spend
         periods_spending_combined = {}
         for period in periods_spending:
             [period_current, pricelist_current] = period.split("|")
@@ -270,21 +270,26 @@ class SaleBudgetChanges(models.Model):
             else:
                 periods_spending_combined[period_current] = periods_spending[period]
 
-        # combining all subscriptions to total monthly spending
+        # combining all changes depends on the change date (not period spend)
         change_dates_to_update_combined = {}
         for period in change_dates_to_update:
             [period_current, pricelist_current] = period.split("|")
             if period_current in change_dates_to_update_combined:
-                if change_dates_to_update_combined[period_current]["change_price"] < change_dates_to_update[period]["change_price"]:
-                    change_dates_to_update_combined[period_current]['subscription'] = change_dates_to_update[period]["subscription"]
+                if (
+                    change_dates_to_update_combined[period_current]["change_price"]
+                    < change_dates_to_update[period]["change_price"]
+                ):
+                    change_dates_to_update_combined[period_current]["subscription"] = change_dates_to_update[period][
+                        "subscription"
+                    ]
                 change_dates_to_update_combined[period_current]["change_price"] += change_dates_to_update[period][
                     "change_price"
                 ]
             else:
                 change_dates_to_update_combined[period_current] = change_dates_to_update[period]
 
-        # comparing changes
-        sorted_dates = sorted(list(periods_spending_combined.keys()))
+        # sorting change dates in historical way
+        sorted_dates = sorted(list(change_dates_to_update_combined.keys()))
 
         # remove changes having the same spending
         for i in range(len(sorted_dates) - 1, 0, -1):
