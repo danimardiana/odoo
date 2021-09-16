@@ -101,7 +101,8 @@ class AccountMove(models.Model):
         self.partner_id.accounting_notes = self.accounting_notes
 
     def _compute_accounting_notes(self):
-        self.accounting_notes = self.partner_id.accounting_notes
+        for move in self:
+            move.accounting_notes = move.partner_id.accounting_notes
 
     def compute_billing_contacts(self):
         billing_list = map(
