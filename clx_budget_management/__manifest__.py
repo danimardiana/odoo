@@ -22,6 +22,7 @@
         # 'data/ir_cron.xml',
         'data/mail_template.xml',
         'views/sale_budget_views.xml',
+        'views/sale_budget_exports_views.xml',
         'views/res_config_settings_views.xml',
         # 'views/sale_order_views.xml'
     ],

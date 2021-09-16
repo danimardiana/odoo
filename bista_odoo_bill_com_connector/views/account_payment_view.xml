@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_account_payment_invoice_form_bista_odoo_bill_com_connector" model="ir.ui.view">
+            <field name="name">view.account.payment.invoice.form.bista.odoo.bill.com.connector</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_invoice_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='journal_id']" position="attributes">
+                    <attribute name="context">{"from_register_payment": True}</attribute>
+                </xpath>
+            </field>
+        </record>
+        <record id="view_account_payment_form_bista_odoo_bill_com_connector" model="ir.ui.view">
+            <field name="name">view.account.payment.form.bista.odoo.bill.com.connector</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='communication']" position="after">
+                    <field name="bill_com_payment_id" readonly="1" attrs="{'invisible': [('bill_com_payment_id', '=', False)]}" style="color:Red;"/>
+                    <field name="bill_com_payment_status" readonly="1" attrs="{'invisible':[('bill_com_payment_status','=', False)]}" style="color:Red;"/>
+                </xpath>
+                <xpath expr="/form/header/button[@name='action_draft']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|',('state', '=', 'draft'), ('bill_com_payment_id', '!=', False)]}</attribute>
+                </xpath>
+                <xpath expr="/form/header/button[@name='post']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|',('state', '!=', 'draft'), ('bill_com_payment_id', '!=', False)]}</attribute>
+                </xpath>
+                <xpath expr="/form/header/button[@name='cancel']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|',('state', '!=', 'draft'), ('bill_com_payment_id', '!=', False)]}</attribute>
+                </xpath>
+                <xpath expr="/form/header/button[@name='cancel']" position="after">
+                    <button name="bill_com_cancel" type="object" attrs="{'invisible': ['|',('state', 'in', ('draft', 'cancelled')), ('bill_com_payment_id', '=', False)]}" string="Cancel"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="view_account_payment_form_multi_bista_odoo_bill_com_connector" model="ir.ui.view">
+            <field name="name">view.account.payment.form.multi.bista.odoo.bill.com.connector</field>
+            <field name="model">account.payment.register</field>
+            <field name="inherit_id" ref="account.view_account_payment_form_multi"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='journal_id']" position="attributes">
+                    <attribute name="context">{"from_register_payment": True}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='group_payment']" position="before">
+                    <field name="group_payment_invisible" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='group_payment']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('group_payment_invisible', '=', True)]}</attribute>
+                </xpath>
+            </field>
+        </record>
+        <record id="view_account_payment_search_bista_odoo_bill_com_connector" model="ir.ui.view">
+            <field name="name">view.account.payment.search.bista.odoo.bill.com.connector</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='journal_id']" position="after">
+                    <field name="bill_com_payment_id"/>
+                    <field name="bill_com_payment_status"/>
+                </xpath>
+                <xpath expr="//filter[@name='state']" position="after">
+                    <filter string="Bill.Com Payment Status" name="bill_com_payment_status" domain="[]" context="{'group_by': 'bill_com_payment_status'}"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

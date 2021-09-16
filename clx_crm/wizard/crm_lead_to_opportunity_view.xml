@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="clx_view_crm_lead2opportunity_partner" model="ir.ui.view">
+        <field name="name">clx.crm.lead2opportunity.partner.form</field>
+        <field name="inherit_id" ref="crm.view_crm_lead2opportunity_partner"/>
+        <field name="model">crm.lead2opportunity.partner</field>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='action']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="action_crm_lead2opportunity_partner" model="ir.actions.act_window">
+        <field name="name">Convert to opportunity</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">crm.lead2opportunity.partner</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="clx_view_crm_lead2opportunity_partner"/>
+        <field name="target">new</field>
+    </record>    
+</odoo>

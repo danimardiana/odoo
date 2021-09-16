@@ -14,8 +14,15 @@ class SaleSubscription(models.Model):
     # is_co_op = fields.Boolean(related="initial_sale_order_id.is_ratio", string="Co-op")
     # co_op_percentage = fields.Float(string="Co Op Percentage")
     active = fields.Boolean(string="Active", default=True)
-    # co-op change!!!!
-    co_op_partner_ids = fields.One2many("co.op.subscription.partner", "subscription_id", string="Co-Op Customers")
+
+    #co-op change!!!!
+    co_op_partner_ids = fields.One2many(
+        "co.op.subscription.partner",'subscription_id', string="Co-Op Customers"
+    )
+    account_depreciation_expense_id = fields.Many2one('account.account',
+        string='Deferred Revenue Account', company_dependent=True,
+        domain="['&', ('deprecated', '=', False), ('company_id', '=', current_company_id)]",
+        related='template_id.account_depreciation_expense_id')
 
     def deactivate_finished_subscriptins(self):
         today = date.today()

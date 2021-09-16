@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+bill_com_config_all_users,Bill.Com Config Access All Users,model_bill_com_config,base.group_user,1,1,1,0
+bill_com_config_setting_users,Bill.Com Config Access Setting Users,model_bill_com_config,base.group_system,1,1,1,1
+bill_com_error_logs,Bill.Com Error Logs,model_bill_com_error_logs,,1,1,1,1
