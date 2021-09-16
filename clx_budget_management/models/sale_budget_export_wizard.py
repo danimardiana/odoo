@@ -254,3 +254,4 @@ class SaleBudgetExportWizard(models.TransientModel):
 
             self._cr.commit()
             new_cr.close()
+            

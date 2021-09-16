@@ -74,5 +74,4 @@
               action="clx_budget_management.action_sale_budget_exports_action"
               sequence="4"
               />
-
 </odoo>
