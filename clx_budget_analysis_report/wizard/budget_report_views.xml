@@ -21,23 +21,57 @@
         </field>
     </record>
 
-    <record id="action_budget_report_wizard" model="ir.actions.act_window">
-        <field name="name">Budget Report</field>
+    <record id="sale_budget_product_map_view" model="ir.ui.view">
+        <field name="name">sale.budget.product.map.view</field>
+        <field name="model">sale.budget.product.map</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="product_1_id"/>
+                <field name="product_2_id"/>
+                <button type="object" icon="fa-trash-o" name="unlink"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sale_budget_product_map_view_form" model="ir.ui.view">
+        <field name="name">sale.budget.product.map.view.form</field>
+        <field name="model">sale.budget.product.map</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="product_1_id" required="1"/>
+                <field name="product_2_id" required="1"/>
+            </form>
+        </field>
+    </record>    
+    
+    <record id="action_budget_product_map_form" model="ir.actions.act_window">
+        <field name="name">Product Mapping Form</field>
         <field name="type">ir.actions.act_window</field>
-        <field name="res_model">budget.report.wizard</field>
+        <field name="res_model">sale.budget.product.map</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="context">{'action_next':'sale_budget_report_action'}</field>
+    </record>
+
+    <record id="action_budget_product_map" model="ir.actions.act_window">
+        <field name="name">Product Mapping</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.budget.product.map</field>
+        <field name="view_mode">tree</field>
+        <field name="target"></field>
     </record>
 
     <record id="action_budget_report_qweb_wizard" model="ir.actions.act_window">
-        <field name="name">Budget Report Qweb</field>
+        <field name="name">Budget Report</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">budget.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
         <field name="context">{'action_next':'sale_budget_report_action_qweb'}</field>
     </record>
-
+    
     <menuitem id="menu_budget_report_qweb" name="Budget Visualizer" parent="clx_budget_management.main_menu_sale_budget" action="clx_budget_analysis_report.action_budget_report_qweb_wizard" />
+
+    <menuitem id="menu_budget_configuation_root" name="Configuration" parent="clx_budget_management.main_menu_sale_budget"/>
+
+    <menuitem id="menu_budget_product_map" name="Product Mapping" parent="menu_budget_configuation_root" action="clx_budget_analysis_report.action_budget_product_map" />
 </odoo>

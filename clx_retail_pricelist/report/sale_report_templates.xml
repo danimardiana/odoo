@@ -158,16 +158,25 @@
                                             <span t-esc="parent_sale_order.money_formatting(line['price_unit'])"/>
                                         </div>
                                     </div>
+                                        <!-- Only display prorated amount, when equal to monthly, if it's a TCC product -->
                                     <div t-if="line['prorate_amount'] and line['prorate_amount'] != line['price_unit']" class="productTotalWrapper">
                                         <div style="display:inline-block;"> 
-                                        <span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/>
-                                        Spend: 
+                                            <span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/>
+                                            Spend: 
                                         </div>
                                         <div class="productTotal">
                                             <span t-esc="parent_sale_order.money_formatting(line['prorate_amount'])"/>
                                         </div>
                                     </div>
-                                    
+                                    <div t-elif="line['prorate_amount'] and 'TCC' in line['name']" class="productTotalWrapper">
+                                        <div style="display:inline-block;"> 
+                                            <span t-esc="parent_sale_order.date_month_formatting(line['start_date'])"/>
+                                            Spend: 
+                                        </div>
+                                        <div class="productTotal">
+                                            <span t-esc="parent_sale_order.money_formatting(line['prorate_amount'])"/>
+                                        </div>
+                                    </div>
                                     <div t-if="management_fee_calculated and not need_display_fee and management_fee_calculated > 0" class="productTotalWrapper">
                                         <div style="display:inline-block;">Monthly Fee: </div>
                                         <div class="productTotal">
@@ -196,7 +205,7 @@
         <div class="dont_break_inside productLineWrapper justify-content-center row">
             <t t-foreach="sorted(list(spend_object.keys()))" t-as="date_period">
                 <div class="monthlyTotalWrapper" >
-
+                    
                         <div class=""><t t-esc="parent_sale_order.date_month_formatting(spend_object[date_period]['date'])"/> Total: </div>
                         <div class="monthlyTotal">
                             <span t-esc="parent_sale_order.money_formatting(spend_object[date_period]['price'])"/>

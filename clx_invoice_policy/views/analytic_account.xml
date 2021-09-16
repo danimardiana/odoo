@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Inherit Form View to add start date and end date fields -->
+    <record id="view_account_analytic_account_form_inherit_add_fields" model="ir.ui.view">
+        <field name="name">view.analytic.account.inherit.add.fields</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="analytic.view_account_analytic_account_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group/group[2]" position="inside">
+                <field name="vertical"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

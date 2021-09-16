@@ -10,7 +10,7 @@ class MaleComposeMessage(models.TransientModel):
 
     def get_allowed_ids(self):
         if self.model in ["sale.order", "account.move"]:
-            self.allowed_partner_ids = self.env["sale.order"].browse(self.res_id).partner_id.contacts_to_notify()
+            self.allowed_partner_ids = self.env[self.model].browse(self.res_id).partner_id.contacts_to_notify()
 
     allowed_partner_ids = fields.One2many("res.partner", compute="get_allowed_ids", string="List of contacts")
 
@@ -26,6 +26,11 @@ class MaleComposeMessage(models.TransientModel):
             "email_from": self.email_from,
             "reply_to": self.reply_to,
         }
+        if self.model == 'account.move':
+            invoice = self.env[self.model].browse(self.res_id)
+            if invoice.state == 'posted':
+                invoice.update({"state":"email_sent"})
+        
         array_of_recipients = []
         if type(self.email_to) is str:
             array_of_recipients += self.email_to.split(",")
