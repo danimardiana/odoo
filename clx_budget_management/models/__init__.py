@@ -6,6 +6,7 @@ from . import sale_subscription
 # from . import sale_subscription_line
 from . import res_config_settings
 from . import sale_budget
+from . import sale_budget_export_wizard
 from . import sale_budget_exports
 from . import sale_budget_changes
 from . import sale_subscription_line
