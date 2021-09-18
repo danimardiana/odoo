@@ -369,7 +369,7 @@ class SaleOrder(models.Model):
                     + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
                     + str(product_individual["discount"])
                 )
-            # in case if grouping should take date ino account
+            # in case if grouping should take date in to account
             if grouping_levels & grouping_data.DATE_GROUPING_FLAG:
                 combined_signature += str(product_individual["start_date"]) + str(product_individual["end_date"])
 

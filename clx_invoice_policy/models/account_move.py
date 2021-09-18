@@ -28,6 +28,8 @@ class AccountMove(models.Model):
     secondary_user_id = fields.Many2one("res.users", string="Secondary Acct. Manager")
     national_user_id = fields.Many2one("res.users", string="National Acct. Manager")
 
+    post_date = fields.Date(string="Invoice Post Date")
+
     state = fields.Selection(
         selection=[
             ("draft", "Draft"),
@@ -123,6 +125,7 @@ class AccountMove(models.Model):
             and sequence
         ):
             self.name = sequence.next_by_code("greystar.sequence")
+        self.post_date = datetime.datetime.now()
         return res
 
     @staticmethod
@@ -209,15 +212,14 @@ class AccountMove(models.Model):
     def _onchange_invoice_month_year(self):
         self.update_due_date()
 
-    @api.onchange('partner_id')
+    @api.onchange("partner_id")
     def _onchange_partner(self):
-        #update Analytic account based on partner vertical
-        analytic_account_id = self.env['account.analytic.account'].\
-            search([('vertical', '=', self.partner_id.vertical)], limit=1)
+        # update Analytic account based on partner vertical
+        analytic_account_id = self.env["account.analytic.account"].search(
+            [("vertical", "=", self.partner_id.vertical)], limit=1
+        )
         if self.invoice_line_ids:
-            self.invoice_line_ids.analytic_account_id = self.partner_id.vertical and \
-                                                        analytic_account_id or False
-
+            self.invoice_line_ids.analytic_account_id = self.partner_id.vertical and analytic_account_id or False
 
     def update_due_date(self):
         current_month = datetime.datetime.now().date().month
@@ -227,8 +229,7 @@ class AccountMove(models.Model):
             if new_val:
                 year, month = new_val.split("-")
                 if int(month) > current_month and int(year) >= current_year:
-                    invoice.invoice_date_due = \
-                        datetime.date(int(year), int(month), 1) - datetime.timedelta(days=1)
+                    invoice.invoice_date_due = datetime.date(int(year), int(month), 1) - datetime.timedelta(days=1)
 
     # rewriting the email sending function
     def action_invoice_sent(self, reminder=False):
@@ -302,16 +303,16 @@ class AccountMove(models.Model):
         # updating Analytic account value if applicable
         res._onchange_partner()
         # Updating invoice user id as it's partner's account manager
-        if res.partner_id: 
+        if res.partner_id:
             if res.partner_id.account_user_id:
-                res.account_user_id = res.partner_id.account_user_id      
+                res.account_user_id = res.partner_id.account_user_id
             if res.partner_id.secondary_user_id:
-                res.secondary_user_id = res.partner_id.secondary_user_id  
+                res.secondary_user_id = res.partner_id.secondary_user_id
             if res.partner_id.national_user_id:
-                res.national_user_id = res.partner_id.national_user_id                    
+                res.national_user_id = res.partner_id.national_user_id
         res.update_due_date()
         for move_id in res:
-            if move_id.type == 'out_invoice':
+            if move_id.type == "out_invoice":
                 current_month = datetime.datetime.now().month
                 current_year = datetime.datetime.now().year
                 new_val = move_id.invoice_month_year
@@ -319,17 +320,18 @@ class AccountMove(models.Model):
                     year, month = new_val.split("-")
                     if int(month) <= current_month and int(year) <= current_year:
                         for line in move_id.line_ids:
-                            account = line.product_id.property_account_income_id\
+                            account = (
+                                line.product_id.property_account_income_id
                                 or line.product_id.categ_id.property_account_income_categ_id
-                            line.account_id =account and account.id or line.account_id.id
+                            )
+                            line.account_id = account and account.id or line.account_id.id
         return res
 
     def _auto_create_asset(self):
         model_ids = []
         move = self and self[0]
         if move and move.is_invoice():
-            model_ids = move.line_ids.account_id\
-                    and move.line_ids.account_id.asset_model
+            model_ids = move.line_ids.account_id and move.line_ids.account_id.asset_model
         if model_ids:
             return super(AccountMove, self)._auto_create_asset()
         else:
@@ -349,8 +351,12 @@ class AccountMove(models.Model):
                         and not move_line.asset_id
                     ):
                         if not move_line.name:
-                            raise UserError(_('Journal Items of {account} should have a label in order to generate an asset').format(account=move_line.account_id.display_name))
-                        #Create first_depreciation_date
+                            raise UserError(
+                                _(
+                                    "Journal Items of {account} should have a label in order to generate an asset"
+                                ).format(account=move_line.account_id.display_name)
+                            )
+                        # Create first_depreciation_date
                         relative_date = datetime.date.today()
                         new_val = move.invoice_month_year
                         if new_val:
@@ -358,45 +364,50 @@ class AccountMove(models.Model):
                             if month.isdigit() and year.isdigit():
                                 relative_date = relative_date.replace(day=1, month=int(month), year=int(year))
                         next_date = relative_date
-                        dep_account_id = move_line.product_id.property_account_income_id.id\
-                                or move_line.product_id.categ_id.property_account_income_categ_id.id
+                        dep_account_id = (
+                            move_line.product_id.property_account_income_id.id
+                            or move_line.product_id.categ_id.property_account_income_categ_id.id
+                        )
                         vals = {
-                            'name': move_line.name,
-                            'company_id': move_line.company_id.id,
-                            'currency_id': move_line.company_currency_id.id,
-                            'account_depreciation_id': dep_account_id,
-                            'account_depreciation_expense_id': move_line.account_id and move_line.account_id.id,
-                            'original_move_line_ids': [(6, False, move_line.ids)],
-                            'state': 'draft',
-                            'first_depreciation_date': next_date,
+                            "name": move_line.name,
+                            "company_id": move_line.company_id.id,
+                            "currency_id": move_line.company_currency_id.id,
+                            "account_depreciation_id": dep_account_id,
+                            "account_depreciation_expense_id": move_line.account_id and move_line.account_id.id,
+                            "original_move_line_ids": [(6, False, move_line.ids)],
+                            "state": "draft",
+                            "first_depreciation_date": next_date,
                         }
                         model_id = move_line.account_id.asset_model
                         if model_id:
-                            vals.update({
-                                'model_id': model_id.id,
-                            })
-                        auto_validate.append(move_line.account_id.create_asset == 'validate')
+                            vals.update(
+                                {
+                                    "model_id": model_id.id,
+                                }
+                            )
+                        auto_validate.append(move_line.account_id.create_asset == "validate")
                         invoice_list.append(move)
                         create_list.append(vals)
 
-            assets = self.env['account.asset'].create(create_list)
+            assets = self.env["account.asset"].create(create_list)
             # assets.update({'state':'draft'})
             for asset, vals, invoice, validate in zip(assets, create_list, invoice_list, auto_validate):
-                
+
                 asset._onchange_model_id()
                 asset._onchange_method_period()
                 if validate:
                     asset.validate()
                 if invoice:
                     asset_name = {
-                        'purchase': _('Asset'),
-                        'sale': _('Deferred revenue'),
-                        'expense': _('Deferred expense'),
+                        "purchase": _("Asset"),
+                        "sale": _("Deferred revenue"),
+                        "expense": _("Deferred expense"),
                     }[asset.asset_type]
-                    msg = _('%s created from invoice') % (asset_name)
-                    msg += ': <a href=# data-oe-model=account.move data-oe-id=%d>%s</a>' % (invoice.id, invoice.name)
+                    msg = _("%s created from invoice") % (asset_name)
+                    msg += ": <a href=# data-oe-model=account.move data-oe-id=%d>%s</a>" % (invoice.id, invoice.name)
                     asset.message_post(body=msg)
             return assets
+
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
