@@ -237,7 +237,7 @@ class AccountMove(models.Model):
 
         template = self.env["mail.template"].sudo().search([("name", "=", "Invoice: CLX email template")])
         template_id = template.id
-        account_manager = self.account_user_id
+        account_manager = self.partner_id.account_user_id.partner_id
         default_partner_ids = [account_manager.id] + self.partner_id.contacts_to_notify().mapped("id")
         contacts_billing = [account_manager.id] + self.partner_id.contacts_to_notify(
             group_name="Billing Contact"
