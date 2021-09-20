@@ -562,6 +562,7 @@ class SaleSubscription(models.Model):
                         else line["rebate_product"].categ_id.id,
                         "product": None if "id" not in line["rebate_product"] else line["rebate_product"].id,
                         "tax_ids": line["tax_ids"],
+                        "account_id": line['account_id'],
                     }
 
                 rebate_total[rebate_signature]["price"] += line["rebate"]
@@ -577,6 +578,7 @@ class SaleSubscription(models.Model):
                         "category_id": rebate_total[reb]["category"],
                         "product_id": rebate_total[reb]["product"],
                         "tax_ids": rebate_total[reb]["tax_ids"],
+                        "account_id": rebate_total[reb]['account_id'],
                     }
                 )
         return grouped_invoice_lines

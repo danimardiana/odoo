@@ -137,7 +137,9 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_invoice_tree"/>
         <field name="arch" type="xml">
-
+            <xpath expr="//field[@name='invoice_date']" position="before">
+                <field name="mgmt_company" optional = "show" />
+            </xpath>
             <xpath expr="//field[@name='invoice_date_due']" position="after">
                 <field name="invoice_month_year" optional = "hide" />
                 <field name="invoice_period_verbal" optional = "show" />
