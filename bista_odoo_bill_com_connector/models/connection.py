@@ -246,3 +246,18 @@ class BillComService:
         elif response and response.get('response_message') == 'Error':
             error_message = response.get('response_data',{}).get('error_message')
             raise UserError(_("%s") % (error_message))           
+
+        
+    def import_coa_api(self, bill_com_coa_import_url, vendor_data):
+        session_id = self.session_id
+        devKey = self.devKey
+        vendor_data = str(vendor_data)
+        data = {'sessionId': session_id,'devKey': devKey, 'data': '''%s''' %(vendor_data)}
+        x = requests.post(bill_com_coa_import_url, headers={"content-type":"application/x-www-form-urlencoded"}, data=data)
+        response = json.loads(x.text)
+        if response and response.get('response_message') == 'Success':
+            response_data = response.get('response_data',{})
+            return response_data
+        elif response and response.get('response_message') == 'Error':
+            error_message = response.get('response_data',{}).get('error_message')
+            raise UserError(_("%s") % (error_message))         

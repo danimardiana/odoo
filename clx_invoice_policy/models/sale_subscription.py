@@ -82,8 +82,8 @@ class SaleSubscription(models.Model):
 
         if not price_list or not price_list.active:
             return {
-                "management_fee": -2,
-                "wholesale_price": -2,
+                "management_fee": False,
+                "wholesale_price": False,
                 "management_fee_product": False,
             }
 
@@ -136,8 +136,8 @@ class SaleSubscription(models.Model):
             wholesale = -wholesale
 
         return {
-            "management_fee": management_fee if management_fee else -1,
-            "wholesale_price": wholesale if wholesale else -1,
+            "management_fee": management_fee,
+            "wholesale_price": wholesale,
             "management_fee_product": management_fee_product,
         }
 
@@ -499,7 +499,7 @@ class SaleSubscription(models.Model):
             if line["price_unit"] == 0:
                 continue
             final_price = line["price_unit"]
-            if line["management_fee"] > 0:
+            if abs(line["management_fee"]) > 0:
                 final_price -= line["management_fee"]
                 grouped_invoice_lines.append(
                     {
@@ -562,10 +562,9 @@ class SaleSubscription(models.Model):
                         "category": None
                         if not line["rebate_product"] or "categ_id" not in line["rebate_product"]
                         else line["rebate_product"].categ_id.id,
-                        "product": None
-                        if not line["rebate_product"] or "id" not in line["rebate_product"]
-                        else line["rebate_product"].id,
-                        "tax_ids": [],
+                        "product": None if "id" not in line["rebate_product"] else line["rebate_product"].id,
+                        "tax_ids": line["tax_ids"],
+                        "account_id": line['account_id'],
                     }
 
                 rebate_total[rebate_signature]["price"] += line["rebate"]
@@ -581,6 +580,7 @@ class SaleSubscription(models.Model):
                         "category_id": rebate_total[reb]["category"],
                         "product_id": rebate_total[reb]["product"],
                         "tax_ids": rebate_total[reb]["tax_ids"],
+                        "account_id": rebate_total[reb]['account_id'],
                     }
                 )
         return grouped_invoice_lines
@@ -615,7 +615,11 @@ class SaleSubscription(models.Model):
                 draft_invoices[invoice.id] = True
                 sub_lines.append(subscription_line)
             elif not invoice or (invoice.state not in invoices_posted):
+<<<<<<< HEAD
                 # in case of subscription was not invoiced ye or invoice was cancelled
+=======
+                # in case of subscription was not invoiced yet or invoice was cancelled
+>>>>>>> staging-clx-dm
                 sub_lines.append(subscription_line)
 
         # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated

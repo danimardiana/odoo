@@ -6,9 +6,9 @@
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="arch" type="xml">
-                <xpath expr="/form/sheet/div[1]" position="after">
+                <!-- <xpath expr="/form/sheet/div[1]" position="after">
                     <separator style="color:Red;" string="Vendor Linked to Bill.com. Please ensure changes are updated on Bill.com by Authorized user." attrs="{'invisible': [('bill_com_vendor_id', '=', False)]}"/>
-                </xpath>
+                </xpath> -->
                 <xpath expr="/form/sheet/notebook" position="inside">
                     <page name="bank_ids" string="Bank Accounts">
                         <field name="bank_ids" domain="['|',('active', '=', True), ('active', '=', False)]" context="{'acc_holder_name': name}">
