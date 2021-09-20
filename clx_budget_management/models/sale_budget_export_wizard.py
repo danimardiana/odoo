@@ -201,7 +201,7 @@ class SaleBudgetExportWizard(models.TransientModel):
                         "user_id": self.env.user.id,
                         "status": 0,
                         "start_date": self.start_date,
-                        "end_date": self.start_date,
+                        "end_date": self.end_date,
                         "create_date": fields.Datetime.now(),
                     }
                 )
