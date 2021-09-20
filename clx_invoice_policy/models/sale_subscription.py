@@ -407,6 +407,7 @@ class SaleSubscription(models.Model):
                 "end_date": line.end_date,
             }
 
+        # just filtering the fields necessary for last step - invoice creation
         def last_order_data(product_individual):
             return {
                 "product_name": product_individual["product_name"],
@@ -488,6 +489,7 @@ class SaleSubscription(models.Model):
         ]
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 
+    # adding the management fee and rebate lines to the invoice
     def invoicing_add_management_fee_and_rebate_lines(self, grouped_sub_lines, start_date, end_date):
         period_msg = self.format_period_message(start_date, end_date)
         # processing the grouped lines into invoice lines
@@ -560,7 +562,9 @@ class SaleSubscription(models.Model):
                         "category": None
                         if not line["rebate_product"] or "categ_id" not in line["rebate_product"]
                         else line["rebate_product"].categ_id.id,
-                        "product": None if not line["rebate_product"] or "id" not in line["rebate_product"] else line["rebate_product"].id,
+                        "product": None
+                        if not line["rebate_product"] or "id" not in line["rebate_product"]
+                        else line["rebate_product"].id,
                         "tax_ids": [],
                     }
 
