@@ -615,11 +615,7 @@ class SaleSubscription(models.Model):
                 draft_invoices[invoice.id] = True
                 sub_lines.append(subscription_line)
             elif not invoice or (invoice.state not in invoices_posted):
-<<<<<<< HEAD
                 # in case of subscription was not invoiced ye or invoice was cancelled
-=======
-                # in case of subscription was not invoiced yet or invoice was cancelled
->>>>>>> staging-clx-dm
                 sub_lines.append(subscription_line)
 
         # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated
