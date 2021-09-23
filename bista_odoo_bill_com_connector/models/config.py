@@ -48,6 +48,8 @@ class BillComConfig(models.Model):
     bill_com_vendor_bank_account_import_url = fields.Char("Vendor Bank Accounts Import URL", copy=False)
     bill_com_bill_import_url = fields.Char("Bill Import URL", copy=False)
     last_bill_imported_date = fields.Datetime('Bill Imported Date', copy=False)
+    bill_com_bill_status = fields.Selection([('1','Unpaid'),('2','Partially Paid'), ('4','Scheduled'), ('0','Paid'), ('all', 'All')], string="Payment Status", copy=False, default='all')
+    bill_com_coa_import_url = fields.Char("Chart of Account Import URL", copy=False)
 
     def get_bill_com_config(self, company_id):
         bill_com_config_obj = False
@@ -84,6 +86,7 @@ class BillComConfig(models.Model):
             self.bill_com_vendor_import_url = 'https://api-sandbox.bill.com/api/v2/List/Vendor.json'
             self.bill_com_vendor_bank_account_import_url = 'https://api-sandbox.bill.com/api/v2/List/VendorBankAccount.json'
             self.bill_com_bill_import_url = 'https://api-sandbox.bill.com/api/v2/List/Bill.json'
+            self.bill_com_coa_import_url = 'https://api-sandbox.bill.com/api/v2/List/ChartOfAccount.json'
         else:
             self.bill_com_login_url = 'https://api.bill.com/api/v2/Login.json'
             self.bill_com_vendor_create_url = 'https://api.bill.com/api/v2/Crud/Create/Vendor.json'
@@ -100,7 +103,8 @@ class BillComConfig(models.Model):
             self.bill_com_payment_cancel_url = 'https://api.bill.com/api/v2/CancelAPPayment.json'
             self.bill_com_vendor_import_url = 'https://api.bill.com/api/v2/List/Vendor.json'
             self.bill_com_vendor_bank_account_import_url = 'https://api.bill.com/api/v2/List/VendorBankAccount.json'
-            self.bill_com_bill_import_url = 'https://api-sandbox.bill.com/api/v2/List/Bill.json'
+            self.bill_com_bill_import_url = 'https://api.bill.com/api/v2/List/Bill.json'
+            self.bill_com_coa_import_url = 'https://api.bill.com/api/v2/List/ChartOfAccount.json'
 
     def get_organizational_bank_accounts_details(self):
         bill_com_user_name = self.bill_com_user_name
@@ -236,6 +240,7 @@ class BillComConfig(models.Model):
                                 for each_bill_data in billPays:
                                     billId = each_bill_data.get('billId')
                                     amount = each_bill_data.get('amount')
+                                    bill_name = each_bill_data.get('name')
                                     billIds.append(billId)
                                     cr.execute("""select id from account_move where bill_com_bill_id = '%s'""" % (billId))
                                     odoo_invoice_ids = list(filter(None, map(lambda x: x[0], cr.fetchall())))
@@ -268,7 +273,23 @@ class BillComConfig(models.Model):
         invoice_exists = list(filter(None, map(lambda x: x, cr.fetchall())))
         if invoice_exists:
             return True
-        return False    
+        return False
+
+    
+    def get_line_account(self, bill_com_coa_id, product_id, journal_id, company_id):
+        account_id = False
+        search_odoo_account_id = self.env['account.account'].search([('bill_com_coa_id', '=', bill_com_coa_id), ('company_id', '=', company_id)], limit=1)
+        if search_odoo_account_id:
+            return search_odoo_account_id.id
+        if product_id:    
+            accounts = product_id.product_tmpl_id.get_product_accounts(fiscal_pos=False)
+            if accounts and accounts.get('income'):
+                account_id = accounts.get('income', False)
+        elif journal_id:
+            account_id = journal_id.default_credit_account_id
+        return account_id    
+            
+        
 
     def import_bill_com_bills(self):
         context = self._context.copy()
@@ -282,24 +303,33 @@ class BillComConfig(models.Model):
             bill_com_devkey = each_config.bill_com_devkey
             bill_com_login_url = each_config.bill_com_login_url
             bill_com_bill_import_url = each_config.bill_com_bill_import_url
+            bill_com_bill_status =  each_config.bill_com_bill_status
             bill_com_vendor_import_url = each_config.bill_com_vendor_import_url
             company_id = each_config.company_id
             filter_data = ''
             if 'bill_id' in context:
                 bill_id = context.get('bill_id', '')
                 filter_data = {"start": 0, "max": 999,
-                               "filters": [{"field": "id", "op": "=", "value": bill_id}]}
+                               "filters": [{"field": "id", "op": "=", "value": bill_id},
+                               {"field": "isActive", "op": "=", "value": "1"}]}
             elif 'from_date' in context and 'to_date' in context:
                 from_date = context.get('from_date', '')
                 to_date = context.get('to_date', '')
                 filter_data = {"start": 0, "max": 999,
                                "filters": [{"field": "updatedTime", "op": ">=", "value": from_date},
-                                           {"field": "updatedTime", "op": "<=", "value": to_date}]}
+                                           {"field": "updatedTime", "op": "<=", "value": to_date},
+                                           {"field": "isActive", "op": "=", "value": "1"}
+                                           ]}
+                if bill_com_bill_status and bill_com_bill_status != 'all':
+                    filter_data["filters"].append({"field": "paymentStatus", "op": "=", "value": bill_com_bill_status})
             elif last_bill_imported_date:
                 # last_bill_imported_date = fields.Date.to_string(last_bill_imported_date - timedelta(1))
                 last_bill_imported_date = fields.Date.to_string(last_bill_imported_date)
                 filter_data = {"start": 0, "max": 999,
-                               "filters": [{"field": "updatedTime", "op": ">", "value": last_bill_imported_date}]}
+                               "filters": [{"field": "updatedTime", "op": ">", "value": last_bill_imported_date},
+                                            {"field": "isActive", "op": "=", "value": "1"}]}
+                if bill_com_bill_status and bill_com_bill_status != 'all':
+                    filter_data["filters"].append({"field": "paymentStatus", "op": "=", "value": bill_com_bill_status})                                
             if filter_data:
                 bill_com_service_obj = BillComService(bill_com_user_name, bill_com_password, bill_com_orgid,
                                                       bill_com_devkey, bill_com_login_url)
@@ -311,6 +341,7 @@ class BillComConfig(models.Model):
                 partner_obj = self.env['res.partner']
                 error_logs_obj = self.env['bill.com.error.logs']
                 product_obj = self.env['product.product']
+                journal_obj = self.env['account.journal']
                 if bill_data:
                     for each_data in bill_data:
                         try:
@@ -357,6 +388,7 @@ class BillComConfig(models.Model):
                                     'zip': addressZip, 'country_id': odoo_country_rec_id, 'state_id': odoo_state_rec_id, 'phone': phone if phone else ''}
                                     odoo_vendor_id = [partner_obj.create(vals).id]
                             if odoo_vendor_id:
+                                journal_id = journal_obj.search([('company_id', '=', company_id.id), ('type', '=', 'purchase')], limit=1)
                                 cr.execute("select id from account_move where bill_com_bill_id='%s' and type='in_invoice'" % (bill_com_bill_id))
                                 odoo_bill_id = list(filter(None, map(lambda x: x[0], cr.fetchall())))
                                 cr.execute("select id from purchase_order where partner_ref='%s'" % (reference))
@@ -364,25 +396,35 @@ class BillComConfig(models.Model):
                                 billLineItems = each_data.get('billLineItems', [])
                                 line_vals = []
                                 for each_line_data in billLineItems:
-                                    description = each_line_data.get('description')
-                                    description_brw = description.find('[')
+                                    description = each_line_data.get('description', '')
+                                    chartOfAccountId = each_line_data.get('chartOfAccountId', '')
+                                    description_brw = description.find('[') if description else ''
                                     purchase_line_id = False
                                     if description_brw == 0:
                                         odoo_internal_reference = description.split('[', 1)[1].split(']')[0]
                                         product_id = product_obj.search(['|',('default_code', '=', odoo_internal_reference), ('name', '=', description)], limit=1)
                                     else:
                                         product_id = product_obj.search([('name', '=', description)], limit=1)
-                                    quantity = each_line_data.get('quantity')
+                                    quantity = each_line_data.get('quantity', 1)
+                                    subtotal = each_line_data.get('amount', 0.0)
+                                    unit_price = each_line_data.get('unit_price', 0.0)
                                     if not quantity:
                                         quantity = 1
-                                    unit_price = each_line_data.get('amount')
+                                    if 'quantity' not in each_line_data:
+                                        quantity = subtotal / unit_price   
+                                    if 'unit_price' in each_line_data:
+                                        unit_price = unit_price
+                                    else:        
+                                        unit_price =  subtotal / quantity
                                     if odoo_purchase_order_id and product_id:
                                         cr.execute("select id from purchase_order_line where order_id=%s and product_id=%s" % (odoo_purchase_order_id[0], product_id.id))
                                         purchase_line_id = list(filter(None, map(lambda x: x[0], cr.fetchall())))
+                                    line_account_id = self.get_line_account(chartOfAccountId, product_id if product_id else False, journal_id, company_id.id)
                                     line_vals.append((0, 0, {
                                             'name': description, 'product_id': product_id.id if product_id else False, 'quantity': quantity,
                                             'price_unit': unit_price, 'price_subtotal': unit_price,
-                                            'purchase_line_id': purchase_line_id[0] if purchase_line_id else False
+                                            'purchase_line_id': purchase_line_id[0] if purchase_line_id else False,
+                                            'account_id': line_account_id
                                         }))
                                 if odoo_bill_id:
                                     existing_bill_id = account_move_obj.sudo().browse(odoo_bill_id[0])
@@ -393,7 +435,10 @@ class BillComConfig(models.Model):
                                                        'partner_id': odoo_vendor_id[0],
                                                        'invoice_line_ids': line_vals, 'type': 'in_invoice',
                                                        'invoice_date': invoiceDate, 'invoice_date_due': dueDate,
-                                                       'invoice_origin': po_number}
+                                                       'invoice_origin': po_number,
+                                                       'journal_id': journal_id.id if journal_id else False,
+                                                       'company_id': company_id.id
+                                                        }
                                         existing_ref = existing_bill_id.ref
                                         if existing_ref != invoice_number:
                                             if not self.check_duplicate_vendor_reference(invoice_number, odoo_vendor_id[0], invoiceDate):
@@ -415,7 +460,9 @@ class BillComConfig(models.Model):
                                         bill_vals = {
                                                      'partner_id': odoo_vendor_id[0], 'ref': invoice_number,'bill_com_bill_id': bill_com_bill_id,
                                                      'invoice_line_ids': line_vals, 'type': 'in_invoice', 'invoice_date': invoiceDate, 'invoice_date_due': dueDate, 'state': 'draft',
-                                                     'invoice_origin': po_number}
+                                                     'invoice_origin': po_number,
+                                                     'journal_id': journal_id.id if journal_id else False,
+                                                     'company_id': company_id.id}
                                         odoo_bill_id = account_move_obj.create(bill_vals)
                                         odoo_bill_id.with_context({'from_import_bill': True}).action_post()
                                         odoo_bill_id = odoo_bill_id.id
@@ -480,35 +527,40 @@ class BillComConfig(models.Model):
                     cr.execute("select id from res_partner where %s limit 1" % (query_string))
                     odoo_vendor_id = list(filter(None, map(lambda x: x[0], cr.fetchall())))
                     _logger.info('odoo_vendor_id %s, %s', odoo_vendor_id, query_string)
+                    isActive = each_vendor_data.get('isActive')
+                    address1 = each_vendor_data.get('address1')
+                    address2 = each_vendor_data.get('address2')
+                    addressCity = each_vendor_data.get('addressCity')
+                    addressZip = each_vendor_data.get('addressZip')
+                    addressCity = each_vendor_data.get('addressCity')
+                    addressCountry = each_vendor_data.get('addressCountry')
+                    odoo_country_rec_id = odoo_state_rec_id = False
+                    if addressCountry:
+                        cr.execute("select id from res_country where name ilike '%s'" % (addressCountry))
+                        odoo_country_id = list(filter(None, map(lambda x: x[0], cr.fetchall())))
+                        if odoo_country_id:
+                            odoo_country_rec_id = odoo_country_id[0]
+                            addressState = each_vendor_data.get('addressState')
+                            if addressState:
+                                cr.execute("select id from res_country_state where code='%s' and country_id=%s" % (addressState, odoo_country_id[0]))
+                                odoo_state_id = list(filter(None, map(lambda x: x[0], cr.fetchall())))
+                                if odoo_state_id:
+                                    odoo_state_rec_id = odoo_state_id[0]
+                    phone = each_vendor_data.get('phone')
+                    vals = {'supplier_rank': 1,'name': name, 'bill_com_vendor_id': vendor_id, 'email': email if email else False,
+                    'active': True if isActive== '1' else False, 'street': address1, 'street2': address2, 'city':addressCity,
+                    'zip': addressZip, 'country_id': odoo_country_rec_id, 'state_id': odoo_state_rec_id, 'phone': phone if phone else ''}
                     if not odoo_vendor_id:
-                        isActive = each_vendor_data.get('isActive')
-                        address1 = each_vendor_data.get('address1')
-                        address2 = each_vendor_data.get('address2')
-                        addressCity = each_vendor_data.get('addressCity')
-                        addressZip = each_vendor_data.get('addressZip')
-                        addressCity = each_vendor_data.get('addressCity')
-                        addressCountry = each_vendor_data.get('addressCountry')
-                        odoo_country_rec_id = odoo_state_rec_id = False
-                        if addressCountry:
-                            cr.execute("select id from res_country where name ilike '%s'" % (addressCountry))
-                            odoo_country_id = list(filter(None, map(lambda x: x[0], cr.fetchall())))
-                            if odoo_country_id:
-                                odoo_country_rec_id = odoo_country_id[0]
-                                addressState = each_vendor_data.get('addressState')
-                                if addressState:
-                                    cr.execute("select id from res_country_state where code='%s' and country_id=%s" % (addressState, odoo_country_id[0]))
-                                    odoo_state_id = list(filter(None, map(lambda x: x[0], cr.fetchall())))
-                                    if odoo_state_id:
-                                        odoo_state_rec_id = odoo_state_id[0]
-                        phone = each_vendor_data.get('phone')
-                        vals = {'supplier_rank': 1,'name': name, 'bill_com_vendor_id': vendor_id, 'email': email if email else False,
-                        'active': True if isActive== '1' else False, 'street': address1, 'street2': address2, 'city':addressCity,
-                        'zip': addressZip, 'country_id': odoo_country_rec_id, 'state_id': odoo_state_rec_id, 'phone': phone if phone else ''}
                         partner_obj.create(vals)
                     else:
                         partner_id_brw = partner_obj.sudo().browse(odoo_vendor_id[0])
-                        partner_id_brw.write({'bill_com_vendor_id': vendor_id})
+                        partner_id_brw.write(vals)
                 i = i + 1
+
+    @api.model
+    def auto_bill_com_vendor_sync(self):
+        search_config = self.env['bill.com.config'].search([])
+        search_config.import_vendor_data()
 
     def import_vendor_bank_account_data(self):
         context = self._context
@@ -572,4 +624,28 @@ class BillComConfig(models.Model):
                                        })
                             except Exception as e:
                                 pass
-                i = i + 1               
+                i = i + 1
+
+    def import_bill_com_coa(self):
+        context = self._context
+        for each_config in self:
+            company_id = each_config.company_id.id
+            bill_com_user_name = each_config.bill_com_user_name
+            bill_com_password = each_config.bill_com_password
+            bill_com_orgid = each_config.bill_com_orgid
+            bill_com_devkey = each_config.bill_com_devkey
+            bill_com_login_url = each_config.bill_com_login_url
+            bill_com_coa_import_url = each_config.bill_com_coa_import_url
+            filter_data = {"start" : 0,"max" : 999}
+            bill_com_service_obj = BillComService(bill_com_user_name, bill_com_password, bill_com_orgid, bill_com_devkey, bill_com_login_url)   
+            filter_data = json.dumps(filter_data)
+            response_data = bill_com_service_obj.import_coa_api(bill_com_coa_import_url, filter_data)
+            if response_data:
+                account_account_obj = self.env['account.account']
+                for each_response in response_data:
+                    accountNumber = each_response.get('accountNumber', '')
+                    bill_com_coa_id = each_response.get('id', '')
+                    search_odoo_account_id = account_account_obj.search([('code', '=', accountNumber), ('company_id', '=', company_id)], limit=1)
+                    if search_odoo_account_id:
+                        search_odoo_account_id.write({'bill_com_coa_id': bill_com_coa_id})
+                

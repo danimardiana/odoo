@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+    <record id="budget_exports_list" model="ir.ui.view">
+        <field name="name">budget.exports.list</field>
+        <field name="model">sale.budget.exports</field>
+        <field name="arch" type="xml">
+                <tree create="false" edit="false" export_xlsx="false">
+                    <field name="id" readonly="True" />
+                    <field name="user_id" required="1" widget="many2one_avatar_user"/>
+                    <field name="start_date" required="1"/>
+                    <field name="end_date" required="1"/>
+                    <field name="status" widget="progressbar"/>
+                    <button name="" readonly="True" icon="fa-check text-success" attrs="{'invisible': [('status','!=',100)]}" help="Done"/>
+                    <button name="" readonly="True" icon="fa-times-circle text-danger" attrs="{'invisible': [('status','!=',False)]}" help="Error"/>
+                    <field name="create_date" />
+                    <field name="attachment_name" invisible="1"/>
+                    <field name="attachment_file" widget="binary" filename ="attachment_name" readonly="1" force_save="1"  attrs="{'invisible':[('attachment_file', '=', False)]}"/>
+                    <button type="object" icon="fa-trash-o" name="unlink" string="Unlink" class="btn-secondary"/>                    
+                </tree>
+        </field>
+    </record>
+
+    <record id="budget_export_form" model="ir.ui.view">
+        <field name="name">budget.export.form</field>
+        <field name="model">sale.budget.exports</field>
+        <field name="arch" type="xml">
+                <form create="false" edit="false" export_xlsx="false">
+                    <field name="attachment_name" invisible="1"/>
+                    <field name="attachment_file" widget="binary" filename ="attachment_name" readonly="1" force_save="1"  attrs="{'invisible':[('attachment_file', '=', False)]}"/>                   
+                </form>
+        </field>
+    </record>
+
     <record id="budget_export" model="ir.ui.view">
         <field name="name">budget.export.wizard.form</field>
         <field name="model">sale.budget.export.wizard</field>
@@ -11,13 +42,21 @@
                         <field name="end_date" required="1"/>
                     </group>
                     <footer>
-                        <button name="download_report" string="Download" type="object" class="btn-primary"/>
+                        <button name="start_report" string="Start" type="object" class="btn-primary"/>
                         <button string="Cancel" class="btn-secondary" special="cancel"/>
                     </footer>                    
                 </sheet>
             </form>
         </field>
     </record>
+    <record id="action_sale_budget_exports_action" model="ir.actions.act_window">
+        <field name="name">Exports</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.budget.exports</field>
+        <field name="view_mode">tree,form</field>
+        <field name="target"></field>
+    </record>
+
     <record id="action_sale_budget_exports_wizard" model="ir.actions.act_window">
         <field name="name">Export</field>
         <field name="type">ir.actions.act_window</field>
@@ -32,8 +71,7 @@
     <menuitem id="menu_sale_budget_exporting"
               name="Data Export"
               parent="clx_budget_management.main_menu_sale_budget"
-              action="clx_budget_management.action_sale_budget_exports_wizard"
+              action="clx_budget_management.action_sale_budget_exports_action"
               sequence="4"
               />
-
 </odoo>

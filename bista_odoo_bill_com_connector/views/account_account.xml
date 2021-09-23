@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_account_form_bill_com" model="ir.ui.view">
+        <field name="name">view.account.form.bill.com</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='deprecated']" position="after">
+                <field name="bill_com_coa_id" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
