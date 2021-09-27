@@ -82,8 +82,8 @@ class SaleSubscription(models.Model):
 
         if not price_list or not price_list.active:
             return {
-                "management_fee": -2,
-                "wholesale_price": -2,
+                "management_fee": False,
+                "wholesale_price": False,
                 "management_fee_product": False,
             }
 
@@ -130,14 +130,14 @@ class SaleSubscription(models.Model):
         if wholesale == 0.0:
             wholesale = retail_absolute - management_fee
 
-        #invert the management fee when retail is negative
+        # invert the management fee when retail is negative
         if retail != retail_absolute:
             management_fee = -management_fee
             wholesale = -wholesale
 
         return {
-            "management_fee": management_fee if management_fee else -1,
-            "wholesale_price": wholesale if wholesale else -1,
+            "management_fee": management_fee,
+            "wholesale_price": wholesale,
             "management_fee_product": management_fee_product,
         }
 
@@ -390,7 +390,7 @@ class SaleSubscription(models.Model):
                 "product_id": line.product_id.id,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
-                'account_id': line.analytic_account_id.account_depreciation_expense_id.id or False,
+                "account_id": line.analytic_account_id.account_depreciation_expense_id.id or False,
                 "price_unit": price,
                 "pricelist": line.analytic_account_id.pricelist_id,
                 "category_name": line.product_id.categ_id.name,
@@ -407,6 +407,7 @@ class SaleSubscription(models.Model):
                 "end_date": line.end_date,
             }
 
+        # just filtering the fields necessary for last step - invoice creation
         def last_order_data(product_individual):
             return {
                 "product_name": product_individual["product_name"],
@@ -414,7 +415,7 @@ class SaleSubscription(models.Model):
                 "price_unit": product_individual["price_unit"],
                 "description": product_individual["description"],
                 "contract_product_description": product_individual["contract_product_description"],
-                "account_id": product_individual['account_id'],
+                "account_id": product_individual["account_id"],
                 "name": product_individual["name"],
                 "rebate": product_individual["rebate"],
                 "rebate_product": product_individual["rebate_product"],
@@ -434,7 +435,7 @@ class SaleSubscription(models.Model):
             product_updated = product_source
             product_updated["price_unit"] += product_additional["price_unit"]
             product_updated["rebate"] += product_additional["rebate"]
-            product_updated["account_id"] = product_additional['account_id']
+            product_updated["account_id"] = product_additional["account_id"]
             if "start_date" in product_updated or "start_date" in product_additional:
                 if not product_updated["start_date"]:
                     product_updated["start_date"] = product_additional["start_date"]
@@ -488,6 +489,7 @@ class SaleSubscription(models.Model):
         ]
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 
+    # adding the management fee and rebate lines to the invoice
     def invoicing_add_management_fee_and_rebate_lines(self, grouped_sub_lines, start_date, end_date):
         period_msg = self.format_period_message(start_date, end_date)
         # processing the grouped lines into invoice lines
@@ -497,12 +499,12 @@ class SaleSubscription(models.Model):
             if line["price_unit"] == 0:
                 continue
             final_price = line["price_unit"]
-            if line["management_fee"] > 0:
+            if abs(line["management_fee"]) > 0:
                 final_price -= line["management_fee"]
                 grouped_invoice_lines.append(
                     {
                         "name": period_msg,
-                        "account_id": line['account_id'],
+                        "account_id": line["account_id"],
                         "description": line["description"],
                         "product_id": line["product_id"],
                         "category_id": line["category_id"],
@@ -540,7 +542,7 @@ class SaleSubscription(models.Model):
                 grouped_invoice_lines.append(
                     {
                         "name": period_msg,
-                        "account_id": line['account_id'],
+                        "account_id": line["account_id"],
                         "description": line["description"],
                         "product_id": line["product_id"],
                         "category_id": line["category_id"],
@@ -552,16 +554,17 @@ class SaleSubscription(models.Model):
                 )
             if line["rebate"]:
                 rebate_signature = "Rebate Discount"
-                if "name" in line["rebate_product"]:
+                if line["rebate_product"] and "name" in line["rebate_product"]:
                     rebate_signature = line["rebate_product"].name
                 if rebate_signature not in rebate_total:
                     rebate_total[rebate_signature] = {
                         "price": 0.0,
                         "category": None
-                        if "categ_id" not in line["rebate_product"]
+                        if not line["rebate_product"] or "categ_id" not in line["rebate_product"]
                         else line["rebate_product"].categ_id.id,
                         "product": None if "id" not in line["rebate_product"] else line["rebate_product"].id,
                         "tax_ids": line["tax_ids"],
+                        "account_id": line['account_id'],
                     }
 
                 rebate_total[rebate_signature]["price"] += line["rebate"]
@@ -577,6 +580,7 @@ class SaleSubscription(models.Model):
                         "category_id": rebate_total[reb]["category"],
                         "product_id": rebate_total[reb]["product"],
                         "tax_ids": rebate_total[reb]["tax_ids"],
+                        "account_id": rebate_total[reb]['account_id'],
                     }
                 )
         return grouped_invoice_lines
@@ -603,13 +607,15 @@ class SaleSubscription(models.Model):
         # filter out invoiced subscription lines and collect draft invoices for update
         for subscription_line in subscription_lines:
             # find the invoices could be changed
-            invoice = self.are_invoices_for_period(partner.id, start_date, invoices_could_be_changed+invoices_posted, subscription_line)
+            invoice = self.are_invoices_for_period(
+                partner.id, start_date, invoices_could_be_changed + invoices_posted, subscription_line
+            )
             if invoice and (invoice.state in invoices_could_be_changed):
                 draft_invoice_subscriptions[subscription_line.id] = subscription_line
                 draft_invoices[invoice.id] = True
                 sub_lines.append(subscription_line)
             elif not invoice or (invoice.state not in invoices_posted):
-                #in case of subscription was not invoiced ye or invoice was cancelled
+                # in case of subscription was not invoiced ye or invoice was cancelled
                 sub_lines.append(subscription_line)
 
         # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated
