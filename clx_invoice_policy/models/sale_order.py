@@ -3,7 +3,7 @@
 # See LICENSE file for full copyright & licensing details.
 
 from odoo import fields, models, api, _
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import float_is_zero, float_compare
 from dateutil.relativedelta import relativedelta
 from datetime import date
@@ -24,6 +24,16 @@ class SaleOrder(models.Model):
         than create invoice current month.
         :return:
         """
+
+        # Quotes for Client Companies can not be confirmed if Mgmt. Co. is not set.
+        if self.partner_id.company_type == "company" and not self.partner_id.management_company_type_id:
+            raise ValidationError(
+                _(
+                    """Management Company is not set!\n\nPlease navigate to the contact form for %s and select a management company."""
+                )
+                % self.partner_id.name
+            )
+
         res = super(SaleOrder, self)._action_confirm()
 
         # TODO: replacing the SB's invoicing functions and check the period to invoice

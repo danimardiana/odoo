@@ -161,12 +161,6 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Company Type Radio Buttons -->
-            <xpath expr="//field[@name='company_type']" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type_hidden', '=', True)]}
-                </attribute>
-            </xpath>
-
             <!-- Company Address -->
             <label name="address_name" position="attributes">
                 <attribute name="attrs">{'invisible': [('company_type', 'in', ('person'))],
@@ -214,8 +208,7 @@
 
             <!-- Website Link -->
             <field name="website" position="attributes">
-                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person','owner','management'))],
-                                         'required': [('company_type', 'in', ('company'))]}
+                <attribute name="attrs">{'invisible': [('company_type', 'in', ('person','owner','management'))]}
                 </attribute>
             </field>
             <field name="category_id" position="attributes">
@@ -290,7 +283,6 @@
                 <field name="is_vendor" invisible="1"/>
                 <field name="is_company" invisible="1"/>
                  <field name="is_greystar_company" invisible="1"/>
-                 <field name="company_type_hidden" invisible="1"/>
             </xpath>
 
             <xpath expr="//field[@name='parent_id']" position="replace">
@@ -322,19 +314,18 @@
             <xpath expr="//field[@name='function']" position="before">
                 <field name="management_company_type_id" domain="[('is_management', '=', True)]"
                        options="{'no_create':True}"
-                       attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)],
-                               'required':[('is_company','=',True)]}"/>
+                       attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)]}"/>
             </xpath>
 
             <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="after">
+                <field name="national_mgr_hidden" invisible="1"/>
                 <field name="implementation_specialist_id" attrs="{'invisible':[('company_type','not in','company')]}"/>
                 <field name="account_user_id" 
                        attrs="{'invisible':['|','|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True),('is_vendor','=',True)],
                                'required':[('is_company','=',True)]}"/>
                 <field name="secondary_user_id"
                        attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
-                <field name="national_user_id"
-                       attrs="{'invisible':['|','|',('is_company','=',False),('is_management','=',True),('is_owner','=',True)]}"/>
+                <field name="national_user_id" attrs="{'invisible':[('national_mgr_hidden','=',True)]}"/>
             </xpath>
 
             <xpath expr="//notebook//page[1]//field[@name='child_ids']" position="attributes">
@@ -595,8 +586,7 @@
                                                     'required': [('company_type', 'in', ('company'))]}"/>
                 <field name="branding_name" attrs="{'invisible': [('company_type', 'not in', ('vendor'))]}"/>
                 <field name="legal_name" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
-                <field name="timezone_char" attrs="{'invisible': [('company_type', 'not in', ('company'))],
-                                                    'required': [('company_type', 'in', ('company'))]}"/>
+                <field name="timezone_char" attrs="{'invisible': [('company_type', 'not in', ('company'))]}"/>
                 <field name="yardi_code" attrs="{'invisible': [('company_type', 'not in', ('company'))],
                                                  'required': [('is_greystar_company', '=', True)]}"/>
                 <field name="master_id" attrs="{'invisible': [('company_type', 'not in', ('company'))],

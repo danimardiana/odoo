@@ -5,8 +5,193 @@
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
-           <xpath expr="//field[@name='partner_name']" position="attributes">
+            <!-- Add Contact Validaion Button to header -->
+            <xpath expr="//button[@name='296']" position="before">
+                <field name="show_validate_btn" invisible="1"/>
+                <button name="validate_lead_contacts" class="btn-warning oe_read_only" string="Validate Contacts" type="object" attrs="{'invisible': ['|',('show_validate_btn', '=', False), ('type', '=', 'opportunity')]}"/>
+            </xpath>
+            <xpath expr="//button[@name='296']" position="attributes">
+                <attribute name="attrs">{'invisible' : ['|',('show_validate_btn', '=', True), ('type', '=', 'opportunity')]}</attribute>
+                <attribute name="class">btn btn-primary oe_read_only</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_set_lost']" position="attributes">
+                <attribute name="class">btn btn-secondary oe_read_only</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="replace">
+                <div class="oe_title">
+                    <label for="name" string="Lead Prospect Name" attrs="{'invisible': [('type', '=', 'opportunity')]}"/>
+                    <label for="partner_id" string="Opportunity Client Name" attrs="{'invisible': [('type', '=', 'lead')]}"/>
+                    <h1>
+                        <group attrs="{'invisible': [('type', '=', 'opportunity')]}">
+                            <field name="name" placeholder="e.g. Company ABC Inc."/>
+                        </group>
+                        <group attrs="{'invisible': [('type', '=', 'lead')]}">
+                            <field  name="partner_id"
+                                    widget="res_partner_many2one"
+                                    context="{'res_partner_search_mode': type == 'opportunity' and 'customer' or False,
+                                        'default_name': contact_name or partner_name,
+                                        'default_street': street,
+                                        'default_is_company': type == 'opportunity' and contact_name == False,
+                                        'default_company_name': type == 'opportunity' and partner_name,
+                                        'default_street2': street2,
+                                        'default_city': city,
+                                        'default_title': title,
+                                        'default_state_id': state_id,
+                                        'default_zip': zip,
+                                        'default_country_id': country_id,
+                                        'default_function': function,
+                                        'default_phone': phone,
+                                        'default_mobile': mobile,
+                                        'default_email': email_from,
+                                        'default_user_id': user_id,
+                                        'default_team_id': team_id,
+                                        'default_website': website,
+                                        'show_vat': True,
+                                    }"/>
+                        </group>
+                    </h1>
+                    <h2 class="o_row row no-gutters d-flex">
+                        <div class="col" attrs="{'invisible': [('type', '=', 'lead')]}">
+                            <label for="planned_revenue" class="oe_edit_only" />
+                            <div class="o_row">
+                                <field name="company_currency" invisible="1"/>
+                                <field name="planned_revenue" class="oe_inline" widget='monetary' options="{'currency_field': 'company_currency'}"/>
+                                <span class="oe_grey p-2"> at </span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <span class="oe_edit_only o_pls_probability">
+                                <label for="probability"/>
+                                <button class="btn btn-link" name="action_set_automated_probability" type="object"
+                                        attrs="{'invisible': [('is_automated_probability', '=', True)]}">
+                                    <i class="fa fa-gear" role="img" title="Switch to automatic probability" aria-label="Switch to automatic probability"></i>
+                                </button>
+                                <small class="oe_grey" attrs="{'invisible': [('is_automated_probability', '=', True)]}"><field name="automated_probability"/> %% (Estimated by Odoo)</small>
+                                </span>
+                            <div id="probability" class="o_row d-flex">
+                                <field name="is_automated_probability" invisible="1"/>
+                                <field name="probability" widget="float" class="oe_inline"/>
+                                <span class="oe_grey"> %%</span>
+                            </div>
+                        </div>
+                    </h2>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='state_id']" position="attributes">
                 <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_name']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="nolabel">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="nolabel">1</attribute>
+            </xpath>
+            <xpath expr="//span[hasclass('o_pls_probability')]" position="before">
+                <field name="lead_company_type" widget="radio" options="{'horizontal': true}" attrs="{'invisible': [('type', '=', 'opportunity')]}"/>
+                <div>
+                    <label for="priority" attrs="{'invisible': [('type', '=', 'opportunity')]}">Priority</label>
+                    <field name="priority" class="oe_inline" attrs="{'invisible': [('type', '=', 'opportunity')]}"/>
+                </div>
+            </xpath>
+            <xpath expr="//group[@name='lead_priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='team_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='lang_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//form/sheet/group/group[1]" position="replace">
+                <group attrs="{'invisible': [('type', '=', 'opportunity')]}">
+                    <label for="street" string="Address"/>
+                    <div class="o_address_format">
+                        <field name="street" placeholder="Street..." class="o_address_street"/>
+                        <field name="street2" placeholder="Street 2..." class="o_address_street"/>
+                        <field name="city" placeholder="City" class="o_address_city"/>
+                        <field name="state_id" class="o_address_state" placeholder="State" options="{'no_open': True}" attrs="{'required': [('type','=', 'lead')]}"/>
+                        <field name="zip" placeholder="ZIP" class="o_address_zip"/>
+                        <field name="country_id" placeholder="Country" class="o_address_country" options="{'no_open': True, 'no_create': True}"/>
+                    </div>
+                    <field name="website" widget="url" placeholder="e.g. https://www.odoo.com"/>
+                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                </group>
+            </xpath>
+            <xpath expr="//form/sheet/group/group[2]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//form/sheet/group/group[3]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='website']" position="after">
+                <field name="lead_vertical" attrs="{'required': [('type','=', 'lead')]}" />
+            </xpath>
+            <xpath expr="//page[@name='extra']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!--
+                Lead Contact Tab - used to capture contacts associated with a lead. These
+                are converted to individual/person contacts and associated with the Lead
+                Prospect Company during the Opportunity conversion process
+             -->
+            <xpath expr="//form/sheet/notebook/page[1]" position="before">
+                <page string="Lead Contacts" attrs="{'invisible': [('type', '=', 'opportunity')]}">
+                    <field name="crm_lead_contact_ids">
+                        <tree editable="bottom"  decoration-success="validated == True" decoration-warning="validated == False">
+                            <field name="name" required="True"/>
+                            <field name="email" widget="email"/>
+                            <field name="function"/>
+                            <field name="role" />
+                            <field name="phone" widget="phone"/>
+                            <field name="existing_contact_id" string="Existing ID" readonly="1" optional="hidden"/>
+                            <field name="validated" string="Validated" readonly="1" force_save="True" optional="hidden"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            <!-- Follow-up Tab -->
+             <xpath expr="//form/sheet/notebook/page[4]" position="attributes">
+                 <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="clx_crm_lead_view_tree" model="ir.ui.view">
+        <field name="name">clx.crm.lead.tree.inherited</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_tree_view_leads"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='contact_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="lead_contact_count" class="contact_count" />
+            </xpath>
+             <xpath expr="//field[@name='team_id']" position="before">
+                <field name="lead_vertical"/>
+            </xpath>
+            <xpath expr="//field[@name='email_from']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='country_id']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='state_id']" position="attributes">
+                <attribute name="optional">show</attribute>
             </xpath>
         </field>
     </record>

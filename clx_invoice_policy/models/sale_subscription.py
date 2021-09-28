@@ -407,6 +407,7 @@ class SaleSubscription(models.Model):
                 "end_date": line.end_date,
             }
 
+        # just filtering the fields necessary for last step - invoice creation
         def last_order_data(product_individual):
             return {
                 "product_name": product_individual["product_name"],
@@ -488,6 +489,7 @@ class SaleSubscription(models.Model):
         ]
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 
+    # adding the management fee and rebate lines to the invoice
     def invoicing_add_management_fee_and_rebate_lines(self, grouped_sub_lines, start_date, end_date):
         period_msg = self.format_period_message(start_date, end_date)
         # processing the grouped lines into invoice lines
@@ -552,13 +554,13 @@ class SaleSubscription(models.Model):
                 )
             if line["rebate"]:
                 rebate_signature = "Rebate Discount"
-                if "name" in line["rebate_product"]:
+                if line["rebate_product"] and "name" in line["rebate_product"]:
                     rebate_signature = line["rebate_product"].name
                 if rebate_signature not in rebate_total:
                     rebate_total[rebate_signature] = {
                         "price": 0.0,
                         "category": None
-                        if "categ_id" not in line["rebate_product"]
+                        if not line["rebate_product"] or "categ_id" not in line["rebate_product"]
                         else line["rebate_product"].categ_id.id,
                         "product": None if "id" not in line["rebate_product"] else line["rebate_product"].id,
                         "tax_ids": line["tax_ids"],
@@ -613,7 +615,7 @@ class SaleSubscription(models.Model):
                 draft_invoices[invoice.id] = True
                 sub_lines.append(subscription_line)
             elif not invoice or (invoice.state not in invoices_posted):
-                # in case of subscription was not invoiced yet or invoice was cancelled
+                # in case of subscription was not invoiced ye or invoice was cancelled
                 sub_lines.append(subscription_line)
 
         # if subscriptions are new (nothing was invoiced before) but we still have draft invoice could be updated

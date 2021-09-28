@@ -84,7 +84,7 @@
         <field name="arch" type="xml">
             <tree string="Contacts">
                 <field name="parent_id" string="Name"/>
-                <field name="contact_type_ids" string="Contact Type" widget="many2many_tags"/>
+                <field name="contact_type_ids" string="Contact Role" widget="many2many_tags"/>
             </tree>
         </field>
     </record>
