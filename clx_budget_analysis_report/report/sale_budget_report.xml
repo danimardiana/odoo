@@ -8,7 +8,7 @@
             <pivot string="Sales Budget" disable_linking="True">
                 <field name="wholesale_price" type="measure"/>
                 <field name="management_fee" type="measure"/>
-                <field name="retail_price" type="measure"/>
+                <field name="price_unit" type="measure"/>
                 <field name="start_date" interval="day" type="col"/>
                 <field name="end_date" interval="day" type="col"/>
                 <field name="partner_id" type="row"/>
@@ -142,7 +142,7 @@
                                     <t t-if="period in spk['subs'][line]">
                                         <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
                                             <td class="moneys retail">
-                                                <div t-esc="sub_period['retail_price']" />
+                                                <div t-esc="sub_period['price_unit']" />
                                             </td>
                                             <t t-if="fees_allowed">
                                                 <!-- <div t-esc="sub_period"/> -->
@@ -176,13 +176,13 @@
                         <tr class="total"> 
                             <td class="total moneys">Total</td>      
                             <t t-foreach="all_periods" t-as="period">
-                                    <t t-set="total_retail" t-value="0" />
-                                    <t t-set="total_wholesale" t-value="0" />
-                                    <t t-set="total_mgmnt_fee" t-value="0" />
+                                    <t t-set="total_retail" t-value="0.0" />
+                                    <t t-set="total_wholesale" t-value="0.0" />
+                                    <t t-set="total_mgmnt_fee" t-value="0.0" />
                                 <t t-foreach="spk['subs']" t-as="line">
                                     <t t-if="period in spk['subs'][line]">
                                         <t t-foreach="spk['subs'][line][period]" t-as="sub_period">
-                                            <t t-set="total_retail" t-value="total_retail+sub_period['retail_price']" />
+                                            <t t-set="total_retail" t-value="total_retail+sub_period['price_unit']" />
                                             <t t-if="sub_period['wholesale_price']>0">
                                                 <t t-set="total_wholesale" t-value="total_wholesale + sub_period['wholesale_price']" />
                                             </t> 
@@ -194,8 +194,8 @@
                                 </t>
                                 <td  class="total"><div t-esc="total_retail" /></td>
                                 <t t-if="fees_allowed">
-                                    <td  class="total" ><div t-esc="total_wholesale" /></td>
-                                    <td  class="total"><div t-esc="total_mgmnt_fee" /></td>
+                                    <td  class="total moneys" ><div t-esc="round(total_wholesale,2)" /></td>
+                                    <td  class="total moneys"><div t-esc="round(total_mgmnt_fee,2)" /></td>
                                 </t>
                                 <td class="dates"></td>
                                 <td class="dates"></td>

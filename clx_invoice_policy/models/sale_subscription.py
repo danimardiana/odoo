@@ -19,6 +19,7 @@ class SaleSubscription(models.Model):
     _inherit = "sale.subscription"
 
     clx_invoice_policy_id = fields.Many2one("clx.invoice.policy", string="Invoice Policy")
+    management_fee_grouping = fields.Boolean(related="partner_id.management_fee_grouping", readonly=True)
 
     def _compute_invoice_count(self):
         invoice = self.env["account.move"]
@@ -76,9 +77,112 @@ class SaleSubscription(models.Model):
                 break
         return pricelist2process
 
+    # calculate the management fee and wholesale for group of subscriptions. Supposing the list contains the lines for certain period
+    def update_subscriptions_with_management_fee(self, partner_id, subscription_list, category_show_params=False):
+        zero_management = {
+                                "management_fee": 0,
+                                "wholesale_price": 0,
+                                "management_fee_product": False,
+                            }
+        if partner_id.management_fee_grouping:
+            # populate the source lines with management fee and wholesale data
+            grouped_products = {}
+            for subscription in subscription_list:
+                # remove the zero spending budgets from the management fee spreading list
+                if subscription["price_unit"] == 0:
+                    subscription.update(zero_management)
+                    continue
+                if subscription["product_id"] not in grouped_products:
+                    grouped_products[subscription["product_id"]] = []
+                grouped_products[subscription["product_id"]].append(subscription)
+
+            for subscriptions_set in grouped_products:
+                subscriptions_by_product = grouped_products[subscriptions_set]
+                retail = 0.0
+                price_full_month = 0.0
+                coef_total = 0.0
+                coef_price = 0.0
+                if category_show_params and subscriptions_by_product[0]["category_id"] in category_show_params:
+                    category_show = category_show_params[subscriptions_by_product[0]["category_id"]]
+                else:
+                    category_show = False
+                pricelist = subscriptions_by_product[0]["pricelist"]
+                # pricelist2process = self.env["sale.subscription.line"].analytic_account_id.pricelist_determination(
+                #     subscriptions_by_product[0]["product_id"], pricelist
+                # )
+                for subscription in subscriptions_by_product:
+                    retail += subscription["price_unit"]
+                    price_full_month += subscription["price_full"]
+                    if subscription["price_unit"] == subscription["price_full"]:
+                        coef_total += 1
+                        coef_price += subscription["price_full"]
+                    else:
+                        coef_total += 0.5
+                        coef_price += subscription["price_full"] * 0.5
+
+                fees_obj = self.subscription_wholesale_period(
+                    retail,
+                    pricelist,
+                    retail,
+                    category_show,
+                )
+                if fees_obj["management_fee"] == 0:
+                    cost_of_prorated_point = 0
+                else:
+                    cost_of_prorated_point = fees_obj["management_fee"] / coef_price
+
+                # spreading the total management fees thru the subscriptions back
+                # formula =
+                for subscription in subscriptions_by_product:
+                    if cost_of_prorated_point == 0:
+                        subscription.update(zero_management)
+                        continue
+
+                    coef = 1 if subscription["price_unit"] == subscription["price_full"] else 0.5
+
+                    management_fee = coef * subscription["price_full"] * cost_of_prorated_point
+                    part = subscription["price_full"] / price_full_month
+
+                    subscription.update(
+                        {
+                            "management_fee": round(management_fee, 2),
+                            "wholesale_price": subscription["price_unit"] - round(management_fee, 2),
+                            "management_fee_product": fees_obj["management_fee_product"],
+                        }
+                    )
+
+        else:
+            # each product calculating indepandatly
+
+            for subscription in subscription_list:
+                subscription.update(
+                    self.subscription_wholesale_period(
+                        subscription["price_unit"],
+                        subscription["pricelist"],
+                        subscription["price_full"],
+                        category_show_params[subscription["category_id"]],
+                    )
+                )
+
+    # splitting the retail price to wholesale and management fee following the pricelist rules.
+    # show_flags - is management fee and wholesale need to be shown
+    # full_month_price - price for not-prorated month
+    # requested to have the 50% manaement fee calculation for any prorated month what means spending for whole month != the current month retail
     def subscription_wholesale_period(
-        self, retail, price_list, show_flags={"show_mgmnt_fee": True, "show_wholesale": True}
+        self,
+        retail,
+        price_list,
+        full_month_price=0.0,
+        show_flags={
+            "show_mgmnt_fee": True,
+            "show_wholesale": True,
+        },
     ):
+        price_process = retail
+        if full_month_price == retail or full_month_price == 0.0:
+            coef = 1
+        else:
+            coef = 0.5
 
         if not price_list or not price_list.active:
             return {
@@ -88,50 +192,60 @@ class SaleSubscription(models.Model):
             }
 
         if retail == 0:
-            return {"management_fee": 0, "wholesale_price": 0}
+            return {"management_fee": 0, "wholesale_price": 0, "management_fee_product": False}
 
-        management_fee = 0.0 if show_flags["show_mgmnt_fee"] else False
-        wholesale = 0.0 if show_flags["show_wholesale"] else False
+        management_fee = 0.0 if show_flags and show_flags["show_mgmnt_fee"] else False
+        wholesale = 0.0 if show_flags and show_flags["show_wholesale"] else False
         management_fee_product = (
             None if "management_fee_product" not in price_list else price_list.management_fee_product
         )
         retail_absolute = abs(retail)
+        full_retail_absolute = abs(price_process)
         if price_list.is_custom and management_fee == 0.0:
             if retail_absolute <= price_list.min_retail_amount:
                 management_fee = price_list.fixed_mgmt_price
             else:
-                management_fee = round((price_list.percent_mgmt_price * retail_absolute) / 100, 2)
+                management_fee = round((price_list.percent_mgmt_price * full_retail_absolute) / 100, 2)
         else:
             # if management fee fixed
             if (
                 price_list.is_fixed
                 and price_list.fixed_mgmt_price
+                and show_flags
                 and show_flags["show_mgmnt_fee"]
                 and retail_absolute > price_list.fixed_mgmt_price
             ):
                 management_fee = price_list.fixed_mgmt_price
 
             # if management fee percentage
-            if price_list.is_percentage and price_list.percent_mgmt_price and show_flags["show_mgmnt_fee"]:
-                management_fee = round((price_list.percent_mgmt_price * retail_absolute) / 100, 2)
+            if (
+                price_list.is_percentage
+                and price_list.percent_mgmt_price
+                and show_flags
+                and show_flags["show_mgmnt_fee"]
+            ):
+                management_fee = round((price_list.percent_mgmt_price * full_retail_absolute) / 100, 2)
 
             # if wholesale fee percentage
             if (
                 price_list.is_wholesale_percentage
                 and price_list.percent_wholesale_price
+                and show_flags
                 and show_flags["show_wholesale"]
             ):
                 wholesale = round((price_list.percent_wholesale_price * retail_absolute) / 100, 2)
 
         # but never less than minimum price
-        if management_fee < price_list.fixed_mgmt_price:
+        if management_fee < price_list.fixed_mgmt_price and price_list.is_fixed:
             management_fee = price_list.fixed_mgmt_price
+
+        management_fee = management_fee * coef
 
         if wholesale == 0.0:
             wholesale = retail_absolute - management_fee
 
         # invert the management fee when retail is negative
-        if retail != retail_absolute:
+        if price_process != retail_absolute:
             management_fee = -management_fee
             wholesale = -wholesale
 
@@ -379,12 +493,16 @@ class SaleSubscription(models.Model):
         self, start_date, partner_id=False, subscripion_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING
     ):
         def initial_order_data(line, partner_id):
-            price = line.period_price_calc(start_date, partner_id)
+            price, price_full = line.period_price_calc(start_date, partner_id)
             product_variant = ""
             if len(line.product_id.product_template_attribute_value_ids):
                 product_variant = line.product_id.product_template_attribute_value_ids[0].name
             rebate, rebate_product = line.rebate_calc(price)
+            pricelist2process = line.analytic_account_id.pricelist_determination(
+                line.product_id, line.analytic_account_id.pricelist_id
+            )
             return {
+                "id": line.id,
                 "product_name": line.product_id.name,
                 "product_variant": product_variant,
                 "product_id": line.product_id.id,
@@ -392,7 +510,8 @@ class SaleSubscription(models.Model):
                 "name": line.name,
                 "account_id": line.analytic_account_id.account_depreciation_expense_id.id or False,
                 "price_unit": price,
-                "pricelist": line.analytic_account_id.pricelist_id,
+                "price_full": price_full,
+                "pricelist": pricelist2process,
                 "category_name": line.product_id.categ_id.name,
                 "category_id": line.product_id.categ_id.id,
                 "description": line._grouping_name_calc(line)
@@ -422,10 +541,14 @@ class SaleSubscription(models.Model):
                 "category_id": product_individual["category_id"],
                 "product_id": product_individual["product_id"],
                 "pricelist": product_individual["pricelist"],
+                "price_full": product_individual["price_full"],
+                "wholesale_price": product_individual["wholesale_price"],
                 "tax_ids": product_individual["tax_ids"],
                 "discount": product_individual["discount"],
                 "start_date": product_individual["start_date"],
                 "end_date": product_individual["end_date"],
+                "management_fee": product_individual["management_fee"],
+                "management_fee_product": product_individual["management_fee_product"],
                 # "prorate_amount": product_individual["prorate_amount"],
                 # "product_template_id": product_individual["product_template_id"],
                 # "management_fee_calculated": product_individual["management_fee_calculated"],
@@ -434,6 +557,9 @@ class SaleSubscription(models.Model):
         def last_order_update(product_source, product_additional):
             product_updated = product_source
             product_updated["price_unit"] += product_additional["price_unit"]
+            product_updated["price_full"] += product_additional["price_full"]
+            product_updated["management_fee"] += product_additional["management_fee"]
+            product_updated["wholesale_price"] += product_additional["wholesale_price"]
             product_updated["rebate"] += product_additional["rebate"]
             product_updated["account_id"] = product_additional["account_id"]
             if "start_date" in product_updated or "start_date" in product_additional:
@@ -462,10 +588,62 @@ class SaleSubscription(models.Model):
 
         source_lines = subscripion_line or self.recurring_invoice_line_ids
         return self.env["sale.order"].grouping_all_products(
-            source_lines, partner_id, initial_order_data, last_order_data, last_order_update, grouping_levels
+            source_lines,
+            partner_id,
+            initial_order_data,
+            last_order_data,
+            last_order_update,
+            start_date,
+            grouping_levels,
         )
 
-    def get_subscription_lines(self, partner, order_id, start_date, end_date):
+    """ Collecting the subscription lines need to be combined for management fee calculation
+    Input: 
+        mandatory: partner, start_date, 
+        optional: order, product, end_date, 
+    """
+
+    def get_subscription_lines(self, **kwargs):
+
+        if "partner" not in kwargs or "start_date" not in kwargs:
+            return []
+
+        start_date = kwargs["start_date"]
+        partner = kwargs["partner"]
+
+        # if end_date not set - set as a last day of the start_date month
+        if "end_date" not in kwargs:
+            end_date = start_date + relativedelta(months=1, days=-1)
+        else:
+            end_date = kwargs["end_date"]
+
+        # collecting filter basing on arguments
+        search_args = [
+            ("so_line_id.order_id.state", "in", ("sale", "done")),
+            "|",
+            ("end_date", ">=", start_date),
+            ("end_date", "=", False),
+            ("start_date", "<=", end_date),
+        ]
+
+        if "order" in kwargs:
+            search_args += [("so_line_id.order_id.id", "=", kwargs["order"].id)]
+
+        if "product" in kwargs:
+            search_args += [("so_line_id.product_id.id", "=", kwargs["product"].id)]
+
+        if "exceptions" in kwargs:
+            search_args += [("id", "not in", kwargs["exceptions"])]
+
+        search_args += [
+            "|",
+            ("so_line_id.order_id.partner_id", "child_of", partner.id),
+            ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
+        ]
+
+        return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
+
+    def get_subscription_lines_old(self, partner, order_id, start_date, end_date):
         """
         Collecting lines for invoicing based on the daterange
         Should be start_day and end_day presented
@@ -564,7 +742,7 @@ class SaleSubscription(models.Model):
                         else line["rebate_product"].categ_id.id,
                         "product": None if "id" not in line["rebate_product"] else line["rebate_product"].id,
                         "tax_ids": line["tax_ids"],
-                        "account_id": line['account_id'],
+                        "account_id": line["account_id"],
                     }
 
                 rebate_total[rebate_signature]["price"] += line["rebate"]
@@ -580,7 +758,7 @@ class SaleSubscription(models.Model):
                         "category_id": rebate_total[reb]["category"],
                         "product_id": rebate_total[reb]["product"],
                         "tax_ids": rebate_total[reb]["tax_ids"],
-                        "account_id": rebate_total[reb]['account_id'],
+                        "account_id": rebate_total[reb]["account_id"],
                     }
                 )
         return grouped_invoice_lines
@@ -593,7 +771,9 @@ class SaleSubscription(models.Model):
 
     def subscription_lines_collection_for_invoicing(self, partner, order_id, start_date, end_date, grouping_levels=7):
 
-        subscription_lines = self.get_subscription_lines(partner, order_id, start_date, end_date)
+        subscription_lines = self.get_subscription_lines(
+            partner=partner, order_id=order_id, start_date=start_date, end_date=end_date
+        )
         invoices_posted = ("posted", "email_sent")
         invoices_could_be_changed = ("draft", "approved_draft")
         if not len(subscription_lines):
@@ -638,10 +818,10 @@ class SaleSubscription(models.Model):
         # adding rebate to subscriptions before grouping
 
         # invoice lines grouping - products and description only
-        grouped_sub_lines = self._grouping_wrapper(start_date, partner.id, sub_lines, grouping_levels)
+        grouped_sub_lines = self._grouping_wrapper(start_date, partner, sub_lines, grouping_levels)
 
         grouped_invoice_lines = self.invoicing_add_management_fee_and_rebate_lines(
-            grouped_sub_lines, start_date, end_date
+            grouped_sub_lines.values(), start_date, end_date
         )
 
         response.update({"invoice_lines": grouped_invoice_lines, "related_subscriptions": sub_lines})
@@ -667,6 +847,11 @@ class SaleSubscriptionLine(models.Model):
     account_id = fields.Many2one("account.move", string="Invoice")
     prorate_amount = fields.Float(related="so_line_id.prorate_amount", string="Prorate Start Amount", readonly=False)
     prorate_end_amount = fields.Float(string="Prorate End Amount")
+    management_fee_grouping = fields.Boolean(
+        related="analytic_account_id.partner_id.management_fee_grouping",
+        readonly=True,
+        string="Need Management Fee be grouped?",
+    )
 
     def _creation_next_budgets(self):
         print("CRON CRON CRON")
@@ -724,38 +909,53 @@ class SaleSubscriptionLine(models.Model):
         return total_discount, discount_product
 
     # calculation price for period. Taking into account proration
-    def period_price_calc(self, start_date, partner_id, dont_prorate=False):
-        end_date_for_period = start_date + relativedelta(months=1) + relativedelta(days=-1)
-        if end_date_for_period < self["start_date"] or (self["end_date"] and start_date > self["end_date"]):
-            return 0.0
+    def period_price_calc(self, start_date, partner_id, dont_prorate_coop=False, object=None):
+        if not object:
+            obj_to_process = self
+            co_op_list = self.analytic_account_id.co_op_partner_ids
+        else:
+            obj_to_process = object
+            co_op_list = obj_to_process.co_op_sale_order_line_partner_ids
 
-        price_calculated = self["price_unit"]
-        if (
-            start_date.month == self["start_date"].month
-            and start_date.year == self["start_date"].year
-            and self["prorate_amount"]
+        end_date_for_period = start_date + relativedelta(months=1) + relativedelta(days=-1)
+        price_full = obj_to_process["price_unit"]
+        if end_date_for_period < obj_to_process["start_date"] or (
+            obj_to_process["end_date"] and start_date > obj_to_process["end_date"]
         ):
-            price_calculated = self["prorate_amount"]
+            return 0.0, price_full
+
+        price_calculated = obj_to_process["price_unit"]
+
         if (
-            self["end_date"]
-            and start_date.month == self["end_date"].month
-            and start_date.year == self["end_date"].year
-            and self["prorate_end_amount"]
+            start_date.month == obj_to_process["start_date"].month
+            and start_date.year == obj_to_process["start_date"].year
+            and obj_to_process["prorate_amount"]
         ):
-            price_calculated = self["prorate_end_amount"]
+            price_calculated = obj_to_process["prorate_amount"]
+
+        if (
+            obj_to_process["end_date"]
+            and start_date.month == obj_to_process["end_date"].month
+            and start_date.year == obj_to_process["end_date"].year
+            and "prorate_end_amount" in obj_to_process
+            and not obj_to_process["prorate_end_amount"] == 0
+        ):
+            price_calculated = obj_to_process["prorate_end_amount"]
+
         co_op_coef = 1
         # co-op change!!!!
-        co_op_list = self.analytic_account_id.co_op_partner_ids
-        if partner_id and len(co_op_list) and not dont_prorate:
+
+        if partner_id and len(co_op_list) and not dont_prorate_coop:
             coop_line_filter = filter(lambda line: line.partner_id.id == partner_id, co_op_list)
             if len(list(coop_line_filter)) == 0:
                 co_op_coef = 0
             else:
                 co_op_coef = next(filter(lambda line: line.partner_id.id == partner_id, co_op_list)).ratio / 100
-        # if co_op_coef > 1:
-        #     co_op_coef /= 100
+
         price_calculated = co_op_coef * price_calculated
-        return price_calculated
+        price_full = co_op_coef * price_full
+
+        return price_calculated, price_full
 
     # could be removed after refactoring Vlad
     def get_date_month(self, end, start):

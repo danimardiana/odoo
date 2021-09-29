@@ -21,10 +21,10 @@ class SaleSubscriptionData(models.Model):
     wholesale_price = fields.Float(string='Wholesale Price', readonly=True)
     management_fee = fields.Float(string='Management Fee', readonly=True)
     management_fee_product = fields.Many2one('product.product', readonly=True)
-    retail_price = fields.Float(string='Retail')
+    price_unit = fields.Float(string='Retail')
     changes = fields.Text(readonly=True)
     description = fields.Char(readonly=True)
-    category = fields.Char(string='Category')
+    category_id = fields.Char(string='Category')
     company_name = fields.Char(string='Company Name')
 class SaleBudgetReport(models.Model):
     """ Sale Budget report """
@@ -45,10 +45,10 @@ class SaleBudgetReport(models.Model):
         'res.partner', string="Customer", readonly=True)
     wholesale_price = fields.Float(string='Wholesale Price')
     management_fee = fields.Float(string='Management Fee')
-    retail_price = fields.Float(string='Retail')
+    price_unit = fields.Float(string='Retail')
     changes = fields.Text(readonly=True)
     description = fields.Char(readonly=True)
-    category = fields.Char(string='Category')
+    category_id = fields.Char(string='Category')
     company_name = fields.Char(string='Company Name')
 
     def _query(self):
@@ -60,11 +60,11 @@ class SaleBudgetReport(models.Model):
             sbl.management_fee_product as management_fee_product,
             sbl.partner_id as partner_id,
             sbl.wholesale_price as wholesale_price,
-            sbl.retail_price as retail_price,
+            sbl.price_unit as price_unit,
             sbl.start_date as start_date,
             sbl.end_date as end_date,   
             sbl.changes as changes,
-            sbl.category as category,
+            sbl.category_id as category_id,
             sbl.description as description,
             sbl.company_name as company_name
             from sale_subscription_report_data AS sbl group by sbl.partner_id,sbl.id"""
