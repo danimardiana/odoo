@@ -17,17 +17,18 @@ class SaleOrder(models.Model):
     management_company_id = fields.Many2one(related="partner_id.management_company_type_id", store=True)
     ownership_company_id = fields.Many2one(related="partner_id.ownership_company_type_id", store=True)
     management_fee_grouping = fields.Boolean(related="partner_id.management_fee_grouping", readonly=False)
-    show_management_fee_grouping = fields.Boolean(compute="_show_management_fee_grouping", string="Need Management Fee Grouped field to be shown")
+    show_management_fee_grouping = fields.Boolean(
+        compute="_show_management_fee_grouping", string="Need Management Fee Grouped field to be shown"
+    )
 
     # the simpliest check - if we have several same products in the list
     # TODO: the true checking - if client has several same products with management fee
     @api.depends("order_line", "partner_id")
     def _show_management_fee_grouping(self):
         for element in self:
-            counters = len(
-                set(element.order_line.count(i) for i in list(map(lambda x: x.product_id.id, element.order_line)))
-            )
-            element.show_management_fee_grouping = counters > 1
+            product_ids = [i.product_id.id for i in element.order_line]
+            maximum = max([product_ids.count(j) for j in product_ids])
+            element.show_management_fee_grouping = maximum > 1
 
     def _action_confirm(self):
         """
