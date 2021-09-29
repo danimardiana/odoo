@@ -103,7 +103,8 @@ class AccountMove(models.Model):
         self.partner_id.accounting_notes = self.accounting_notes
 
     def _compute_accounting_notes(self):
-        self.accounting_notes = self.partner_id.accounting_notes
+        for move in self:
+            move.accounting_notes = move.partner_id.accounting_notes
 
     def compute_billing_contacts(self):
         billing_list = map(
@@ -220,6 +221,10 @@ class AccountMove(models.Model):
         )
         if self.invoice_line_ids:
             self.invoice_line_ids.analytic_account_id = self.partner_id.vertical and analytic_account_id or False
+            for line in self.invoice_line_ids:
+                line.analytic_account_id = self.partner_id.vertical and \
+                                    analytic_account_id or line.analytic_account_id
+
 
     def update_due_date(self):
         current_month = datetime.datetime.now().date().month
@@ -342,11 +347,12 @@ class AccountMove(models.Model):
                 if not move.is_invoice():
                     continue
                 for move_line in move.line_ids:
+                    # and not move.reversed_entry_id -- removed condition
+                    # it'll allow all the future invoices to create deferred revenue
                     if (
                         move_line.account_id
                         and (move_line.account_id.can_create_asset)
                         and move_line.account_id.create_asset != "no"
-                        and not move.reversed_entry_id
                         and not (move_line.currency_id or move.currency_id).is_zero(move_line.price_total)
                         and not move_line.asset_id
                     ):
@@ -413,8 +419,11 @@ class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
     category_id = fields.Many2one("product.category", string="Category")
-    # subscription_ids
-    # subscription_ids = fields.Many2many("sale.subscription", string="Subscription(s)")
-    # subscription_lines_ids = fields.Many2many("sale.subscription.line", string="Subscriptions Lines")
-
     description = fields.Char(string="Description")
+
+    @api.onchange('tax_ids')
+    def onchange_tax_ids(self):
+        #prevent user to add tax on rebate products
+        for line in self:
+            if line.product_id == line.move_id.partner_id.management_company_type_id.discount_product:
+                line.tax_ids = False

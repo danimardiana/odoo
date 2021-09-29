@@ -36,6 +36,7 @@
         'views/account_move_listview_template.xml',
         'views/analytic_account.xml',
         'views/account_asset.xml',
+        'views/account_asset_model.xml',
     ],
     'qweb':[
         # 'static/src/xml/account_move_template.xml',

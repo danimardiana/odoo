@@ -74,23 +74,29 @@ h3 {
     margin: 10px 0px;
     padding: 10px 0px;
     page-break-inside: avoid;
+    
 }
 .productLineWrapper .topbar {
     font-size: 13px;
-    margin-bottom: 5px;
+    margin-bottom: 1em;
+    margin-left: 1em;
+    width: 100%;
 }
 /* .productTotalWrapperWrapper {
     height: 62px;
 } */
+.tileWapper{
+    padding: 2px;
+}
 .productTotalWrapper {
     padding: 6px !important;
     border: 1px dotted black;
     text-align: center;
-    width: 40%;
+    /* width: 40%; */
     min-height: 60px;
     /* height: 100%; */
-    margin-right: 1%;
-    float: right;
+    /* margin-right: 1%; */
+    /* float: right; */
 }
 .productTotalWrapper[data-hasmonthlytotaldisclaimer='1'] .monthlyTotalText {
     font-size: 11px;
@@ -427,6 +433,7 @@ h3 {
 .pseudoPage.short-upper-margin {
     padding: 0.3in 0;
 }
+
 .container.pdf .salesRepInfoWrapper.row {
     font-size: 0.6cm;
     border-left: 5.5cm;
@@ -478,13 +485,38 @@ h3 {
 }
 .container.pdf .row{
     width:100%;
-    display: block;
+    /* display: inline-block; */
     max-width: 100%;
 }
-.container.pdf  .productTotalWrapper {
-    font-size: 0.45cm;
-    width: 40%;
+
+.container.pdf .productTotalWrapperWrapper {
+    width: 100%;
 }
+.container.pdf  .tileWapper {
+
+    width: 35%;
+    margin: auto;
+    right: 1em;
+    float: right;
+}
+.container.pdf .productTotalWrapper {
+    font-size: 0.45cm;
+
+    
+}
+.container.pdf .topbar  {
+    width:100%;
+    display: inline-block;
+
+}
+.container.pdf  .productLineWrapper {
+    margin: 1em 0 0 0;
+    padding: 1em 0 0 0;
+    page-break-inside: avoid;
+    border-top: 2px double black;
+    width:100%;
+}
+
 .container.pdf  .firstMonthlyTotalWrapperWrapper,.container.pdf  .monthlyTotalWrapper {
     font-size: 0.6cm;
     width: 32%;
@@ -503,8 +535,9 @@ h3 {
         display: block;
 }
 .container.pdf  .productTitle {
-    width: 58%;
+    width: 59%;
     font-size: 0.7cm;
+    display: block;
 }
 .container.pdf  .section_wrapper_subtle {
     font-size: 0.6cm;

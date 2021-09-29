@@ -25,5 +25,17 @@
             <field name="state">code</field>
             <field name="code">model.auto_bill_com_bill_import('', '', '')</field>
         </record>
+        <record id="ir_cron_import_bill_com_vendors" model="ir.cron">
+            <field name="name">Bill.com Vendors Sync</field>
+            <field name="active" eval="False" />
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="model_id" ref="model_bill_com_config"/>
+            <field name="user_id" ref="base.user_root" />
+            <field name="state">code</field>
+            <field name="code">model.auto_bill_com_vendor_sync()</field>
+        </record>
     </data>
 </odoo>

@@ -69,7 +69,14 @@
                             <field name="last_bill_imported_date"/>
                         </group>
                         <group>
+                            <field name="bill_com_bill_status"/>
                             <button name="import_bill_com_bills" string="Import Bills" type="object"/>
+                        </group>
+                        <group>
+                            <field name="bill_com_coa_import_url" required="1"/>
+                        </group>
+                        <group>
+                            <button name="import_bill_com_coa" string="Map COA" type="object"/>
                         </group>
                         <group>
                             <field name="bill_com_vendor_import_url"/>
@@ -105,9 +112,9 @@
             <field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem id="menu_bill_com_main" name="Bill.Com" parent="account.menu_finance_configuration"/>
+    <menuitem id="menu_bill_com_main" name="Bill.Com" parent="account.menu_finance_configuration" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
     <menuitem id="menu_bill_com_config" name="Configuration"
         parent="menu_bill_com_main" sequence="1"
-        action="action_bill_com_config" />
+        action="action_bill_com_config" groups="bista_odoo_bill_com_connector.group_bill_com_access"/>
 
 </odoo>

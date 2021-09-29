@@ -194,7 +194,10 @@ class ApiConnections(http.Controller):
             if not len(partner) or partner[0].company_type != "company":
                 return {"status": 404, "response": {"error": "partner_id should be company."}}
 
-            subscription_lines = subscription_app.get_subscription_lines(partner, False, start_date, end_date)
+            subscription_lines = subscription_app.get_subscription_lines(
+                partner=partner,
+                start_date=start_date,
+            )
             # removing not related subscriptions
             if products:
                 subscription_lines = list(filter(lambda subscr: subscr.product_id.id in products, subscription_lines))
