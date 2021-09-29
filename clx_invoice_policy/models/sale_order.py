@@ -18,7 +18,7 @@ class SaleOrder(models.Model):
     ownership_company_id = fields.Many2one(related="partner_id.ownership_company_type_id", store=True)
     management_fee_grouping = fields.Boolean(related="partner_id.management_fee_grouping", readonly=False)
     show_management_fee_grouping = fields.Boolean(
-        compute="_show_management_fee_grouping", string="Need Management Fee Grouped field to be shown"
+        compute="_show_management_fee_grouping", string="Need Management Fee Grouped field to be shown", store=True,
     )
 
     # the simpliest check - if we have several same products in the list
@@ -26,6 +26,9 @@ class SaleOrder(models.Model):
     @api.depends("order_line", "partner_id")
     def _show_management_fee_grouping(self):
         for element in self:
+            if len(element.order_line) == 0:
+                element.show_management_fee_grouping = False
+                continue
             product_ids = [i.product_id.id for i in element.order_line]
             maximum = max([product_ids.count(j) for j in product_ids])
             element.show_management_fee_grouping = maximum > 1
