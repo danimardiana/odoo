@@ -117,16 +117,17 @@ class AccountMove(models.Model):
 
     def post(self):
         res = super(AccountMove, self).post()
-        sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
-        if (
-            res
-            and self.partner_id
-            and self.partner_id.management_company_type_id
-            and "Greystar" in self.partner_id.management_company_type_id.name
-            and sequence
-        ):
-            self.name = sequence.next_by_code("greystar.sequence")
-        self.post_date = datetime.datetime.now()
+        for move in self:
+            sequence = move.env.ref("clx_invoice_policy.sequence_greystar_sequence")
+            if (
+                res
+                and move.partner_id
+                and move.partner_id.management_company_type_id
+                and "Greystar" in move.partner_id.management_company_type_id.name
+                and sequence
+            ):
+                move.name = sequence.next_by_code("greystar.sequence")
+            move.post_date = datetime.datetime.now()
         return res
 
     @staticmethod
