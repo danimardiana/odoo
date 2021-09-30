@@ -705,7 +705,7 @@ class SaleSubscription(models.Model):
                     "product_id": False,
                     "category_id": line["category_id"],
                 }
-                if "management_fee_product" in line and line["management_fee_product"].id:
+                if "management_fee_product" in line and line["management_fee_product"]:
                     management_fee_params = {
                         "description": line["management_fee_product"].name,
                         "category_id": line["management_fee_product"].categ_id.id,
