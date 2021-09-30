@@ -55,6 +55,7 @@
                 attrs="{'invisible': [('company_type_rel', '!=', 'company')]}">
                     <group>
                         <field name="invoice_selection" widget="radio"/>
+                        <field name="management_fee_grouping" widget="checkbox"/>
                     </group>
                 </page>
             </notebook>

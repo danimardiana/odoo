@@ -59,6 +59,8 @@ class SaleBudgetChanges(models.Model):
         for change in self:
             change.update({"status": "completed"})
 
+    # as changes of one subscription line could involve the whole product management fee calculation
+    # we have to get all  sale subscriptions related to this and
     def refresh_changes(self, changed_line):
         date_signature = "%Y-%m-%d"
 
@@ -113,6 +115,7 @@ class SaleBudgetChanges(models.Model):
                     },
                 )
                 return
+
             if len(subscription_secondary) == 1:
                 all_subscriptions += [subscription_secondary[0]]
 
@@ -154,7 +157,7 @@ class SaleBudgetChanges(models.Model):
                 #   starting period
                 start_period_date = line.start_date.replace(day=1)
                 start_date_text = line.start_date.strftime(date_signature)
-                zero_spending = {"wholesale": 0, "management_fee": 0, "price_full": 0}
+                zero_spending = {"wholesale_price": 0, "management_fee": 0, "price_unit": 0}
                 if line["prorate_amount"] != 0:
                     next_period_start = start_period_date + relativedelta(months=1)
                     next_period_start_text = next_period_start.strftime(date_signature)
@@ -229,41 +232,25 @@ class SaleBudgetChanges(models.Model):
             pricelist[subscription_iterator.id] = subscription_iterator.pricelist_determination(
                 subscription_iterator.product_id, subscription_iterator.pricelist_id
             )
-            for line in subscription_iterator.recurring_invoice_line_ids:
-                for period_process in involved_periods:
-                    period_process_signature = period_process + "|" + str(subscription_iterator.id)
-                    if period_process_signature in periods_spending:
-                        periods_spending[period_process_signature]["price_full"] += line.period_price_calc(
-                            involved_periods[period_process], partner_id, True
-                        )
-                    else:
-                        periods_spending[period_process_signature] = {
-                            "price_full": line.period_price_calc(involved_periods[period_process], partner_id, True),
-                            "date": involved_periods[period_process],
-                        }
 
-        # now, calc wholesale and management fee for periods with changes.
-        # each product should be calculated separatly
-        for period in periods_spending:
-            price_including_middlemonth_changes = periods_spending[period]["price_full"]
-            [period_current, pricelist_current] = period.split("|")
-            additional_data = subscription.subscription_wholesale_period(
-                price_including_middlemonth_changes, pricelist[int(pricelist_current)]
-            )
-            periods_spending[period].update(
-                {
-                    "management_fee": additional_data["management_fee"],
-                    "wholesale": additional_data["wholesale_price"],
-                }
-            )
+            for period_process in involved_periods:
+                period_process_signature = period_process + "|" + str(subscription_iterator.id)
+                periods_spending[period_process_signature] = list(
+                    subscription_iterator._grouping_wrapper(
+                        start_date = involved_periods[period_process],
+                        partner_id = partner_id,
+                    ).values()
+                )[0]
 
         # now, all products could be combined to the monthly spend
         periods_spending_combined = {}
         for period in periods_spending:
             [period_current, pricelist_current] = period.split("|")
             if period_current in periods_spending_combined:
-                periods_spending_combined[period_current]["price_full"] += periods_spending[period]["price_full"]
-                periods_spending_combined[period_current]["wholesale"] += periods_spending[period]["wholesale"]
+                periods_spending_combined[period_current]["price_unit"] += periods_spending[period]["price_unit"]
+                periods_spending_combined[period_current]["wholesale_price"] += periods_spending[period][
+                    "wholesale_price"
+                ]
                 periods_spending_combined[period_current]["management_fee"] += periods_spending[period][
                     "management_fee"
                 ]
@@ -338,15 +325,15 @@ class SaleBudgetChanges(models.Model):
                 "product_description": subscription.description,
                 "change_date": datetime.datetime.strptime(change_date, date_signature),
                 "change_price": processing_change["change_price"],
-                "price_full": money_detils["price_full"],
-                "change_wholesale": money_detils["wholesale"],
+                "price_full": money_detils["price_unit"],
+                "change_wholesale": money_detils["wholesale_price"],
                 "change_mngmt_fee": management_fee,
                 "prev_date": datetime.datetime.strptime(prev_date, date_signature),
-                "prev_price": prev_money_detils["price_full"],
-                "prev_wholesale": prev_money_detils["wholesale"],
+                "prev_price": prev_money_detils["price_unit"],
+                "prev_wholesale": prev_money_detils["wholesale_price"],
                 "next_date": next_date,
-                "next_price": next_money_details["price_full"],
-                "next_wholesale": next_money_details["wholesale"],
+                "next_price": next_money_details["price_unit"],
+                "next_wholesale": next_money_details["wholesale_price"],
             }
 
             # if checking date already exist
@@ -354,8 +341,8 @@ class SaleBudgetChanges(models.Model):
                 change_date in change_dates_existing_processed
                 and change_dates_existing_processed[change_date]["change_price"]
                 == change_dates_existing[change_date]["change_price"]
-                and change_dates_existing_processed[change_date]["price_full"]
-                == change_dates_existing[change_date]["price_full"]
+                and change_dates_existing_processed[change_date]["retail_current"]
+                == change_dates_existing[change_date]["retail_current"]
             ):
                 change_dates_existing[change_date].update(change_object)
             else:
