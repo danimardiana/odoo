@@ -11,14 +11,15 @@ from . import grouping_data
 products_set_grouping_level = grouping_data.products_set_grouping_level
 
 
-class FakeSaleOrderLine:
+class FakeSaleOrderLine(object):
     def __init__(self, sol, ratio):
         self.order_id = sol.order_id
         self.product_id = sol.product_id
-        self.price_unit = sol.price_unit * ratio / 100
+        self.price_unit = sol.price_unit  # * ratio / 100
         self.name = sol.name
-        self.partner_id = sol.product_id
-        self.price_full = sol.price_full * ratio / 100
+        self.parent_id = sol.order_id.partner_id
+        self.prorate_amount = sol.prorate_amount  # * ratio / 100
+        # self.price_full = sol.price_full * ratio / 100
         self.display_type = sol.display_type
         self.start_date = sol.start_date
         self.end_date = sol.end_date
@@ -26,6 +27,11 @@ class FakeSaleOrderLine:
         self.product_type = sol.product_type
         self.discount = 0
         self._grouping_name_calc = sol.env["sale.order.line"]._grouping_name_calc
+        self.co_op_sale_order_line_partner_ids = sol.co_op_sale_order_line_partner_ids
+
+    def __getitem__(self, key):
+        # have obj["a"] -> obj.a
+        return self.__getattribute__(key)
 
 
 class FakeSaleOrder:
@@ -41,7 +47,18 @@ class FakeSaleOrder:
         self.display_management_fee = False
         self.signature = False
         self.pricelist_id = so.pricelist_id
+
         # self.money_formatting = so.money_formatting
+
+    # co-op clients are presented as fake sales orders for contract calculations
+    def contract_data_prepare(
+        self,
+        start_date,
+        sub_lines,
+        contract_mode=False,
+        partner_id=False,
+    ):
+        return SaleOrder.contract_data_prepare(self, start_date, sub_lines, contract_mode, partner_id)
 
 
 class SaleOrder(models.Model):
@@ -178,7 +195,7 @@ class SaleOrder(models.Model):
             if matching_flag:
                 for product_group in grouping_rule["products_list"]:
                     for product_individual in products_process[product_group]:
-                        product_individual["product_id"] = grouping_rule["product_id"]
+                        # product_individual["product_id"] = grouping_rule["product_id"]
                         product_individual["description"] = grouping_rule["description"]
                         if not invoice_level:
                             product_individual["contract_product_description"] = grouping_rule[
@@ -263,37 +280,43 @@ class SaleOrder(models.Model):
 
         return result_object
 
-    def contract_data_prepare(
-        self,
-        start_date,
-        partner_id=False,
-    ):
+    def contract_data_prepare(self, start_date, lines, contract_mode=True, partner_id=False):
         # check if we have first-month exclusion
         flag_proration = any(map(lambda x: x.prorate_amount, self.order_line))
         start_date_recurring = start_date + relativedelta(months=1)
         if flag_proration:
-            initial_month = self._grouping_wrapper(start_date, partner_id)
-            recurring_month = self._grouping_wrapper(start_date_recurring, partner_id)
+            initial_month = self._grouping_wrapper(
+                start_date=start_date, partner_id=partner_id, order_line=lines, contract_mode=contract_mode
+            )
+            recurring_month = self._grouping_wrapper(
+                start_date=start_date_recurring, partner_id=partner_id, order_line=lines, contract_mode=contract_mode
+            )
             for product in initial_month:
                 if product in recurring_month:
                     initial_month[product]["management_fee_initial"] = initial_month[product]["management_fee"]
                     initial_month[product]["management_fee"] = recurring_month[product]["management_fee"]
             return initial_month.values()
         else:
-            return self._grouping_wrapper(start_date, partner_id).values()
+            return self._grouping_wrapper(
+                start_date=start_date, partner_id=partner_id, order_line=lines, contract_mode=contract_mode
+            ).values()
 
     # TODO::
     # True need to pass the partner_id if we going to prorate price value at the contract level
-    def _grouping_wrapper(
-        self,
-        start_date,
-        partner_id=False,
-        order_line=False,
-        grouping_levels=grouping_data.ALL_FLAGS_GROUPING,
-    ):
+    # parameters: start_date, partner_id, order_line, contract_mode, grouping_levels
+    def _grouping_wrapper(self, **kwargs):
+        # inputs process
+        if not "start_date" in kwargs:
+            return []
+        start_date = kwargs["start_date"]
+        partner_id = kwargs.get("partner_id", False)
+        order_line = kwargs.get("order_line", False)
+        contract_mode = kwargs.get("contract_mode", False)
+        grouping_levels = kwargs.get("grouping_levels", grouping_data.ALL_FLAGS_GROUPING)
+
         def initial_order_data(line, partner_id):
             price, price_full = self.env["sale.subscription.line"].period_price_calc(
-                start_date, partner_id, False, line
+                start_date, partner_id, contract_mode, line
             )
             pricelist2process = self.env["sale.subscription.line"].analytic_account_id.pricelist_determination(
                 line.product_id, line.order_id.pricelist_id
@@ -402,27 +425,27 @@ class SaleOrder(models.Model):
 
         for product_individual in modified_invoice_lines:
             # combine the lines contains the same description, tax and discount
+            combined_signature = ",".join(map(lambda tax: str(tax), product_individual["tax_ids"])) + str(
+                product_individual["discount"]
+            )
+
+            # not take to account the product id when grouping the products belong to the bundles.
+            if product_individual["description"] not in [i["description"] for i in products_set_grouping_level]:
+                combined_signature += str(product_individual["product_id"])
+
             if grouping_levels & grouping_data.DESCRIPTION_GROUPING_FLAG:
-                combined_signature = (
-                    product_individual["description"]
-                    + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
-                    + str(product_individual["product_id"])
-                    + str(product_individual["discount"])
-                )
-            else:  # combune if products are same (ingnore the description)
-                combined_signature = (
-                    str(product_individual["product_id"])
-                    + ",".join(map(lambda tax: str(tax), product_individual["tax_ids"]))
-                    + str(product_individual["discount"])
-                )
+                combined_signature += product_individual["description"]
+
             # in case if grouping should take date in to account
             if grouping_levels & grouping_data.DATE_GROUPING_FLAG:
                 combined_signature += str(product_individual["start_date"]) + str(product_individual["end_date"])
             product_individual["product_signature"] = combined_signature
             if partner_id.management_fee_grouping:
-                product_individual["management_fee_signature"] = product_individual["product_id"]
+                product_individual["management_fee_signature"] = str(product_individual["product_id"])
             else:
-                product_individual["management_fee_signature"] = combined_signature
+                product_individual["management_fee_signature"] = combined_signature + str(
+                    product_individual["product_id"]
+                )
 
         # update indepedant subscription/quotation lines with calculated Management Fee
         self.update_with_management_fee(modified_invoice_lines, start_date, partner_id)

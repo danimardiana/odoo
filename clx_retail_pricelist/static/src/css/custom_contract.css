@@ -60,9 +60,7 @@ h3 {
 .contractPrintBody li {
     list-style-type: disc !important;
 }
-/* .communityLogoWrapper  {
-    margin: 100px 0;
-} */
+
 .contract-title {
     width: 100%;
     text-align: center;
@@ -78,8 +76,8 @@ h3 {
 }
 .productLineWrapper .topbar {
     font-size: 13px;
-    margin-bottom: 1em;
-    margin-left: 1em;
+    margin-bottom: 8px;
+    margin-left: 8px;
     width: 100%;
 }
 /* .productTotalWrapperWrapper {
@@ -161,9 +159,6 @@ h3 {
 
 .externalContact > .value {
     width: 98%;
-    /* display: inline-block; */
-    /* margin-left: auto; */
-    /* margin-right: auto; */
     text-align: left;
     margin: 5px auto;
     overflow: hidden;
@@ -496,7 +491,7 @@ h3 {
 
     width: 35%;
     margin: auto;
-    right: 1em;
+    right: 8px;
     float: right;
 }
 .container.pdf .productTotalWrapper {
@@ -510,8 +505,8 @@ h3 {
 
 }
 .container.pdf  .productLineWrapper {
-    margin: 1em 0 0 0;
-    padding: 1em 0 0 0;
+    margin: 8px 0 0 0;
+    padding: 8px 0 0 0;
     page-break-inside: avoid;
     border-top: 2px double black;
     width:100%;
@@ -559,13 +554,6 @@ h3 {
     margin-left: 5%;
     font-size: 0.48cm;
 }
-/* .pdfsignature{
-    max-width: 8cm;
-}
-
-.htmlsignature{
-    max-width: 8cm;
-} */
 
 .pdfsignature img,.htmlsignature img{
     width:100%;

@@ -143,7 +143,7 @@ class SaleBudgetExportWizard(models.TransientModel):
             subscription_lines = subscription_line_object.browse(all_odoo_partners[partner_id])
 
             all_subscriptions = subscription_object._grouping_wrapper(
-                self.start_date, partner_id, subscription_lines, 5
+                start_date = self.start_date, partner_id = partner_id , subscription_line = subscription_lines, grouping_levels = 5
             )
 
             for subscription in all_subscriptions:
