@@ -80,10 +80,10 @@ class SaleSubscription(models.Model):
     # calculate the management fee and wholesale for group of subscriptions. Supposing the list contains the lines for certain period
     def update_subscriptions_with_management_fee(self, partner_id, subscription_list, category_show_params=False):
         zero_management = {
-                                "management_fee": 0,
-                                "wholesale_price": 0,
-                                "management_fee_product": False,
-                            }
+            "management_fee": 0,
+            "wholesale_price": 0,
+            "management_fee_product": False,
+        }
         if partner_id.management_fee_grouping:
             # populate the source lines with management fee and wholesale data
             grouped_products = {}
@@ -489,9 +489,17 @@ class SaleSubscription(models.Model):
 
         return invoice
 
-    def _grouping_wrapper(
-        self, start_date, partner_id=False, subscripion_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING
-    ):
+    # grouping all subscriptions following the grouping rules for reporting
+    # start_date, partner_id=False, subscripion_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING
+    def _grouping_wrapper(self, **kwargs):
+        # inputs process
+        if not "start_date" in kwargs:
+            return []
+        start_date = kwargs["start_date"]
+        partner_id = kwargs.get("partner_id", False)
+        subscripion_line = kwargs.get("subscripion_line", False)
+        grouping_levels = kwargs.get("grouping_levels", grouping_data.ALL_FLAGS_GROUPING)
+
         def initial_order_data(line, partner_id):
             price, price_full = line.period_price_calc(start_date, partner_id)
             product_variant = ""
@@ -818,7 +826,9 @@ class SaleSubscription(models.Model):
         # adding rebate to subscriptions before grouping
 
         # invoice lines grouping - products and description only
-        grouped_sub_lines = self._grouping_wrapper(start_date, partner, sub_lines, grouping_levels)
+        grouped_sub_lines = self._grouping_wrapper(
+            start_date=start_date, partner_id=partner, subscripion_line=sub_lines, grouping_levels=grouping_levels
+        )
 
         grouped_invoice_lines = self.invoicing_add_management_fee_and_rebate_lines(
             grouped_sub_lines.values(), start_date, end_date
@@ -944,13 +954,12 @@ class SaleSubscriptionLine(models.Model):
 
         co_op_coef = 1
         # co-op change!!!!
-
         if partner_id and len(co_op_list) and not dont_prorate_coop:
-            coop_line_filter = filter(lambda line: line.partner_id.id == partner_id, co_op_list)
-            if len(list(coop_line_filter)) == 0:
+            coop_line_filter = list(filter(lambda line: line.partner_id.id == partner_id.id, co_op_list))
+            if len(coop_line_filter) == 0:
                 co_op_coef = 0
             else:
-                co_op_coef = next(filter(lambda line: line.partner_id.id == partner_id, co_op_list)).ratio / 100
+                co_op_coef = coop_line_filter[0].ratio / 100
 
         price_calculated = co_op_coef * price_calculated
         price_full = co_op_coef * price_full
