@@ -41,7 +41,12 @@ class Partner(models.Model):
         string="Company Type",
         store=True,
         compute="_compute_company_type",
-        selection_add=[("company", "Customer Company"), ("owner", "Owner"), ("management", "Management"),('vendor','Vendor')],
+        selection_add=[
+            ("company", "Customer Company"),
+            ("owner", "Owner"),
+            ("management", "Management"),
+            ("vendor", "Vendor"),
+        ],
         inverse="_write_company_type",
     )
     ownership_company_type_id = fields.Many2one("res.partner", string="Owner Ship Company")
@@ -193,8 +198,16 @@ class Partner(models.Model):
     def create(self, vals):
         res = super(Partner, self).create(vals)
 
-        # Create non-user contact in CLXDB
+        """
+        COMPANY CONTACT CREATED-CLXDB SYNC
+        Only create non-system-users (no employees) contact in CLXDB
+        """
         if res.company_type in {"management", "company", "person", "owner"}:
+            # If the account mgr field is set, get the account mgr contact's email
+            if res.account_user_id.id:
+                acc_partner_id = self.env["res.users"].search([("id", "=", vals.get("account_user_id", False))])
+                vals["acc_mgr_email"] = acc_partner_id.partner_id.email
+
             vals["contact"] = res
             CLXDB = self.env["clx.mysql"]
             CLXDB.create_contact(vals)
@@ -226,13 +239,54 @@ class Partner(models.Model):
 
             for company in subsidiary_companies:
                 company.write({"national_user_id": new_national_mgr})
+        """
+        ODOO ACCOUNT MGR EMAIL UPDATED-CLXDB SYNC
+        if an account manager's email changes, sync the new 
+        email to the company contacts in CLXDB
+        """
+        if self.user_ids.id and vals.get("email", False):
+            cr = self._cr
+            # check to see if user is an account manager for any companies
+            query = """SELECT id 
+                       FROM res_partner 
+                       WHERE account_user_id ='%s';""" % (
+                self.user_ids.id,
+            )
+            cr.execute(query)
+            company_ids = list(filter(None, map(lambda x: x, cr.fetchall())))
+            company_list = self.env["res.partner"].search([("id", "in", company_ids)])
 
-        # Update non-user contact in CLXDB
+            for company in company_list:
+                vals["contact"] = company
+                vals["acc_mgr_email"] = vals["email"]
+                CLXDB = self.env["clx.mysql"]
+                CLXDB.update_contact(vals)
+
+        """
+        COMPANY CONTACT UPDATED-CLXDB SYNC
+        Only send updates to CLXDB for non-system-user contacts (no employees)
+        """
         if not self.user_ids.id:
-            contact_fields = {"name", "company_type", "parent_id", "street", "city", "vertical", "yardi_code"}
+            contact_fields = {
+                "name",
+                "company_type",
+                "parent_id",
+                "street",
+                "city",
+                "vertical",
+                "yardi_code",
+                "website",
+                "account_user_id",
+            }
+
             for key in vals:
+                if key == "account_user_id":
+                    acc_partner_id = self.env["res.users"].search([("id", "=", vals.get("account_user_id", False))])
+                    vals["acc_mgr_email"] = acc_partner_id.partner_id.email
+
                 if key in contact_fields:
                     vals["contact"] = self
+
                     CLXDB = self.env["clx.mysql"]
                     CLXDB.update_contact(vals)
                     break
