@@ -710,6 +710,7 @@ class SaleSubscription(models.Model):
                         "description": line["management_fee_product"].name,
                         "category_id": line["management_fee_product"].categ_id.id,
                         "product_id": line["management_fee_product"].id,
+                        "account_id": line["account_id"],
                     }
 
                 grouped_invoice_lines.append(
