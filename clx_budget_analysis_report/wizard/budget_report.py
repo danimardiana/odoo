@@ -6,8 +6,6 @@ from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from datetime import timedelta
 from calendar import monthrange, month_name
-import datetime
-import json
 
 
 class BudgetReportWizard(models.TransientModel):
