@@ -117,9 +117,9 @@
                             </strong>
                             <t t-esc="o.name"/>
                             <br/>
-                            <t t-if="o.invoice_date">
-                                <strong>Date :</strong>
-                                <t t-esc="o.invoice_date"/>
+                            <t t-if="o.post_date">
+                                <strong>Invoice Date :</strong>
+                                <t t-esc="o.post_date"/>
                                 <br/>
                             </t>
                             <t t-if="o.invoice_date_due">

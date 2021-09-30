@@ -41,7 +41,12 @@ class Partner(models.Model):
         string="Company Type",
         store=True,
         compute="_compute_company_type",
-        selection_add=[("company", "Customer Company"), ("owner", "Owner"), ("management", "Management"),('vendor','Vendor')],
+        selection_add=[
+            ("company", "Customer Company"),
+            ("owner", "Owner"),
+            ("management", "Management"),
+            ("vendor", "Vendor"),
+        ],
         inverse="_write_company_type",
     )
     ownership_company_type_id = fields.Many2one("res.partner", string="Owner Ship Company")
@@ -53,10 +58,15 @@ class Partner(models.Model):
     account_user_id = fields.Many2one("res.users", string="Account Manager")
     secondary_user_id = fields.Many2one("res.users", string="Secondary Acct. Manager")
     national_user_id = fields.Many2one("res.users", string="National Acct. Manager")
+    national_mgr_hidden = fields.Boolean(
+        string="National Manager Hidden",
+        compute="_compute_national_mgr_hidden",
+        help="Used to toggle the national managed field show/hide",
+    )
     mangement_company_type = fields.Selection(
         string="Mgmt. Company Type", selection=[("greystar", "Greystar"), ("other", "Other")]
     )
-    contact_type_ids = fields.Many2many("contact.type", "contact_type_rel", "con_id", "type_id", string="Contact Type")
+    contact_type_ids = fields.Many2many("contact.type", "contact_type_rel", "con_id", "type_id", string="Contact Role")
     contact_company_type_id = fields.Many2one("res.partner", string="Contact Name")
     company_type_rel = fields.Selection(
         related="company_type",
@@ -65,7 +75,7 @@ class Partner(models.Model):
     contact_display_kanban = fields.Char("Contact Display Name")
     contact_child_ids = fields.One2many("res.partner.clx.child", "parent_id", string="Other Contacts")
     vertical = fields.Selection(
-        [("res", "RES"), ("srl", "SRL"), ("local", "Local"), ("auto", "Auto")], string="Vertical"
+        [("res", "RES"), ("srl", "SRL"), ("local", "Local"), ("auto", "Auto"), ("agency", "Agency")], string="Vertical"
     )
 
     branding_name = fields.Char(string="Branding Name")
@@ -128,17 +138,25 @@ class Partner(models.Model):
     invoice_template_line1 = fields.Char(string="Line1")
     invoice_template_line2 = fields.Char(string="Line2")
 
-    #discounts block
+    # discounts block
     is_flat_discount = fields.Boolean(string="Is Flat Discount")
     clx_category_id = fields.Many2one("product.category", string="Category for Flat Discount")
     flat_discount = fields.Float(string="Flat Discount")
     is_percent_discount = fields.Boolean(string="Is Percent Discount")
-    flat_discount_product = fields.Many2one('product.product', string="Product for Flat Discount", help="Product the Flat Discount will be assigned to")
+    flat_discount_product = fields.Many2one(
+        "product.product", string="Product for Flat Discount", help="Product the Flat Discount will be assigned to"
+    )
     percent_discount = fields.Float(string="Percent Discount")
     percent_discount_category_id = fields.Many2one("product.category", string="Category for Percent Discount")
-    percent_discount_product = fields.Many2one('product.product', string="Product for Percent Discount", help="Product the Percent Discount will be assigned to")
+    percent_discount_product = fields.Many2one(
+        "product.product",
+        string="Product for Percent Discount",
+        help="Product the Percent Discount will be assigned to",
+    )
     discount_on_order_line = fields.Float(string="Discount on Sale Order Line (%)")
-    discount_product = fields.Many2one('product.product', string="Product for Flat Discount", help="Product the Main Discont will be assigned to")
+    discount_product = fields.Many2one(
+        "product.product", string="Product for Flat Discount", help="Product the Main Discont will be assigned to"
+    )
 
     client_services_team = fields.Selection(
         [("emerging_accounts", "Emerging Accounts"), ("national_accounts", "National Accounts")],
@@ -180,8 +198,16 @@ class Partner(models.Model):
     def create(self, vals):
         res = super(Partner, self).create(vals)
 
-        # Create non-user contact in CLXDB
+        """
+        COMPANY CONTACT CREATED-CLXDB SYNC
+        Only create non-system-users (no employees) contact in CLXDB
+        """
         if res.company_type in {"management", "company", "person", "owner"}:
+            # If the account mgr field is set, get the account mgr contact's email
+            if res.account_user_id.id:
+                acc_partner_id = self.env["res.users"].search([("id", "=", vals.get("account_user_id", False))])
+                vals["acc_mgr_email"] = acc_partner_id.partner_id.email
+
             vals["contact"] = res
             CLXDB = self.env["clx.mysql"]
             CLXDB.create_contact(vals)
@@ -191,12 +217,76 @@ class Partner(models.Model):
     def write(self, vals):
         res = super(Partner, self).write(vals)
 
-        # Update non-user contact in CLXDB
+        """
+        If the national account manager is changed at the manamement company
+        level, then update the national manager on all it's childeren. Greystar
+        is currently a special use case because it have a master management company
+        """
+        if vals.get("national_user_id", False):
+            new_national_mgr = vals["national_user_id"]
+            subsidiary_companies = {}
+
+            if self.company_type == "management" and self.mangement_company_type != "greystar":
+                subsidiary_companies = self.env["res.partner"].search([("management_company_type_id", "=", self.id)])
+
+            elif self.id == 29824:  # Master Greystar Entity
+                greystar_regional_mgmt_companies = self.env["res.partner"].search(
+                    [("mangement_company_type", "=", "greystar")]
+                )
+                subsidiary_companies = self.env["res.partner"].search(
+                    [("management_company_type_id", "in", greystar_regional_mgmt_companies.ids)]
+                )
+
+            for company in subsidiary_companies:
+                company.write({"national_user_id": new_national_mgr})
+        """
+        ODOO ACCOUNT MGR EMAIL UPDATED-CLXDB SYNC
+        if an account manager's email changes, sync the new 
+        email to the company contacts in CLXDB
+        """
+        if self.user_ids.id and vals.get("email", False):
+            cr = self._cr
+            # check to see if user is an account manager for any companies
+            query = """SELECT id 
+                       FROM res_partner 
+                       WHERE account_user_id ='%s';""" % (
+                self.user_ids.id,
+            )
+            cr.execute(query)
+            company_ids = list(filter(None, map(lambda x: x, cr.fetchall())))
+            company_list = self.env["res.partner"].search([("id", "in", company_ids)])
+
+            for company in company_list:
+                vals["contact"] = company
+                vals["acc_mgr_email"] = vals["email"]
+                CLXDB = self.env["clx.mysql"]
+                CLXDB.update_contact(vals)
+
+        """
+        COMPANY CONTACT UPDATED-CLXDB SYNC
+        Only send updates to CLXDB for non-system-user contacts (no employees)
+        """
         if not self.user_ids.id:
-            contact_fields = {"name", "company_type", "parent_id", "street", "city", "vertical", "yardi_code"}
+            contact_fields = {
+                "name",
+                "company_type",
+                "parent_id",
+                "street",
+                "city",
+                "vertical",
+                "yardi_code",
+                "website",
+                "account_user_id",
+            }
+
             for key in vals:
+                if key == "account_user_id":
+                    acc_partner_id = self.env["res.users"].search([("id", "=", vals.get("account_user_id", False))])
+                    vals["acc_mgr_email"] = acc_partner_id.partner_id.email
+
                 if key in contact_fields:
                     vals["contact"] = self
+
                     CLXDB = self.env["clx.mysql"]
                     CLXDB.update_contact(vals)
                     break
@@ -229,6 +319,17 @@ class Partner(models.Model):
         if self.management_company_type_id and self.management_company_type_id.property_product_pricelist:
             self.property_product_pricelist = self.management_company_type_id.property_product_pricelist.id
 
+        if self.company_type == "company" and self.management_company_type_id:
+            mgmt_company = self.env["res.partner"].search([("id", "=", self.management_company_type_id.id)])
+
+            if mgmt_company.national_user_id and mgmt_company.mangement_company_type != "greystar":
+                self.national_user_id = mgmt_company.national_user_id
+            elif mgmt_company.mangement_company_type == "greystar":
+                greystar_master_mgmt_company = self.env["res.partner"].search([("id", "=", 29824)])
+
+                if greystar_master_mgmt_company.national_user_id:
+                    self.national_user_id = greystar_master_mgmt_company.national_user_id
+
     @api.onchange("contact_type_ids")
     def onchange_contact_display_name(self):
         for rec in self:
@@ -249,6 +350,16 @@ class Partner(models.Model):
                 partner.company_type = "owner"
             elif partner.is_management and not partner.is_owner:
                 partner.company_type = "management"
+
+    def _compute_national_mgr_hidden(self):
+        if (
+            self.company_type == "company"
+            or (self.company_type == "management" and self.mangement_company_type != "greystar")
+            or self.id == 29824  # Master Greystar Entity
+        ):
+            self.national_mgr_hidden = False
+        else:
+            self.national_mgr_hidden = True
 
     def _compute_company_type_hidden(self):
         if (
@@ -288,8 +399,6 @@ class Partner(models.Model):
     def assignation_management(self):
         self.ensure_one()
         clx_child_ids = self.env["res.partner.clx.child"].search([("child_id", "=", self.id)])
-        # parent_id = [
-        # clx_child_id.parent_id.id for clx_child_id in clx_child_ids]
         domain = [("id", "in", clx_child_ids.ids)]
         action = self.env.ref("contact_modification.action_partner_assignation_contacts").read()[0]
         context = literal_eval(action["context"])

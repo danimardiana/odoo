@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="subscription_deletion_group" model="res.groups">
+        <field name="name">CLX Subscription Deletion</field>
+        <field name="comment">Group having the deletion and archieving rights for subscriptions and subscription lines.</field>
+    </record>
+</odoo>

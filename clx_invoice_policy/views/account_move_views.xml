@@ -15,6 +15,13 @@
                 <button name="action_invoice_sent" type="object" string="Send &amp; Print"  class="oe_highlight" groups="base.group_user"/> 
                 <button name="action_reminder_sent" type="object" string="Email Reminder"  class="oe_highlight" groups="base.group_user"/>
             </xpath>
+            <xpath expr="//field[@name='invoice_date']" position="replace">
+                <field name="post_date"/>
+                <field name="create_date" string="Creation Date"/>
+            </xpath>
+            <xpath expr="//label[@for='invoice_date']" position="replace">
+                <!-- Removing label for native Invoice Date -->
+            </xpath>
             <field name="company_id" position="after">
                 <field name="mgmt_company"/>
                 <field name="invoice_period_verbal"/>
@@ -143,8 +150,15 @@
             <xpath expr="//field[@name='invoice_date_due']" position="after">
                 <field name="invoice_month_year" optional = "hide" />
                 <field name="invoice_period_verbal" optional = "show" />
+                <field name="create_date" optional = "hide" />
                 <field name="is_co_op" optional = "hide" />
+            </xpath>           
+            <xpath expr="//field[@name='invoice_date']" position="replace">
             </xpath>
+            <xpath expr="//field[@name='invoice_date']" position="replace">
+                <field name="post_date"/>
+            </xpath>         
+
             <xpath expr="//field[@name='invoice_user_id']" position="replace">
                 <field name="invoice_user_id" optional = "hide" />
                 <field name="account_user_id" optional = "show" />
