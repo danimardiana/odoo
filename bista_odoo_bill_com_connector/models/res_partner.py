@@ -25,7 +25,8 @@ class ResPartner(models.Model):
                 if bill_com_vendor_id:
                     data["obj"].update({"id" : bill_com_vendor_id, "name" : name})
                 else:    
-                    data["obj"].update({"isActive" : "1", "name" : name})
+                    data["obj"].update({"isActive" : "1", "name" : name, "payBy": "0"# By Check
+                        })
                 street = self.street
                 data["obj"].update({"address1" : street or ''})
                 street2 = self.street2
@@ -58,14 +59,18 @@ class ResPartner(models.Model):
                         self.bill_com_vendor_id = bill_com_vendor_id
                 return bill_com_vendor_id
 
-    # def write(self, vals):
-    #     res = super(ResPartner, self).write(vals)
-    #     company_id_brw = self.env['res.users'].sudo().browse(self._uid).company_id
-    #     if ('name' in vals) or ('street' in vals) or ('street2' in vals) or ('city' in vals) or ('zip' in vals) or ('state_id' in vals) or ('country_id' in vals) or ('phone' in vals) or ('email' in vals):
-    #         bill_com_config_obj = self.env['bill.com.config'].sudo().get_bill_com_config(company_id_brw.id)
-    #         for each in self:
-    #             bill_com_vendor_id = each.create_write_vendor_info(bill_com_config_obj)
-    #     return res  
+    def write(self, vals):
+        res = super(ResPartner, self).write(vals)
+        user_id_brw = self.env['res.users'].sudo().browse(self._uid)
+        company_id_brw = user_id_brw.company_id
+        if ('name' in vals) or ('street' in vals) or ('street2' in vals) or ('city' in vals) or ('zip' in vals) or ('state_id' in vals) or ('country_id' in vals) or ('phone' in vals) or ('email' in vals):
+            bill_com_config_obj = self.env['bill.com.config'].sudo().get_bill_com_config(company_id_brw.id)
+            for each in self:
+                if each.supplier_rank > 0:
+                    bill_com_vendor_id = each.create_write_vendor_info(bill_com_config_obj)
+                    message = ("""Update on Bill.com is done by %s""" % (user_id_brw.name))
+                    each.message_post(body=message)
+        return res
 
     def send_vendor_info(self):
         company_id_brw = self.env['res.users'].sudo().browse(self._uid).company_id
