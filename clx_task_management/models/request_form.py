@@ -579,10 +579,9 @@ class RequestForm(models.Model):
                 list_product.append(form_line_id.id)
 
         today = fields.Date.today()
-        request_form_id = int(self.ids[0])
 
         lines = self.env["sale.order.line"].search([("order_partner_id", "=", self.partner_id.id)])
-        existing_lines = req_line_obj.search([("request_form_id", "=", request_form_id)])
+        existing_lines = req_line_obj.search([("request_form_id", "=", self.ids[0] if self.ids else False)])
         order_lines = False
 
         if lines and not self.cancel_client:
@@ -590,7 +589,7 @@ class RequestForm(models.Model):
             order_lines = order_lines.filtered(lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
 
             if self.description and "CANCELLATION" in self.description:
-                self.description = self.partner_id.name if self.partner_id.name else ""
+                self.description = self.partner_id.name if self.partner_id.name else False
 
             for category in order_lines.mapped("product_id").mapped("categ_id"):
                 existing_line = existing_lines.request_form_id.request_line.filtered(
