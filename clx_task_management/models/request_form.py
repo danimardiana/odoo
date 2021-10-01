@@ -579,8 +579,10 @@ class RequestForm(models.Model):
                 list_product.append(form_line_id.id)
 
         today = fields.Date.today()
+        request_form_id = int(self.ids[0])
 
         lines = self.env["sale.order.line"].search([("order_partner_id", "=", self.partner_id.id)])
+        existing_lines = req_line_obj.search([("request_form_id", "=", request_form_id)])
         order_lines = False
 
         if lines and not self.cancel_client:
@@ -591,10 +593,14 @@ class RequestForm(models.Model):
                 self.description = self.partner_id.name if self.partner_id.name else ""
 
             for category in order_lines.mapped("product_id").mapped("categ_id"):
+                existing_line = existing_lines.request_form_id.request_line.filtered(
+                    lambda x: x.category_id.id == category.id
+                )
                 line_id = req_line_obj.create(
                     {
                         "category_id": category.id,
                         "req_type": "new" if self.is_create_client_launch else "update",
+                        "description": existing_line.description if existing_line else False,
                     }
                 )
                 list_product.append(line_id.id)
