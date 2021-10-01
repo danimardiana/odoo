@@ -561,14 +561,7 @@ class RequestForm(models.Model):
             form_line_id = req_line_obj.create(cancellation_main_task_vals)
             list_product.append(form_line_id.id)
 
-        elif not self.is_create_client_launch:
-            client_launch_task = self.env.ref("clx_task_management.clx_client_launch_task", raise_if_not_found=False)
-            available_line = self.request_line.filtered(
-                lambda x: client_launch_task and x.task_id.id == client_launch_task.id
-            )
-            if available_line:
-                available_line.unlink()
-        else:
+        if self.is_create_client_launch:
             self.cancel_client = False
             auto_tasks = (
                 self.env.user.company_id.auto_add_main_task_ids
@@ -584,9 +577,11 @@ class RequestForm(models.Model):
                 }
                 form_line_id = req_line_obj.create(vals)
                 list_product.append(form_line_id.id)
+
         today = fields.Date.today()
 
         lines = self.env["sale.order.line"].search([("order_partner_id", "=", self.partner_id.id)])
+        existing_lines = req_line_obj.search([("request_form_id", "=", self.ids[0] if self.ids else False)])
         order_lines = False
 
         if lines and not self.cancel_client:
@@ -594,13 +589,17 @@ class RequestForm(models.Model):
             order_lines = order_lines.filtered(lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
 
             if self.description and "CANCELLATION" in self.description:
-                self.description = self.partner_id.name if self.partner_id.name else ""
+                self.description = self.partner_id.name if self.partner_id.name else False
 
             for category in order_lines.mapped("product_id").mapped("categ_id"):
+                existing_line = existing_lines.request_form_id.request_line.filtered(
+                    lambda x: x.category_id.id == category.id
+                )
                 line_id = req_line_obj.create(
                     {
                         "category_id": category.id,
-                        "req_type": "update",
+                        "req_type": "new" if self.is_create_client_launch else "update",
+                        "description": existing_line.description if existing_line else False,
                     }
                 )
                 list_product.append(line_id.id)
