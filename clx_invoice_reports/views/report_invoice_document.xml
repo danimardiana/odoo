@@ -83,8 +83,6 @@
                                 <span t-field="o.partner_id.street2"/>
                                 <br/>
                             </t>
-                            <!--<address t-field="o.partner_id"
-                                     t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>-->
                             <t t-if="o.partner_id.city">
                                 <span t-field="o.partner_id.city"/>
                                 <span>, </span>
@@ -119,17 +117,13 @@
                             <br/>
                             <t t-if="o.post_date">
                                 <strong>Invoice Date :</strong>
-                                <t t-esc="o.post_date"/>
+                                <t t-esc="o.post_date.strftime('%m-%d-%Y')"/>
                                 <br/>
                             </t>
                             <t t-if="o.invoice_date_due">
                                 <strong>Due Date :</strong>
-                                <t t-esc="o.invoice_date_due"/>
+                                <t t-esc="o.invoice_date_due.strftime('%m-%d-%Y')" />
                                 <br/>
-                            </t>
-                            <t t-if="o.invoice_payment_term_id">
-                                <strong>Terms :</strong>
-                                <t t-esc="o.invoice_payment_term_id.name"/>
                             </t>
                         </div>
                     </div>
@@ -160,10 +154,6 @@
                         <th name="th_description">
                             <span>Description</span>
                         </th>
-                        <!--<th name="th_taxes"
-                            t-attf-class="text-left {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
-                            <span>Taxes</span>
-                        </th>-->
                         <th name="th_amount" class="text-right">
                             <span>Taxable Product</span>
                         </th>
@@ -196,7 +186,7 @@
                                 </t>
                             </td>
                             <td>
-                                <span t-esc="line['price_total']" style="float:right;"/>
+                                <span t-esc="'%.2f'%line['price_total']" style="float:right;"/>
                             </td>
                         </tr>
                     </t>
