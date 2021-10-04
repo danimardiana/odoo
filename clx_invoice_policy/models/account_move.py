@@ -105,6 +105,7 @@ class AccountMove(models.Model):
     def _compute_accounting_notes(self):
         for move in self:
             move.accounting_notes = move.partner_id.accounting_notes
+            move.unique_billing_note = bool(move.accounting_notes)
 
     def compute_billing_contacts(self):
         billing_list = map(
