@@ -315,20 +315,33 @@ class SaleOrder(models.Model):
         grouping_levels = kwargs.get("grouping_levels", grouping_data.ALL_FLAGS_GROUPING)
 
         def initial_order_data(line, partner_id):
-            price, price_full = self.env["sale.subscription.line"].period_price_calc(
+            price, price_full,coop_coef = self.env["sale.subscription.line"].period_price_calc(
                 start_date, partner_id, contract_mode, line
             )
             pricelist2process = self.env["sale.subscription.line"].analytic_account_id.pricelist_determination(
                 line.product_id, line.order_id.pricelist_id
             )
+            # coop_coef = 1
+            # # check if we processing co-op
+            # if partner_id.id != line.order_id.partner_id.id:
+            #     coop_record = list(
+            #         filter(
+            #             lambda i: i.partner_id.id == partner_id.id,
+            #             line.co_op_sale_order_line_partner_ids,
+            #         )
+            #     )
+            #     if len(coop_record) > 0:
+            #         coop_coef = coop_record[0].ratio / 100
             return {
                 "order_id": line.order_id,
                 "product_name": line.product_id.name,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
                 "product_id": line.product_id.id,
+                "partner_owner": line.order_id.partner_id,
                 "price_unit": price,
                 "price_full": price_full,
+                "coop_coef": coop_coef,
                 "pricelist": pricelist2process,
                 "category_id": line.product_id.categ_id.id,
                 "category_name": line.product_id.categ_id.name,
