@@ -221,7 +221,6 @@ class AccountMove(models.Model):
             [("vertical", "=", self.partner_id.vertical)], limit=1
         )
         if self.invoice_line_ids:
-            self.invoice_line_ids.analytic_account_id = self.partner_id.vertical and analytic_account_id or False
             for line in self.invoice_line_ids:
                 line.analytic_account_id = self.partner_id.vertical and \
                                     analytic_account_id or line.analytic_account_id
