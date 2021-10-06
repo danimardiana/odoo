@@ -599,7 +599,7 @@ class RequestForm(models.Model):
                     "description": a_task.requirements,
                 }
                 form_line_id = req_line_obj.create(vals)
-                list_product.append(form_line_id.id)
+                list_product.insert(0,form_line_id.id)
         else:
             for existing in existing_lines:
                 if existing.task_id.id not in auto_tasks.ids:
