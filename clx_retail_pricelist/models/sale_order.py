@@ -61,6 +61,7 @@ class SaleOrder(models.Model):
             combined_products[signature].append(line)
 
         for group_lines in combined_products:
+
             base_subscriptions = combined_products[group_lines]
             # all subscriptions  of the same products for all kinds of grouping
             product = self.env["product.product"].browse(base_subscriptions[0]["product_id"])
@@ -77,13 +78,14 @@ class SaleOrder(models.Model):
                 )
 
                 for support_subscription in related_subscriptions:
-                    price, price_full = support_subscription.period_price_calc(start_date, partner)
+                    price, price_full, coop_coef = support_subscription.period_price_calc(start_date, partner)
                     adapted_subscriptions.append(
                         {
                             "id": support_subscription.id,
                             "product_id": product.id,
                             "price_unit": price,
                             "price_full": price_full,
+                            "coop_coef": coop_coef,
                             "category_id": product.categ_id.id,
                             "pricelist": base_subscriptions[0]["pricelist"],
                             "name": support_subscription["name"],
@@ -94,7 +96,7 @@ class SaleOrder(models.Model):
                 "show_mgmnt_fee": product.categ_id.management_fee,
                 "show_wholesale": product.categ_id.wholesale,
             }
-
+            # calculate the management fee for parent if coop
             self.env["sale.subscription"].update_subscriptions_with_management_fee(
                 partner, base_subscriptions + adapted_subscriptions, category_show_params
             )

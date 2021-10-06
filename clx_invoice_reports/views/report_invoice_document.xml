@@ -196,7 +196,7 @@
                                 </t>
                             </td>
                             <td>
-                                <span t-esc="line['price_total']" style="float:right;"/>
+                                <span t-esc="round(line['price_total'],2)" style="float:right;"/>
                             </td>
                         </tr>
                     </t>
