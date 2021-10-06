@@ -61,9 +61,6 @@ class SaleOrder(models.Model):
             combined_products[signature].append(line)
 
         for group_lines in combined_products:
-            # partner_for_management_fee = partner
-            # if "partner_id" in combined_products[group_lines][0] and combined_products[group_lines][0]["partner_id"]:
-            #     partner_for_management_fee = combined_products[group_lines][0]["partner_id"]
 
             base_subscriptions = combined_products[group_lines]
             # all subscriptions  of the same products for all kinds of grouping
@@ -103,10 +100,6 @@ class SaleOrder(models.Model):
             self.env["sale.subscription"].update_subscriptions_with_management_fee(
                 partner, base_subscriptions + adapted_subscriptions, category_show_params
             )
-            # #co-op correction
-            # for base_subscription in base_subscriptions
-
-            #     coop_coef = combined_products[group_lines][0]["coop_coef"]
 
     @api.onchange("pricelist_id")
     def onchange_pricelist(self):

@@ -130,6 +130,7 @@ class BudgetReportWizard(models.TransientModel):
                     if sub_line.end_date and sub_line.end_date < result_end_date:
                         result_end_date = sub_line.end_date
                     result_table[slider_period][product_stamp] = {
+                        "id": sub_line.id,
                         "period": slider_period,
                         "start_date": result_start_date,
                         "product_id": sub_line.product_id.id,
@@ -157,16 +158,9 @@ class BudgetReportWizard(models.TransientModel):
             slider_period = month_name[slider_start_date.month] + " " + str(slider_start_date.year)
             if slider_end_date > self.end_date:
                 break
+
         # saving to the report table
         for period in result_table.keys():
-            # # management fee precalculation depending on company's management fee grouping settings
-            # for parner_id in self.partner_ids:
-            #     partner_subscription_chunk = list(
-            #         filter(lambda x: x["partner_id"] == parner_id.id, result_table[period].values())
-            #     )
-            #     self.env["sale.subscription"].update_subscriptions_with_management_fee(
-            #         parner_id, partner_subscription_chunk, category_show_params
-            #     )
 
             for subscription in result_table[period].keys():
                 sale_line_write = result_table[period][subscription]
@@ -184,9 +178,12 @@ class BudgetReportWizard(models.TransientModel):
                     subscribtion_total["coop_coef"] = partner_percent
                     subscribtion_total["price_unit"] = partner_percent * subscribtion_total["price_unit"]
                     subscribtion_total["price_full"] = partner_percent * subscribtion_total["price_full"]
-
-                    self.env["sale.subscription"].update_subscriptions_with_management_fee(
-                        company, [subscribtion_total], category_show_params
+                    subscribtion_total["management_fee_signature"] = str(subscribtion_total["product_id"])
+                    # self.env["sale.subscription"].update_subscriptions_with_management_fee(
+                    #     company, [subscribtion_total], category_show_params
+                    # )
+                    self.env["sale.order"].update_with_management_fee(
+                        [subscribtion_total], subscribtion_total["start_date"], company
                     )
 
                     company_name = company.name
@@ -199,6 +196,7 @@ class BudgetReportWizard(models.TransientModel):
                     del subscribtion_total["pricelist"]
                     del subscribtion_total["price_full"]
                     del subscribtion_total["coop_coef"]
+                    del subscribtion_total["management_fee_signature"]
                     subscribtion_total.update(
                         {
                             "description": description,

@@ -315,7 +315,7 @@ class SaleOrder(models.Model):
         grouping_levels = kwargs.get("grouping_levels", grouping_data.ALL_FLAGS_GROUPING)
 
         def initial_order_data(line, partner_id):
-            price, price_full,coop_coef = self.env["sale.subscription.line"].period_price_calc(
+            price, price_full, coop_coef = self.env["sale.subscription.line"].period_price_calc(
                 start_date, partner_id, contract_mode, line
             )
             pricelist2process = self.env["sale.subscription.line"].analytic_account_id.pricelist_determination(
@@ -385,6 +385,9 @@ class SaleOrder(models.Model):
             product_updated["price_full"] += product_additional["price_full"]
             product_updated["wholesale_price"] += product_additional["wholesale_price"]
             product_updated["management_fee"] += product_additional["management_fee"]
+            product_updated["management_fee_product"] = (
+                product_updated["management_fee_product"] or product_additional["management_fee_product"]
+            )
             # product_updated["management_fee_calculated"] += product_additional["management_fee_calculated"]
             return product_updated
 
