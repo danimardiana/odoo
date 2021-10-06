@@ -659,6 +659,7 @@ class RequestFormLine(models.Model):
     _name = "request.form.line"
     _description = "Request Form Line"
     _rec_name = "request_form_id"
+    _order = "create_date desc"
 
     request_form_id = fields.Many2one("request.form", string="Request Form", ondelete="cascade")
     req_type = fields.Selection([("new", "New"), ("update", "Update"), ("budget", "Budget")], string="Request Type")
