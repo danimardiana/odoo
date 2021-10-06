@@ -286,10 +286,16 @@ class SaleOrder(models.Model):
         start_date_recurring = start_date + relativedelta(months=1)
         if flag_proration:
             initial_month = self._grouping_wrapper(
-                start_date=start_date, partner_id=partner_id, order_line=lines, contract_mode=contract_mode
+                start_date=start_date,
+                partner_id=partner_id,
+                order_line=lines,
+                contract_mode=contract_mode,
             )
             recurring_month = self._grouping_wrapper(
-                start_date=start_date_recurring, partner_id=partner_id, order_line=lines, contract_mode=contract_mode
+                start_date=start_date_recurring,
+                partner_id=partner_id,
+                order_line=lines,
+                contract_mode=contract_mode,
             )
             for product in initial_month:
                 if product in recurring_month:
