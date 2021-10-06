@@ -62,26 +62,6 @@ class AccountMove(models.Model):
     yardi_code = fields.Char(string="Yardi Code", related="partner_id.yardi_code")
     master_id = fields.Char(string="Master ID", related="partner_id.master_id")
 
-    # overwriting the preview invoice logic
-    def client_invoice_grouping(self):
-        # sub_lines = self.subscription_line_ids
-        # # grouping flags = 7, means use all groupings
-        # year, month = year, day = self.invoice_month_year.split("-")
-        # start_date = date(int(year), int(month), 1)
-        # end_date = start_date + relativedelta(months=1, days=-1)
-        # partner_id = self.partner_id
-        # # invoice generation flow. Should do all kinds of grouping
-        # grouped_lines = self.env["sale.subscription"]._grouping_wrapper(
-        #     start_date=start_date, partner_id=partner_id, subscripion_line=sub_lines, grouping_levels=7
-        # )
-
-        # for line in grouped_lines.values():
-        #     line["price_subtotal"] = line["price_unit"]
-        #     line["price_total"] = line["price_unit"]
-
-        # return list(grouped_lines.values())
-        return self.invoice_line_ids
-
     def _compute_get_url(self):
         for rec in self:
             host_url = self.env["ir.config_parameter"].get_param("web.base.url") or ""
