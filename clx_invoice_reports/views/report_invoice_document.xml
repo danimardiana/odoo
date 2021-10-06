@@ -176,7 +176,7 @@
                 <tbody class="invoice_tbody">
                     <t t-set="current_subtotal" t-value="0"/>
                     <t t-set="lines"
-                       t-value="o.client_invoice_grouping()"/>
+                       t-value="o.invoice_line_ids"/>
 
                     <t t-foreach="lines" t-as="line">
                         <t t-set="current_subtotal" t-value="current_subtotal + line['price_subtotal']"
