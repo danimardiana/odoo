@@ -32,7 +32,7 @@ class Partner(models.Model):
         related="management_company_type_id.invoice_selection", string="Display on"
     )
     is_generate_invoice = fields.Boolean(string="Is Generate Invoice?")
-    management_fee_grouping = fields.Boolean(string="Need Management Fee be grouped?")
+    management_fee_grouping = fields.Boolean(string="Need Management Fee be grouped?", default=True)
 
     def generate_invoice_with_date_range(self):
         view_id = self.env.ref("clx_invoice_policy.generate_invoice_date_range_form_view").id
