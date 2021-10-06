@@ -520,7 +520,7 @@ class SaleSubscription(models.Model):
                 "category_id": line.product_id.categ_id.id,
                 "description": line._grouping_name_calc(line)
                 if grouping_levels & grouping_data.ACCOUNTING_GROUPING_FLAG
-                else line.product_id.categ_id.name,  # second level of grouping - budget wrapping
+                else line.name,  # second level of grouping - budget wrapping
                 "contract_product_description": line.product_id.contract_product_description,
                 "rebate": rebate,
                 "rebate_product": rebate_product,
@@ -564,7 +564,9 @@ class SaleSubscription(models.Model):
             product_updated["price_unit"] += product_additional["price_unit"]
             product_updated["price_full"] += product_additional["price_full"]
             product_updated["management_fee"] += product_additional["management_fee"]
-            product_updated["management_fee_product"] = product_updated["management_fee_product"] or product_additional["management_fee_product"]
+            product_updated["management_fee_product"] = (
+                product_updated["management_fee_product"] or product_additional["management_fee_product"]
+            )
             product_updated["wholesale_price"] += product_additional["wholesale_price"]
             product_updated["rebate"] += product_additional["rebate"]
             product_updated["account_id"] = product_additional["account_id"]
@@ -679,6 +681,7 @@ class SaleSubscription(models.Model):
         # processing the grouped lines into invoice lines
         rebate_total = {}
         grouped_invoice_lines = []
+        management_lines_added = {}
         for line in grouped_sub_lines:
             if line["price_unit"] == 0:
                 continue
@@ -709,19 +712,23 @@ class SaleSubscription(models.Model):
                         "category_id": line["management_fee_product"].categ_id.id,
                         "product_id": line["management_fee_product"].id,
                     }
-
-                grouped_invoice_lines.append(
-                    {
+                management_fee_stamp = line["management_fee_product"].name
+                if management_fee_stamp in management_lines_added:
+                    management_lines_added[management_fee_stamp]["price_unit"] += line["management_fee"]
+                    management_lines_added[management_fee_stamp]["price_subtotal"] += line["management_fee"]
+                    management_lines_added[management_fee_stamp]["position"] = len(grouped_invoice_lines)
+                else:
+                    management_lines_added[management_fee_stamp] = {
                         **{
                             "name": period_msg,
                             "price_unit": line["management_fee"],
                             "price_subtotal": line["management_fee"],
                             "discount": 0,
                             "tax_ids": line["tax_ids"],
+                            "position": len(grouped_invoice_lines),
                         },
                         **management_fee_params,
                     }
-                )
             else:
                 grouped_invoice_lines.append(
                     {
@@ -752,6 +759,13 @@ class SaleSubscription(models.Model):
                     }
 
                 rebate_total[rebate_signature]["price"] += line["rebate"]
+
+        management_lines = list(management_lines_added.values())
+        for i in range(len(management_lines), 0, -1):
+            object_to_insert = management_lines[i - 1]
+            position = object_to_insert["position"]
+            del object_to_insert["position"]
+            grouped_invoice_lines.insert(position, object_to_insert)
 
         for reb in rebate_total:
             if rebate_total:
