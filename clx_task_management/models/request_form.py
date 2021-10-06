@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
-from requests.api import request
+# from requests.api import request
 from odoo import fields, api, models, _
 from odoo.exceptions import UserError, ValidationError, Warning
 from dateutil.relativedelta import relativedelta
