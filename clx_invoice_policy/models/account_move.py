@@ -104,6 +104,7 @@ class AccountMove(models.Model):
     def _compute_accounting_notes(self):
         for move in self:
             move.accounting_notes = move.partner_id.accounting_notes
+            move.unique_billing_note = bool(move.accounting_notes)
 
     def compute_billing_contacts(self):
         billing_list = map(
@@ -116,16 +117,17 @@ class AccountMove(models.Model):
 
     def post(self):
         res = super(AccountMove, self).post()
-        sequence = self.env.ref("clx_invoice_policy.sequence_greystar_sequence")
-        if (
-            res
-            and self.partner_id
-            and self.partner_id.management_company_type_id
-            and "Greystar" in self.partner_id.management_company_type_id.name
-            and sequence
-        ):
-            self.name = sequence.next_by_code("greystar.sequence")
-        self.post_date = datetime.datetime.now()
+        for move in self:
+            sequence = move.env.ref("clx_invoice_policy.sequence_greystar_sequence")
+            if (
+                res
+                and move.partner_id
+                and move.partner_id.management_company_type_id
+                and "Greystar" in move.partner_id.management_company_type_id.name
+                and sequence
+            ):
+                move.name = sequence.next_by_code("greystar.sequence")
+            move.post_date = datetime.datetime.now()
         return res
 
     @staticmethod
@@ -155,7 +157,6 @@ class AccountMove(models.Model):
             [("vertical", "=", self.partner_id.vertical)], limit=1
         )
         if self.invoice_line_ids:
-            self.invoice_line_ids.analytic_account_id = self.partner_id.vertical and analytic_account_id or False
             for line in self.invoice_line_ids:
                 line.analytic_account_id = self.partner_id.vertical and analytic_account_id or line.analytic_account_id
 
