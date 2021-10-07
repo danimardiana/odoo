@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
-
-import re
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError
 
