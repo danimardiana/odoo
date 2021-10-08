@@ -220,7 +220,7 @@ class SaleSubscription(models.Model):
 
         management_fee = management_fee * coef
 
-        if wholesale == 0.0:
+        if wholesale == 0.0 and management_fee != 0.0:
             wholesale = retail_absolute - management_fee
 
         # invert the management fee when retail is negative
