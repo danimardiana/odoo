@@ -202,12 +202,14 @@ class ApiConnections(http.Controller):
             if products:
                 subscription_lines = list(filter(lambda subscr: subscr.product_id.id in products, subscription_lines))
 
-            all_subscriptions = subscription_app._grouping_wrapper(start_date, partner.id, subscription_lines, 5)
+            all_subscriptions = subscription_app._grouping_wrapper(
+                start_date=start_date, partner_id=partner, subscripion_line=subscription_lines, grouping_levels=5
+            )
 
             # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
             # total_management_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
 
-            for subscription in all_subscriptions:
+            for subscription in all_subscriptions.values():
                 wholesale = subscription["wholesale_price"]
                 if wholesale <= 0 and subscription["management_fee"] > 0:
                     wholesale = subscription["price_unit"] - subscription["management_fee"]
