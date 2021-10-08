@@ -271,8 +271,8 @@ class qweb_sale_subscription_budgets_report(models.AbstractModel):
                     "end_date": subscription.end_date,
                 }
             )
-            group_sales = self.env["res.groups"].search([("name", "=", "CLX Sale Group")])
-            fees_allowed = self.env.user.id not in group_sales.users.ids
+        group_sales = self.env["res.groups"].search([("name", "=", "CLX Sale Group")])
+        fees_allowed = self.env.user.id not in group_sales.users.ids
         docargs = {
             "doc_ids": docids,
             "doc_model": report.model,
