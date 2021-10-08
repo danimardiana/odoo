@@ -121,19 +121,23 @@ class SaleSubscription(models.Model):
                 price_full_month,
                 category_show,
             )
-            cost_of_prorated_point = fees_obj["management_fee"] / price_full_month
+
+            cost_of_prorated_point = 0 if price_full_month == 0 else fees_obj["management_fee"] / price_full_month
+            cost_of_prorated_point_wholesale = 0 if price_full_month == 0 else fees_obj["wholesale_price"] / price_full_month
 
             for subscription in subscriptions_by_product:
-                if cost_of_prorated_point == 0:
+                if cost_of_prorated_point == 0 and cost_of_prorated_point_wholesale == 0:
                     subscription.update(zero_management)
                     continue
 
                 management_fee = subscription["price_full"] * cost_of_prorated_point
 
+                wholesale_price = subscription["price_unit"] - round(management_fee, 2) if management_fee != 0 else subscription["price_full"] * cost_of_prorated_point_wholesale
+
                 subscription.update(
                     {
                         "management_fee": round(management_fee, 2),
-                        "wholesale_price": subscription["price_unit"] - round(management_fee, 2),
+                        "wholesale_price": wholesale_price,
                         "management_fee_product": fees_obj["management_fee_product"],
                     }
                 )
