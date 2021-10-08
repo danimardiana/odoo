@@ -512,7 +512,13 @@ class SaleSubscription(models.Model):
                 "coop_coef": coop_coef,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
-                "account_id": line.analytic_account_id.account_depreciation_expense_id.id or False,
+                # when calling the function without the authorization (from API) we don't have the current company
+                # so need to define it explicetly for fields depends on company .
+                # Now the main company is only one so we can use it's ID - 1
+                "account_id": line.analytic_account_id.with_context(
+                    {"force_company": 1}
+                ).account_depreciation_expense_id.id
+                or False,
                 "price_unit": price,
                 "price_full": price_full,
                 "pricelist": pricelist2process,
