@@ -310,7 +310,7 @@
                                         </div>
                                     </tr>
                                 </section>
-                                <t t-set="need_display_fee" t-value="line_com['name'].find('Search')>-1 and not sale_order_com.display_management_fee"/>
+                                <t t-set="need_display_fee" t-value="not parent_sale_order.display_management_fee"/>
                                 <t t-set="is_oto_line" t-value="parent_sale_order.is_oto_line(line_com['start_date'],line_com['end_date'])"/>
                                 <t t-set="management_fee_calculated" t-value="line_com['management_fee']" /> 
                                 <t t-if="is_oto_line">
