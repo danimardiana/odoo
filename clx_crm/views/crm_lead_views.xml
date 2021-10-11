@@ -118,7 +118,7 @@
                         <field name="street" placeholder="Street..." class="o_address_street"/>
                         <field name="street2" placeholder="Street 2..." class="o_address_street"/>
                         <field name="city" placeholder="City" class="o_address_city"/>
-                        <field name="state_id" class="o_address_state" placeholder="State" options="{'no_open': True}" required="1"/>
+                        <field name="state_id" class="o_address_state" placeholder="State" options="{'no_open': True}" attrs="{'required': [('type','=', 'lead')]}"/>
                         <field name="zip" placeholder="ZIP" class="o_address_zip"/>
                         <field name="country_id" placeholder="Country" class="o_address_country" options="{'no_open': True, 'no_create': True}"/>
                     </div>
@@ -133,7 +133,7 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='website']" position="after">
-                    <field name="lead_vertical" required="True"/>
+                <field name="lead_vertical" attrs="{'required': [('type','=', 'lead')]}" />
             </xpath>
             <xpath expr="//page[@name='extra']" position="attributes">
                 <attribute name="invisible">1</attribute>

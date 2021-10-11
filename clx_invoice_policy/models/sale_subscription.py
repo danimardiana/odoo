@@ -721,6 +721,7 @@ class SaleSubscription(models.Model):
                         "description": line["management_fee_product"].name,
                         "category_id": line["management_fee_product"].categ_id.id,
                         "product_id": line["management_fee_product"].id,
+                        "account_id": line["account_id"],
                     }
                 management_fee_stamp = line["management_fee_product"].name
                 if management_fee_stamp in management_lines_added:

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo, CLx Media
 # See LICENSE file for full copyright & licensing details.
-
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import ValidationError
 
@@ -252,11 +251,7 @@ class SaleOrder(models.Model):
         else:
             update(line["price_full"], "recurring_spend", "Recurring")
 
-            if line["price_unit"] and line["price_unit"] != line["price_full"]:
-                update(line["price_unit"], period_signature, start_date)
-            # TCC products are not prorated, so prorated amount will be the same as
-            # monthly unit price and we need to add it to the first month spend
-            elif line["price_unit"] and "TCC" in line["name"]:
+            if line["price_unit"] and line["is_prorated"]:
                 update(line["price_unit"], period_signature, start_date)
 
         return result_object
@@ -327,17 +322,7 @@ class SaleOrder(models.Model):
             pricelist2process = self.env["sale.subscription.line"].analytic_account_id.pricelist_determination(
                 line.product_id, line.order_id.pricelist_id
             )
-            # coop_coef = 1
-            # # check if we processing co-op
-            # if partner_id.id != line.order_id.partner_id.id:
-            #     coop_record = list(
-            #         filter(
-            #             lambda i: i.partner_id.id == partner_id.id,
-            #             line.co_op_sale_order_line_partner_ids,
-            #         )
-            #     )
-            #     if len(coop_record) > 0:
-            #         coop_coef = coop_record[0].ratio / 100
+
             return {
                 "order_id": line.order_id,
                 "product_name": line.product_id.name,
@@ -345,6 +330,7 @@ class SaleOrder(models.Model):
                 "name": line.name,
                 "product_id": line.product_id.id,
                 "partner_owner": line.order_id.partner_id,
+                "is_prorated": True if line.prorate_amount > 0 else False,
                 "price_unit": price,
                 "price_full": price_full,
                 "coop_coef": coop_coef,
@@ -367,6 +353,7 @@ class SaleOrder(models.Model):
             return {
                 "product_id": product_individual["product_id"],
                 "product_name": product_individual["product_name"],
+                "is_prorated": product_individual["is_prorated"],
                 "price_unit": product_individual["price_unit"],
                 "price_full": product_individual["price_full"],
                 "pricelist": product_individual["pricelist"],
@@ -382,7 +369,6 @@ class SaleOrder(models.Model):
                 "wholesale_price": product_individual["wholesale_price"],
                 "management_fee": product_individual["management_fee"],
                 "management_fee_product": product_individual["management_fee_product"],
-                # "management_fee_calculated": product_individual["management_fee_calculated"],
             }
 
         def last_order_update(product_source, product_additional):
