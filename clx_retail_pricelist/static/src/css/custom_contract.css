@@ -80,9 +80,9 @@ h3 {
     margin-left: 8px;
     width: 100%;
 }
-/* .productTotalWrapperWrapper {
-    height: 62px;
-} */
+.productTotalWrapperWrapper {
+    justify-content: end;
+}
 .tileWapper{
     padding: 2px;
 }

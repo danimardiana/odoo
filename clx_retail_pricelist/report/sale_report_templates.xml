@@ -56,7 +56,6 @@
                 <t t-set="parent_sale_order" t-value="sale_order"/>
                 
         <!-- MAIN COMPANY BLOCK -->
-
         <div class="communityName row justify-content-center">
             <h2><span t-esc="sale_order.partner_invoice_id.name"/>- Proposal of Services</h2>
         </div>
@@ -154,8 +153,7 @@
                             </t>
                             <t t-else="">
                                 <div class="productTotalWrapperWrapper col-6 col-md-5 col-sm-12 row float-left ">
-                                    <!-- Only display prorated amount, when equal to monthly, if it's a TCC product -->
-                                    <t t-if="line['price_unit'] and line['price_unit'] != line['price_full']">                                        
+                                    <t t-if="line['price_unit'] and line['is_prorated']">                                        
                                         <div class="col-6 tileWapper">
                                             <div class="productTotalWrapper">
                                                 <div style="display:inline-block;"> 
@@ -177,7 +175,7 @@
                                             </div>
                                         </div>
                                     </t>                                    
-                                    <t t-elif="line['price_unit'] and 'TCC' in line['name']" >
+                                    <t t-elif="line['is_prorated']" >
                                         <div class="col-6 tileWapper">
                                             <div class="productTotalWrapper">
                                                 <div style="display:inline-block;"> 
@@ -312,7 +310,7 @@
                                         </div>
                                     </tr>
                                 </section>
-                                <t t-set="need_display_fee" t-value="line_com['name'].find('Search')>-1 and not sale_order_com.display_management_fee"/>
+                                <t t-set="need_display_fee" t-value="not parent_sale_order.display_management_fee"/>
                                 <t t-set="is_oto_line" t-value="parent_sale_order.is_oto_line(line_com['start_date'],line_com['end_date'])"/>
                                 <t t-set="management_fee_calculated" t-value="line_com['management_fee']" /> 
                                 <t t-if="is_oto_line">
@@ -342,8 +340,7 @@
                                 </t>
                                 <t t-else="">
                                     <div class="productTotalWrapperWrapper col-6 col-md-5 col-sm-12 row float-left ">
-                                    <!-- Only display prorated amount, when equal to monthly, if it's a TCC product -->
-                                    <t t-if="line_com['price_unit'] and line_com['price_unit'] != line_com['price_full']">                                        
+                                    <t t-if="line_com['price_unit'] and line_com['is_prorated']">                                        
                                         <div class="col-6 tileWapper">
                                             <div class="productTotalWrapper">
                                                 <div style="display:inline-block;"> 
@@ -365,7 +362,7 @@
                                             </div>
                                         </div>
                                     </t>                                    
-                                    <t t-elif="line_com['price_unit'] and 'TCC' in line_com['name']" >
+                                    <t t-elif="line_com['is_prorated']" >
                                         <div class="col-6 tileWapper">
                                             <div class="productTotalWrapper">
                                                 <div style="display:inline-block;"> 
