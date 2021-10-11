@@ -121,19 +121,29 @@ class SaleSubscription(models.Model):
                 price_full_month,
                 category_show,
             )
-            cost_of_prorated_point = fees_obj["management_fee"] / price_full_month
+
+            cost_of_prorated_point = 0 if price_full_month == 0 else fees_obj["management_fee"] / price_full_month
+            cost_of_prorated_point_wholesale = (
+                0 if price_full_month == 0 else fees_obj["wholesale_price"] / price_full_month
+            )
 
             for subscription in subscriptions_by_product:
-                if cost_of_prorated_point == 0:
+                if cost_of_prorated_point == 0 and cost_of_prorated_point_wholesale == 0:
                     subscription.update(zero_management)
                     continue
 
                 management_fee = subscription["price_full"] * cost_of_prorated_point
 
+                wholesale_price = (
+                    subscription["price_unit"] - round(management_fee, 2)
+                    if management_fee != 0
+                    else subscription["price_full"] * cost_of_prorated_point_wholesale
+                )
+
                 subscription.update(
                     {
                         "management_fee": round(management_fee, 2),
-                        "wholesale_price": subscription["price_unit"] - round(management_fee, 2),
+                        "wholesale_price": wholesale_price,
                         "management_fee_product": fees_obj["management_fee_product"],
                     }
                 )
@@ -216,7 +226,7 @@ class SaleSubscription(models.Model):
 
         management_fee = management_fee * coef
 
-        if wholesale == 0.0:
+        if wholesale == 0.0 and management_fee != 0.0:
             wholesale = retail_absolute - management_fee
 
         # invert the management fee when retail is negative
@@ -512,7 +522,13 @@ class SaleSubscription(models.Model):
                 "coop_coef": coop_coef,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
                 "name": line.name,
-                "account_id": line.analytic_account_id.account_depreciation_expense_id.id or False,
+                # when calling the function without the authorization (from API) we don't have the current company
+                # so need to define it explicetly for fields depends on company .
+                # Now the main company is only one so we can use it's ID - 1
+                "account_id": line.analytic_account_id.with_context(
+                    {"force_company": 1}
+                ).account_depreciation_expense_id.id
+                or False,
                 "price_unit": price,
                 "price_full": price_full,
                 "pricelist": pricelist2process,
@@ -859,6 +875,12 @@ class SaleSubscription(models.Model):
                     all_paid_spends[product_signature] = {
                         "price_unit": product.price_unit,
                         "price_subtotal": product.price_subtotal,
+                        "name": product.name,
+                        "description": product.description,
+                        "product_id": product.product_id.id,
+                        "category_id": product.category_id,
+                        "tax_ids": product.tax_ids.ids,
+                        "account_id": product.account_id,
                     }
                 else:
                     coef = 1
@@ -867,13 +889,22 @@ class SaleSubscription(models.Model):
                     all_paid_spends[product_signature]["price_unit"] += product.price_unit * coef
                     all_paid_spends[product_signature]["price_subtotal"] += product.price_subtotal * coef
 
+        all_new_spends = []
         grouped_invoice_lines = []
         for line in global_grouped_invoice_lines:
             product_signature = str(line["product_id"]) + line["description"]
+            all_new_spends.append(product_signature)
             if product_signature in all_paid_spends:
                 line["price_subtotal"] -= all_paid_spends[product_signature]["price_subtotal"]
                 line["price_unit"] -= all_paid_spends[product_signature]["price_unit"]
             grouped_invoice_lines.append(line)
+
+        # check for the edge case: the complited invoices has the product we don't have in current(it means the product need to be refunded in full)
+        for line in [value for value in all_paid_spends.keys() if value not in all_new_spends]:
+            refund_line = all_paid_spends[line]
+            refund_line["price_unit"] = -refund_line["price_unit"]
+            refund_line["price_subtotal"] = -refund_line["price_subtotal"]
+            grouped_invoice_lines.append(all_paid_spends[line])
 
         # only new lines should go to the invoice
         sub_lines = list(filter(lambda i: i.id not in all_subscription_lines_processed, subscription_lines))
