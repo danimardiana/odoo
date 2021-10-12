@@ -357,6 +357,15 @@ class SaleSubscription(models.Model):
         ):
             return False
 
+        invoices_generate_since_str = self.env["ir.config_parameter"].get_param("invoices_generate_since", False)
+        invoices_generate_since = (
+            False
+            if not fields.Date.to_date(invoices_generate_since_str)
+            else fields.Date.to_date(invoices_generate_since_str)
+        )
+        if invoices_generate_since and kwargs["start_date"] < invoices_generate_since:
+            return False
+
         order_id = kwargs["order_id"] if "order_id" in kwargs else False
 
         partner_id = kwargs["partner_id"]
