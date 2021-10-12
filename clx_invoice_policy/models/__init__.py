@@ -15,3 +15,4 @@ from . import analytic_account
 from . import account_asset
 from . import account_payment
 from . import account_validate_account_move
+from . import res_config_settings
