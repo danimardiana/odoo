@@ -201,7 +201,7 @@
     </record>
 
      <!--
-        Inherit opportunity kanban view and override the kanban content
+        Inherit opportunity kanban view and override the kanban card content
         -->
     <record id="clx_crm_case_kanban_view_leads" model="ir.ui.view">
         <field name="name">crm.opp.kanban.lead</field>
@@ -242,7 +242,7 @@
     </record>
 
          <!--
-            Inherit lead kanban view and override the kanban content
+            Inherit lead kanban view and override the kanban card content
         -->
     <record id="clx_view_crm_lead_kanban" model="ir.ui.view">
         <field name="name">crm.lead.kanban.lead</field>
