@@ -207,9 +207,11 @@ class CrmLead(models.Model):
             # Create a new contact with role relationship
             else:
                 new_contact = partner_table.create(self._create_partner_person_data(lead_contact, False))
-                new_contact_role_relationship = contact_role_relationship_table.create(
-                    {"parent_id": partner_company.id, "child_id": new_contact.id}
-                )
+                new_contact_role_relationship = False
+                if not partner_company == None:
+                    new_contact_role_relationship = contact_role_relationship_table.create(
+                        {"parent_id": partner_company.id, "child_id": new_contact.id}
+                    )
                 if lead_contact.role:
                     new_contact_role_relationship.update({"contact_type_ids": [lead_contact.role]})
 
