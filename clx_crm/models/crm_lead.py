@@ -31,6 +31,7 @@ class CrmLead(models.Model):
     )
     show_validate_btn = fields.Boolean(string="Show Validation Button", compute="_set_show_validate_btn")
     lead_contact_count = fields.Char(string="Contacts", compute="_count_contacts", store=False)
+    opportunity_description = fields.Char(string="Opportunity Description")
 
     def _set_show_validate_btn(self):
         show_validation_button = False
