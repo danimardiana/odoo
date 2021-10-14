@@ -57,6 +57,7 @@ class SaleSubscriptionWizard(models.TransientModel):
                 so.contract_start_date = order_id[0].contract_start_date
             so.start_date = self.date_from if self.date_from else False
             sol_id = so.order_line.filtered(lambda x: x.product_id.id == self.option_lines[0].product_id.id)
+            is_co_op = False
             if sol_id:
                 price_list = so.pricelist_id
                 base_line = active_subscription.recurring_invoice_line_ids.filtered(lambda x: x.line_type == "base")
@@ -77,6 +78,7 @@ class SaleSubscriptionWizard(models.TransientModel):
                 )
                 # copy proration from  the source subscription
                 if len(active_subscription.co_op_partner_ids):
+                    is_co_op = True
                     for line in active_subscription.co_op_partner_ids:
                         coop_object = {
                             "partner_id": line.partner_id.id,
@@ -89,6 +91,7 @@ class SaleSubscriptionWizard(models.TransientModel):
                 # so.is_ratio = order_id.is_ratio
                 # if order_id.is_ratio:
                 #     so.co_op_sale_order_partner_ids = order_id.co_op_sale_order_partner_ids.ids
+                so.is_co_op = is_co_op
                 so.action_confirm()
         return res
 
