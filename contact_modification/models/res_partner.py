@@ -217,6 +217,13 @@ class Partner(models.Model):
     def write(self, vals):
         res = super(Partner, self).write(vals)
 
+        # if entity name changes, update opp form
+        # so name in nav breadcrumb matches
+        if vals.get("name", False):
+            opp_lead_forms = self.env["crm.lead"].search([("partner_id", "=", self.id)])
+            for opp in opp_lead_forms:
+                opp.update({"name": vals.get("name", False)})
+
         """
         If the national account manager is changed at the manamement company
         level, then update the national manager on all it's childeren. Greystar
