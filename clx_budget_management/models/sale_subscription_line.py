@@ -36,6 +36,12 @@ class SaleSubscriptionLine(models.Model):
             if value in ["start_date", "end_date", "price_unit", "prorate_amount", "prorate_end_amount"]
         ]:
             self.budget_changes_check()
+            # updating invoices for invoice policy range only
+            self.env["sale.subscription"].invoicing_invoice_policy_range(
+                **{
+                    "partner": self.analytic_account_id.partner_id,
+                }
+            )
         return write_result
 
     def create(self, records):
