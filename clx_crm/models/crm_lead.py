@@ -33,6 +33,11 @@ class CrmLead(models.Model):
     lead_contact_count = fields.Char(string="Contacts", compute="_count_contacts", store=False)
     opportunity_description = fields.Char(string="Opportunity Description")
 
+    @api.onchange("partner_id")
+    def _onchange_partner_id(self):
+        # update opp form name for name breadcrumb
+        self.update({"name": self.partner_id.name})
+
     def _set_show_validate_btn(self):
         show_validation_button = False
 
