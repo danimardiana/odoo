@@ -38,6 +38,7 @@
         'views/account_asset.xml',
         'views/account_asset_model.xml',
         'views/account_payment_view.xml',
+        'views/res_config_settings_views.xml',
     ],
     'qweb':[
         # 'static/src/xml/account_move_template.xml',

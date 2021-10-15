@@ -16,6 +16,8 @@
                 <attribute name="options">{'no_create':True,'no_edit':True,'no_quick_create':True,'no_create_edit':True}</attribute>
             </xpath>
             <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="show_management_fee_grouping" invisible="1"/>
+                <field name="management_fee_grouping" widget="checkbox" readonly="0" attrs = "{'invisible':[('show_management_fee_grouping','=',False)]}"/>
                 <field name="clx_invoice_policy_id"
                        attrs="{'readonly': [('state', 'not in', ['draft', 'sent'])]}"
                        required="True"/>

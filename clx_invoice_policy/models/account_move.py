@@ -62,27 +62,6 @@ class AccountMove(models.Model):
     yardi_code = fields.Char(string="Yardi Code", related="partner_id.yardi_code")
     master_id = fields.Char(string="Master ID", related="partner_id.master_id")
 
-    # overwriting the preview invoice logic
-    def client_invoice_grouping(self):
-        sub_lines = self.subscription_line_ids
-        # grouping flags = 7, means use all groupings
-        year, month = year, day = self.invoice_month_year.split("-")
-        start_date = date(int(year), int(month), 1)
-        end_date = start_date + relativedelta(months=1, days=-1)
-        partner_id = self.partner_id.id
-        # invoice generation flow. Should do all kinds of grouping
-        grouped_lines = self.env["sale.subscription"]._grouping_wrapper(start_date, partner_id, sub_lines, 7)
-        grouped_lines = sorted(grouped_lines, key=lambda l: l["price_unit"], reverse=True)
-        # prepare lines
-        final_lines = self.env["sale.subscription"].invoicing_add_management_fee_and_rebate_lines(
-            grouped_lines, start_date, end_date
-        )
-        for line in final_lines:
-            line["price_subtotal"] = line["price_unit"]
-            line["price_total"] = line["price_unit"]
-
-        return final_lines
-
     def _compute_get_url(self):
         for rec in self:
             host_url = self.env["ir.config_parameter"].get_param("web.base.url") or ""
@@ -105,6 +84,7 @@ class AccountMove(models.Model):
     def _compute_accounting_notes(self):
         for move in self:
             move.accounting_notes = move.partner_id.accounting_notes
+            move.unique_billing_note = bool(move.accounting_notes)
 
     def compute_billing_contacts(self):
         billing_list = map(
@@ -146,70 +126,6 @@ class AccountMove(models.Model):
             else:
                 invoice.invoice_period_verbal = "-"
 
-    # def unlink(self):
-    #     for record in self:
-    #         if record.invoice_origin:
-    #             for inv_line in record.invoice_line_ids:
-    #                 if inv_line.subscription_lines_ids:
-    #                     name = inv_line.name.split(":")
-    #                     name = name[-1].split("-")
-    #                     start_date = parser.parse(name[0])
-    #                     end_date = parser.parse(name[-1])
-    #                     if start_date and end_date:
-    #                         for sub in inv_line.subscription_lines_ids:
-    #                             if not sub.end_date:
-    #                                 sub.invoice_start_date = start_date.date()
-    #                                 sub.invoice_end_date = end_date.date()
-    #                             elif sub.end_date:
-    #                                 month_count = len(
-    #                                     OrderedDict(
-    #                                         ((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0)
-    #                                         for _ in range((start_date.date() - sub.end_date).days)
-    #                                     )
-    #                                 )
-    #                                 if month_count == 1 and start_date.date() > sub.end_date:
-    #                                     sub.invoice_start_date = sub.start_date
-    #                                     sub.invoice_end_date = sub.end_date
-    #                                 elif sub.start_date > start_date.date():
-    #                                     sub.invoice_start_date = sub.start_date
-    #                                     sub.invoice_end_date = sub.end_date
-    #                                 else:
-    #                                     sub.invoice_start_date = start_date.date()
-    #                                     sub.invoice_end_date = end_date.date()
-    #     return super(AccountMove, self).unlink()
-
-    # def button_cancel(self):
-    #     res = super(AccountMove, self).button_cancel()
-    #     if self.invoice_origin:
-    #         for inv_line in self.invoice_line_ids:
-    #             if inv_line.subscription_lines_ids:
-    #                 name = inv_line.name.split(":")
-    #                 name = name[-1].split("-")
-    #                 start_date = parser.parse(name[0])
-    #                 end_date = parser.parse(name[-1])
-    #                 if start_date and end_date:
-    #                     for sub in inv_line.subscription_lines_ids:
-    #                         if not sub.end_date:
-    #                             sub.invoice_start_date = start_date.date()
-    #                             sub.invoice_end_date = end_date.date()
-    #                         elif sub.end_date:
-    #                             month_count = len(
-    #                                 OrderedDict(
-    #                                     ((sub.end_date + timedelta(_)).strftime("%B-%Y"), 0)
-    #                                     for _ in range((start_date.date() - sub.end_date).days)
-    #                                 )
-    #                             )
-    #                             if month_count == 1 and start_date.date() > sub.end_date:
-    #                                 sub.invoice_start_date = sub.start_date
-    #                                 sub.invoice_end_date = sub.end_date
-    #                             elif sub.start_date > start_date.date():
-    #                                 sub.invoice_start_date = sub.start_date
-    #                                 sub.invoice_end_date = sub.end_date
-    #                             else:
-    #                                 sub.invoice_start_date = start_date.date()
-    #                                 sub.invoice_end_date = end_date.date()
-    #     return res
-
     @api.onchange("invoice_month_year")
     def _onchange_invoice_month_year(self):
         self.update_due_date()
@@ -221,11 +137,8 @@ class AccountMove(models.Model):
             [("vertical", "=", self.partner_id.vertical)], limit=1
         )
         if self.invoice_line_ids:
-            self.invoice_line_ids.analytic_account_id = self.partner_id.vertical and analytic_account_id or False
             for line in self.invoice_line_ids:
-                line.analytic_account_id = self.partner_id.vertical and \
-                                    analytic_account_id or line.analytic_account_id
-
+                line.analytic_account_id = self.partner_id.vertical and analytic_account_id or line.analytic_account_id
 
     def update_due_date(self):
         current_month = datetime.datetime.now().date().month
@@ -422,9 +335,9 @@ class AccountMoveLine(models.Model):
     category_id = fields.Many2one("product.category", string="Category")
     description = fields.Char(string="Description")
 
-    @api.onchange('tax_ids')
+    @api.onchange("tax_ids")
     def onchange_tax_ids(self):
-        #prevent user to add tax on rebate products
+        # prevent user to add tax on rebate products
         for line in self:
             if line.product_id == line.move_id.partner_id.management_company_type_id.discount_product:
                 line.tax_ids = False

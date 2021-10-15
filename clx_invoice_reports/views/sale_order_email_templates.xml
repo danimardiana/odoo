@@ -78,7 +78,7 @@
                         Hello,
                     <br/>
                     <br/>
-                    Your quotation for <strong style="font-weight:bolder;">${object.partner_id.name}</strong> totalling <strong style="font-weight:bolder;">${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong> has been confirmed.
+                    Your quotation for <strong style="font-weight:bolder;">${object.partner_id.name}</strong> totaling <strong style="font-weight:bolder;">${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong> has been confirmed.
                     <br/><br/>
                     Thank you for your business!
                     <br/><br/>

@@ -521,27 +521,18 @@ class RequestForm(models.Model):
         if self.update_all_products:
             self.cancel_client = False
 
-    @api.onchange("partner_id", "is_create_client_launch", "cancel_client")
+    @api.onchange("partner_id")
     def _onchange_partner_id(self):
+        self._generate_task_list()
+
+    @api.onchange("cancel_client")
+    def _onchange_cancel_client(self):
         list_product = []
         req_line_obj = self.env["request.form.line"]
-        main_task_obj = self.env["main.task"]
 
-        # Reset all cancellation fields if cancel deselected
-        if not self.cancel_client:
-            self.cancel_user_id = False
-            self.cancel_client_type = False
-            self.cancel_reports = False
-            self.cancel_reason = False
-            self.cancel_reason_detail = False
-            self.cancel_service_date = False
-            self.cancel_billing = False
-            self.description = False
-
-        # if client cancel request, set Project Title and hide other options.
         if self.cancel_client:
+            # if client cancel request, set Project Title and hide other options.
             client_cancellation_main_task = self.env.ref("clx_task_management.client_cancellation_task")
-            list_product = []
 
             if self.partner_id.name:
                 self.description = "CLIENT CANCELLATION - " + self.partner_id.name
@@ -561,20 +552,45 @@ class RequestForm(models.Model):
             form_line_id = req_line_obj.create(cancellation_main_task_vals)
             list_product.append(form_line_id.id)
 
-        elif not self.is_create_client_launch:
-            client_launch_task = self.env.ref("clx_task_management.clx_client_launch_task", raise_if_not_found=False)
-            available_line = self.request_line.filtered(
-                lambda x: client_launch_task and x.task_id.id == client_launch_task.id
+            self.update(
+                {
+                    "request_line": [(6, 0, list_product)],
+                    "product_ids": False,
+                }
             )
-            if available_line:
-                available_line.unlink()
+
+        # Reset all cancellation fields if cancel deselected
         else:
+            self.cancel_user_id = False
+            self.cancel_client_type = False
+            self.cancel_reports = False
+            self.cancel_reason = False
+            self.cancel_reason_detail = False
+            self.cancel_service_date = False
+            self.cancel_billing = False
+            self.description = False
+
+            if self.description and "CANCELLATION" in self.description:
+                self.description = self.partner_id.name if self.partner_id.name else False
+
+            self._generate_task_list()
+
+    @api.onchange("is_create_client_launch")
+    def _onchange_create_client_launch(self):
+        list_product = []
+        req_line_obj = self.env["request.form.line"]
+        existing_lines = req_line_obj.search([("id", "in", self.request_line.ids)])
+        request_products = self._generate_product_category_list()
+        auto_tasks = (
+            self.env.user.company_id.auto_add_main_task_ids
+            if self.env.user.company_id and self.env.user.company_id.auto_add_main_task_ids
+            else False
+        )
+
+        if self.is_create_client_launch:
             self.cancel_client = False
-            auto_tasks = (
-                self.env.user.company_id.auto_add_main_task_ids
-                if self.env.user.company_id and self.env.user.company_id.auto_add_main_task_ids
-                else False
-            )
+            list_product = self.request_line.ids
+
             for a_task in auto_tasks:
                 vals = {
                     "req_type": a_task.req_type,
@@ -583,18 +599,39 @@ class RequestForm(models.Model):
                     "description": a_task.requirements,
                 }
                 form_line_id = req_line_obj.create(vals)
-                list_product.append(form_line_id.id)
-        today = fields.Date.today()
+                list_product.insert(0,form_line_id.id)
+        else:
+            for existing in existing_lines:
+                if existing.task_id.id not in auto_tasks.ids:
+                    list_product.append(existing.id)
 
+        self.update({"request_line": [(6, 0, list_product)], "product_ids": request_products["product_ids"]})
+
+        for line in self.request_line:
+            line.update({"req_type": "new" if self.is_create_client_launch else "update"})
+
+    def _generate_task_list(self):
+        request_products = self._generate_product_category_list()
+        self.update(
+            {
+                "request_line": [(6, 0, request_products["request_line"])]
+                if request_products["request_line"]
+                else False,
+                "product_ids": request_products["product_ids"],
+            }
+        )
+
+    def _generate_product_category_list(self):
+        list_product = []
+        req_line_obj = self.env["request.form.line"]
         lines = self.env["sale.order.line"].search([("order_partner_id", "=", self.partner_id.id)])
         order_lines = False
+        product_ids = False
 
         if lines and not self.cancel_client:
             order_lines = lines
             order_lines = order_lines.filtered(lambda x: x.subscription_id.is_active and x.product_id.is_task_create)
-
-            if self.description and "CANCELLATION" in self.description:
-                self.description = self.partner_id.name if self.partner_id.name else ""
+            product_ids = order_lines.mapped("product_id") if order_lines else False
 
             for category in order_lines.mapped("product_id").mapped("categ_id"):
                 line_id = req_line_obj.create(
@@ -605,12 +642,9 @@ class RequestForm(models.Model):
                 )
                 list_product.append(line_id.id)
 
-        self.update(
-            {
-                "request_line": [(6, 0, list_product)],
-                "product_ids": order_lines.mapped("product_id") if order_lines else False,
-            }
-        )
+        request_product = {"request_line": list_product if len(list_product) > 0 else False, "product_ids": product_ids}
+
+        return request_product
 
     def update_description(self):
         for line in self.request_line:
@@ -625,6 +659,7 @@ class RequestFormLine(models.Model):
     _name = "request.form.line"
     _description = "Request Form Line"
     _rec_name = "request_form_id"
+    _order = "create_date desc"
 
     request_form_id = fields.Many2one("request.form", string="Request Form", ondelete="cascade")
     req_type = fields.Selection([("new", "New"), ("update", "Update"), ("budget", "Budget")], string="Request Type")

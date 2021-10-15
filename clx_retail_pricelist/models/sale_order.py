@@ -48,10 +48,58 @@ class SaleOrder(models.Model):
             return date.strftime("%B")
         return date
 
-    def management_fee_calculation(self, price_unit, product, pricelist):
-        pricelist_product = self.env["sale.subscription"].pricelist_determination(product, pricelist)
-        result = self.env["sale.subscription"].subscription_wholesale_period(price_unit, pricelist_product)
-        return result
+    # this method populate subscription lines with management fee values for quotations and invoices
+    def update_with_management_fee(self, lines, start_date, partner):
+
+        combined_products = {}
+        category_show_params = {}
+        # group products as they need to have the common Management Fee
+        for line in lines:
+            signature = line["management_fee_signature"]
+            if signature not in combined_products:
+                combined_products[signature] = []
+            combined_products[signature].append(line)
+
+        for group_lines in combined_products:
+
+            base_subscriptions = combined_products[group_lines]
+            # all subscriptions  of the same products for all kinds of grouping
+            product = self.env["product.product"].browse(base_subscriptions[0]["product_id"])
+            adapted_subscriptions = []
+
+            if partner.management_fee_grouping:
+                related_subscriptions = []
+                exceptions = list(filter(lambda x: x, map(lambda x: x.get("id", False), lines)))
+                related_subscriptions = self.env["sale.subscription"].get_subscription_lines(
+                    partner=partner,
+                    product=product,
+                    start_date=start_date,
+                    exceptions=exceptions,
+                )
+
+                for support_subscription in related_subscriptions:
+                    price, price_full, coop_coef = support_subscription.period_price_calc(start_date, partner)
+                    adapted_subscriptions.append(
+                        {
+                            "id": support_subscription.id,
+                            "product_id": product.id,
+                            "price_unit": price,
+                            "price_full": price_full,
+                            "coop_coef": coop_coef,
+                            "category_id": product.categ_id.id,
+                            "pricelist": base_subscriptions[0]["pricelist"],
+                            "name": support_subscription["name"],
+                        }
+                    )
+
+            category_show_params[product.categ_id.id] = {
+                "show_mgmnt_fee": product.categ_id.management_fee,
+                "show_wholesale": product.categ_id.wholesale,
+            }
+            # calculate the management fee for parent if coop
+            self.env["sale.subscription"].update_subscriptions_with_management_fee(
+                partner, base_subscriptions + adapted_subscriptions, category_show_params
+            )
 
     @api.onchange("pricelist_id")
     def onchange_pricelist(self):
