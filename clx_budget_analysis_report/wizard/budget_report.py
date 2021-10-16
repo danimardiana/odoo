@@ -6,8 +6,6 @@ from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from datetime import timedelta
 from calendar import monthrange, month_name
-import datetime
-import json
 
 
 class BudgetReportWizard(models.TransientModel):
@@ -48,6 +46,7 @@ class BudgetReportWizard(models.TransientModel):
         self._cr.execute("DELETE FROM sale_subscription_report_data")
         report_data_table = self.env["sale.subscription.report.data"]
         params = self.env["ir.config_parameter"].sudo()
+
         # search all subscriptions lines for the client
         # TODO: update with co-op information
         subscription_lines = self.env["sale.subscription.line"].search(
@@ -79,13 +78,15 @@ class BudgetReportWizard(models.TransientModel):
         # partner_id = self.env["res.partner"].browse(self.partner_ids.ids[0])
         companies_list = {}
         category_show_params = {}
+
+        # first loop to get retails for all periods
         while True:
             result_table[slider_period] = {}
             for sub_line in subscription_lines:
                 partner_id = sub_line.analytic_account_id.partner_id
                 companies_list["%s|%s" % (str(partner_id.id), str(sub_line.analytic_account_id.id))] = {
                     "company": partner_id,
-                    "percent": 1.0,
+                    "coop_coef": 1.0,
                 }
                 if len(sub_line.analytic_account_id.co_op_partner_ids):
                     for co_op_line in sub_line.analytic_account_id.co_op_partner_ids:
@@ -95,15 +96,15 @@ class BudgetReportWizard(models.TransientModel):
                         )
                         companies_list[sub_company_signature] = {
                             "company": co_op_line.partner_id,
-                            "percent": co_op_line.ratio / 100,
+                            "coop_coef": co_op_line.ratio / 100,
                         }
 
                 # check if our sub_line intersect with period and get full price for subscription based on main company
-                retail_price = sub_line.period_price_calc(
+                price_unit, price_full, coop_coef = sub_line.period_price_calc(
                     slider_start_date, sub_line.so_line_id.order_id.partner_id.id, True
                 )
                 # just pass sub.line if no spending this month
-                if not retail_price:
+                if not price_unit:
                     continue
                 price_list_id = sub_line.so_line_id.order_id.pricelist_id
 
@@ -111,24 +112,11 @@ class BudgetReportWizard(models.TransientModel):
                     str(sub_line.so_line_id.order_id.partner_id.id) + "_" + str(sub_line.analytic_account_id.id)
                 )
 
-                # pricelist needed to calculate wholesale only
-                # if not price_list_id in price_list_processed:
-                #     price_list.update(self.env["sale.subscription"].pricelist_flatten(price_list_id))
-                #     price_list_processed.append(price_list_id)
                 if product_stamp in result_table[slider_period]:
-                    result_table[slider_period][product_stamp]["retail_price"] += retail_price
+                    result_table[slider_period][product_stamp]["price_unit"] += price_unit
+                    result_table[slider_period][product_stamp]["price_full"] += price_full
+
                 else:
-                    # tags = [
-                    #     str(price_list_id.id) + "_0_" + str(sub_line.product_id.id),
-                    #     str(price_list_id.id) + "_1_" + str(sub_line.product_id.product_tmpl_id.id),
-                    #     str(price_list_id.id) + "_2_" + str(sub_line.product_id.categ_id.id),
-                    #     str(price_list_id.id) + "_3",
-                    #     list(price_list.keys())[0],
-                    # ]
-                    # for tag in tags:
-                    #     if tag in price_list:
-                    #         pricelist2process = price_list[tag]
-                    #         break
                     pricelist2process = sub_line.analytic_account_id.pricelist_determination(
                         sub_line.product_id, price_list_id
                     )
@@ -142,19 +130,21 @@ class BudgetReportWizard(models.TransientModel):
                     if sub_line.end_date and sub_line.end_date < result_end_date:
                         result_end_date = sub_line.end_date
                     result_table[slider_period][product_stamp] = {
+                        "id": sub_line.id,
                         "period": slider_period,
                         "start_date": result_start_date,
                         "product_id": sub_line.product_id.id,
                         "subscription_id": sub_line.analytic_account_id.id,
                         "subscription_line_id": sub_line.id,
-                        "partner_id": sub_line.so_line_id.order_id.partner_id.id,
+                        "partner_id": sub_line.so_line_id.order_id.partner_id,
                         # will be calculated based on final amount later
-                        "wholesale_price": pricelist2process,
+                        "pricelist": pricelist2process,
                         "end_date": result_end_date,
-                        "retail_price": retail_price,
+                        "price_unit": price_unit,
                         "description": sub_line.so_line_id.name,
-                        "category": sub_line.product_id.categ_id.id,
+                        "category_id": sub_line.product_id.categ_id.id,
                         "company_name": sub_line.so_line_id.order_id.partner_id.name,
+                        "price_full": price_full,
                     }
                     category_show_params[sub_line.product_id.categ_id.id] = {
                         "show_mgmnt_fee": sub_line.product_id.categ_id.management_fee,
@@ -168,19 +158,12 @@ class BudgetReportWizard(models.TransientModel):
             slider_period = month_name[slider_start_date.month] + " " + str(slider_start_date.year)
             if slider_end_date > self.end_date:
                 break
+
         # saving to the report table
         for period in result_table.keys():
+
             for subscription in result_table[period].keys():
                 sale_line_write = result_table[period][subscription]
-
-                management_fee_data = self.env["sale.subscription"].subscription_wholesale_period(
-                    sale_line_write["retail_price"],
-                    sale_line_write["wholesale_price"],
-                    category_show_params[sale_line_write["category"]],
-                )
-                # if "management_fee_product" in management_fee_data:
-                #     del management_fee_data["management_fee_product"]
-                result_table[period][subscription].update(management_fee_data)
 
                 # pass thru all the companies related to the subscription
                 subscription_id = subscription.split("_")[1]
@@ -188,34 +171,48 @@ class BudgetReportWizard(models.TransientModel):
                     filter(lambda signature: signature.split("|")[1] == subscription_id, companies_list.keys())
                 )
                 for partner_line in subscription_related_list:
-                    subscribtion_total = sale_line_write.copy()
-                    partner_percent = companies_list[partner_line]["percent"]
+                    partner_percent = companies_list[partner_line]["coop_coef"]
                     company = companies_list[partner_line]["company"]
+
+                    subscribtion_total = sale_line_write.copy()
+                    subscribtion_total["coop_coef"] = partner_percent
+                    subscribtion_total["price_unit"] = partner_percent * subscribtion_total["price_unit"]
+                    subscribtion_total["price_full"] = partner_percent * subscribtion_total["price_full"]
+                    subscribtion_total["management_fee_signature"] = str(subscribtion_total["product_id"])
+                    # self.env["sale.subscription"].update_subscriptions_with_management_fee(
+                    #     company, [subscribtion_total], category_show_params
+                    # )
+                    self.env["sale.order"].update_with_management_fee(
+                        [subscribtion_total], subscribtion_total["start_date"], company
+                    )
+
                     company_name = company.name
                     description = subscribtion_total["description"]
                     if partner_percent != 1.0:
                         description += " (%s%%) " % (str(int(partner_percent * 100)))
-                    management_fee_product = (
-                        False
-                        if not sale_line_write["management_fee_product"]
-                        or len(sale_line_write["management_fee_product"]) == 0
-                        else sale_line_write["management_fee_product"].id
-                    )
+                    management_fee_product = sale_line_write.get("management_fee_product", False)
+                    management_fee_product = False if not management_fee_product else management_fee_product.id
+
+                    del subscribtion_total["pricelist"]
+                    del subscribtion_total["price_full"]
+                    del subscribtion_total["coop_coef"]
+                    del subscribtion_total["management_fee_signature"]
                     subscribtion_total.update(
                         {
                             "description": description,
                             "partner_id": company.id,
-                            "wholesale_price": partner_percent * sale_line_write["wholesale_price"]
-                            if (sale_line_write["wholesale_price"]) > 0
-                            else sale_line_write["wholesale_price"],
-                            "management_fee": partner_percent * sale_line_write["management_fee"]
-                            if abs(sale_line_write["management_fee"]) > 0
-                            else sale_line_write["management_fee"],
-                            "retail_price": partner_percent * sale_line_write["retail_price"],
+                            "wholesale_price": subscribtion_total["wholesale_price"]
+                            if (subscribtion_total["wholesale_price"]) > 0
+                            else subscribtion_total["wholesale_price"],
+                            "management_fee": subscribtion_total["management_fee"]
+                            if abs(subscribtion_total["management_fee"]) > 0
+                            else subscribtion_total["management_fee"],
+                            "price_unit": subscribtion_total["price_unit"],
                             "company_name": company_name,
                             "management_fee_product": management_fee_product,
                         }
                     )
+
                     report_data_table.create(subscribtion_total)
 
         # action = self.env.ref(
@@ -266,7 +263,7 @@ class qweb_sale_subscription_budgets_report(models.AbstractModel):
                 subscription.period
             ].append(
                 {
-                    "retail_price": subscription.retail_price,
+                    "price_unit": subscription.price_unit,
                     "wholesale_price": subscription.wholesale_price,
                     "management_fee": subscription.management_fee,
                     "management_fee_product": subscription.management_fee_product,
@@ -274,8 +271,8 @@ class qweb_sale_subscription_budgets_report(models.AbstractModel):
                     "end_date": subscription.end_date,
                 }
             )
-            group_sales = self.env["res.groups"].search([("name", "=", "CLX Sale Group")])
-            fees_allowed = self.env.user.id not in group_sales.users.ids
+        group_sales = self.env["res.groups"].search([("name", "=", "CLX Sale Group")])
+        fees_allowed = self.env.user.id not in group_sales.users.ids
         docargs = {
             "doc_ids": docids,
             "doc_model": report.model,
@@ -300,7 +297,7 @@ class qweb_sale_subscription_budgets_report(models.AbstractModel):
             sbl.management_fee_product as management_fee_poduct,
             sbl.partner_id as partner_id,
             sbl.wholesale_price as wholesale_price,
-            sbl.retail_price as price,
+            sbl.price_unit as price,
             sbl.end_date as end_date
             from sale_subscription_report_data AS sbl group by sbl.partner_id,sbl.id"""
         )
@@ -335,7 +332,7 @@ class sale_subscription_budgets_report(models.AbstractModel):
             sbl.management_fee as management_fee,
             sbl.partner_id as partner_id,
             sbl.wholesale_price as wholesale_price,
-            sbl.retail_price as retail_price,
+            sbl.price_unit as price_unit,
             sbl.period as period
             sbl.end_date as end_date
             from sale_subscription_report_data AS sbl group by sbl.partner_id,sbl.id"""

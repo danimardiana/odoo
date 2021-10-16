@@ -194,17 +194,22 @@ class ApiConnections(http.Controller):
             if not len(partner) or partner[0].company_type != "company":
                 return {"status": 404, "response": {"error": "partner_id should be company."}}
 
-            subscription_lines = subscription_app.get_subscription_lines(partner, False, start_date, end_date)
+            subscription_lines = subscription_app.get_subscription_lines(
+                partner=partner,
+                start_date=start_date,
+            )
             # removing not related subscriptions
             if products:
                 subscription_lines = list(filter(lambda subscr: subscr.product_id.id in products, subscription_lines))
 
-            all_subscriptions = subscription_app._grouping_wrapper(start_date, partner.id, subscription_lines, 5)
+            all_subscriptions = subscription_app._grouping_wrapper(
+                start_date=start_date, partner_id=partner, subscripion_line=subscription_lines, grouping_levels=5
+            )
 
             # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
             # total_management_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
 
-            for subscription in all_subscriptions:
+            for subscription in all_subscriptions.values():
                 wholesale = subscription["wholesale_price"]
                 if wholesale <= 0 and subscription["management_fee"] > 0:
                     wholesale = subscription["price_unit"] - subscription["management_fee"]
