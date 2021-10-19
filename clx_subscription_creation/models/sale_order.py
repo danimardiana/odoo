@@ -432,21 +432,24 @@ class SaleOrder(models.Model):
         final_values = {}
 
         for product_individual in modified_invoice_lines:
-            # combine the lines contains the same description, tax and discount
-            combined_signature = ",".join(map(lambda tax: str(tax), product_individual["tax_ids"])) + str(
-                product_individual["discount"]
-            )
+            if grouping_levels & grouping_data.SUBSCRIPTION_GROUPING_FLAG and "subscription_id" in product_individual:
+                combined_signature = str(product_individual["subscription_id"])
+            else:
+                # combine the lines contains the same description, tax and discount
+                combined_signature = ",".join(map(lambda tax: str(tax), product_individual["tax_ids"])) + str(
+                    product_individual["discount"]
+                )
 
-            # not take to account the product id when grouping the products belong to the bundles.
-            if product_individual["description"] not in [i["description"] for i in products_set_grouping_level]:
-                combined_signature += str(product_individual["product_id"])
+                # not take to account the product id when grouping the products belong to the bundles.
+                if product_individual["description"] not in [i["description"] for i in products_set_grouping_level]:
+                    combined_signature += str(product_individual["product_id"])
 
-            if grouping_levels & grouping_data.DESCRIPTION_GROUPING_FLAG:
-                combined_signature += product_individual["description"]
+                if grouping_levels & grouping_data.DESCRIPTION_GROUPING_FLAG:
+                    combined_signature += product_individual["description"]
 
-            # in case if grouping should take date in to account
-            if grouping_levels & grouping_data.DATE_GROUPING_FLAG:
-                combined_signature += str(product_individual["start_date"]) + str(product_individual["end_date"])
+                # in case if grouping should take date in to account
+                if grouping_levels & grouping_data.DATE_GROUPING_FLAG:
+                    combined_signature += str(product_individual["start_date"]) + str(product_individual["end_date"])
             product_individual["product_signature"] = combined_signature
             if partner_id.management_fee_grouping:
                 product_individual["management_fee_signature"] = str(product_individual["product_id"])
