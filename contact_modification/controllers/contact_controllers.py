@@ -2,6 +2,7 @@
 from odoo import http
 from odoo.http import request
 
+
 class ContactContoller(http.Controller):
     @http.route(["/subscriberlist/"], type="json", auth="none", methods=["POST"])
     def get_subscribed_clients(self, access_token):
@@ -11,7 +12,21 @@ class ContactContoller(http.Controller):
         # if access_token != access_token_settings:
         #     return {"status": 404, "response": {"error": "Access Token is wrong"}}
 
-        subscription_query = "select ss.partner_id, ss.is_active from sale_subscription ss"
+        subscription_query = """select sub.id,
+                                sub.partner_id,
+                                sub.is_active 
+                                from (select ss.id,
+                                             ss.partner_id,
+                                             ss.is_active 
+                                      from sale_subscription ss
+                                      union
+                                      select ss.id,
+                                             coop.partner_id,
+                                             ss.is_active 
+                                      from co_op_subscription_partner coop
+                                      inner join sale_subscription ss on ss.id = coop.subscription_id
+                                      ) as sub
+                                order by sub.id;"""
         http.request._cr.execute(subscription_query)
         subscription_result = http.request._cr.fetchall()
 
@@ -79,7 +94,7 @@ class ContactContoller(http.Controller):
     def get_companies(self, company):
         if len(company) < 3:
             return {"status": 404, "response": {"error": "Company name too short"}}
-        
+
         if "company_type" not in request.jsonrequest:
             return {"status": 404, "response": {"error": "company_type not set"}}
 
@@ -87,11 +102,11 @@ class ContactContoller(http.Controller):
 
         if request.jsonrequest["company_type"] in ["person", "owner", "company", "management"]:
             company_type = request.jsonrequest["company_type"]
-            
-        limit =  10
+
+        limit = 10
 
         if "limit" in request.jsonrequest:
-            limit =  request.jsonrequest["limit"]
+            limit = request.jsonrequest["limit"]
 
         company_query = """ 
                 SELECT id, name, company_type, vertical
