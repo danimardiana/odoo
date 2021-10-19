@@ -357,7 +357,7 @@ class SaleSubscription(models.Model):
         ):
             return False
 
-        invoices_generate_since_str = self.env["ir.config_parameter"].get_param("invoices_generate_since", False)
+        invoices_generate_since_str = self.env["ir.config_parameter"].sudo().get_param("invoices_generate_since", False)
         invoices_generate_since = (
             False
             if not fields.Date.to_date(invoices_generate_since_str)
@@ -384,7 +384,7 @@ class SaleSubscription(models.Model):
             or not (any(list(map(lambda l: l["price_unit"], lines["invoice_lines"]))))
         ):
             return False
-            
+
         is_co_op = any(
             list(
                 map(
