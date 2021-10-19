@@ -341,8 +341,8 @@ class SaleBudgetChanges(models.Model):
                 change_date in change_dates_existing_processed
                 and change_dates_existing_processed[change_date]["change_price"]
                 == change_dates_existing[change_date]["change_price"]
-                and change_dates_existing_processed[change_date]["retail_current"]
-                == change_dates_existing[change_date]["retail_current"]
+                and change_dates_existing_processed[change_date]["price_full"]
+                == change_dates_existing[change_date]["price_full"]
             ):
                 change_dates_existing[change_date].update(change_object)
             else:
