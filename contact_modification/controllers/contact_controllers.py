@@ -8,9 +8,9 @@ class ContactContoller(http.Controller):
     def get_subscribed_clients(self, access_token):
         params = request.env["ir.config_parameter"].sudo()
         access_token_settings = params.get_param("api_token", False)
-        print(access_token)
-        # if access_token != access_token_settings:
-        #     return {"status": 404, "response": {"error": "Access Token is wrong"}}
+
+        if access_token != access_token_settings:
+            return {"status": 404, "response": {"error": "Access Token is wrong"}}
 
         subscription_query = """select sub.id,
                                 sub.partner_id,
