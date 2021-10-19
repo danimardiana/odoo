@@ -368,6 +368,14 @@ class SaleSubscription(models.Model):
             partner, order_id, kwargs["start_date"], kwargs["end_date"], grouping_data.DESCRIPTION_GROUPING_FLAG
         )
 
+        # do not create invoices if no lines to invoice or all have 0
+        if (
+            not lines
+            or not lines["related_subscriptions"]
+            or not (any(list(map(lambda l: l["price_unit"], lines["invoice_lines"]))))
+        ):
+            return False
+
         is_co_op = any(
             list(
                 map(
@@ -400,14 +408,6 @@ class SaleSubscription(models.Model):
         last_order = sorted(
             lines["related_subscriptions"], key=lambda kv: kv.so_line_id.order_id.create_date, reverse=True
         )[0].so_line_id.order_id
-
-        # do not create invoices if no lines to invoice or all have 0
-        if (
-            not lines
-            or not lines["related_subscriptions"]
-            or not (any(list(map(lambda l: l["price_unit"], lines["invoice_lines"]))))
-        ):
-            return False
 
         # generating the new invoice
         invoice_origin = {}
