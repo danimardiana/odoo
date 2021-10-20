@@ -2,60 +2,16 @@
 from odoo import http
 from odoo.http import request
 
-
 class ContactContoller(http.Controller):
-    @http.route(["/subscriberlist/"], type="json", auth="none", csrf=False, methods=["POST"])
-    def get_subscribed_clients(self, access_token, product_id_list):
+    @http.route(["/subscriberlist/"], type="json", auth="none", methods=["POST"])
+    def get_subscribed_clients(self, access_token):
         params = request.env["ir.config_parameter"].sudo()
         access_token_settings = params.get_param("api_token", False)
+        print(access_token)
+        # if access_token != access_token_settings:
+        #     return {"status": 404, "response": {"error": "Access Token is wrong"}}
 
-        if access_token != access_token_settings:
-            return {"status": 403, "response": {"error": "Access Token is wrong"}}
-
-        if not product_id_list:
-            return {"status": 400, "response": {"error": "Must provide a product id list"}}
-
-        subscription_query = """
-                            select  sub.product_name,
-                                    sub.product_id,
-                                    sub.entity_name,
-                                    sub.partner_id,
-                                    sub.is_active 
-                            from (select sl.name as product_name,
-                                        sl.product_id,
-                                        rp.name as entity_name,
-                                        ss.partner_id,
-                                        ss.is_active 
-                                from sale_subscription ss
-                                inner join res_partner rp on rp.id = ss.partner_id 
-                                inner join (select max(id),
-                                                    analytic_account_id,	
-                                                    name,
-                                                    product_id
-                                            from sale_subscription_line
-                                            where product_id in {product_list}
-                                            group by analytic_account_id,name,product_id) sl on sl.analytic_account_id = ss.id 
-                                union
-                                select sl.name as product_name,
-                                        sl.product_id,
-                                        rp.name as entity_name,
-                                        ss.partner_id,
-                                        ss.is_active 
-                                from co_op_subscription_partner coop
-                                inner join sale_subscription ss on ss.id = coop.subscription_id
-                                inner join res_partner rp on rp.id = coop.partner_id 
-                                inner join (select max(id),
-                                                    analytic_account_id,	
-                                                    name,
-                                                    product_id
-                                            from sale_subscription_line
-                                            where product_id in {product_list}
-                                            group by analytic_account_id,name,product_id) sl on sl.analytic_account_id = ss.id
-                                ) as sub
-                            order by sub.entity_name;""".format(
-            product_list=tuple(product_id_list)
-        )
-
+        subscription_query = "select ss.partner_id, ss.is_active from sale_subscription ss"
         http.request._cr.execute(subscription_query)
         subscription_result = http.request._cr.fetchall()
 
@@ -64,13 +20,13 @@ class ContactContoller(http.Controller):
         odoo_companies = []
 
         for company in subscription_result:
-            if not company[3] in subscriber_map:
-                subscriber_map[company[3]] = company[4]
-                company_id_str = str(company[3])
+            if not company[0] in subscriber_map:
+                subscriber_map[company[0]] = company[1]
+                company_id_str = str(company[0])
                 subscriber_ids.append(company_id_str)
             else:
-                if company[3]:
-                    subscriber_map[company[3]] = True
+                if company[1]:
+                    subscriber_map[company[0]] = True
 
         id_tuple = tuple(subscriber_ids)
         company_query = """ 
@@ -123,7 +79,7 @@ class ContactContoller(http.Controller):
     def get_companies(self, company):
         if len(company) < 3:
             return {"status": 404, "response": {"error": "Company name too short"}}
-
+        
         if "company_type" not in request.jsonrequest:
             return {"status": 404, "response": {"error": "company_type not set"}}
 
@@ -131,11 +87,11 @@ class ContactContoller(http.Controller):
 
         if request.jsonrequest["company_type"] in ["person", "owner", "company", "management"]:
             company_type = request.jsonrequest["company_type"]
-
-        limit = 10
+            
+        limit =  10
 
         if "limit" in request.jsonrequest:
-            limit = request.jsonrequest["limit"]
+            limit =  request.jsonrequest["limit"]
 
         company_query = """ 
                 SELECT id, name, company_type, vertical
