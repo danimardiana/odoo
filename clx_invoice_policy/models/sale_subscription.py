@@ -657,7 +657,7 @@ class SaleSubscription(models.Model):
             ("start_date", "<=", end_date),
         ]
 
-        if "order" in kwargs:
+        if "order" in kwargs and kwargs["order"]:
             search_args += [("so_line_id.order_id.id", "=", kwargs["order"].id)]
 
         if "product" in kwargs:
@@ -672,30 +672,6 @@ class SaleSubscription(models.Model):
             ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
         ]
 
-        return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
-
-    def get_subscription_lines_old(self, partner, order_id, start_date, end_date):
-        """
-        Collecting lines for invoicing based on the daterange
-        Should be start_day and end_day presented
-        """
-        # collecting filter basing on arguments
-        search_args = [
-            ("so_line_id.order_id.state", "in", ("sale", "done")),
-            "|",
-            ("end_date", ">=", start_date),
-            ("end_date", "=", False),
-            ("start_date", "<=", end_date),
-        ]
-
-        if order_id:
-            search_args += [("so_line_id.order_id.id", "=", order_id)]
-
-        search_args += [
-            "|",
-            ("so_line_id.order_id.partner_id", "child_of", partner.id),
-            ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
-        ]
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 
     # adding the management fee and rebate lines to the invoice
