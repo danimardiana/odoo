@@ -13,6 +13,16 @@ class Invoice(models.Model):
     _inherit = "account.move"
 
     def regroup_lines_for_preview(self):
+        def _grouping_name_calc(line, partner_id):
+            # partner_id = line.so_line_id.order_id.partner_id
+            product_id = line["product_id"]
+            description = product_id.categ_id.name
+            if partner_id.invoice_selection == "sol":
+                description = self.env["sale.order.line"]._grouping_by_product_logic(
+                    product_id, partner_id, line["name"]
+                )
+            return description
+
         invoice_lines = []
         for line in self.invoice_line_ids:
             invoice_lines.append(
@@ -30,7 +40,13 @@ class Invoice(models.Model):
                     "tax_ids": line.tax_ids,
                 }
             )
+        # grouping by accounting wrapping rules (product level, "Budget Wrapping" fields )
+        for line in invoice_lines:
+            line["description"] = _grouping_name_calc(line, self.partner_id)
+
+        # grouping by products set
         self.env["sale.order"].grouping_by_product_set(invoice_lines)
+
         grouped_lines = {}
 
         for product_individual in invoice_lines:
