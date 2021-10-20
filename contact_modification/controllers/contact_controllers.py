@@ -12,21 +12,47 @@ class ContactContoller(http.Controller):
         if access_token != access_token_settings:
             return {"status": 404, "response": {"error": "Access Token is wrong"}}
 
-        subscription_query = """select sub.id,
-                                sub.partner_id,
-                                sub.is_active 
-                                from (select ss.id,
-                                             ss.partner_id,
-                                             ss.is_active 
-                                      from sale_subscription ss
-                                      union
-                                      select ss.id,
-                                             coop.partner_id,
-                                             ss.is_active 
-                                      from co_op_subscription_partner coop
-                                      inner join sale_subscription ss on ss.id = coop.subscription_id
-                                      ) as sub
-                                order by sub.id;"""
+        subscription_query = """
+                            select sub.id,
+                                   sub.template_name,
+                                   sub.product_tmpl_id,
+                                   sub.product_id,
+                                   sub.partner_id,
+                                   sub.is_active 
+                            from (select ss.id,
+                                         pt.name as template_name,
+                                         sl.product_id,
+                                         pp.product_tmpl_id,
+                                         ss.partner_id,
+                                         ss.is_active 
+                                from sale_subscription ss
+                                inner join (select max(id),
+                                                   analytic_account_id,	
+                                                   name,
+                                                   product_id
+                                            from sale_subscription_line
+                                            group by analytic_account_id,name,product_id) sl on sl.analytic_account_id = ss.id
+                                inner join product_product pp on pp.id = sl.product_id
+                                inner join product_template pt on pt.id = pp.product_tmpl_id
+                                union
+                                select ss.id,
+                                       pt.name as template_name,
+                                       sl.product_id,
+                                       pp.product_tmpl_id,
+                                       coop.partner_id,
+                                       ss.is_active 
+                                from co_op_subscription_partner coop
+                                inner join sale_subscription ss on ss.id = coop.subscription_id
+                                inner join (select max(id),
+                                                   analytic_account_id,	
+                                                   name,
+                                                   product_id
+                                            from sale_subscription_line
+                                            group by analytic_account_id,name,product_id) sl on sl.analytic_account_id = ss.id
+                                inner join product_product pp on pp.id = sl.product_id
+                                inner join product_template pt on pt.id = pp.product_tmpl_id
+                                ) as sub
+                            order by sub.partner_id;"""
         http.request._cr.execute(subscription_query)
         subscription_result = http.request._cr.fetchall()
 
