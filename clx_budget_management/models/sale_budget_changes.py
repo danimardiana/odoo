@@ -237,8 +237,8 @@ class SaleBudgetChanges(models.Model):
                 period_process_signature = period_process + "|" + str(subscription_iterator.id)
                 periods_spending[period_process_signature] = list(
                     subscription_iterator._grouping_wrapper(
-                        start_date = involved_periods[period_process],
-                        partner_id = partner_id,
+                        start_date=involved_periods[period_process],
+                        partner_id=partner_id,
                     ).values()
                 )[0]
 

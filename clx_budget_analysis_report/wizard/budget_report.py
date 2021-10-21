@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 from collections import OrderedDict
 from datetime import timedelta
 from calendar import monthrange, month_name
+from . import grouping_data
 
 
 class BudgetReportWizard(models.TransientModel):
@@ -41,182 +42,227 @@ class BudgetReportWizard(models.TransientModel):
             )
         return result
 
+    # the grouping specfic for budget report: no grouping of any kind except
+    # the subscription lines belong to same subscription
+    def _grouping_wrapper(self, **kwargs):
+
+        start_date = kwargs.get("start_date", False)
+        partner_id = kwargs.get("partner_id", False)
+        subscripion_line = kwargs.get("subscripion_line", False)
+        grouping_levels = kwargs.get("grouping_levels", 16)
+        is_root = kwargs.get("is_root", False)
+        if not subscripion_line or not start_date:
+            return {}
+
+        def initial_order_data(line, partner_id):
+            price, price_full, coop_coef = line.period_price_calc(start_date, partner_id, is_root)
+            product_variant = ""
+            if len(line.product_id.product_template_attribute_value_ids):
+                product_variant = line.product_id.product_template_attribute_value_ids[0].name
+            rebate, rebate_product = line.rebate_calc(price)
+            pricelist2process = line.analytic_account_id.pricelist_determination(
+                line.product_id, line.analytic_account_id.pricelist_id
+            )
+            start_date_final = kwargs["start_date"] if kwargs["start_date"] > line.start_date else line.start_date
+            end_date_final = kwargs.get("end_date", start_date + relativedelta(days=-1, months=1))
+            end_date_final = line.end_date if line.end_date and end_date_final > line.end_date else end_date_final
+            return {
+                "id": line.id,
+                "product_name": line.product_id.name,
+                "product_variant": product_variant,
+                "partner_owner": line.analytic_account_id.partner_id,
+                "product_id": line.product_id.id,
+                "coop_coef": coop_coef,
+                "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
+                "name": line.name,
+                "subscription_id": line.analytic_account_id.id,
+                # when calling the function without the authorization (from API) we don't have the current company
+                # so need to define it explicetly for fields depends on company .
+                # Now the main company is only one so we can use it's ID - 1
+                "account_id": line.analytic_account_id.with_context(
+                    {"force_company": 1}
+                ).account_depreciation_expense_id.id
+                or False,
+                "price_unit": price,
+                "price_full": price_full,
+                "pricelist": pricelist2process,
+                "category_name": line.product_id.categ_id.name,
+                "category_id": line.product_id.categ_id.id,
+                "description": line.name,
+                "contract_product_description": line.product_id.contract_product_description,
+                "rebate": rebate,
+                # "rebate_product": rebate_product,
+                "discount": line.discount,
+                "tax_ids": list(map(lambda tax: tax.id, line.so_line_id.tax_id)),
+                "start_date": start_date_final,
+                "end_date": end_date_final,
+            }
+
+        # just filtering the fields necessary for last step - invoice creation
+        def last_order_data(product_individual):
+            return {
+                "id": product_individual["id"],
+                "subscription_id": product_individual["subscription_id"],
+                "coop_coef": product_individual["coop_coef"],
+                "product_name": product_individual["product_name"],
+                "product_variant": product_individual["product_variant"],
+                "price_unit": product_individual["price_unit"],
+                "description": product_individual["description"],
+                "contract_product_description": product_individual["contract_product_description"],
+                "account_id": product_individual["account_id"],
+                "name": product_individual["name"],
+                "category_id": product_individual["category_id"],
+                "product_id": product_individual["product_id"],
+                "partner_owner": product_individual["partner_owner"],
+                "pricelist": product_individual["pricelist"],
+                "price_full": product_individual["price_full"],
+                "wholesale_price": product_individual["wholesale_price"],
+                "start_date": product_individual["start_date"],
+                "end_date": product_individual["end_date"],
+                "management_fee": product_individual["management_fee"],
+                "management_fee_product": product_individual["management_fee_product"],
+            }
+
+        def last_order_update(product_source, product_additional):
+            product_updated = product_source
+            product_updated["price_unit"] += product_additional["price_unit"]
+            product_updated["price_full"] += product_additional["price_full"]
+            product_updated["management_fee"] += product_additional["management_fee"]
+            product_updated["management_fee_product"] = (
+                product_updated["management_fee_product"] or product_additional["management_fee_product"]
+            )
+            product_updated["wholesale_price"] += product_additional["wholesale_price"]
+            # product_updated["rebate"] += product_additional["rebate"]
+            product_updated["account_id"] = product_additional["account_id"]
+            if "start_date" in product_updated or "start_date" in product_additional:
+                if not product_updated["start_date"]:
+                    product_updated["start_date"] = product_additional["start_date"]
+                else:
+                    product_updated["start_date"] = (
+                        product_additional["start_date"]
+                        if product_additional["start_date"]
+                        and product_updated["start_date"] > product_additional["start_date"]
+                        else product_updated["start_date"]
+                    )
+
+            if "end_date" in product_updated:
+                if not product_updated["end_date"]:
+                    product_updated["end_date"] = product_additional["end_date"]
+                else:
+                    product_updated["end_date"] = (
+                        product_updated["end_date"]
+                        if product_additional["end_date"]
+                        and product_updated["end_date"] >= product_additional["end_date"]
+                        else product_additional["end_date"]
+                    )
+            # product_updated["prorate_amount"] += product_additional["prorate_amount"]
+            return product_updated
+
+        source_lines = subscripion_line
+        return self.env["sale.order"].grouping_all_products(
+            source_lines,
+            partner_id,
+            initial_order_data,
+            last_order_data,
+            last_order_update,
+            start_date,
+            grouping_levels,
+        )
+
     def get_budget_report(self):
         # clean up the previous report data
         self._cr.execute("DELETE FROM sale_subscription_report_data")
         report_data_table = self.env["sale.subscription.report.data"]
         params = self.env["ir.config_parameter"].sudo()
 
-        # search all subscriptions lines for the client
-        # TODO: update with co-op information
-        subscription_lines = self.env["sale.subscription.line"].search(
-            [
-                "|",
-                # "&",
-                # !!! COOP rebuild
-                # ("analytic_account_id.is_co_op", "=", True),
-                # ("analytic_account_id.co_opp_partner_ids.partner_id", "in", self.partner_ids.ids),
-                ("analytic_account_id.co_op_partner_ids.partner_id", "in", self.partner_ids.ids),
-                ("analytic_account_id.partner_id", "in", self.partner_ids.ids),
-                ("start_date", "!=", False),
-                # ('product_id.subscription_template_id.recurring_rule_type', '=', 'monthly'),
-                "|",
-                ("end_date", ">=", self.start_date),
-                ("end_date", "=", False),
-                ("start_date", "<=", self.end_date),
-            ],
-            order="start_date asc",
-        )
-        if not len(subscription_lines):
-            return
+        def get_all_sublines(partner_ids):
+            # search all subscriptions lines for the client
+            return self.env["sale.subscription.line"].search(
+                [
+                    "|",
+                    ("analytic_account_id.co_op_partner_ids.partner_id", "in", partner_ids),
+                    ("analytic_account_id.partner_id", "in", partner_ids),
+                    ("start_date", "!=", False),
+                    "|",
+                    ("end_date", ">=", self.start_date),
+                    ("end_date", "=", False),
+                    ("start_date", "<=", self.end_date),
+                ],
+                order="start_date asc",
+            )
+
         slider_start_date = self.start_date.replace(day=1)
         slider_end_date = self.start_date.replace(day=monthrange(slider_start_date.year, slider_start_date.month)[1])
         slider_period = month_name[slider_start_date.month] + " " + str(slider_start_date.year)
-        result_table = {}
-        price_list = {}
-        price_list_processed = []
-        # partner_id = self.env["res.partner"].browse(self.partner_ids.ids[0])
-        companies_list = {}
-        category_show_params = {}
 
-        # first loop to get retails for all periods
+        periods_list = [(slider_start_date, slider_end_date, slider_period)]
         while True:
-            result_table[slider_period] = {}
-            for sub_line in subscription_lines:
-                partner_id = sub_line.analytic_account_id.partner_id
-                companies_list["%s|%s" % (str(partner_id.id), str(sub_line.analytic_account_id.id))] = {
-                    "company": partner_id,
-                    "coop_coef": 1.0,
-                }
-                if len(sub_line.analytic_account_id.co_op_partner_ids):
-                    for co_op_line in sub_line.analytic_account_id.co_op_partner_ids:
-                        sub_company_signature = "%s|%s" % (
-                            str(co_op_line.partner_id.id),
-                            str(sub_line.analytic_account_id.id),
-                        )
-                        companies_list[sub_company_signature] = {
-                            "company": co_op_line.partner_id,
-                            "coop_coef": co_op_line.ratio / 100,
-                        }
-
-                # check if our sub_line intersect with period and get full price for subscription based on main company
-                price_unit, price_full, coop_coef = sub_line.period_price_calc(
-                    slider_start_date, sub_line.so_line_id.order_id.partner_id.id, True
-                )
-                # just pass sub.line if no spending this month
-                if not price_unit:
-                    continue
-                price_list_id = sub_line.so_line_id.order_id.pricelist_id
-
-                product_stamp = (
-                    str(sub_line.so_line_id.order_id.partner_id.id) + "_" + str(sub_line.analytic_account_id.id)
-                )
-
-                if product_stamp in result_table[slider_period]:
-                    result_table[slider_period][product_stamp]["price_unit"] += price_unit
-                    result_table[slider_period][product_stamp]["price_full"] += price_full
-
-                else:
-                    pricelist2process = sub_line.analytic_account_id.pricelist_determination(
-                        sub_line.product_id, price_list_id
-                    )
-
-                    result_start_date = (
-                        slider_start_date if slider_start_date >= sub_line.start_date else sub_line.start_date
-                    )
-                    result_end_date = slider_start_date.replace(
-                        day=monthrange(slider_start_date.year, slider_start_date.month)[1]
-                    )
-                    if sub_line.end_date and sub_line.end_date < result_end_date:
-                        result_end_date = sub_line.end_date
-                    result_table[slider_period][product_stamp] = {
-                        "id": sub_line.id,
-                        "period": slider_period,
-                        "start_date": result_start_date,
-                        "product_id": sub_line.product_id.id,
-                        "subscription_id": sub_line.analytic_account_id.id,
-                        "subscription_line_id": sub_line.id,
-                        "partner_id": sub_line.so_line_id.order_id.partner_id,
-                        # will be calculated based on final amount later
-                        "pricelist": pricelist2process,
-                        "end_date": result_end_date,
-                        "price_unit": price_unit,
-                        "description": sub_line.so_line_id.name,
-                        "category_id": sub_line.product_id.categ_id.id,
-                        "company_name": sub_line.so_line_id.order_id.partner_id.name,
-                        "price_full": price_full,
-                    }
-                    category_show_params[sub_line.product_id.categ_id.id] = {
-                        "show_mgmnt_fee": sub_line.product_id.categ_id.management_fee,
-                        "show_wholesale": sub_line.product_id.categ_id.wholesale,
-                    }
-
-            slider_start_date += relativedelta(months=1)
+            slider_start_date = slider_start_date + relativedelta(months=1)
             slider_end_date = slider_start_date.replace(
                 day=monthrange(slider_start_date.year, slider_start_date.month)[1]
             )
             slider_period = month_name[slider_start_date.month] + " " + str(slider_start_date.year)
+            periods_list.append((slider_start_date, slider_end_date, slider_period))
             if slider_end_date > self.end_date:
                 break
+        related_companies = list()
 
-        # saving to the report table
-        for period in result_table.keys():
-
-            for subscription in result_table[period].keys():
-                sale_line_write = result_table[period][subscription]
-
-                # pass thru all the companies related to the subscription
-                subscription_id = subscription.split("_")[1]
-                subscription_related_list = list(
-                    filter(lambda signature: signature.split("|")[1] == subscription_id, companies_list.keys())
+        def process_clients_for_period(partners_ids, subscription_lines, is_root):
+            # period_slist and result_table are global for this
+            for partner_id_int in partners_ids:
+                partner_id = self.env["res.partner"].browse(partner_id_int)
+                subscription_lines_set_for_partner = list(
+                    filter(
+                        lambda l: l.analytic_account_id.partner_id.id == partner_id_int
+                        or partner_id_int in l.analytic_account_id.co_op_partner_ids.mapped("partner_id").mapped("id"),
+                        subscription_lines,
+                    )
                 )
-                for partner_line in subscription_related_list:
-                    partner_percent = companies_list[partner_line]["coop_coef"]
-                    company = companies_list[partner_line]["company"]
-
-                    subscribtion_total = sale_line_write.copy()
-                    subscribtion_total["coop_coef"] = partner_percent
-                    subscribtion_total["price_unit"] = partner_percent * subscribtion_total["price_unit"]
-                    subscribtion_total["price_full"] = partner_percent * subscribtion_total["price_full"]
-                    subscribtion_total["management_fee_signature"] = str(subscribtion_total["product_id"])
-                    # self.env["sale.subscription"].update_subscriptions_with_management_fee(
-                    #     company, [subscribtion_total], category_show_params
-                    # )
-                    self.env["sale.order"].update_with_management_fee(
-                        [subscribtion_total], subscribtion_total["start_date"], company
+                for period in periods_list:
+                    slider_start_date, slider_end_date, slider_period = period
+                    for sub_line in subscription_lines_set_for_partner:
+                        for co_op_line in sub_line.analytic_account_id.co_op_partner_ids:
+                            if co_op_line.partner_id.id not in related_companies:
+                                related_companies.append(co_op_line.partner_id.id)
+                    # don't do grouping of any kind, as OPS need to has link to each subscription
+                    global_grouped_sub_lines = self._grouping_wrapper(
+                        start_date=slider_start_date,
+                        end_date=slider_end_date,
+                        partner_id=partner_id,
+                        subscripion_line=subscription_lines_set_for_partner,
+                        grouping_levels=grouping_data.SUBSCRIPTION_GROUPING_FLAG,
+                        is_root=is_root,
                     )
 
-                    company_name = company.name
-                    description = subscribtion_total["description"]
-                    if partner_percent != 1.0:
-                        description += " (%s%%) " % (str(int(partner_percent * 100)))
-                    management_fee_product = sale_line_write.get("management_fee_product", False)
-                    management_fee_product = False if not management_fee_product else management_fee_product.id
-
-                    del subscribtion_total["pricelist"]
-                    del subscribtion_total["price_full"]
-                    del subscribtion_total["coop_coef"]
-                    del subscribtion_total["management_fee_signature"]
-                    subscribtion_total.update(
-                        {
-                            "description": description,
-                            "partner_id": company.id,
-                            "wholesale_price": subscribtion_total["wholesale_price"]
-                            if (subscribtion_total["wholesale_price"]) > 0
-                            else subscribtion_total["wholesale_price"],
-                            "management_fee": subscribtion_total["management_fee"]
-                            if abs(subscribtion_total["management_fee"]) > 0
-                            else subscribtion_total["management_fee"],
-                            "price_unit": subscribtion_total["price_unit"],
-                            "company_name": company_name,
-                            "management_fee_product": management_fee_product,
+                    for sub_line in global_grouped_sub_lines.values():
+                        if sub_line["price_unit"] == 0:
+                            continue
+                        sub_line["description"] += (
+                            "" if sub_line["coop_coef"] == 1.0 else " (%s%%) " % (str(int(sub_line["coop_coef"] * 100)))
+                        )
+                        subscribtion_total = {
+                            "id": sub_line["id"],
+                            "period": slider_period,
+                            "start_date": sub_line["start_date"],
+                            "product_id": sub_line["product_id"],
+                            "subscription_line_id": sub_line["id"],
+                            "partner_id": partner_id_int,
+                            "end_date": sub_line["end_date"],
+                            "subscription_id": sub_line["subscription_id"],
+                            "price_unit": sub_line["price_unit"] * sub_line["coop_coef"],
+                            "description": sub_line["description"],
+                            "category_id": sub_line["category_id"],
+                            "management_fee": sub_line["management_fee"] * sub_line["coop_coef"],
+                            "wholesale_price": sub_line["wholesale_price"] * sub_line["coop_coef"],
+                            "company_name": partner_id.name,
                         }
-                    )
+                        report_data_table.create(subscribtion_total)
 
-                    report_data_table.create(subscribtion_total)
-
-        # action = self.env.ref(
-        #     'clx_budget_analysis_report.'+self.env.context['action_next']).read()[0]
+        all_sublines = get_all_sublines(self.partner_ids.ids)
+        process_clients_for_period(self.partner_ids.ids, all_sublines, True)
+        # adding co-ops companies to report
+        all_sublines = get_all_sublines(related_companies)
+        process_clients_for_period(related_companies, all_sublines, False)
 
         action = self.env.ref("clx_budget_analysis_report." + self.env.context["action_next"]).read()[0]
 
