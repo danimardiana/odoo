@@ -39,7 +39,7 @@ class ContactContoller(http.Controller):
                                 select sl.name as product_name,
                                         sl.product_id,
                                         rp.name as entity_name,
-                                        ss.partner_id,
+                                        coop.partner_id,
                                         ss.is_active 
                                 from co_op_subscription_partner coop
                                 inner join sale_subscription ss on ss.id = coop.subscription_id
