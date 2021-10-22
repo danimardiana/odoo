@@ -263,7 +263,7 @@ class SaleOrder(models.Model):
             start_date = line["start_date"].replace(day=1)
             if date_text == "recurring_spend" or start_date.strftime("%Y%m") == date_text:
                 continue
-            if line["prorate_amount"] and line["prorate_amount"] != line["price_unit"]:
+            if line["is_prorated"]:
                 start_date += relativedelta(months=1)
             # if start date == signature this means it was processed already
             if start_date.strftime("%Y%m") == date_text:
