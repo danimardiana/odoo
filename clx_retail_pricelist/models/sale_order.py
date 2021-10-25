@@ -6,6 +6,7 @@ from odoo.exceptions import ValidationError
 from odoo.tools import float_round
 from odoo.tools.misc import get_lang
 import datetime
+from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
 
@@ -59,6 +60,27 @@ class SaleOrder(models.Model):
             if signature not in combined_products:
                 combined_products[signature] = []
             combined_products[signature].append(line)
+        end_date = end_date = start_date + relativedelta(months=1, days=-1)
+
+        all_related_subscriptions = (
+            self.env["sale.subscription.line"]
+            .with_context(active_test=False)
+            .search(
+                [
+                    "|",
+                    ("so_line_id.order_id.partner_id", "child_of", partner.id),
+                    ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
+                    ("so_line_id.product_id.id", "in", [int(k) for k in combined_products.keys()]),
+                    ("so_line_id.order_id.state", "in", ("sale", "done")),
+                    "|",
+                    ("end_date", ">=", start_date),
+                    ("end_date", "=", False),
+                    ("start_date", "<=", end_date),
+                    ("id", "not in", list(map(lambda x: x.get("id", False), lines))),
+                ]
+            )
+        )
+
 
         for group_lines in combined_products:
 
@@ -68,13 +90,8 @@ class SaleOrder(models.Model):
             adapted_subscriptions = []
 
             if partner.management_fee_grouping:
-                related_subscriptions = []
-                exceptions = list(filter(lambda x: x, map(lambda x: x.get("id", False), lines)))
-                related_subscriptions = self.env["sale.subscription"].get_subscription_lines(
-                    partner=partner,
-                    product=product,
-                    start_date=start_date,
-                    exceptions=exceptions,
+                related_subscriptions = list(
+                    filter(lambda l: l.product_id.id == int(group_lines), all_related_subscriptions)
                 )
 
                 for support_subscription in related_subscriptions:
