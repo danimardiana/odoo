@@ -6,6 +6,7 @@ import binascii
 from datetime import date
 import datetime
 from dateutil import parser
+from calendar import monthrange, month_name
 
 from odoo import fields, http, _
 from odoo.exceptions import AccessError, MissingError
@@ -159,7 +160,17 @@ class CustomerPortal(CustomerPortal):
 class ApiConnections(http.Controller):
     # endpoint for BAR script
     @http.route(["/clientplatformspend/"], type="json", auth="none", methods=["POST"])
-    def client_platform_spend(self, partners_id, start_date, products, access_token, name=None, signature=None):
+    def client_platform_spend(
+        self,
+        partners_id,
+        start_date,
+        end_date,
+        products,
+        access_token,
+        billing_summary=False,
+        name=None,
+        signature=None,
+    ):
         params = request.env["ir.config_parameter"].sudo()
         access_token_settings = params.get_param("api_token", False)
 
@@ -174,7 +185,22 @@ class ApiConnections(http.Controller):
         else:
             start_date = parser.parse(start_date).date()
 
-        end_date = start_date + relativedelta(months=1, days=-1)
+        if not end_date:
+            end_date = start_date + relativedelta(months=1, days=-1)
+        else:
+            end_date = parser.parse(end_date).date()
+
+        slider_start_date = start_date
+        slider_end_date = start_date + relativedelta(months=1, days=-1)
+        periods_list = []
+
+        while True:
+            periods_list.append((slider_start_date, slider_end_date))
+            slider_start_date = slider_start_date + relativedelta(months=1)
+            slider_end_date = slider_start_date + relativedelta(months=1, days=-1)
+            if slider_end_date > end_date:
+                break
+
         subscription_app = request.env["sale.subscription"].sudo()
         all_odoo_partners = (
             request.env["res.partner"]
@@ -194,41 +220,67 @@ class ApiConnections(http.Controller):
             if not len(partner) or partner[0].company_type != "company":
                 return {"status": 404, "response": {"error": "partner_id should be company."}}
 
+            # getting subscriptions for all the period
             subscription_lines = subscription_app.get_subscription_lines(
-                partner=partner,
-                start_date=start_date,
+                partner=partner, start_date=start_date, end_date=end_date, root_only=True
             )
+
             # removing not related subscriptions
             if products:
                 subscription_lines = list(filter(lambda subscr: subscr.product_id.id in products, subscription_lines))
 
-            all_subscriptions = subscription_app._grouping_wrapper(
-                start_date=start_date, partner_id=partner, subscripion_line=subscription_lines, grouping_levels=5
-            )
+            if len(subscription_lines) == 0:
+                continue
 
-            # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
-            # total_management_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
+            for period in periods_list:
+                slider_start_date, slider_end_date = period
+                all_subscriptions = subscription_app._grouping_wrapper(
+                    start_date=slider_start_date,
+                    partner_id=partner,
+                    subscripion_line=subscription_lines,
+                    grouping_levels=5,
+                    is_root=True,
+                )
 
-            for subscription in all_subscriptions.values():
-                wholesale = subscription["wholesale_price"]
-                if wholesale <= 0 and subscription["management_fee"] > 0:
-                    wholesale = subscription["price_unit"] - subscription["management_fee"]
-                response_data += [
-                    {
+                # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
+                # total_management_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
+
+                for subscription in all_subscriptions.values():
+                    wholesale = subscription["wholesale_price"]
+                    if wholesale <= 0 and subscription["management_fee"] > 0:
+                        wholesale = subscription["price_unit"] - subscription["management_fee"]
+                    line = {
                         "partner_id": partner_id,
                         "price": subscription["price_unit"],
                         "management_fee": subscription["management_fee"],
                         "wholesale": wholesale,
                         "product_name": subscription["description"],
                         # "product_variant": subscription["product_variant"],
-                        "startDate": start_date
-                        if not subscription["start_date"] or start_date > subscription["start_date"]
+                        "startDate": slider_start_date
+                        if not subscription["start_date"] or slider_start_date > subscription["start_date"]
                         else subscription["start_date"],
-                        "endDate": end_date
-                        if not subscription["end_date"] or end_date < subscription["end_date"]
+                        "endDate": slider_end_date
+                        if not subscription["end_date"] or slider_end_date < subscription["end_date"]
                         else subscription["end_date"],
                     }
-                ]
+                    if billing_summary:
+                        product = request.env["product.product"].browse(subscription["product_id"])
+                        line.update(
+                            {
+                                "product_original_name": product.name,
+                                "product_type": product.categ_id.name,
+                                "company_name": all_odoo_partners_obj[partner_id].name,
+                                "management_company": all_odoo_partners_obj[partner_id].management_company_type_id.name,
+                                "vertical": all_odoo_partners_obj[partner_id].vertical,
+                                "company_sales_person": all_odoo_partners_obj[partner_id].account_user_id.name,
+                                "company_implementation_specialist": subscription[
+                                    "partner_owner"
+                                ].implementation_specialist_id.name,
+                                "yardi": all_odoo_partners_obj[partner_id].yardi_code,
+                                "period_date": slider_start_date,
+                            }
+                        )
+                    response_data += [line]
         return {
             "status": 200,
             "response": {
