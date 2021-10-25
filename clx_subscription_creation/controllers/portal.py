@@ -239,6 +239,7 @@ class ApiConnections(http.Controller):
                     partner_id=partner,
                     subscripion_line=subscription_lines,
                     grouping_levels=5,
+                    contract_mode=True,
                     is_root=True,
                 )
 
