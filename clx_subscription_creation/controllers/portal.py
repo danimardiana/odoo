@@ -212,8 +212,6 @@ class ApiConnections(http.Controller):
             all_odoo_partners_obj[odoo_partner.id] = odoo_partner
 
         for partner_id in partners_id:
-            # if partner_id != 52281:
-            #     continue # debug purposes
             if partner_id not in all_odoo_partners_obj:
                 continue
             partner = all_odoo_partners_obj[partner_id]
@@ -239,11 +237,9 @@ class ApiConnections(http.Controller):
                     partner_id=partner,
                     subscripion_line=subscription_lines,
                     grouping_levels=5,
+                    contract_mode=True,
                     is_root=True,
                 )
-
-                # total_price = sum(list(map(lambda subscr: (subscr["price_unit"]), subscriptions)))
-                # total_management_fee = sum(list(map(lambda subscr: (subscr["management_fee"]), subscriptions)))
 
                 for subscription in all_subscriptions.values():
                     wholesale = subscription["wholesale_price"]
