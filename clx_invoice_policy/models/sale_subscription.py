@@ -509,9 +509,9 @@ class SaleSubscription(models.Model):
         partner_id = kwargs.get("partner_id", False)
         subscripion_line = kwargs.get("subscripion_line", False)
         grouping_levels = kwargs.get("grouping_levels", grouping_data.ALL_FLAGS_GROUPING)
-
+        contract_mode = kwargs.get("contract_mode", False)
         def initial_order_data(line, partner_id):
-            price, price_full, coop_coef = line.period_price_calc(start_date, partner_id)
+            price, price_full, coop_coef = line.period_price_calc(start_date, partner_id, contract_mode)
             product_variant = ""
             if len(line.product_id.product_template_attribute_value_ids):
                 product_variant = line.product_id.product_template_attribute_value_ids[0].name
@@ -666,11 +666,16 @@ class SaleSubscription(models.Model):
         if "exceptions" in kwargs:
             search_args += [("id", "not in", kwargs["exceptions"])]
 
-        search_args += [
-            "|",
-            ("so_line_id.order_id.partner_id", "child_of", partner.id),
-            ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
-        ]
+        if "root_only" in kwargs and kwargs["root_only"]:
+            search_args += [
+                ("so_line_id.order_id.partner_id", "child_of", partner.id),
+            ]
+        else:
+            search_args += [
+                "|",
+                ("so_line_id.order_id.partner_id", "child_of", partner.id),
+                ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
+            ]
 
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 

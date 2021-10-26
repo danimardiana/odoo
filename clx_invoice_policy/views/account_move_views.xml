@@ -76,7 +76,19 @@
                             <field name="email"/>
                         </tree>
                     </field>            
-                </page>                
+                </page>     
+                <page string="Payments" name="payments">   
+                    <field name="payment_ids">     
+                        <tree decoration-info="state == 'draft'" decoration-muted="state in ['reconciled', 'cancelled']" create="false" delete="false" editable="false">
+                            <field name="payment_date"/>
+                            <field name="name"/>
+                            <field name="journal_id"/>
+                            <field name="payment_method_id"/>
+                            <field name="amount" sum="Amount"/>
+                            <field name="state"/>
+                        </tree>
+                    </field>            
+                </page>               
             </xpath>            
             <xpath expr="//group[@name='sale_info_group']//field[@name='invoice_user_id']" position="after">
                 <field name="account_user_id"/>
