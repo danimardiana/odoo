@@ -136,7 +136,7 @@ class SaleBudgetExportWizard(models.TransientModel):
             else:
                 all_odoo_partners[partner_id] = [subline_id]
         partner_index = 0
-        step = int(len(all_odoo_partners) / 100)
+        step = int(len(all_odoo_partners) / 100) + 1
 
         for partner in all_odoo_partners:
 
