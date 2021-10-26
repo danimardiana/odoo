@@ -136,17 +136,21 @@ class SaleBudgetExportWizard(models.TransientModel):
             else:
                 all_odoo_partners[partner_id] = [subline_id]
         partner_index = 0
-        step = int(len(all_odoo_partners) / 100)
+        step = int(len(all_odoo_partners) / 100) + 1
 
-        for partner_id in all_odoo_partners:
+        for partner in all_odoo_partners:
 
-            subscription_lines = subscription_line_object.browse(all_odoo_partners[partner_id])
+            subscription_lines = subscription_line_object.browse(all_odoo_partners[partner])
+            partner_object = self.env["res.partner"].browse(partner)
 
             all_subscriptions = subscription_object._grouping_wrapper(
-                start_date = self.start_date, partner_id = partner_id , subscription_line = subscription_lines, grouping_levels = 5
+                start_date=self.start_date,
+                partner_id=partner_object,
+                subscription_line=subscription_lines,
+                grouping_levels=5,
             )
 
-            for subscription in all_subscriptions:
+            for subscription in all_subscriptions.values():
                 wholesale = subscription["wholesale_price"]
                 if wholesale <= 0 and subscription["management_fee"] > 0:
                     wholesale = subscription["price_unit"] - subscription["management_fee"]
@@ -160,7 +164,7 @@ class SaleBudgetExportWizard(models.TransientModel):
                     if not subscription["end_date"] or self.end_date < subscription["end_date"]
                     else subscription["end_date"]
                 )
-                partner_object = self.env["res.partner"].browse(partner_id)
+
                 return_object = {
                     "partner_id": partner_id,
                     "company_name": partner_object.name,
@@ -254,4 +258,3 @@ class SaleBudgetExportWizard(models.TransientModel):
 
             self._cr.commit()
             new_cr.close()
-            
