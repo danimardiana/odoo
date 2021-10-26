@@ -666,11 +666,16 @@ class SaleSubscription(models.Model):
         if "exceptions" in kwargs:
             search_args += [("id", "not in", kwargs["exceptions"])]
 
-        search_args += [
-            "|",
-            ("so_line_id.order_id.partner_id", "child_of", partner.id),
-            ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
-        ]
+        if "root_only" in kwargs and kwargs["root_only"]:
+            search_args += [
+                ("so_line_id.order_id.partner_id", "child_of", partner.id),
+            ]
+        else:
+            search_args += [
+                "|",
+                ("so_line_id.order_id.partner_id", "child_of", partner.id),
+                ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
+            ]
 
         return self.env["sale.subscription.line"].with_context(active_test=False).search(search_args)
 
