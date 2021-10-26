@@ -507,9 +507,10 @@ class SaleSubscription(models.Model):
             return []
         start_date = kwargs["start_date"]
         partner_id = kwargs.get("partner_id", False)
-        subscripion_line = kwargs.get("subscripion_line", False)
+        subscripion_line = kwargs.get("subscription_line", False)
         grouping_levels = kwargs.get("grouping_levels", grouping_data.ALL_FLAGS_GROUPING)
         contract_mode = kwargs.get("contract_mode", False)
+
         def initial_order_data(line, partner_id):
             price, price_full, coop_coef = line.period_price_calc(start_date, partner_id, contract_mode)
             product_variant = ""
