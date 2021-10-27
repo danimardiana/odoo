@@ -249,11 +249,11 @@ class BudgetReportWizard(models.TransientModel):
                             "partner_id": partner_id_int,
                             "end_date": sub_line["end_date"],
                             "subscription_id": sub_line["subscription_id"],
-                            "price_unit": sub_line["price_unit"] * sub_line["coop_coef"],
+                            "price_unit": sub_line["price_unit"],
                             "description": sub_line["description"],
                             "category_id": sub_line["category_id"],
-                            "management_fee": sub_line["management_fee"] * sub_line["coop_coef"],
-                            "wholesale_price": sub_line["wholesale_price"] * sub_line["coop_coef"],
+                            "management_fee": sub_line["management_fee"],
+                            "wholesale_price": sub_line["wholesale_price"],
                             "company_name": partner_id.name,
                         }
                         report_data_table.create(subscribtion_total)
