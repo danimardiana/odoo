@@ -48,10 +48,10 @@ class BudgetReportWizard(models.TransientModel):
 
         start_date = kwargs.get("start_date", False)
         partner_id = kwargs.get("partner_id", False)
-        subscripion_line = kwargs.get("subscripion_line", False)
+        subscription_line = kwargs.get("subscription_line", False)
         grouping_levels = kwargs.get("grouping_levels", 16)
         is_root = kwargs.get("is_root", False)
-        if not subscripion_line or not start_date:
+        if not subscription_line or not start_date:
             return {}
 
         def initial_order_data(line, partner_id):
@@ -158,7 +158,7 @@ class BudgetReportWizard(models.TransientModel):
             # product_updated["prorate_amount"] += product_additional["prorate_amount"]
             return product_updated
 
-        source_lines = subscripion_line
+        source_lines = subscription_line
         return self.env["sale.order"].grouping_all_products(
             source_lines,
             partner_id,
@@ -229,7 +229,7 @@ class BudgetReportWizard(models.TransientModel):
                         start_date=slider_start_date,
                         end_date=slider_end_date,
                         partner_id=partner_id,
-                        subscripion_line=subscription_lines_set_for_partner,
+                        subscription_line=subscription_lines_set_for_partner,
                         grouping_levels=grouping_data.SUBSCRIPTION_GROUPING_FLAG,
                         is_root=is_root,
                     )
