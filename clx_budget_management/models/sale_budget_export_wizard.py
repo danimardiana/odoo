@@ -148,6 +148,8 @@ class SaleBudgetExportWizard(models.TransientModel):
                 partner_id=partner_object,
                 subscription_line=subscription_lines,
                 grouping_levels=5,
+                contract_mode=True,
+                is_root=True,
             )
 
             for subscription in all_subscriptions.values():
