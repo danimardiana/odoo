@@ -500,16 +500,17 @@ class SaleSubscription(models.Model):
         return invoice
 
     # grouping all subscriptions following the grouping rules for reporting
-    # start_date, partner_id=False, subscripion_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING
+    # start_date, partner_id=False, subscription_line=False, grouping_levels=grouping_data.ALL_FLAGS_GROUPING
     def _grouping_wrapper(self, **kwargs):
         # inputs process
         if not "start_date" in kwargs:
             return []
         start_date = kwargs["start_date"]
         partner_id = kwargs.get("partner_id", False)
-        subscripion_line = kwargs.get("subscripion_line", False)
+        subscription_line = kwargs.get("subscription_line", False)
         grouping_levels = kwargs.get("grouping_levels", grouping_data.ALL_FLAGS_GROUPING)
         contract_mode = kwargs.get("contract_mode", False)
+
         def initial_order_data(line, partner_id):
             price, price_full, coop_coef = line.period_price_calc(start_date, partner_id, contract_mode)
             product_variant = ""
@@ -617,7 +618,7 @@ class SaleSubscription(models.Model):
             # product_updated["prorate_amount"] += product_additional["prorate_amount"]
             return product_updated
 
-        source_lines = subscripion_line or self.recurring_invoice_line_ids
+        source_lines = subscription_line or self.recurring_invoice_line_ids
         return self.env["sale.order"].grouping_all_products(
             source_lines,
             partner_id,
@@ -814,7 +815,7 @@ class SaleSubscription(models.Model):
         global_grouped_sub_lines = self._grouping_wrapper(
             start_date=start_date,
             partner_id=partner,
-            subscripion_line=subscription_lines,
+            subscription_line=subscription_lines,
             grouping_levels=grouping_levels,
         )
 
