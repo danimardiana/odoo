@@ -63,7 +63,7 @@ class SaleOrder(models.Model):
         end_date = end_date = start_date + relativedelta(months=1, days=-1)
         exception_list_ids = ",".join(list(map(lambda x: str(x.get("id", False)), lines)))
         products_list_ids = ",".join([str(k) for k in combined_products.keys()])
-        query_string = f"""select ss.id from sale_subscription_line as ssl 
+        query_string = f"""select ssl.id from sale_subscription_line as ssl 
             inner join sale_subscription as ss on ss.id=ssl.analytic_account_id 
             inner join sale_order_line as sol on sol.id=ssl.so_line_id 
             inner join sale_order as so on so.id=sol.order_id 
@@ -78,7 +78,7 @@ class SaleOrder(models.Model):
             and ssl.product_id in ({products_list_ids})
 
             UNION 
-            select ss.id from sale_subscription_line as ssl 
+            select ssl.id from sale_subscription_line as ssl 
             inner join sale_subscription as ss on ss.id=ssl.analytic_account_id 
             inner join co_op_subscription_partner as cosp on cosp.subscription_id = ss.id
             inner join sale_order_line as sol on sol.id=ssl.so_line_id 
@@ -94,9 +94,9 @@ class SaleOrder(models.Model):
             and ssl.product_id in ({products_list_ids}) """
 
         self._cr.execute(query_string)
-        all_related_subscriptions_ids = self._cr.fetchall()
-        all_related_subscriptions = self.env["sale.subscription.line"].browse(all_related_subscriptions_ids)
+        all_related_subscriptions_ids = [x[0] for x in self._cr.fetchall()]
 
+        all_related_subscriptions = self.env["sale.subscription.line"].browse(all_related_subscriptions_ids)
         for group_lines in combined_products:
 
             base_subscriptions = combined_products[group_lines]
