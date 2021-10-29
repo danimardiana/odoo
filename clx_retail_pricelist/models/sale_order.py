@@ -61,27 +61,42 @@ class SaleOrder(models.Model):
                 combined_products[signature] = []
             combined_products[signature].append(line)
         end_date = end_date = start_date + relativedelta(months=1, days=-1)
+        exception_list_ids = ",".join(list(map(lambda x: str(x.get("id", False)), lines)))
+        products_list_ids = ",".join([str(k) for k in combined_products.keys()])
+        query_string = f"""select ssl.id from sale_subscription_line as ssl 
+            inner join sale_subscription as ss on ss.id=ssl.analytic_account_id 
+            inner join sale_order_line as sol on sol.id=ssl.so_line_id 
+            inner join sale_order as so on so.id=sol.order_id 
+            inner join product_product as product on product.id=sol.product_id 
+            where 
+            ss.partner_id = {partner.id}
+            and ssl.start_date <= date('{end_date}')
+            and (ssl.end_date >= date('{start_date}') 
+            or ssl.end_date is NULL)
+            and ssl.id not in ({exception_list_ids})
+            and so.state in ('sale', 'done')
+            and ssl.product_id in ({products_list_ids})
 
-        all_related_subscriptions = (
-            self.env["sale.subscription.line"]
-            .with_context(active_test=False)
-            .search(
-                [
-                    "|",
-                    ("so_line_id.order_id.partner_id", "child_of", partner.id),
-                    ("analytic_account_id.co_op_partner_ids.partner_id", "in", [partner.id]),
-                    ("so_line_id.product_id.id", "in", [int(k) for k in combined_products.keys()]),
-                    ("so_line_id.order_id.state", "in", ("sale", "done")),
-                    "|",
-                    ("end_date", ">=", start_date),
-                    ("end_date", "=", False),
-                    ("start_date", "<=", end_date),
-                    ("id", "not in", list(map(lambda x: x.get("id", False), lines))),
-                ]
-            )
-        )
+            UNION 
+            select ssl.id from sale_subscription_line as ssl 
+            inner join sale_subscription as ss on ss.id=ssl.analytic_account_id 
+            inner join co_op_subscription_partner as cosp on cosp.subscription_id = ss.id
+            inner join sale_order_line as sol on sol.id=ssl.so_line_id 
+            inner join sale_order as so on so.id=sol.order_id 
+            inner join product_product as product on product.id=sol.product_id 
+            where 
+            cosp.partner_id ={partner.id}
+            and ssl.start_date <= date('{end_date}')
+            and (ssl.end_date >= date('{start_date}') 
+            or ssl.end_date is NULL)
+            and ssl.id not in ({exception_list_ids})
+            and so.state in ('sale', 'done')
+            and ssl.product_id in ({products_list_ids}) """
 
+        self._cr.execute(query_string)
+        all_related_subscriptions_ids = [x[0] for x in self._cr.fetchall()]
 
+        all_related_subscriptions = self.env["sale.subscription.line"].browse(all_related_subscriptions_ids)
         for group_lines in combined_products:
 
             base_subscriptions = combined_products[group_lines]

@@ -235,7 +235,7 @@ class ApiConnections(http.Controller):
                 all_subscriptions = subscription_app._grouping_wrapper(
                     start_date=slider_start_date,
                     partner_id=partner,
-                    subscripion_line=subscription_lines,
+                    subscription_line=subscription_lines,
                     grouping_levels=5,
                     contract_mode=True,
                     is_root=True,
