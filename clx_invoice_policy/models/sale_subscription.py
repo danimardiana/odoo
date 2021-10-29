@@ -187,7 +187,7 @@ class SaleSubscription(models.Model):
         retail_absolute = abs(retail)
         full_retail_absolute = abs(price_process)
         if price_list.is_custom and management_fee == 0.0:
-            if full_retail_absolute <= price_list.min_retail_amount:
+            if full_retail_absolute < price_list.min_retail_amount:
                 management_fee = price_list.fixed_mgmt_price
             else:
                 management_fee = round((price_list.percent_mgmt_price * full_retail_absolute) / 100, 2)
