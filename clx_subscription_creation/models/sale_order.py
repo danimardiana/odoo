@@ -324,6 +324,7 @@ class SaleOrder(models.Model):
             )
 
             return {
+                "id": line.id,
                 "order_id": line.order_id,
                 "product_name": line.product_id.name,
                 "product_variant": line.product_id.product_template_attribute_value_ids.name or "",
