@@ -42,7 +42,9 @@ class Invoice(models.Model):
             )
         # grouping by accounting wrapping rules (product level, "Budget Wrapping" fields )
         for line in invoice_lines:
-            line["description"] = _grouping_name_calc(line, self.partner_id)
+            # not allow to overwriting unique descriptions
+            if line["description"] == line["product_name"]:
+                line["description"] = _grouping_name_calc(line, self.partner_id)
 
         # grouping by products set
         self.env["sale.order"].grouping_by_product_set(invoice_lines)
