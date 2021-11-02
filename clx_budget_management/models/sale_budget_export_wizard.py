@@ -102,10 +102,30 @@ class SaleBudgetExportWizard(models.TransientModel):
         default=fields.Date.today().replace(day=1) + relativedelta(days=-1, months=1),
     )
 
-    @api.onchange("start_date", "end_date")
-    def onchange_date_validation(self):
-        if self.start_date and self.end_date and self.start_date >= self.end_date:
-            raise ValidationError(_("Invalid date range."))
+    @api.onchange("start_date")
+    def onchange_start_date(self):
+        valid = self.onchange_date_validation(self.start_date, self.end_date)
+        self.end_date = self.start_date + relativedelta(days=-1, months=1)
+
+    @api.onchange("end_date")
+    def onchange_end_date(self):
+        valid = self.onchange_date_validation(self.start_date, self.end_date)
+        if not valid:
+            return self.warning_object("Timerange is wrong")
+
+    @staticmethod
+    def onchange_date_validation(start_date, end_date):
+        return not (start_date and end_date and start_date >= end_date)
+
+    @staticmethod
+    def warning_object(warning_text):
+        return {
+            "warning": {"title": "Error!", "message": warning_text},
+            "value": {
+                "time_date": None,
+                "flat": None,
+            },
+        }
 
     # for now it's just exporting data generation
     def collect_report_data(self, export_object):
@@ -168,7 +188,7 @@ class SaleBudgetExportWizard(models.TransientModel):
                 )
 
                 return_object = {
-                    "partner_id": partner_id,
+                    "partner_id": partner,
                     "company_name": partner_object.name,
                     "vertical": partner_object.vertical,
                     "retail": subscription["price_unit"],
